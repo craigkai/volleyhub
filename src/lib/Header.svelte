@@ -1,5 +1,16 @@
 <script lang="ts">
 	export let data: PageData;
+
+	let userName = '...';
+	async function getProfile() {
+		const { data: profile } = await data.supabase
+			.from('profile')
+			.select('*')
+			.eq('user_id', data?.session?.user?.id)
+			.single();
+		userName = profile?.name;
+	}
+	getProfile();
 </script>
 
 <header>
@@ -52,7 +63,7 @@
 										data-te-nav-link-ref
 										data-te-ripple-init
 										data-te-ripple-color="light"
-										>{data?.session?.user.email}'s Profile
+										>{userName}'s Profile
 									</a>
 								</li>
 							{:else}
