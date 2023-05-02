@@ -30,4 +30,4 @@
 	<slot />
 </div>
 
-<Footer />
+<Footer {data} />
