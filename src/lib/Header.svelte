@@ -19,7 +19,7 @@
 		<a href="/" class="flex">
 			<img class="h-20 w-20 p-2" src="/vball.svg" alt="volleyman" />
 			<h1 class="flex justify-center items-center text-5l text-white front-extrabold">
-				Volleyman<span
+				Volleyman(ager)<span
 					class="bg-blue-100 text-blue-800 text-2xl front-semibold px-2.5 py-0.5
 				rounded ml-2">Beta</span
 				>
