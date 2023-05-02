@@ -14,19 +14,23 @@
 	async function loadData() {
 		if (member) {
 			// Select all teams that we are currently a member of
-			const { data: teams, error } = await data.supabase.from('memberships').select(`
-                id,
-                team_name,
-                memberships ( id )`);
+			const { data: teams, error } = await data.supabase
+				.from('team')
+				.select(
+					`name,
+                    team_member!inner(
+                        profile(
+                            name
+                        )
+                    )`
+				)
+				.eq('team_member.user_id', data.session.user.id)
+				.throwOnError();
 
-			if (error) {
-				console.error(error);
-			} else {
-				loadedTeams = teams;
-			}
+			loadedTeams = teams;
 		} else {
 			// Just load all teams -- Eventually need to check session/active teams
-			let { data: teams, error } = await data.supabase.from('teams').select();
+			let { data: teams, error } = await data.supabase.from('team').select();
 			if (error) {
 				console.error(error);
 			} else {
@@ -42,6 +46,6 @@
 
 <ul>
 	{#each loadedTeams as team}
-		<li>{team.team_name}</li>
+		<li>{team.name}</li>
 	{/each}
 </ul>
