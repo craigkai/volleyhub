@@ -15,11 +15,15 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.28.1",
+		"@supabase/auth-helpers-sveltekit": "^0.9.4",
+		"@supabase/auth-ui-shared": "^0.1.3",
+		"@supabase/auth-ui-svelte": "^0.1.5",
 		"@supabase/supabase-js": "^2.21.0",
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/kit": "^1.5.0",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
+		"@vercel/analytics": "^1.0.0",
 		"autoprefixer": "^10.4.14",
 		"eslint": "^8.28.0",
 		"eslint-config-prettier": "^8.5.0",
@@ -33,12 +37,10 @@
 		"tslib": "^2.4.1",
 		"typescript": "^5.0.0",
 		"vite": "^4.3.0",
-		"vitest": "^0.25.3",
-		"@supabase/auth-helpers-sveltekit": "^0.9.4",
-		"@supabase/auth-ui-shared": "^0.1.3",
-		"@supabase/auth-ui-svelte": "^0.1.5",
-		"@vercel/analytics": "^1.0.0"
+		"vitest": "^0.25.3"
 	},
 	"type": "module",
-	"dependencies": {}
+	"dependencies": {
+		"@sveltejs/adapter-vercel": "^2.4.3"
+	}
 }
