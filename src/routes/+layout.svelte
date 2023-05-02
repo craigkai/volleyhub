@@ -2,6 +2,7 @@
 <script lang="ts">
 	import '../app.css';
 	import Header from '$lib/Header.svelte';
+	import Footer from '$lib/Footer.svelte';
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
@@ -13,7 +14,7 @@
 	onMount(() => {
 		const {
 			data: { subscription }
-		} = supabase.auth.onAuthStateChange((event, _session) => {
+		} = supabase.auth.onAuthStateChange((_event, _session) => {
 			if (_session?.expires_at !== session?.expires_at) {
 				invalidate('supabase:auth');
 			}
@@ -25,4 +26,8 @@
 
 <Header {data} />
 
-<slot />
+<div class="p-4 h-full">
+	<slot />
+</div>
+
+<Footer />
