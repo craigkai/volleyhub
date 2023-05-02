@@ -7,18 +7,18 @@ const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_KEY || '';
 
 export const load: LayoutLoad = async ({ fetch, data, depends }) => {
-    depends('supabase:auth');
+	depends('supabase:auth');
 
-    const supabase = createSupabaseLoadClient<Database>({
-        supabaseUrl: PUBLIC_SUPABASE_URL,
-        supabaseKey: PUBLIC_SUPABASE_ANON_KEY,
-        event: { fetch },
-        serverSession: data.session
-    });
+	const supabase = createSupabaseLoadClient<Database>({
+		supabaseUrl: PUBLIC_SUPABASE_URL,
+		supabaseKey: PUBLIC_SUPABASE_ANON_KEY,
+		event: { fetch },
+		serverSession: data.session
+	});
 
-    const {
-        data: { session }
-    } = await supabase.auth.getSession();
+	const {
+		data: { session }
+	} = await supabase.auth.getSession();
 
-    return { supabase, session, deploymentGitBranch: data.deploymentGitBranch };
+	return { supabase, session, deploymentGitBranch: data.deploymentGitBranch };
 };

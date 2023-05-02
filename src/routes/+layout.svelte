@@ -31,7 +31,7 @@
 
 <Header {data} />
 
-<div class="p-4 h-full">
+<div class="flex-col min-h-screen overflow-hidden p-4">
 	<slot />
 </div>
 

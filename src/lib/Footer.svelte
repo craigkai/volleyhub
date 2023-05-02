@@ -6,7 +6,7 @@
 
 <footer
 	class="whitepsace-nowrap
-    p-8 absolute inset-x-0 bottom-0
+    p-8 relative inset-x-0 bottom-0
     w-full bg-blue-500
 "
 >

@@ -5,7 +5,9 @@
 	export let data: PageData;
 </script>
 
-This page will show a list of your "teams" that you can edit Maybe also the teams you're subscribed
-to so you can unsub.
-
-<Teams {data} member={data?.session?.user} />
+<div class="flex justify-center">
+	<div class="flex-col">
+		<h2>Your Memberships:</h2>
+		<Teams {data} member={data?.session?.user} />
+	</div>
+</div>

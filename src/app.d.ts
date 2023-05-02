@@ -10,7 +10,7 @@ declare global {
 	}
 	interface PageData {
 		url: any;
-		supabase: SupabaseClient<any, "public", any>;
+		supabase: SupabaseClient<any, 'public', any>;
 		session: Session | null;
 	}
 	namespace App {
@@ -18,7 +18,6 @@ declare global {
 		interface Locals {
 			supabase: SupabaseClient;
 			getSession(): Promise<Session | null>;
-
 		}
 		// interface PageData {}
 		// interface Platform {}
@@ -26,12 +25,12 @@ declare global {
 }
 
 interface ImportMetaEnv {
-	readonly VITE_SUPABASE_KEY: string
-	readonly VITE_SUPABASE_URL: string
+	readonly VITE_SUPABASE_KEY: string;
+	readonly VITE_SUPABASE_URL: string;
 }
 
 interface ImportMeta {
-	readonly env: ImportMetaEnv
+	readonly env: ImportMetaEnv;
 }
 
-export { };
+export {};

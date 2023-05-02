@@ -5,10 +5,11 @@
 	export let data: PageData;
 </script>
 
-This page will show Holidays Sports Bar and Grill current session standings Low Rec: xyz High Rec:
-xyz Intermediate: xyz
-
-<div>
-	Teams this session:
-	<Teams {data} />
+<div class="flex justify-center">
+	<div class="flex-col">
+		<div>
+			Teams playing this session:
+			<Teams {data} />
+		</div>
+	</div>
 </div>
