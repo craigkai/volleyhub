@@ -4,14 +4,11 @@
 	import { dev } from '$app/environment';
 
 	export let data: PageData;
-	console.log(data.url);
 </script>
 
 <svelte:head>
 	<title>User Management</title>
 </svelte:head>
-
-Using {data.url}
 
 <div class="row flex-center flex justify-center">
 	<div class="col-6 form-widget">
