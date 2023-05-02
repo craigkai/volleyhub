@@ -39,7 +39,7 @@
 		}
 	}
 
-	$: if (data?.session) {
+	$: if (data?.supabase) {
 		loadData();
 	}
 </script>
