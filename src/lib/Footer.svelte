@@ -12,6 +12,6 @@
 >
 	Copyright? Yeah right
 	<div>
-		<p>This staging environment was deployed from {data.deploymentGitBranch}.</p>
+		<p>This staging environment was deployed from {import.meta.env.VITE_COMMIT_REF}.</p>
 	</div>
 </footer>

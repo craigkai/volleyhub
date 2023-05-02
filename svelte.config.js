@@ -1,5 +1,8 @@
 import adapter from '@sveltejs/adapter-vercel';
 import { vitePreprocess } from '@sveltejs/kit/vite';
+import { execSync } from 'child_process';
+
+process.env.VITE_COMMIT_REF = execSync('git rev-parse HEAD').toString().trim();
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
