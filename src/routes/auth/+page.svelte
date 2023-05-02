@@ -10,12 +10,14 @@
 	<title>User Management</title>
 </svelte:head>
 
+Using {data.url}
+
 <div class="row flex-center flex justify-center">
 	<div class="col-6 form-widget">
 		<Auth
 			supabaseClient={data.supabase}
 			view="magic_link"
-			redirectTo={`${dev ? data.url : 'https://volleyman.vercel.app'}/logging-in?redirect=/`}
+			redirectTo={`${data.url}/logging-in?redirect=/`}
 			showLinks={false}
 			appearance={{ theme: ThemeSupa, style: { input: 'color: black' } }}
 		/>
