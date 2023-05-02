@@ -9,7 +9,7 @@
 	<title>User Management</title>
 </svelte:head>
 
-<div class="row flex-center flex">
+<div class="row flex-center flex justify-center">
 	<div class="col-6 form-widget">
 		<Auth
 			supabaseClient={data.supabase}
