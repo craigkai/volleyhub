@@ -10,7 +10,7 @@
     w-full bg-blue-500
 "
 >
-	Copy right? Yeah right
+	Copyright? Yeah right
 	<div>
 		<p>This staging environment was deployed from {data.deploymentGitBranch}.</p>
 	</div>
