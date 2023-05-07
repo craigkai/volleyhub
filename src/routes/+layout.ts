@@ -6,7 +6,7 @@ import type { Database } from '../types/supabase';
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_KEY || '';
 
-export const load: LayoutLoad = async ({ fetch, data, depends }) => {
+export const load: LayoutLoad = async ({ fetch, data, depends, url }) => {
 	depends('supabase:auth');
 
 	const supabase = createSupabaseLoadClient<Database>({
@@ -20,5 +20,5 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
 		data: { session }
 	} = await supabase.auth.getSession();
 
-	return { supabase, session, deploymentGitBranch: data.deploymentGitBranch };
+	return { supabase, session, deploymentGitBranch: data.deploymentGitBranch, url: url.origin };
 };
