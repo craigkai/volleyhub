@@ -51,10 +51,11 @@ export interface Database {
 			};
 			teams: {
 				Row: {
+					day: string;
+					level: string;
 					created_at: string | null;
 					id: string;
-					team_captain: string | null;
-					team_name: string | null;
+					name: string | null;
 				};
 				Insert: {
 					created_at?: string | null;

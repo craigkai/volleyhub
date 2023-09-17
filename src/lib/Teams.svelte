@@ -45,7 +45,29 @@
 </script>
 
 <ul>
-	{#each loadedTeams as team}
-		<li>{team.name}</li>
+	{#each ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as day}
+		{@const teamsForToday = loadedTeams.filter((t) => t.day === day)}
+		<div class="bg-purple-200">
+			{day}:
+			{#if teamsForToday.length > 0}
+				{@const levels = Object.keys(
+					teamsForToday.reduce((accumulator, currentValue) => {
+						accumulator[currentValue.level] = 1;
+						return accumulator;
+					}, {})
+				)}
+				{#each levels as level}
+					{@const teamsForLevel = teamsForToday.filter((t) => t.level === level)}
+					<div class="bg-green-200 m-2 p-2">
+						{level}:
+						<div class="m-2 bg-blue-200 p-2">
+							{#each teamsForLevel as team}
+								<li>{team.name}</li>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			{/if}
+		</div>
 	{/each}
 </ul>
