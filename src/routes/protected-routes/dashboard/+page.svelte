@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import Teams from '$lib/Teams.svelte';
+	import Teams from '$lib/components/Teams.svelte';
 
 	export let data: PageData;
 </script>

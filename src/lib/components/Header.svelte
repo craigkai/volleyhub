@@ -3,12 +3,14 @@
 
 	let userName = '...';
 	async function getProfile() {
-		const { data: profile } = await data.supabase
-			.from('profile')
-			.select('*')
-			.eq('user_id', data?.session?.user?.id)
-			.single();
-		userName = profile?.name;
+		if (data?.session?.user?.id) {
+			const { data: profile } = await data.supabase
+				.from('profile')
+				.select('*')
+				.eq('user_id', data?.session?.user?.id)
+				.single();
+			userName = profile?.name;
+		}
 	}
 	getProfile();
 </script>

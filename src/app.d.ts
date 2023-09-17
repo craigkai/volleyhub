@@ -1,5 +1,8 @@
 import { SupabaseClient, Session } from '@supabase/supabase-js';
 import { Database } from './DatabaseDefinitions';
+import type { Database } from '../../types/supabase';
+
+type memberType = Database['public']['Tables']['teams']['Row'];
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -34,4 +37,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export {};
+export { };

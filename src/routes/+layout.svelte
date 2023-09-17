@@ -1,8 +1,8 @@
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
 	import '../app.css';
-	import Header from '$lib/Header.svelte';
-	import Footer from '$lib/Footer.svelte';
+	import Header from '$lib/components/Header.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
