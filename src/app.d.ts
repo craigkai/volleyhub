@@ -25,6 +25,7 @@ declare global {
 		// interface PageData {}
 		// interface Platform {}
 	}
+	type memberType = Database['public']['Tables']['teams']['Row']
 }
 
 interface ImportMetaEnv {

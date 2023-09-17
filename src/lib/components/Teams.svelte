@@ -30,7 +30,7 @@
 	<ul>
 		{#each ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as day}
 			{@const teamsForToday = loadedTeams.filter((t) => t.day === day)}
-			<div class="bg-purple-200">
+			<li class="bg-purple-200 p-2">
 				{day}:
 				{#if teamsForToday.length > 0}
 					{@const levels = Object.keys(
@@ -45,13 +45,13 @@
 							{level}:
 							<div class="m-2 bg-blue-200 p-2">
 								{#each teamsForLevel as team}
-									<li>{team.name}</li>
+									<div class="border-solid border-2 p-2">{team.name}</div>
 								{/each}
 							</div>
 						</div>
 					{/each}
 				{/if}
-			</div>
+			</li>
 		{/each}
 	</ul>
 {/await}

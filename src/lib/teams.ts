@@ -1,9 +1,6 @@
 // Handle our team related code
-import type { Database } from '../types/supabase';
 import { state } from '$lib/stores';
 import { get } from 'svelte/store';
-
-type memberType = Database['public']['Tables']['teams']['Row'];
 
 /*
 Handle checking our store first and then making a request if we have no
