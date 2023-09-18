@@ -18,6 +18,7 @@
 	}
 
 	let loadedTeams: any[] = [];
+	// When league changes -- recall our `getAllTeams` backend API method.
 	$: league, getTeams();
 </script>
 
