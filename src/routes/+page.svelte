@@ -15,9 +15,17 @@
 		}
 	];
 	let activeTabValue = 'Schedule';
+	let league = 'IV Stallions';
 </script>
 
 <div class="flex justify-center">
+	League:
+
+	<select bind:value={league}>
+		<option value="IV Stallions">IV Stallions</option>
+		<option value="Holidays">Holdiays</option>
+	</select>
+
 	<div class="w-1/2">
 		<div class="flex flex-row">
 			<span
@@ -40,7 +48,7 @@
 		{#each items as item}
 			{#if activeTabValue == item.value}
 				<div class="box">
-					<svelte:component this={item.component} {data} />
+					<svelte:component this={item.component} {data} {league} />
 				</div>
 			{/if}
 		{/each}

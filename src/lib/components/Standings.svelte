@@ -1,19 +1,24 @@
 <!-- Teams that the provided user is a member of -->
 <script lang="ts">
 	import { getAllTeams } from '$lib/teams';
+	import type { Database } from '../../types/supabase';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
 	// Optional member query value, if member is provided then we can limit the
 	// teams that we return etc etc.
 	export let member: any | null = null;
+	export let league: string = 'IV Stallions';
 
-	let loadingTeamsPromise = getAllTeams(
-		data.supabase,
-		// TODO! Make the league value dynamic
-		'IV Stallions',
-		member ? data?.session?.user?.id : undefined
-	);
+	let loadingTeamsPromise: Promise<void | Database[]> = Promise.resolve();
+	async function getTeams() {
+		loadingTeamsPromise = getAllTeams(data.supabase, league, member).then(
+			(res) => (loadedTeams = res)
+		);
+	}
+
+	let loadedTeams: any[] = [];
+	$: league, getTeams();
 </script>
 
 {#await loadingTeamsPromise}
@@ -28,7 +33,7 @@
 			>
 		</div>
 	</div>
-{:then loadedTeams}
+{:then}
 	<ul>
 		{#each ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as day}
 			{@const teamsForToday = loadedTeams.filter((t) => t.day === day)}

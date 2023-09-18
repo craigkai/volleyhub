@@ -49,7 +49,13 @@ export async function getAllTeams(handle: any, league: string, member?: string, 
             console.error(error);
         } else {
             loadedTeams = teams;
-            state.set({ "teams": teams });
+            state.set({
+                league: {
+                    "teams": teams,
+                    ...currentState?.[league]
+                },
+                ...currentState
+            });
         }
     }
     return loadedTeams;
