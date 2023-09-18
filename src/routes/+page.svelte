@@ -6,10 +6,8 @@
 </script>
 
 <div class="flex justify-center">
-	<div class="flex-col">
-		<div>
-			Teams playing this session:
-			<Teams {data} />
-		</div>
+	<div class="w-1/2">
+		Teams playing this session:
+		<Teams {data} />
 	</div>
 </div>
