@@ -51,7 +51,15 @@
 												<summary
 													class="flex justify-between items-center font-medium cursor-pointer list-none"
 												>
-													<span>{team.name}</span>
+													<table class="table-auto">
+														<tbody>
+															<tr>
+																<td>{team.name}</td>
+																<td>Team info...</td>
+																<td>Team info...</td>
+															</tr>
+														</tbody>
+													</table>
 													<span class="transition group-open:rotate-180">
 														<svg
 															fill="none"
