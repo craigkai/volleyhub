@@ -5,6 +5,6 @@
 
 Schedule coming soon...
 
-<select>
+<select class="p-2 rounded">
 	<option>Week 1...</option>
 </select>
