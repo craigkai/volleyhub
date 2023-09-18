@@ -10,6 +10,8 @@
 
 	let loadingTeamsPromise = getAllTeams(
 		data.supabase,
+		// TODO! Make the league value dynamic
+		'IV Stallions',
 		member ? data?.session?.user?.id : undefined
 	);
 </script>
