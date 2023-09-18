@@ -18,46 +18,39 @@
 	let league = data.league;
 </script>
 
-<div class="flex justify-center">
-	League:
-
-	<select bind:value={league}>
+<div class="flex w-full justify-center">
+	<span class="p-2"> League: </span>
+	<select class="p-2 rounded" bind:value={league}>
 		<option value="IV Stallions">IV Stallions</option>
 		<option value="Holidays">Holdiays</option>
 	</select>
-
-	<div class="w-1/2">
-		<div class="flex flex-row">
-			<span
-				role="button"
-				class="p-2 bg-blue-200 m-2 rounded hover:bg-blue-100"
-				class:active={activeTabValue == 'Schedule'}
-				tabindex={1}
-				on:keydown={() => (activeTabValue = 'Schedule')}
-				on:click={() => (activeTabValue = 'Schedule')}>Schedule</span
-			>
-			<span
-				role="button"
-				class="p-2 m-2 bg-blue-200 rounded active:bg-red-300 hover:bg-blue-100"
-				class:active={activeTabValue == 'Standings'}
-				tabindex={2}
-				on:keydown={() => (activeTabValue = 'Standings')}
-				on:click={() => (activeTabValue = 'Standings')}>Standings</span
-			>
-		</div>
-		{#each items as item}
-			{#if activeTabValue == item.value}
-				<div class="box">
-					<svelte:component this={item.component} {data} {league} />
-				</div>
-			{/if}
-		{/each}
-	</div>
 </div>
 
-<style>
-	.active {
-		background-color: #ff3e00;
-		color: white;
-	}
-</style>
+<div class="flex w-full justify-center">
+	<span
+		role="button"
+		class="p-2 bg-blue-200 m-2 rounded hover:bg-blue-100"
+		class:bg-blue-400={activeTabValue == 'Schedule'}
+		tabindex={1}
+		on:keydown={() => (activeTabValue = 'Schedule')}
+		on:click={() => (activeTabValue = 'Schedule')}>Schedule</span
+	>
+	<span
+		role="button"
+		class="p-2 m-2 bg-blue-200 rounded hover:bg-blue-100"
+		class:bg-blue-400={activeTabValue == 'Standings'}
+		tabindex={2}
+		on:keydown={() => (activeTabValue = 'Standings')}
+		on:click={() => (activeTabValue = 'Standings')}>Standings</span
+	>
+</div>
+
+<div class="flex justify-center">
+	{#each items as item}
+		{#if activeTabValue == item.value}
+			<div class="box">
+				<svelte:component this={item.component} {data} {league} />
+			</div>
+		{/if}
+	{/each}
+</div>
