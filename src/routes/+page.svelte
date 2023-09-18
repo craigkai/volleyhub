@@ -15,7 +15,7 @@
 		}
 	];
 	let activeTabValue = 'Schedule';
-	let league = 'IV Stallions';
+	let league = data.league;
 </script>
 
 <div class="flex justify-center">
