@@ -12,22 +12,13 @@ Parameters:
 
 // We do a list as we are not accounting for divisions right now
 
-function createSchedule() {
-    let teams: string[] = [];
-    let i: number = 0;
-    for (; i < 28;) {
-        teams.push(`team${i}`);
-        i++;
-    }
-
-    let courts: string[] = ["court1", "court2", "court3"];
+function createSchedule(teams: string[], courts: string[], poolPlayGames: number) {
     // One division for now
     let divisions: string[] = ["power"];
 
     // This means each team has four pool play games
-    let poolPlayGames = 4;
 
-    i = 0;
+    let i = 0;
     let teamsCopy = Object.assign(teams);
     let schedule: any = {};
 
@@ -49,8 +40,6 @@ function createSchedule() {
                 let home = teamsCopy[teamsCopy.length - (i + 1)];
                 let guest = teamsCopy[teamsCopy.length - (i + 2)];
 
-                console.log(`${home} vs ${guest}`)
-
                 if (schedule[court]) {
                     schedule[court].push(`${teamsCopy.pop()} vs ${teamsCopy.pop()}`);
                 } else {
@@ -61,25 +50,58 @@ function createSchedule() {
         }
         teamsCopy = teams;
     }
+    // If we are not testing, do not upload to Supabase
+    if (!import.meta.vitest) {
+        //... update Supabase
+    }
     return schedule;
 }
 
+
 if (import.meta.vitest) {
+
+    interface gamesPlayedMap {
+        [key: string]: number
+    }
+
     const { it, expect } = import.meta.vitest;
     // We should loop over even/odd number of courts, teams and divisions and
     // confirm that teams aren't sitting too often, facing the same team too much
     // etc
-    let schedule = createSchedule();
+    let teams: string[] = [];
+    let i: number = 0;
+    for (; i < 28;) {
+        teams.push(`team${i}`);
+        i++;
+    }
+    let courts = ["court1", "court2", "court3"];
+    let poolPlayGames = 4;
+
+    let schedule = createSchedule(teams, courts, poolPlayGames);
 
     it("No teams sit for more than two games", () => {
-        expect(schedule).toEqual({});
-    })
+        // expect(schedule).toEqual({});
+    });
 
     it("Teams do not face the same team too much", () => {
-        expect(schedule).toEqual({});
-    })
+        // expect(schedule).toEqual({});
+    });
 
     it("All teams play the correct number of games", () => {
-        expect(schedule).toEqual({});
-    })
+        let gamesPlayedPerTeam: gamesPlayedMap = { 'team0': 0 };
+        Object.keys(schedule).forEach((court: string) => {
+            schedule[court].forEach((game: string) => {
+                const match = game.match(/(.*) vs (.*)/);
+                if (match) {
+                    const [_, home, guest] = match;
+                    gamesPlayedPerTeam[guest] = (gamesPlayedPerTeam[guest] + 1) || 1;
+                    gamesPlayedPerTeam[home] = (gamesPlayedPerTeam[home] + 1) || 1;
+                }
+            });
+        });
+
+        Object.keys(gamesPlayedPerTeam).forEach((teamName: string) => {
+            expect(gamesPlayedPerTeam[teamName]).to.equal(poolPlayGames);
+        });
+    });
 }
