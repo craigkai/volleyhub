@@ -63,19 +63,23 @@ function createSchedule() {
     }
     return schedule;
 }
-/*
-Need tests for:
-
-   1. Each team has the right amount of games
-   2. Each team faces different teams (unless more pool play games than teams)
-*/
-
 
 if (import.meta.vitest) {
     const { it, expect } = import.meta.vitest;
-    it("Schedule with even # of teams", async () => {
-        let schedule = createSchedule();
+    // We should loop over even/odd number of courts, teams and divisions and
+    // confirm that teams aren't sitting too often, facing the same team too much
+    // etc
+    let schedule = createSchedule();
+
+    it("No teams sit for more than two games", () => {
+        expect(schedule).toEqual({});
+    })
+
+    it("Teams do not face the same team too much", () => {
+        expect(schedule).toEqual({});
+    })
+
+    it("All teams play the correct number of games", () => {
         expect(schedule).toEqual({});
     })
 }
-
