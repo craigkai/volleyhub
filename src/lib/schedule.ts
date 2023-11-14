@@ -30,10 +30,7 @@ class TeamsQueue {
     newRound(): void {
         // We move each element over one so that the neighbors are new
         let temp = [...this.teams];
-        console.log(temp)
-
         temp.push(temp.shift());
-        console.log(temp)
 
         this.teams = [...temp];
         this.playedLast = [];
@@ -47,7 +44,7 @@ class TeamsQueue {
         return this.teamsAvailable ? this.teamsAvailable.length >= 2 : false;
     }
 
-    findMatch(): [string, string] {
+    findMatch(schedule: any): [string, string] {
         if (!this.teamsAvailable || this.teamsAvailable?.length < 2) {
             console.error(`Found the following available teams: ${this.teamsAvailable}`);
             throw 'Not enough teams!';
@@ -63,7 +60,38 @@ class TeamsQueue {
             throw 'Not enough teams who have not played!!';
         }
 
-        const [home, guest] = [teamsWhoNeedToPlay.pop(), teamsWhoNeedToPlay.pop()];
+        const home = teamsWhoNeedToPlay.pop() as string;
+        console.log(teamsWhoNeedToPlay.filter((team: string) => {
+            let res = true;
+            Object.keys(schedule).forEach((court: string) => {
+                schedule[court].forEach((game: any) => {
+                    if (game.includes(team) && game.includes[home]) {
+                        res = false;
+                        return;
+                    }
+                });
+                if (res === false) {
+                    return;
+                }
+            });
+            return res;
+        }))
+        const guest = teamsWhoNeedToPlay.filter((team: string) => {
+            let res = true;
+            Object.keys(schedule).forEach((court: string) => {
+                schedule[court].forEach((game: any) => {
+                    if (game.includes(team) && game.includes[home]) {
+                        res = false;
+                        return;
+                    }
+                });
+                if (res === false) {
+                    return;
+                }
+            });
+            return res;
+        }).pop();
+
         if (!home || !guest) {
             throw 'One of our teams is undefined!';
         }
@@ -100,7 +128,7 @@ export function createSchedule(teams: string[], courts: string[], poolPlayGames:
                 if (!teamsQueue.hasNext()) {
                     return;
                 }
-                let matchup = teamsQueue.findMatch();
+                let matchup = teamsQueue.findMatch(schedule);
                 console.debug(`Round ${i} court ${court} matchup found ${matchup}`);
 
                 schedule[court].push(matchup);
@@ -145,6 +173,7 @@ if (import.meta.vitest) {
         }
 
         let schedule = createSchedule(teams, courts, input.poolPlayGames);
+        console.log(JSON.stringify(schedule))
 
         let gamesPlayedPerTeam: gamesPlayedMap = {};
         Object.keys(schedule).forEach((court: string) => {
@@ -164,7 +193,6 @@ if (import.meta.vitest) {
             Object.keys(gamesPlayedPerTeam).forEach((teamName: string) => {
                 let teamsSeen: any = {};
                 gamesPlayedPerTeam[teamName].forEach((team: string) => {
-                    console.log(input)
                     expect(teamsSeen[team]).toEqual(undefined);
                     teamsSeen[team] = 1;
                 });
