@@ -7,11 +7,12 @@
 	let loadedEvent: Database.public.Tables.events;
 
 	let schedule: any;
+	let teams: string, courts: number, pools: number;
 	function setSchedule() {
 		schedule = create_schedule({
-			teams: loadedEvent?.teams,
-			courts: loadedEvent?.courts,
-			pools: loadedEvent?.pools
+			teams: teams.split(','),
+			courts,
+			pools
 		});
 	}
 
@@ -24,6 +25,10 @@
 		loadedEvent = event;
 
 		if ((loadedEvent?.teams, loadedEvent?.courts, loadedEvent?.pools)) {
+			teams = loadedEvent?.teams.join(',');
+			courts = loadedEvent?.courts;
+			pools = loadedEvent?.pools;
+
 			setSchedule();
 		}
 	}
@@ -36,16 +41,16 @@
 	<div class="flex flex-col place-content-center place-items-center place-self-center">
 		<div class="w-1/2 m-2">
 			Teams:
-			<input class="bg-gray-200 p-2 rounded" type="text" value={loadedEvent?.teams} />
+			<input class="bg-gray-200 p-2 rounded" type="text" bind:value={teams} />
 		</div>
 		<div class="w-1/2 m-2">
 			Numbr of Courts:
-			<input class="bg-gray-200 p-2 rounded" type="number" value={loadedEvent?.courts} />
+			<input class="bg-gray-200 p-2 rounded" type="number" bind:value={courts} />
 		</div>
 
 		<div class="w-1/2 m-2">
 			Number of Pool Play Games:
-			<input class="bg-gray-200 p-2 rounded" type="number" value={loadedEvent?.pools} />
+			<input class="bg-gray-200 p-2 rounded" type="number" bind:value={pools} />
 		</div>
 		<div class="w-1/2 m-2">
 			<button class="rounded bg-gray-400 p-4 hover:bg-gray-600" on:click={() => setSchedule()}
