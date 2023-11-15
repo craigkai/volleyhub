@@ -29,16 +29,14 @@
 		return () => subscription.unsubscribe();
 	});
 
-	const options = {
-		classes: ['rounded', 'bg-red-300']
-	};
+	const options = {};
 </script>
 
 <Header {data} />
 
-<SvelteToast {options} />
-
 <div class="flex-col min-h-screen overflow-hidden p-4">
+	<SvelteToast {options} />
+
 	<slot {data} />
 </div>
 
