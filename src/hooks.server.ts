@@ -38,7 +38,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const session = await event.locals.getSession();
 		if (!session) {
 			// the user is not signed in
-			throw error(303, '/auth');
+			throw redirect(303, '/auth');
+		}
+	}
+
+	// Make the login our homepage for now
+	if (event.url.pathname === '/') {
+		const session = await event.locals.getSession();
+		if (!session) {
+			// the user is not signed in
+			throw redirect(303, '/auth');
 		}
 	}
 
