@@ -32,7 +32,7 @@
 <Header {data} />
 
 <div class="flex-col min-h-screen overflow-hidden p-4">
-	<slot />
+	<slot {data} />
 </div>
 
 <Footer {data} />

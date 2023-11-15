@@ -10,7 +10,6 @@
 				.select('*')
 				.eq('user_id', data?.session?.user?.id)
 				.single();
-			console.log(data);
 			userName = profile?.name;
 		}
 	}
