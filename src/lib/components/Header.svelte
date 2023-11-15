@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { browser, dev } from '$app/environment';
 	export let data: PageData;
 
-	let userName = '...';
+	let userName = dev ? 'dev' : '...';
 	async function getProfile() {
 		if (data?.session?.user?.id) {
 			const { data: profile } = await data.supabase
