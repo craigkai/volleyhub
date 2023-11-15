@@ -1,4 +1,1 @@
-<script lang="ts">
-</script>
-
-nothing here...
+<script lang="ts"></script>

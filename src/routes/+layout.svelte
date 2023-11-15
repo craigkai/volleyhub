@@ -1,11 +1,12 @@
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-	import '../app.css';
+	import '../app.postcss';
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
+	import { SvelteToast } from '@zerodevx/svelte-toast';
 
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
@@ -27,9 +28,15 @@
 
 		return () => subscription.unsubscribe();
 	});
+
+	const options = {
+		classes: ['rounded', 'bg-red-300']
+	};
 </script>
 
 <Header {data} />
+
+<SvelteToast {options} />
 
 <div class="flex-col min-h-screen overflow-hidden p-4">
 	<slot {data} />
