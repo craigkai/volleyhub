@@ -17,12 +17,12 @@
 	</div>
 	<div class="w-1/2 m-2">
 		Numbr of Courts:
-		<input class="bg-gray-200 p-2 rounded" type="text" bind:value={courts} />
+		<input class="bg-gray-200 p-2 rounded" type="number" bind:value={courts} />
 	</div>
 
 	<div class="w-1/2 m-2">
 		Number of Pool Play Games:
-		<input class="bg-gray-200 p-2 rounded" type="text" bind:value={pools} />
+		<input class="bg-gray-200 p-2 rounded" type="number" bind:value={pools} />
 	</div>
 	<div class="w-1/2 m-2">
 		<button class="rounded bg-gray-400 p-4 hover:bg-gray-600" on:click={() => setSchedule()}
@@ -30,6 +30,15 @@
 		>
 	</div>
 	<div class="w-1/2 m-2">
-		{JSON.stringify(schedule) || 'Schedule..'}
+		{#if schedule}
+			<ul>
+				{#each schedule.pool_matches as match, i}
+					Round {i + 1}
+					{#each match.game_matches as court}
+						<li>{JSON.stringify(court)}</li>
+					{/each}
+				{/each}
+			</ul>
+		{/if}
 	</div>
 </div>
