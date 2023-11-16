@@ -5,18 +5,23 @@ interface ScheduleInput {
 	/** if there are an odd number of teams, setting this to true will mean one team gets skipped per pool games */
 	use_bye_on_odd_team_number?: boolean;
 }
+/*
+This is one round of pool play and can contain X matches,
+where X is either the number of teams / 2 or number of teams / 2 - 1
+if we have BYEs. We track BYEs on a Pool round basis.
+*/
+interface PoolRound {
+	pool_games: GameMatch[];
+	bye?: string;
+}
 
 interface GameMatch {
 	court: number;
 	versus: [string, string];
 }
 
-interface PoolMatches {
-	game_matches: GameMatch[];
-}
-
 interface ScheduleResult {
-	pool_matches: PoolMatches[];
+	pool_matches: PoolRound[];
 }
 
 interface VersusGamesCount {
@@ -33,9 +38,7 @@ interface TeamGamesCount {
 export function create_schedule(input: ScheduleInput): ScheduleResult {
 	const schedule: ScheduleResult = { pool_matches: [] };
 
-	if (input.use_bye_on_odd_team_number) {
-		input.teams.push('BYE');
-	}
+	let team_bye_tracker = [...input.teams];
 
 	const team_games_count_map: Record<string, TeamGamesCount> = Object.fromEntries(
 		input.teams.map((team) => [team, { team, games_count: 0, versus_matches: [] }])
@@ -52,46 +55,86 @@ export function create_schedule(input: ScheduleInput): ScheduleResult {
 				return versus_count;
 			})
 	);
-	const team_games_counts = Object.values(team_games_count_map);
 
+	const team_games_counts = Object.values(team_games_count_map);
 	const availableMatchups = [...team_versus_counts];
 
-	for (let pool_game_number = 0; pool_game_number < input.pools; pool_game_number++) {
-		const pool_matches: PoolMatches = { game_matches: [] };
+	// We add one as we will need an extra round of pool play since there will be BYEs
+	// TODO: Does this handle is multiple BYEs occur? Probs need some kind of math based
+	// on team #s and pool play rounds.
+	const pool_play_games = input.use_bye_on_odd_team_number ? input.pools + 1 : input.pools;
 
+	for (let pool_game_number = 0; pool_game_number < pool_play_games; pool_game_number++) {
 		let pool_team_match_count = 0;
-		let court_number = 0;
 
-		const pool_match_total = input.use_bye_on_odd_team_number
+		// TODO: Do we need this?
+		let pool_matches_total = input.use_bye_on_odd_team_number
 			? Math.floor(input.teams.length / 2)
 			: Math.ceil(input.teams.length / 2);
 
-		while (pool_team_match_count < pool_match_total) {
-			court_number = (court_number + 1) % input.courts;
+		while (pool_team_match_count < pool_matches_total) {
+			// A match contains 
+			const pool_round: PoolRound = { pool_games: [] };
+			let availableTeamsThisRound = [...input.teams];
 
-			availableMatchups.sort((a, b) => a.count - b.count);
+			let bye_team: string | undefined = undefined;
+			if (input.use_bye_on_odd_team_number) {
+				bye_team = team_bye_tracker.pop() as string;
+				team_bye_tracker.unshift(bye_team);
 
-			const chosen_matchup = availableMatchups[0];
+				team_games_count_map[bye_team].games_count++;
+				team_games_count_map[bye_team].versus_matches.forEach((matchup) => matchup.count++);
+				pool_round.bye = bye_team;
 
-			const chosen_team1 = chosen_matchup.versus[0];
-			const chosen_team2 = chosen_matchup.versus[1];
+				// Remove our BYE team from an avaialble team for the round
+				availableTeamsThisRound.splice(availableTeamsThisRound.indexOf(bye_team), 1);
+				// We count the BYE as a match?
+				pool_team_match_count++;
+			}
 
-			availableMatchups[
-				availableMatchups.findIndex(
-					(matchup: VersusGamesCount) => chosen_matchup.versus === matchup.versus
-				)
-			].count++;
+			// Loop over our courts, if we are out of teams then we bail
+			for (var i: number = 1; i < (input.courts + 1); i++) {
+				const match_info: GameMatch = { court: i };
 
-			team_games_count_map[chosen_team1].games_count++;
-			team_games_count_map[chosen_team1].versus_matches.forEach((matchup) => matchup.count++);
-			team_games_count_map[chosen_team2].games_count++;
-			team_games_count_map[chosen_team2].versus_matches.forEach((matchup) => matchup.count++);
-			team_games_counts.sort((a, b) => a.games_count - b.games_count);
+				let filteredAvailableMatchups = [...availableMatchups];
+				// Remove our matchups with the BYE team
+				if (bye_team) {
+					filteredAvailableMatchups = availableMatchups.filter((match: VersusGamesCount) => !match.versus.includes(bye_team as string));
+				}
 
-			pool_matches.game_matches.push({ court: court_number, versus: [chosen_team1, chosen_team2] });
-			pool_team_match_count++;
+				// We can't do a matchup if we run out of teams
+				if (availableTeamsThisRound.length < 2) {
+					continue;
+				}
+
+				filteredAvailableMatchups.sort((a: VersusGamesCount, b: VersusGamesCount) => a.count - b.count);
+
+				let chosen_matchup = filteredAvailableMatchups[0];
+
+				let chosen_team1 = chosen_matchup.versus[0];
+				let chosen_team2 = chosen_matchup.versus[1];
+
+				availableTeamsThisRound.splice(availableTeamsThisRound.indexOf(chosen_team1), 1);
+				availableTeamsThisRound.splice(availableTeamsThisRound.indexOf(chosen_team2), 1);
+
+				filteredAvailableMatchups[
+					filteredAvailableMatchups.findIndex(
+						(matchup: VersusGamesCount) => chosen_matchup.versus === matchup.versus
+					)
+				].count++;
+
+				team_games_count_map[chosen_team1].games_count++;
+				team_games_count_map[chosen_team1].versus_matches.forEach((matchup) => matchup.count++);
+				team_games_count_map[chosen_team2].games_count++;
+				team_games_count_map[chosen_team2].versus_matches.forEach((matchup) => matchup.count++);
+				team_games_counts.sort((a, b) => a.games_count - b.games_count);
+
+				match_info.versus = [chosen_team1, chosen_team2];
+				pool_round.pool_games.push(match_info);
+				pool_team_match_count++;
+			}
+			schedule.pool_matches.push(pool_round);
 		}
-		schedule.pool_matches.push(pool_matches);
 	}
 
 	return schedule;
@@ -105,13 +148,13 @@ if (import.meta.vitest) {
 	const { it, expect } = import.meta.vitest;
 
 	// NUMBER OF COURTS
-	for (let courtsNum = 1; courtsNum <= 1; courtsNum++) {
+	for (let courtsNum = 1; courtsNum <= 6; courtsNum++) {
 		const input: any = {
 			courts: courtsNum
 		};
 
 		// NUMBER OF TEAMS
-		for (let teamsNum = 2; teamsNum <= 4; teamsNum++) {
+		for (let teamsNum = 2; teamsNum <= 6; teamsNum++) {
 			const teams: string[] = [];
 			let i: number = 0;
 			for (; i < teamsNum; i++) {
@@ -120,17 +163,18 @@ if (import.meta.vitest) {
 			input.teams = teams;
 
 			// POOL PLAY GAMES
-			for (let pool_number = 1; pool_number <= 2; pool_number++) {
+			for (let pool_number = teamsNum; pool_number <= 6; pool_number++) {
 				input.pools = pool_number;
-				const schedule = create_schedule(input);
 
 				if (teams.length % 2) {
 					input.use_bye_on_odd_team_number = true;
 				}
 
+				const schedule = create_schedule(input);
+
 				const gamesPlayedPerTeam: gamesPlayedMap = {};
-				schedule['pool_matches'].forEach((rounds: PoolMatches) => {
-					rounds.game_matches.forEach((round: GameMatch) => {
+				schedule.pool_matches.forEach((rounds: PoolRound) => {
+					rounds.pool_games.forEach((round: GameMatch) => {
 						const [home, guest] = round.versus;
 						gamesPlayedPerTeam[guest]
 							? gamesPlayedPerTeam[guest].push(home)
@@ -160,7 +204,6 @@ if (import.meta.vitest) {
 
 				it(`All teams play the correct number of games with ${JSON.stringify(input)}`, () => {
 					Object.keys(gamesPlayedPerTeam).forEach((teamName: string) => {
-						// console.log(JSON.stringify(schedule))
 						expect(gamesPlayedPerTeam[teamName].length).to.equal(pool_number);
 					});
 				});

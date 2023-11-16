@@ -9,14 +9,28 @@
 	let schedule: any;
 	let teams: string, courts: number, pools: number;
 	function setSchedule() {
+		const teamsArr = teams.split(',');
 		schedule = create_schedule({
-			teams: teams.split(','),
+			teams: teamsArr,
 			courts,
-			pools
+			pools,
+			use_bye_on_odd_team_number: teamsArr.length % 2 > 0
 		});
 	}
 
 	async function loadEvent() {
+		if (data?.event_name === 'create') {
+			loadedEvent = {
+				teams: [],
+				courts: 2,
+				pools: 2
+			};
+			teams = 'team0,team1,team2';
+			courts = 2;
+			pools = 2;
+			return;
+		}
+
 		data.supabase
 			.from('events')
 			.select('*')
@@ -66,10 +80,15 @@
 				{#if schedule}
 					<ul>
 						{#each schedule.pool_matches as match, i}
-							Round {i + 1}
-							{#each match.game_matches as court}
-								<li>{JSON.stringify(court)}</li>
-							{/each}
+							<li>
+								Round {i + 1}
+								{#each match.pool_games as court}
+									{JSON.stringify(court)}
+								{/each}
+								{#if match.bye}
+									BYE: {match.bye}
+								{/if}
+							</li>
 						{/each}
 					</ul>
 				{/if}
