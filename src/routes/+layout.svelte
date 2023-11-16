@@ -32,12 +32,14 @@
 	const options = {};
 </script>
 
-<Header {data} />
+<html class="dark" lang="en">
+	<Header {data} />
 
-<div class="flex-col min-h-screen overflow-hidden p-4">
-	<SvelteToast {options} />
+	<div class="flex-col min-h-screen overflow-hidden p-4">
+		<SvelteToast {options} />
 
-	<slot {data} />
-</div>
+		<slot {data} />
+	</div>
 
-<Footer {data} />
+	<Footer {data} />
+</html>

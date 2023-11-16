@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { Spinner } from 'flowbite-svelte';
 	import type { PageData } from '../$types';
 	import type { Database } from '../../types/supabase';
 	import { create_schedule } from '$lib/schedule';
+	import ScheduleEntry from '$lib/components/ScheduleEntry.svelte';
 
 	export let data: PageData;
 	let loadedEvent: Database.public.Tables.events;
@@ -52,7 +54,7 @@
 </script>
 
 {#await loadingEventPromise}
-	loading...
+	<Spinner color="blue" />
 {:then}
 	{#if loadedEvent}
 		<h1>{loadedEvent?.name}</h1>
@@ -80,14 +82,16 @@
 				{#if schedule}
 					<ul>
 						{#each schedule.pool_matches as match, i}
-							<li>
-								Round {i + 1}
-								{#each match.pool_games as court}
-									{JSON.stringify(court)}
-								{/each}
-								{#if match.bye}
-									BYE: {match.bye}
-								{/if}
+							<li class="border-2 mb-2">
+								<div class="m-2">
+									Round {i + 1}
+									{#each match.pool_games as game}
+										<ScheduleEntry {game} />
+									{/each}
+									{#if match.bye}
+										BYE: {match.bye}
+									{/if}
+								</div>
 							</li>
 						{/each}
 					</ul>

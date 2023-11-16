@@ -46,6 +46,8 @@
 	"type": "module",
 	"dependencies": {
 		"@sveltejs/adapter-vercel": "^3.0.3",
+		"flowbite": "^2.1.1",
+		"flowbite-svelte": "^0.44.19",
 		"jsdom": "^22.1.0"
 	}
 }

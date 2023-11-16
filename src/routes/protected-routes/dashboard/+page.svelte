@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { error } from '$lib/toast';
+	import { Spinner } from 'flowbite-svelte';
 
 	export let data: PageData;
 
@@ -24,7 +25,7 @@
 </script>
 
 {#await loadingEventPromise}
-	loading your events...
+	<Spinner color="blue" />
 {:then}
 	A place to see your tournaments you manage
 	{#if events && events.length > 0}
