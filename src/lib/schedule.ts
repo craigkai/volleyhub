@@ -18,6 +18,16 @@ export function loadTournament(input: any): Tournament {
         tournament.stageTwo.format = 'single-elimination';
     }
 
+    tournament.start();
+
+    if (input?.courts) {
+        tournament.matches.forEach(match => {
+            for (let i = 0; i < input.courts; i++) {
+                match.meta.court = i;
+            }
+        });
+    }
+
     return tournament;
 }
 

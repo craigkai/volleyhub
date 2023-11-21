@@ -49,6 +49,7 @@
 		"flowbite": "^2.1.1",
 		"flowbite-svelte": "^0.44.19",
 		"jsdom": "^22.1.0",
-		"tournament-organizer": "^3.4.1"
+		"tournament-organizer": "^3.4.1",
+		"tournament-pairings": "^1.5.2"
 	}
 }
