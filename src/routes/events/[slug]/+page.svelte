@@ -1,82 +1,33 @@
 <script lang="ts">
 	import { Spinner } from 'flowbite-svelte';
 	import type { PageData } from '../$types';
-	import type { Database } from '../../types/supabase';
 	import { loadTournament } from '$lib/schedule';
-	import Edit from '$lib/components/tournament/Edit.svelte';
-	import Schedule from '$lib/components/tournament/Schedule.svelte';
-
+	import View from '$lib/components/tournament/View.svelte';
+	import { error } from '$lib/toast';
+	import type { HttpError } from '@sveltejs/kit';
 	export let data: PageData;
-	let loadedEvent: Database.public.Tables.events;
 
 	let schedule: any = {};
-	let teams: string, courts: number, pools: number;
-	function setSchedule() {
-		const teamsArr = teams.split(',');
-		schedule = loadTournament({
-			teams: teamsArr,
-			courts,
-			pools
-		});
-	}
-
+	// Load our event or if creating we just load the edit component
 	async function loadEvent() {
-		if (data?.event_name === 'create') {
-			loadedEvent = {
-				teams: [],
-				courts: 2,
-				pools: 2
-			};
-			teams = 'team0,team1,team2,team4';
-			courts = 2;
-			pools = 2;
-			schedule.status = 'setup';
-			return;
-		}
-
-		data.supabase
-			.from('events')
-			.select('*')
-			.or(`id.eq.${data?.event_id},name.eq.${data?.event_name}`)
-			.single()
-			.then(({ data: event }) => {
-				loadedEvent = event;
-
-				if ((loadedEvent?.teams, loadedEvent?.courts, loadedEvent?.pools)) {
-					teams = loadedEvent?.teams.join(',');
-					courts = loadedEvent?.courts;
-					pools = loadedEvent?.pools;
-
-					schedule = loadTournament(loadedEvent);
-				}
-			});
+		return await loadTournament(data?.supabase, data?.eventId, data?.eventName)
+			.then((res) => (schedule = res))
+			.catch((err: HttpError) => error(err.body.message));
 	}
 
 	let loadingEventPromise = loadEvent();
-
-	const steps = {
-		setup: Edit,
-		'stage-one': Schedule
-	};
 </script>
 
 {#await loadingEventPromise}
 	<Spinner color="blue" />
 {:then}
-	{#if loadedEvent}
-		<h1>{schedule?.name}</h1>
+	{#if schedule?.matches}
+		<h1>Tournament name: {schedule?.name}</h1>
 
 		<div class="w-1/2 m-2">
-			<svelte:component
-				this={steps[schedule.status]}
-				{schedule}
-				{teams}
-				{courts}
-				{pools}
-				{setSchedule}
-			/>
+			<View {schedule} />
 		</div>
 	{:else}
-		Invalid event id, is your link correct?
+		Is your link correct? We are having a hard time loading this tournament
 	{/if}
 {/await}

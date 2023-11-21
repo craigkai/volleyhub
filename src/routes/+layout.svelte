@@ -10,6 +10,7 @@
 
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
+	import { error } from '$lib/toast';
 
 	inject({ mode: dev ? 'development' : 'production' });
 
@@ -30,8 +31,13 @@
 	});
 
 	const options = {};
+
+	function handleError(err: any) {
+		error(err);
+	}
 </script>
 
+<svelte:window on:error={handleError} />
 <html class="dark" lang="en">
 	<Header {data} />
 

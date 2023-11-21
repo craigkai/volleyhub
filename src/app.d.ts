@@ -12,6 +12,8 @@ declare global {
 		getSession(): Promise<Session | null>;
 	}
 	interface PageData {
+		eventName?: string;
+		eventId?: string;
 		url: any;
 		supabase: SupabaseClient<any, 'public', any>;
 		session: Session | null;
@@ -22,10 +24,9 @@ declare global {
 			supabase: SupabaseClient;
 			getSession(): Promise<Session | null>;
 		}
-		// interface PageData {}
 		// interface Platform {}
 	}
-	type memberType = Database['public']['Tables']['teams']['Row'];
+	type supabaseClient = SupabaseClient<Database>;
 }
 
 interface ImportMetaEnv {
@@ -38,4 +39,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export {};
+export { };

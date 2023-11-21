@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import { error } from '$lib/toast';
 	import { Spinner } from 'flowbite-svelte';
+	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 
 	export let data: PageData;
 
@@ -39,3 +40,8 @@
 		</div>
 	{/if}
 {/await}
+
+<div class="flex flex-row">
+	Create a new tournament:
+	<a class="ml-2" href="/protected-routes/events/create"><CirclePlusOutline /></a>
+</div>
