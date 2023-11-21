@@ -2,8 +2,15 @@
 	import { Spinner } from 'flowbite-svelte';
 	import type { PageData } from '../$types';
 	import type { Database } from '../../types/supabase';
-	import { create_schedule } from '$lib/schedule';
-	import ScheduleEntry from '$lib/components/ScheduleEntry.svelte';
+	import { loadTournament } from '$lib/schedule';
+	import {
+		Table,
+		TableBody,
+		TableBodyCell,
+		TableBodyRow,
+		TableHead,
+		TableHeadCell
+	} from 'flowbite-svelte';
 
 	export let data: PageData;
 	let loadedEvent: Database.public.Tables.events;
@@ -12,12 +19,17 @@
 	let teams: string, courts: number, pools: number;
 	function setSchedule() {
 		const teamsArr = teams.split(',');
-		schedule = create_schedule({
+		schedule = loadTournament({
 			teams: teamsArr,
 			courts,
-			pools,
-			use_bye_on_odd_team_number: teamsArr.length % 2 > 0
+			pools
 		});
+		schedule.start();
+		schedule.matches.forEach((element: { id: any }) => {
+			schedule.enterResult(element.id, 2, 1);
+		});
+		schedule.next();
+		console.log(schedule.matches);
 	}
 
 	async function loadEvent() {
@@ -27,7 +39,7 @@
 				courts: 2,
 				pools: 2
 			};
-			teams = 'team0,team1,team2';
+			teams = 'team0,team1,team2,team4';
 			courts = 2;
 			pools = 2;
 			return;
@@ -57,7 +69,7 @@
 	<Spinner color="blue" />
 {:then}
 	{#if loadedEvent}
-		<h1>{loadedEvent?.name}</h1>
+		<h1>{schedule?.name}</h1>
 
 		<div class="flex flex-col place-content-center place-items-center place-self-center">
 			<div class="w-1/2 m-2">
@@ -80,21 +92,30 @@
 			</div>
 			<div class="w-1/2 m-2">
 				{#if schedule}
-					<ul>
-						{#each schedule.pool_matches as match, i}
-							<li class="border-2 mb-2">
-								<div class="m-2">
-									Round {i + 1}
-									{#each match.pool_games as game}
-										<ScheduleEntry {game} />
-									{/each}
-									{#if match.bye}
-										BYE: {match.bye}
-									{/if}
-								</div>
-							</li>
-						{/each}
-					</ul>
+					<Table>
+						<TableHead>
+							<TableHeadCell>Round</TableHeadCell>
+							<TableHeadCell>Court</TableHeadCell>
+							<TableHeadCell>Home</TableHeadCell>
+							<TableHeadCell>Away</TableHeadCell>
+						</TableHead>
+						<TableBody>
+							{#each schedule.matches as match}
+								<TableBodyRow>
+									<TableBodyCell>{match.round}</TableBodyCell>
+									<TableBodyCell>1</TableBodyCell>
+									<TableBodyCell
+										>{schedule.players.find((player) => player.id === match.player1.id)
+											?.name}</TableBodyCell
+									>
+									<TableBodyCell
+										>{schedule.players.find((player) => player.id === match.player2.id)
+											?.name}</TableBodyCell
+									>
+								</TableBodyRow>
+							{/each}
+						</TableBody>
+					</Table>
 				{/if}
 			</div>
 		</div>
