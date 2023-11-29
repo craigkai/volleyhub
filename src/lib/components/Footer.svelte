@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LayoutServerData } from '$types';
 
-	export let data: LayoutServerData;
+	export const data: LayoutServerData = undefined;
 </script>
 
 <footer

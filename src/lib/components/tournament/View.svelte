@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Tournament } from '$lib/tournament';
 	import {
 		Table,
 		TableBody,
@@ -8,20 +9,20 @@
 		TableHeadCell
 	} from 'flowbite-svelte';
 
-	export let schedule: any;
+	export let tournament: Tournament;
 </script>
 
 <div class="flex flex-row w-full">
-	{#if schedule?.players}
+	{#if tournament?.teams}
 		<div class="w-1/2 m-1">
 			<Table>
 				<TableHead>
 					<TableHeadCell>Teams</TableHeadCell>
 				</TableHead>
 				<TableBody>
-					{#each schedule?.players as team}
+					{#each tournament?.teams as team}
 						<TableBodyRow>
-							<TableBodyCell>{team.name}</TableBodyCell>
+							<TableBodyCell>{team}</TableBodyCell>
 						</TableBodyRow>
 					{/each}
 				</TableBody>
@@ -29,7 +30,7 @@
 		</div>
 	{/if}
 
-	{#if schedule?.matches}
+	{#if tournament?.matches}
 		<div class="w-1/2 m-1">
 			<Table>
 				<TableHead>
@@ -39,18 +40,12 @@
 					<TableHeadCell>Away</TableHeadCell>
 				</TableHead>
 				<TableBody>
-					{#each schedule?.matches as match}
+					{#each tournament?.matches as match}
 						<TableBodyRow>
 							<TableBodyCell>{match.round}</TableBodyCell>
-							<TableBodyCell>{JSON.stringify(match.meta)}</TableBodyCell>
-							<TableBodyCell
-								>{schedule.players.find((player) => player.id === match.player1.id)
-									?.name}</TableBodyCell
-							>
-							<TableBodyCell
-								>{schedule.players.find((player) => player.id === match.player2.id)
-									?.name}</TableBodyCell
-							>
+							<TableBodyCell>tbd</TableBodyCell>
+							<TableBodyCell>{match.player1}</TableBodyCell>
+							<TableBodyCell>{match.player2}</TableBodyCell>
 						</TableBodyRow>
 					{/each}
 				</TableBody>

@@ -6,13 +6,13 @@
 
 	export let data: PageData;
 
-	let events: any;
+	let events;
 	async function loadEvents() {
 		data.supabase
 			.from('events')
 			.select('*')
 			.eq('owner', '0754f3cc-9e9b-44b5-a928-e437f141fd29') //data?.session?.user?.id)
-			.then((data: any) => {
+			.then((data) => {
 				if (data.error) {
 					error(data.error);
 				}

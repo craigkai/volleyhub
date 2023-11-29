@@ -2,11 +2,11 @@ import { SupabaseClient, Session } from '@supabase/supabase-js';
 import { Database } from './DatabaseDefinitions';
 import type { Database } from '../../types/supabase';
 
-type memberType = Database['public']['Tables']['teams']['Row'];
-
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 declare global {
+	type MemberType = Database['public']['Tables']['teams']['Row'];
+
 	interface Locals {
 		supabase: SupabaseClient<Database>;
 		getSession(): Promise<Session | null>;
@@ -14,8 +14,7 @@ declare global {
 	interface PageData {
 		eventName?: string;
 		eventId?: string;
-		url: any;
-		supabase: SupabaseClient<any, 'public', any>;
+		supabase: SupabaseClient<Database>;
 		session: Session | null;
 	}
 	namespace App {
@@ -39,4 +38,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export { };
+export {};

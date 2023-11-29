@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { browser, dev } from '$app/environment';
+	import type { PageData } from '$types';
+
 	export let data: PageData;
 
 	let userName = dev ? 'dev' : '...';

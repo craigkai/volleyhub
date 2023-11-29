@@ -1,5 +1,7 @@
+import type { PageLoad } from './$types';
+
 // src/routes/events/+page.server.ts
-export const load = async ({ params }) => {
+export const load: PageLoad = async ({ params }) => {
 	const event_uuid = params.slug;
 
 	let eventId: number | undefined = 0;

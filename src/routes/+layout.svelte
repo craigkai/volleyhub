@@ -1,4 +1,5 @@
 <!-- src/routes/+layout.svelte -->
+
 <script lang="ts">
 	import '../app.postcss';
 	import Header from '$lib/components/Header.svelte';
@@ -7,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
-
+	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
 	import { error } from '$lib/toast';
@@ -32,7 +33,7 @@
 
 	const options = {};
 
-	function handleError(err: any) {
+	function handleError(err: string | SvelteToastOptions) {
 		error(err);
 	}
 </script>
