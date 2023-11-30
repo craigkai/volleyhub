@@ -15,7 +15,7 @@
 
 	// Load our event or if creating we just load the edit component
 	async function loadEvent() {
-		if (data?.eventName != 'create') {
+		if (data?.eventId != 'create') {
 			return await tournament
 				.loadEvent(data?.eventId)
 				.then(() => {
