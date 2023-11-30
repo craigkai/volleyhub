@@ -3,25 +3,29 @@ import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 import { RoundRobin } from 'tournament-pairings';
 import type { Match } from 'tournament-pairings/dist/Match';
 
-export class Tournament {
-    handle: supabaseClient;
-    matches?: Match[];
+type TournamentSettings = {
     teams?: string[];
-    id?: string;
     status?: string;
     name?: string;
     pools?: string;
     courts?: string;
     date?: string;
+}
+
+export class Tournament {
+    handle: supabaseClient;
+    id?: string;
+    settings?: TournamentSettings;
+    matches?: Match[];
 
     constructor(handle: supabaseClient) {
         this.handle = handle;
     }
 
     /*
-    Create a new `tournament` (event)
+    Create a new event, this creates our event ONLY (tournament settings).
     */
-    async createTournament(input: { name: string; teams: string[]; pools: number; courts: number; date: string }): Promise<Tournament | HttpError> {
+    async createEvent(input: { name: string; teams: string[]; pools: number; courts: number; date: string }): Promise<Tournament | HttpError> {
         if (!input.teams || !input.pools || !input.courts) {
             throw error(400, `Tournament create call does not have all required values`);
         }
@@ -47,10 +51,33 @@ export class Tournament {
         }
 
         this.id = res.data.id;
-        this.teams = res.data.teams;
-        this.name = res.data.name;
-        this.pools = res.data.pools;
-        this.courts = res.data.courts;
+        this.settings = res.data;
+        return this;
+    }
+
+    /*
+        Attempt to load our event (tournament settings) via SupaBase, we load matches and teams elsewhere.
+    */
+    async loadEvent(eventId?: string): Promise<Tournament | HttpError> {
+        if (!eventId) {
+            throw error(400, 'Invalid event ID, are you sure your link is correct?');
+        }
+
+        const res = await this.handle
+            .from('events')
+            .select('*')
+            .eq('id', eventId)
+            .single()
+            .then((res: PostgrestSingleResponse<MemberType>) => {
+                if (res?.error) {
+                    throw error(res?.status, res?.error.details);
+                }
+                return res.data;
+            });
+
+        this.id = res.id;
+        this.settings = res;
+
         return this;
     }
 
@@ -69,44 +96,13 @@ export class Tournament {
             throw error(400, res.error);
         }
 
-        this.teams = input.teams;
-        this.name = input.name;
-        this.pools = input.pools;
-        this.courts = input.courts;
+        this.settings = input;
 
         return this;
     }
 
     async saveTournament() {
         throw new Error('Function not implemented.');
-    }
-
-    /*
-    Attempt to load our tournament via SupaBase.
-    */
-    async loadTournament(eventId?: string): Promise<Tournament | HttpError> {
-        if (!eventId) {
-            throw error(400, 'Invalid event ID, are you sure your link is correct?');
-        }
-
-        const res = await this.handle
-            .from('events')
-            .select('*')
-            .eq('id', eventId)
-            .single()
-            .then((res: PostgrestSingleResponse<MemberType>) => {
-                if (res?.error) {
-                    throw error(res?.status, res?.error.details);
-                }
-                return res.data;
-            });
-        this.id = res.id;
-        this.teams = res.teams;
-        this.name = res.name;
-        this.pools = res.pools;
-        this.courts = res.courts;
-
-        return this;
     }
 
     /**
@@ -141,4 +137,21 @@ export class Tournament {
     }): Promise<void> {
         throw new Error('Function not implemented.');
     }
+}
+
+
+/*
+    Load all events for the provided owner Id.
+    */
+export async function loadEvents(handle: supabaseClient, ownerId: string): Promise<Tournament[] | HttpError> {
+    return await handle
+        .from('events')
+        .select('*')
+        .eq('owner', ownerId)
+        .then((res: PostgrestSingleResponse<MemberType>) => {
+            if (res?.error) {
+                throw error(res?.status, res?.error.details);
+            }
+            return res.data;
+        });
 }

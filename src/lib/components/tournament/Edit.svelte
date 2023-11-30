@@ -13,14 +13,14 @@
 	export let date: string;
 	export let tournament: Tournament;
 
-	async function createNewTournament(): Promise<void> {
+	async function createNewEvent(): Promise<void> {
 		if (!teams) {
 			error('Your teams are not defined?');
 			return;
 		}
 
 		tournament
-			.createTournament({
+			.createEvent({
 				teams,
 				name,
 				courts,
@@ -84,10 +84,7 @@
 
 	<div class="">
 		{#if data?.eventName === 'create'}
-			<button
-				class="rounded bg-gray-400 p-4 hover:bg-gray-600"
-				on:click={() => createNewTournament()}
-			>
+			<button class="rounded bg-gray-400 p-4 hover:bg-gray-600" on:click={() => createNewEvent()}>
 				Create Tournament</button
 			>{:else}
 			<button class="rounded bg-gray-400 p-4 hover:bg-gray-600" on:click={() => updateTournament()}>

@@ -6,6 +6,7 @@
 	import View from '$lib/components/tournament/View.svelte';
 	import type { HttpError } from '@sveltejs/kit';
 	import { error } from '$lib/toast';
+	import dayjs from 'dayjs';
 
 	export let data: PageData;
 
@@ -16,17 +17,18 @@
 	async function loadEvent() {
 		if (data?.eventName != 'create') {
 			return await tournament
-				.loadTournament(data?.eventId)
+				.loadEvent(data?.eventId)
 				.then(() => {
-					teams = tournament.teams;
-					courts = tournament.courts;
-					pools = tournament.pools;
-					name = tournament.name;
-					date = tournament.date;
+					teams = tournament?.settings.teams;
+					courts = tournament?.settings.courts;
+					pools = tournament?.settings.pools;
+					name = tournament?.settings.name;
+					date = dayjs(tournament?.settings.date).format('YYYY-MM-DD');
 				})
 				.catch((err: HttpError) => error(err.body.message));
 		}
 	}
+
 	let loadingEventPromise = loadEvent();
 </script>
 
