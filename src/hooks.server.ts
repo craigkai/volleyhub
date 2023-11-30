@@ -2,6 +2,7 @@
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
 import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
+import { dev } from '$app/environment';
 
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_KEY;
@@ -19,9 +20,21 @@ export const handle: Handle = async ({ event, resolve }) => {
 	 * you just call this `await getSession()`
 	 */
 	event.locals.getSession = async () => {
-		const {
+		let {
 			data: { session }
 		} = await event.locals.supabase.auth.getSession();
+
+		if (dev) {
+			const { data, error } = await event.locals.supabase.auth.signInWithPassword({
+				email: import.meta.env.VITE_ADMIN_USER,
+				password: import.meta.env.VITE_ADMIN_USER_PASSWORD,
+			});
+			if (error) {
+				throw error;
+			}
+			session = data.session;
+		}
+
 		return session;
 	};
 

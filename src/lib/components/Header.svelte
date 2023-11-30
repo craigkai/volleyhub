@@ -4,18 +4,10 @@
 
 	export let data: PageData;
 
-	let userName = dev ? 'dev' : '...';
-	async function getProfile() {
-		if (data?.session?.user?.id) {
-			const { data: profile } = await data.supabase
-				.from('profile')
-				.select('*')
-				.eq('user_id', data?.session?.user?.id)
-				.single();
-			userName = profile?.name;
-		}
+	async function getCurrentUser() {
+		return await data.supabase.auth.getUser();
 	}
-	getProfile();
+	let currentUserPromise = getCurrentUser();
 </script>
 
 <header>
@@ -49,40 +41,42 @@
 								>
 							</li>
 
-							{#if (data && data.session) || (browser && window.location.host.includes('localhost'))}
-								<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-									<a
-										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
-										href="/protected-routes/dashboard"
-										data-te-nav-link-ref
-										data-te-ripple-init
-										data-te-ripple-color="light"
-										>My Dashboard
-									</a>
-								</li>
+							{#await currentUserPromise then currentuser}
+								{#if currentuser?.data?.user?.aud === 'authenticated'}
+									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
+										<a
+											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+											href="/protected-routes/dashboard"
+											data-te-nav-link-ref
+											data-te-ripple-init
+											data-te-ripple-color="light"
+											>My Dashboard
+										</a>
+									</li>
 
-								<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-									<a
-										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
-										href="/protected-routes/profile"
-										data-te-nav-link-ref
-										data-te-ripple-init
-										data-te-ripple-color="light"
-										>{userName}'s Profile
-									</a>
-								</li>
-							{:else}
-								<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-									<a
-										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
-										href="/auth"
-										data-te-nav-link-ref
-										data-te-ripple-init
-										data-te-ripple-color="light"
-										>Login
-									</a>
-								</li>
-							{/if}
+									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
+										<a
+											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+											href="/protected-routes/profile"
+											data-te-nav-link-ref
+											data-te-ripple-init
+											data-te-ripple-color="light"
+											>{currentuser?.data?.user?.email}'s Profile
+										</a>
+									</li>
+								{:else}
+									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
+										<a
+											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+											href="/auth"
+											data-te-nav-link-ref
+											data-te-ripple-init
+											data-te-ripple-color="light"
+											>Login
+										</a>
+									</li>
+								{/if}
+							{/await}
 						</ul>
 					</div>
 				</div>
