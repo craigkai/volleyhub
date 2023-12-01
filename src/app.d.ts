@@ -40,4 +40,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export { };
+export {};

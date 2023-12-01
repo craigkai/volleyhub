@@ -16,7 +16,7 @@
 	import type { HttpError } from '@sveltejs/kit';
 
 	export let data: PageData;
-	export let teams: string[] | string;
+	export let teams: TeamRow[];
 	export let courts: number;
 	export let pools: number;
 	export let name: string;
@@ -27,10 +27,6 @@
 		if (!teams) {
 			error('Your teams are not defined?');
 			return;
-		}
-
-		if (typeof teams === 'string') {
-			teams = teams.split(',');
 		}
 
 		tournament
@@ -59,8 +55,7 @@
 		}
 
 		tournament
-			.updateTournament({
-				id: tournament.id,
+			.updateTournament(tournament.id as string, {
 				teams,
 				name,
 				courts,
@@ -83,75 +78,106 @@
 	}
 </script>
 
-<div class="flex flex-col place-content-start place-items-start place-self-start">
-	<div class="w-1/2 m-2">
-		Event Name:
-		<input class="bg-gray-200 p-2 rounded" type="text" bind:value={name} />
-	</div>
+<div class="flex flex-col justify-center items-center">
+	<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+		<div class="w-1/2 m-2">
+			<label class="block text-gray-700 text-sm font-bold mb-2" for="username">Event Name:</label>
+			<input class="bg-gray-200 p-2 rounded" type="text" bind:value={name} />
+		</div>
 
-	<div class="w-1/2 m-2">
-		Teams:
-		<input class="bg-gray-200 p-2 rounded" type="text" bind:value={teams} />
-	</div>
-	<div class="m-2">
-		Number of Courts:
-		<input class="bg-gray-200 p-2 rounded" type="number" bind:value={courts} />
-	</div>
-
-	<div class="m-2">
-		Number of Pool Play Games:
-		<input class="bg-gray-200 p-2 rounded" type="number" bind:value={pools} />
-	</div>
-	<div class="m-2">
-		Date:
-		<input class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
-	</div>
-
-	<div class="">
-		{#if data?.eventId === 'create'}
-			<button class="rounded bg-gray-400 p-4 hover:bg-gray-600" on:click={() => createNewEvent()}>
-				Create Tournament</button
-			>{:else}
-			<button class="rounded bg-gray-400 p-4 hover:bg-gray-600" on:click={() => updateTournament()}>
-				Update Tournament</button
+		<div class="m-2">
+			<!-- svelte-ignore a11y-label-has-associated-control -->
+			<label class="block text-gray-700 text-sm font-bold mb-2">Teams:</label>
+			<Table>
+				<TableBody>
+					{#each teams as team}
+						<TableBodyRow>
+							<TableBodyCell>{team.name}</TableBodyCell>
+							<TableBodyCell>
+								<a
+									href="/tables"
+									class="font-medium text-blue-600 hover:underline dark:text-primary-500">Remove</a
+								></TableBodyCell
+							>
+						</TableBodyRow>
+					{/each}
+					<TableBodyRow>
+						<TableBodyCell>new team...</TableBodyCell>
+						<TableBodyCell>
+							<a
+								href="/tables"
+								class="font-medium text-blue-600 hover:underline dark:text-primary-500">Add</a
+							></TableBodyCell
+						>
+					</TableBodyRow>
+				</TableBody>
+			</Table>
+		</div>
+		<div class="m-2">
+			<label class="block text-gray-700 text-sm font-bold mb-2" for="username"
+				>Number of Courts:</label
 			>
-			<button
-				disabled={!tournament?.status}
-				class="rounded bg-gray-400 p-4 hover:bg-gray-600"
-				on:click={() => {}}
-			>
-				Start Tournament</button
-			>
-		{/if}
-	</div>
+			<input class="bg-gray-200 p-2 rounded" type="number" bind:value={courts} />
+		</div>
 
-	{#if data?.eventId !== 'create'}
-		<h2>Matches:</h2>
-		{#await matchesPromise}
-			<Spinner color="blue" />
-		{:then}
-			{#if tournament.matches}
-				{#each tournament.matches as match}
-					<div class="w-1/2 m-1">
-						<Table>
-							<TableHead>
-								<TableHeadCell>Round</TableHeadCell>
-								<TableHeadCell>Court</TableHeadCell>
-								<TableHeadCell>Home</TableHeadCell>
-								<TableHeadCell>Away</TableHeadCell>
-							</TableHead>
-							<TableBody>
-								<TableBodyRow>
-									<TableBodyCell>tbd</TableBodyCell>
-									<TableBodyCell>tbd</TableBodyCell>
-									<TableBodyCell>{match.matches_team1_fkey.name}</TableBodyCell>
-									<TableBodyCell>{match.matches_team2_fkey.name}</TableBodyCell>
-								</TableBodyRow>
-							</TableBody>
-						</Table>
-					</div>
-				{/each}
+		<div class="m-2">
+			<label class="block text-gray-700 text-sm font-bold mb-2" for="username"
+				>Number of Pool Play Games:</label
+			>
+			<input class="bg-gray-200 p-2 rounded" type="number" bind:value={pools} />
+		</div>
+		<div class="m-2">
+			<label class="block text-gray-700 text-sm font-bold mb-2" for="username">Date:</label>
+			<input class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
+		</div>
+
+		<div class="">
+			{#if data?.eventId === 'create'}
+				<button
+					class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+					type="button"
+					on:click={() => createNewEvent()}
+				>
+					Create Tournament</button
+				>{:else}
+				<button
+					class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+					type="button"
+					on:click={() => updateTournament()}
+				>
+					Update Tournament</button
+				>
 			{/if}
-		{/await}
-	{/if}
+		</div>
+
+		{#if data?.eventId !== 'create'}
+			<h2>Matches:</h2>
+			{#await matchesPromise}
+				<Spinner color="blue" />
+			{:then}
+				{#if tournament.matches}
+					{#each tournament.matches as match}
+						<div class="w-1/2 m-1">
+							<Table>
+								<TableHead>
+									<TableHeadCell>Round</TableHeadCell>
+									<TableHeadCell>Court</TableHeadCell>
+									<TableHeadCell>Home</TableHeadCell>
+									<TableHeadCell>Away</TableHeadCell>
+								</TableHead>
+								<TableBody>
+									<TableBodyRow>
+										<TableBodyCell>tbd</TableBodyCell>
+										<TableBodyCell>tbd</TableBodyCell>
+										<TableBodyCell>{match.matches_team1_fkey.name}</TableBodyCell>
+										<TableBodyCell>{match.matches_team2_fkey.name}</TableBodyCell>
+									</TableBodyRow>
+								</TableBody>
+							</Table>
+						</div>
+					{/each}
+				{/if}
+			{/await}
+		{/if}
+	</form>
 </div>

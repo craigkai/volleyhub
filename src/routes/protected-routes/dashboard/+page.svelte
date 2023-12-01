@@ -25,11 +25,11 @@
 				<!-- {#if event.date > dNow.valueOf()} -->
 				<Card href="/protected-routes/events/{event.id}">
 					<h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-						{event.name}: {dayjs(event.date).format('YYYY-MM-DD')}
+						{event.name}
 					</h5>
-					<p class="font-normal text-gray-700 dark:text-gray-400 leading-tight">
-						{event.teams}
-					</p>
+					<h4 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+						{dayjs(event.date).format('YYYY-MM-DD')}
+					</h4>
 				</Card>
 				<!-- {/if} -->
 			{/each}
