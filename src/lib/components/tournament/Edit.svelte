@@ -13,9 +13,10 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
+	import type { HttpError } from '@sveltejs/kit';
 
 	export let data: PageData;
-	export let teams: string[];
+	export let teams: string[] | string;
 	export let courts: number;
 	export let pools: number;
 	export let name: string;
@@ -26,6 +27,10 @@
 		if (!teams) {
 			error('Your teams are not defined?');
 			return;
+		}
+
+		if (typeof teams === 'string') {
+			teams = teams.split(',');
 		}
 
 		tournament
@@ -41,7 +46,10 @@
 				// Navigate to the page with the [slug] value set to our tournament Id
 				goto(`/protected-routes/events/${tournament?.id}`);
 			})
-			.catch((err: { body: { message: string | SvelteToastOptions } }) => error(err.body.message));
+			.catch((err: HttpError) => {
+				console.log(err);
+				error(err.body.message);
+			});
 	}
 
 	async function updateTournament(): Promise<void> {
@@ -66,7 +74,13 @@
 			.catch((err: { body: { message: string | SvelteToastOptions } }) => error(err.body.message));
 	}
 
-	let matchesPromise = tournament.loadMatches();
+	let matchesPromise = new Promise(() => {
+		setTimeout(() => {}, 1000);
+	});
+
+	if (data.eventId !== 'create') {
+		// matchesPromise = tournament.loadMatches();
+	}
 </script>
 
 <div class="flex flex-col place-content-start place-items-start place-self-start">
@@ -94,7 +108,7 @@
 	</div>
 
 	<div class="">
-		{#if data?.eventName === 'create'}
+		{#if data?.eventId === 'create'}
 			<button class="rounded bg-gray-400 p-4 hover:bg-gray-600" on:click={() => createNewEvent()}>
 				Create Tournament</button
 			>{:else}

@@ -15,11 +15,12 @@ type TournamentSettings = {
 export class Tournament {
     handle: supabaseClient;
     id?: string;
-    settings?: TournamentSettings;
+    settings: TournamentSettings;
     matches?: Match[];
 
     constructor(handle: supabaseClient) {
         this.handle = handle;
+        this.settings = {};
     }
 
     /*
@@ -40,24 +41,35 @@ export class Tournament {
 
         const res: PostgrestSingleResponse<MemberType> = await this.handle
             .from('events')
-            .insert([
-                {
-                    owner: ownerId,
-                    name: input.name,
-                    teams: input.teams,
-                    pools: input.pools,
-                    courts: input.courts,
-                    date: input.date
-                }
-            ])
-            .select();
+            .insert({
+                owner: ownerId,
+                name: input.name,
+                pools: input.pools,
+                courts: input.courts,
+                date: input.date
+            })
+            .select()
+            .single();
 
         if (res.error) {
+            console.error('Failed to cerate new event');
             throw error(400, res.error);
         }
 
         this.id = res.data.id;
         this.settings = res.data;
+
+        if (this.id && this.settings) {
+            const teamsIds: string[] = [];
+            input.teams.forEach(async (team: string) => {
+                await this.createTeam(team, this.id as string).then((id) =>
+                    teamsIds.push(id as string)
+                );
+            });
+
+            this.settings.teams = teamsIds;
+        }
+
         return this;
     }
 
@@ -84,6 +96,18 @@ export class Tournament {
         this.id = res.id;
         this.settings = res;
 
+        const teamsRes: PostgrestSingleResponse<MemberType> = await this.handle
+            .from('teams')
+            .select()
+            .eq('event_id', eventId);
+
+        if (teamsRes.error) {
+            console.error('Failed to get teams for event');
+            throw error(400, teamsRes.error);
+        }
+
+        this.settings.teams = teamsRes.data;
+
         return this;
     }
 
@@ -96,7 +120,7 @@ export class Tournament {
         date: string;
     }): Promise<Tournament | HttpError> {
         if (!input.teams || !input.pools || !input.courts) {
-            throw error(400, `Tournament create call does not have all required values`);
+            throw error(400, `Tournament update call does not have all required values`);
         }
 
         const res: PostgrestSingleResponse<MemberType> = await this.handle
@@ -150,6 +174,14 @@ export class Tournament {
 
     async createMatches() {
         self.matches = RoundRobin(self.teams);
+        // Call multi insert:
+        // const { data, error } = await supabase
+        // .from('teams')
+        // .insert([
+        // { some_column: 'someValue' },
+        // { some_column: 'otherValue' },
+        // ])
+        // .select()
     }
 
     /*
@@ -160,18 +192,20 @@ export class Tournament {
     }
 
     /*
-    Update tournament teams.
-    
+    Inserts new team into supabase, if a team exists where team name and event id match what we
+    are trying to create, then return that team Id.
     */
+    async createTeam(name: string, eventId: string): Promise<string | HttpError> {
+        const res: PostgrestSingleResponse<MemberType> = await this.handle
+            .from('teams')
+            .upsert({ name: name, event_id: eventId })
+            .select();
 
-    async updateTournamentTeams({
-        eventId,
-        teams
-    }: {
-        eventId: string;
-        teams: string[];
-    }): Promise<void> {
-        throw new Error('Function not implemented.');
+        if (res.error) {
+            console.error('Failed to create new team');
+            throw error(400, res.error);
+        }
+        return res.data.id;
     }
 }
 
@@ -188,7 +222,7 @@ export async function loadEvents(
         .eq('owner', ownerId)
         .then((res: PostgrestSingleResponse<MemberType>) => {
             if (res?.error) {
-                throw error(res?.status, res?.error.details);
+                throw error(res?.status, res?.error);
             }
             return res.data;
         });
