@@ -27,7 +27,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (dev) {
 			const { data, error } = await event.locals.supabase.auth.signInWithPassword({
 				email: import.meta.env.VITE_ADMIN_USER,
-				password: import.meta.env.VITE_ADMIN_USER_PASSWORD,
+				password: import.meta.env.VITE_ADMIN_USER_PASSWORD
 			});
 			if (error) {
 				throw error;

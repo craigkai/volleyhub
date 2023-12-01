@@ -50,7 +50,7 @@
 				pools,
 				date
 			})
-			.then((res: any) => {
+			.then((res) => {
 				tournament = res;
 				success(`Tournament udpated`);
 			})
