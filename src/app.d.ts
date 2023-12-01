@@ -5,7 +5,9 @@ import type { Database } from '../../types/supabase';
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 declare global {
-	type MemberType = Database['public']['Tables']['teams']['Row'];
+	type TeamRow = Database['public']['Tables']['teams']['Row'];
+	type EventRow = Database['public']['Tables']['events']['Row'];
+	type MatchRow = Database['public']['Tables']['matches']['Row'];
 
 	interface Locals {
 		supabase: SupabaseClient<Database>;
@@ -38,4 +40,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export {};
+export { };

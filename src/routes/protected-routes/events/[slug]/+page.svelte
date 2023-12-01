@@ -19,7 +19,7 @@
 			return await tournament
 				.loadEvent(data?.eventId)
 				.then(() => {
-					teams = tournament?.settings.teams;
+					teams = tournament?.settings.teams?.map((t) => t.name);
 					courts = tournament?.settings.courts;
 					pools = tournament?.settings.pools;
 					name = tournament?.settings.name;
@@ -36,8 +36,4 @@
 	<Spinner color="blue" />
 {:then}
 	<Edit bind:tournament bind:name bind:data bind:date bind:teams bind:courts bind:pools />
-
-	{#if tournament?.status && tournament.status !== 'steup'}
-		<View bind:tournament />
-	{/if}
 {/await}

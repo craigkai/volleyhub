@@ -125,29 +125,33 @@
 		{/if}
 	</div>
 
-	<h2>Matches:</h2>
-	{#await matchesPromise}
-		<Spinner color="blue" />
-	{:then}
-		{#each tournament.matches as match}
-			<div class="w-1/2 m-1">
-				<Table>
-					<TableHead>
-						<TableHeadCell>Round</TableHeadCell>
-						<TableHeadCell>Court</TableHeadCell>
-						<TableHeadCell>Home</TableHeadCell>
-						<TableHeadCell>Away</TableHeadCell>
-					</TableHead>
-					<TableBody>
-						<TableBodyRow>
-							<TableBodyCell>tbd</TableBodyCell>
-							<TableBodyCell>tbd</TableBodyCell>
-							<TableBodyCell>{match.matches_team1_fkey.name}</TableBodyCell>
-							<TableBodyCell>{match.matches_team2_fkey.name}</TableBodyCell>
-						</TableBodyRow>
-					</TableBody>
-				</Table>
-			</div>
-		{/each}
-	{/await}
+	{#if data?.eventId !== 'create'}
+		<h2>Matches:</h2>
+		{#await matchesPromise}
+			<Spinner color="blue" />
+		{:then}
+			{#if tournament.matches}
+				{#each tournament.matches as match}
+					<div class="w-1/2 m-1">
+						<Table>
+							<TableHead>
+								<TableHeadCell>Round</TableHeadCell>
+								<TableHeadCell>Court</TableHeadCell>
+								<TableHeadCell>Home</TableHeadCell>
+								<TableHeadCell>Away</TableHeadCell>
+							</TableHead>
+							<TableBody>
+								<TableBodyRow>
+									<TableBodyCell>tbd</TableBodyCell>
+									<TableBodyCell>tbd</TableBodyCell>
+									<TableBodyCell>{match.matches_team1_fkey.name}</TableBodyCell>
+									<TableBodyCell>{match.matches_team2_fkey.name}</TableBodyCell>
+								</TableBodyRow>
+							</TableBody>
+						</Table>
+					</div>
+				{/each}
+			{/if}
+		{/await}
+	{/if}
 </div>

@@ -1,5 +1,5 @@
 import { error, type HttpError } from '@sveltejs/kit';
-import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+import type { PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
 import { RoundRobin } from 'tournament-pairings';
 import type { Match } from 'tournament-pairings/dist/Match';
 
@@ -16,7 +16,7 @@ export class Tournament {
     handle: supabaseClient;
     id?: string;
     settings: TournamentSettings;
-    matches?: Match[];
+    matches?: MatchRow[];
 
     constructor(handle: supabaseClient) {
         this.handle = handle;
@@ -39,7 +39,7 @@ export class Tournament {
 
         const ownerId = (await this.handle.auth.getUser()).data.user?.id;
 
-        const res: PostgrestSingleResponse<MemberType> = await this.handle
+        const res: PostgrestSingleResponse<EventRow> = await this.handle
             .from('events')
             .insert({
                 owner: ownerId,
@@ -62,9 +62,7 @@ export class Tournament {
         if (this.id && this.settings) {
             const teamsIds: string[] = [];
             input.teams.forEach(async (team: string) => {
-                await this.createTeam(team, this.id as string).then((id) =>
-                    teamsIds.push(id as string)
-                );
+                await this.createTeam(team, this.id as string).then((id) => teamsIds.push(id as string));
             });
 
             this.settings.teams = teamsIds;
@@ -86,7 +84,7 @@ export class Tournament {
             .select('*')
             .eq('id', eventId)
             .single()
-            .then((res: PostgrestSingleResponse<MemberType>) => {
+            .then((res: PostgrestSingleResponse<EventRow>) => {
                 if (res?.error) {
                     throw error(res?.status, res?.error.details);
                 }
@@ -96,7 +94,7 @@ export class Tournament {
         this.id = res.id;
         this.settings = res;
 
-        const teamsRes: PostgrestSingleResponse<MemberType> = await this.handle
+        const teamsRes: PostgrestResponse<TeamRow> = await this.handle
             .from('teams')
             .select()
             .eq('event_id', eventId);
@@ -123,7 +121,7 @@ export class Tournament {
             throw error(400, `Tournament update call does not have all required values`);
         }
 
-        const res: PostgrestSingleResponse<MemberType> = await this.handle
+        const res: PostgrestSingleResponse<EventRow> = await this.handle
             .from('events')
             .update({
                 name: input.name,
@@ -151,8 +149,8 @@ export class Tournament {
     /*
     Load all matches for the current tournament.
     */
-    async loadMatches(): Promise<Match[] | HttpError> {
-        const res: PostgrestSingleResponse<MemberType> = await this.handle
+    async loadMatches(): Promise<MatchRow | HttpError> {
+        const res: PostgrestSingleResponse<MatchRow> = await this.handle
             .from('matches')
             .select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
             .eq('event_id', this.id)
@@ -173,7 +171,7 @@ export class Tournament {
     }
 
     async createMatches() {
-        self.matches = RoundRobin(self.teams);
+        // self.matches = RoundRobin(self.teams);
         // Call multi insert:
         // const { data, error } = await supabase
         // .from('teams')
@@ -182,6 +180,7 @@ export class Tournament {
         // { some_column: 'otherValue' },
         // ])
         // .select()
+        throw new Error('Function not implemented.');
     }
 
     /*
@@ -196,7 +195,7 @@ export class Tournament {
     are trying to create, then return that team Id.
     */
     async createTeam(name: string, eventId: string): Promise<string | HttpError> {
-        const res: PostgrestSingleResponse<MemberType> = await this.handle
+        const res: PostgrestSingleResponse<TeamRow> = await this.handle
             .from('teams')
             .upsert({ name: name, event_id: eventId })
             .select();
@@ -215,12 +214,12 @@ export class Tournament {
 export async function loadEvents(
     handle: supabaseClient,
     ownerId: string
-): Promise<Tournament[] | HttpError> {
+): Promise<EventRow[] | HttpError> {
     return await handle
         .from('events')
         .select('*')
         .eq('owner', ownerId)
-        .then((res: PostgrestSingleResponse<MemberType>) => {
+        .then((res: PostgrestResponse<EventRow>) => {
             if (res?.error) {
                 throw error(res?.status, res?.error);
             }
