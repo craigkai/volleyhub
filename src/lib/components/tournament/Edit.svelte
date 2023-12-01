@@ -88,30 +88,33 @@
 		<div class="m-2">
 			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label class="block text-gray-700 text-sm font-bold mb-2">Teams:</label>
-			<Table>
-				<TableBody>
-					{#each teams as team}
+			{#if teams}
+				<Table>
+					<TableBody>
+						{#each teams as team}
+							<TableBodyRow>
+								<TableBodyCell>{team.name}</TableBodyCell>
+								<TableBodyCell>
+									<a
+										href="/tables"
+										class="font-medium text-blue-600 hover:underline dark:text-primary-500"
+										>Remove</a
+									></TableBodyCell
+								>
+							</TableBodyRow>
+						{/each}
 						<TableBodyRow>
-							<TableBodyCell>{team.name}</TableBodyCell>
+							<TableBodyCell>new team...</TableBodyCell>
 							<TableBodyCell>
 								<a
 									href="/tables"
-									class="font-medium text-blue-600 hover:underline dark:text-primary-500">Remove</a
+									class="font-medium text-blue-600 hover:underline dark:text-primary-500">Add</a
 								></TableBodyCell
 							>
 						</TableBodyRow>
-					{/each}
-					<TableBodyRow>
-						<TableBodyCell>new team...</TableBodyCell>
-						<TableBodyCell>
-							<a
-								href="/tables"
-								class="font-medium text-blue-600 hover:underline dark:text-primary-500">Add</a
-							></TableBodyCell
-						>
-					</TableBodyRow>
-				</TableBody>
-			</Table>
+					</TableBody>
+				</Table>
+			{/if}
 		</div>
 		<div class="m-2">
 			<label class="block text-gray-700 text-sm font-bold mb-2" for="username"
@@ -131,7 +134,7 @@
 			<input class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
 		</div>
 
-		<div class="">
+		<div class="m-2">
 			{#if data?.eventId === 'create'}
 				<button
 					class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"

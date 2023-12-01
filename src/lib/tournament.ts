@@ -1,220 +1,226 @@
-import { error, type HttpError } from '@sveltejs/kit';
-import type { PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
+import { error } from '@sveltejs/kit';
+import type { PostgrestSingleResponse, PostgrestResponse } from '@supabase/supabase-js';
 import { RoundRobin } from 'tournament-pairings';
 import type { Match } from 'tournament-pairings/dist/Match';
 
 export class Tournament {
-    handle: supabaseClient;
-    id?: string;
-    settings: EventRow;
-    matches?: MatchRow[];
+	supabaseClient: supabaseClient;
+	id?: string;
+	settings: EventRow;
+	matches?: MatchRow[];
 
-    constructor(handle: supabaseClient) {
-        this.handle = handle;
-        this.settings = {};
-    }
-
-    /*
+	constructor(supabaseClient: supabaseClient) {
+		this.supabaseClient = supabaseClient;
+		this.settings = {};
+	}
+	/*
     Create a new event, this creates our event ONLY (tournament settings).
     */
-    async createEvent(input: EventRow): Promise<Tournament> {
-        if (!input.teams || !input.pools || !input.courts) {
-            throw error(400, `Tournament create call does not have all required values`);
-        }
+	async createEvent(input: EventRow): Promise<Tournament> {
+		if (!input.teams || !input.pools || !input.courts) {
+			throw error(400, `Tournament create call does not have all required values`);
+		}
 
-        const ownerId = (await this.handle.auth.getUser()).data.user?.id;
+		const ownerId = (await this.supabaseClient.auth.getUser()).data.user?.id;
 
-        const res: PostgrestSingleResponse<EventRow> = await this.handle
-            .from('events')
-            .insert({
-                owner: ownerId,
-                name: input.name,
-                pools: input.pools,
-                courts: input.courts,
-                date: input.date
-            })
-            .select()
-            .single();
+		const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
+			.from('events')
+			.insert({
+				owner: ownerId,
+				name: input.name,
+				pools: input.pools,
+				courts: input.courts,
+				date: input.date
+			})
+			.select()
+			.single();
 
-        if (res.error) {
-            console.error('Failed to cerate new event');
-            throw error(400, res.error);
-        }
+		if (res.error) {
+			console.error('Failed to cerate new event');
+			throw error(400, res.error);
+		}
 
-        this.id = res.data.id;
-        this.settings = res.data;
+		this.id = res.data.id;
+		this.settings = res.data;
 
-        if (this.id && this.settings) {
-            const teamsIds: string[] = [];
-            input.teams.forEach(async (team: string) => {
-                await this.createTeam(team, this.id as string).then((id) => teamsIds.push(id as string));
-            });
+		if (this.id && this.settings) {
+			const teamsIds: string[] = await Promise.all(
+				input.teams.map(async (team: string) => {
+					return await this.createTeam(team, this.id as string);
+				})
+			);
 
-            this.settings.teams = teamsIds;
-        }
+			this.settings.teams = teamsIds;
+		}
 
-        return this;
-    }
+		return this;
+	}
 
-    //  TODO: Handle adding/removing teams
-    async updateTournament(id: string, input: EventRow): Promise<Tournament> {
-        if (!input.teams || !input.pools || !input.courts) {
-            throw error(400, `Tournament update call does not have all required values`);
-        }
+	//  TODO: Handle adding/removing teams
+	async updateTournament(id: string, input: EventRow): Promise<Tournament> {
+		if (!input.teams || !input.pools || !input.courts) {
+			throw error(400, `Tournament update call does not have all required values`);
+		}
 
-        const res: PostgrestSingleResponse<EventRow> = await this.handle
-            .from('events')
-            .update({
-                name: input.name,
-                pools: input.pools,
-                courts: input.courts,
-                date: input.date
-            })
-            .eq('id', id)
-            .select();
+		const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
+			.from('events')
+			.update({
+				name: input.name,
+				pools: input.pools,
+				courts: input.courts,
+				date: input.date
+			})
+			.eq('id', id)
+			.select();
 
-        if (res.error) {
-            throw error(400, res.error);
-        }
+		if (res.error) {
+			throw error(400, res.error);
+		}
 
-        if (this.id && this.settings) {
-            const teamsIds: string[] = [];
-            input.teams.forEach(async (team: string) => {
-                await this.createTeam(team, this.id as string).then((id) => teamsIds.push(id as string));
-            });
+		if (this.id && this.settings) {
+			const teamsIds: string[] = [];
+			input.teams.forEach(async (team: string) => {
+				await this.createTeam(team, this.id as string).then((id) => teamsIds.push(id as string));
+			});
 
-            this.settings.teams = teamsIds;
-        }
+			this.settings.teams = teamsIds;
+		}
 
-        this.settings = input;
+		this.settings = input;
 
-        return this;
-    }
+		return this;
+	}
 
-    /*
+	/*
         Attempt to load our event (tournament settings) via SupaBase, we load matches and teams elsewhere.
     */
-    async loadEvent(eventId?: string): Promise<Tournament> {
-        if (!eventId) {
-            throw error(400, 'Invalid event ID, are you sure your link is correct?');
-        }
+	async loadEvent(eventId?: string): Promise<Tournament> {
+		if (!eventId) {
+			throw error(400, 'Invalid event ID, are you sure your link is correct?');
+		}
 
-        const res = await this.handle
-            .from('events')
-            .select('*')
-            .eq('id', eventId)
-            .single()
-            .then((res: PostgrestSingleResponse<EventRow>) => {
-                if (res?.error) {
-                    throw error(res?.status, res?.error.details);
-                }
-                return res.data;
-            });
+		try {
+			const eventResponse: PostgrestSingleResponse<EventRow> = await this.supabaseClient
+				.from('events')
+				.select('*')
+				.eq('id', eventId)
+				.single();
 
-        this.id = res.id;
-        this.settings = res;
+			if (eventResponse.error) {
+				throw error(eventResponse.status, eventResponse.error.details);
+			}
 
-        const teamsRes: PostgrestResponse<TeamRow> = await this.handle
-            .from('teams')
-            .select()
-            .eq('event_id', eventId);
+			this.id = eventResponse.data.id;
+			this.settings = eventResponse.data;
 
-        if (teamsRes.error) {
-            console.error('Failed to get teams for event');
-            throw error(400, teamsRes.error);
-        }
+			const teamsResponse: PostgrestResponse<TeamRow> = await this.supabaseClient
+				.from('teams')
+				.select()
+				.eq('event_id', eventId);
 
-        this.settings.teams = teamsRes.data;
+			if (teamsResponse.error) {
+				throw error(400, teamsResponse.error);
+			}
 
-        return this;
-    }
+			this.settings.teams = teamsResponse.data;
 
-    async saveTournament() {
-        throw new Error('Function not implemented.');
-    }
+			return this;
+		} catch (err) {
+			// Handle and log the error appropriately
+			console.error('Failed to load event:', err);
+			throw err;
+		}
+	}
 
-    /*
+	async saveTournament(): Promise<void> {
+		throw new Error('Function not implemented.');
+	}
+
+	/*
     Load all matches for the current tournament.
     */
-    async loadMatches(): Promise<MatchRow> {
-        const res: PostgrestSingleResponse<MatchRow> = await this.handle
-            .from('matches')
-            .select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
-            .eq('event_id', this.id)
-            .eq('status', 'active');
+	async loadMatches(): Promise<MatchRow> {
+		const res: PostgrestSingleResponse<MatchRow> = await this.supabaseClient
+			.from('matches')
+			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
+			.eq('event_id', this.id)
+			.eq('status', 'active');
 
-        if (res.error) {
-            throw error(400, res.error);
-        }
-        this.matches = res.data;
-        return res.data;
-    }
+		if (res.error) {
+			throw error(400, res.error);
+		}
+		this.matches = res.data;
+		return res.data;
+	}
 
-    /**
-     * Insert new match.
-     */
-    async saveMatch() {
-        throw new Error('Function not implemented.');
-    }
+	/**
+	 * Insert new match.
+	 */
+	async saveMatch() {
+		throw new Error('Function not implemented.');
+	}
 
-    async createMatches() {
-        // self.matches = RoundRobin(self.teams);
-        // Call multi insert:
-        // const { data, error } = await supabase
-        // .from('teams')
-        // .insert([
-        // { some_column: 'someValue' },
-        // { some_column: 'otherValue' },
-        // ])
-        // .select()
-        throw new Error('Function not implemented.');
-    }
+	async createMatches() {
+		// self.matches = RoundRobin(self.teams);
+		// Call multi insert:
+		// const { data, error } = await supabase
+		// .from('teams')
+		// .insert([
+		// { some_column: 'someValue' },
+		// { some_column: 'otherValue' },
+		// ])
+		// .select()
+		throw new Error('Function not implemented.');
+	}
 
-    /*
+	/*
     Either adding updating match metadata such as teams in the match or adding results.
     */
-    async updateMatch() {
-        throw new Error('Function not implemented.');
-    }
+	async updateMatch() {
+		throw new Error('Function not implemented.');
+	}
 
-    /*
+	/*
     Inserts new team into supabase, if a team exists where team name and event id match what we
     are trying to create, then return that team Id.
     */
-    async createTeam(team: string | TeamRow, eventId: string): Promise<string> {
-        let res: PostgrestSingleResponse<TeamRow>;
-        if (typeof team === 'string') {
-            res = await this.handle.from('teams').upsert({ name: team, event_id: eventId }).select();
-        } else {
-            res = await this.handle
-                .from('teams')
-                .upsert({ ...team })
-                .select();
-        }
+	async createTeam(team: string | TeamRow, eventId: string): Promise<string> {
+		let res: PostgrestSingleResponse<TeamRow>;
+		if (typeof team === 'string') {
+			res = await this.supabaseClient
+				.from('teams')
+				.upsert({ name: team, event_id: eventId })
+				.select();
+		} else {
+			res = await this.supabaseClient
+				.from('teams')
+				.upsert({ ...team })
+				.select();
+		}
 
-        if (res.error) {
-            console.error('Failed to create new team');
-            throw error(400, res.error);
-        }
-        return res.data.id;
-    }
+		if (res.error) {
+			console.error('Failed to create new team');
+			throw error(400, res.error);
+		}
+		return res.data.id;
+	}
 }
 
 /*
     Load all events for the provided owner Id.
     */
 export async function loadEvents(
-    handle: supabaseClient,
-    ownerId: string
+	supabaseClient: supabaseClient,
+	ownerId: string
 ): Promise<EventRow[] | HttpError> {
-    return await handle
-        .from('events')
-        .select('*')
-        .eq('owner', ownerId)
-        .then((res: PostgrestResponse<EventRow>) => {
-            if (res?.error) {
-                throw error(res?.status, res?.error);
-            }
-            return res.data;
-        });
+	return await supabaseClient
+		.from('events')
+		.select('*')
+		.eq('owner', ownerId)
+		.then((res: PostgrestResponse<EventRow>) => {
+			if (res?.error) {
+				throw error(res?.status, res?.error);
+			}
+			return res.data;
+		});
 }
