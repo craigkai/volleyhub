@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { PageData } from '$types';
 	import { Auth } from '@supabase/auth-ui-svelte';
 	import { ThemeSupa } from '@supabase/auth-ui-shared';
 

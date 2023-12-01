@@ -1,1 +1,1 @@
-Some profile page! * Edit subscrition * Edit auth * Edit SMS
+A place to edit your profile

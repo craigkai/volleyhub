@@ -20,5 +20,5 @@ export const load: LayoutLoad = async ({ fetch, data, depends, url }) => {
 		data: { session }
 	} = await supabase.auth.getSession();
 
-	return { supabase, session, deploymentGitBranch: data.deploymentGitBranch, url: url.origin };
+	return { supabase, session, url: url.origin };
 };

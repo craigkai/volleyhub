@@ -1,14 +1,17 @@
 <!-- src/routes/+layout.svelte -->
+
 <script lang="ts">
-	import '../app.css';
+	import '../app.postcss';
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
-
+	import { SvelteToast } from '@zerodevx/svelte-toast';
+	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
+	import { error } from '$lib/toast';
 
 	inject({ mode: dev ? 'development' : 'production' });
 
@@ -27,12 +30,23 @@
 
 		return () => subscription.unsubscribe();
 	});
+
+	const options = {};
+
+	function handleError(err: string | SvelteToastOptions) {
+		error(err);
+	}
 </script>
 
-<Header {data} />
+<svelte:window on:error={handleError} />
+<html class="dark" lang="en">
+	<Header {data} />
 
-<div class="flex-col min-h-screen overflow-hidden p-4">
-	<slot />
-</div>
+	<div class="flex-col min-h-screen overflow-hidden p-4">
+		<SvelteToast {options} />
 
-<Footer {data} />
+		<slot {data} />
+	</div>
+
+	<Footer {data} />
+</html>

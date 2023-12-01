@@ -1,7 +1,8 @@
 // src/hooks.server.ts
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
 import type { Handle } from '@sveltejs/kit';
-import { redirect, error } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
+import { dev } from '$app/environment';
 
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_KEY;
@@ -19,15 +20,27 @@ export const handle: Handle = async ({ event, resolve }) => {
 	 * you just call this `await getSession()`
 	 */
 	event.locals.getSession = async () => {
-		const {
+		let {
 			data: { session }
 		} = await event.locals.supabase.auth.getSession();
+
+		if (dev) {
+			const { data, error } = await event.locals.supabase.auth.signInWithPassword({
+				email: import.meta.env.VITE_ADMIN_USER,
+				password: import.meta.env.VITE_ADMIN_USER_PASSWORD
+			});
+			if (error) {
+				throw error;
+			}
+			session = data.session;
+		}
+
 		return session;
 	};
 
 	if (event.url.pathname.startsWith('/protected-routes')) {
 		const session = await event.locals.getSession();
-		if (!session) {
+		if (!session && !event.url.host.includes('localhost')) {
 			// the user is not signed in
 			throw redirect(303, '/auth');
 		}
@@ -38,7 +51,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const session = await event.locals.getSession();
 		if (!session) {
 			// the user is not signed in
-			throw error(303, '/auth');
+			throw redirect(303, '/auth');
+		}
+	}
+
+	// Make the login our homepage for now
+	if (event.url.pathname === '/' && !event.url.host.includes('localhost')) {
+		const session = await event.locals.getSession();
+		if (!session) {
+			// the user is not signed in
+			throw redirect(303, '/auth');
 		}
 	}
 
