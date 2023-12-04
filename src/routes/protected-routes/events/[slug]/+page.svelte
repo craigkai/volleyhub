@@ -118,9 +118,8 @@
 						Update Tournament Settings</button
 					>
 				{/if}
-
-				<Match {tournament} />
 			</div>
+			<Match {tournament} />
 		</form>
 	</div>
 {/await}
