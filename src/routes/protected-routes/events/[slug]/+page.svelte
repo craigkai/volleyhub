@@ -8,6 +8,7 @@
 	import { error, success } from '$lib/toast';
 	import dayjs from 'dayjs';
 	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
+	import { goto } from '$app/navigation';
 
 	export let data: PageData;
 	let tournament: Tournament = new Tournament(data?.supabase);
@@ -24,11 +25,10 @@
 	async function createNewEvent(): Promise<void> {
 		tournament
 			.createEvent({
-				teams,
-				name,
-				courts,
-				pools,
-				date
+				name: tournament.settings.name,
+				courts: tournament.settings.courts,
+				pools: tournament.settings.pools,
+				date: tournament.settings.date
 			})
 			.then(() => {
 				success(`Tournament created`);

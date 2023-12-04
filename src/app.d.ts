@@ -9,6 +9,8 @@ declare global {
 	type EventRow = Database['public']['Tables']['events']['Row'];
 	type MatchRow = Database['public']['Tables']['matches']['Row'];
 
+	type UserMatch = Match & { court: string; round: string };
+
 	interface Locals {
 		supabase: SupabaseClient<Database>;
 		getSession(): Promise<Session | null>;

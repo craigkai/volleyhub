@@ -21,20 +21,39 @@
 	<Spinner color="blue" />
 {:then}
 	{#if tournament.matches && tournament.matches.length > 0}
+		<!--
+			Reduce our matches into a dict where the key is the round the
+			match is played in.
+		-->
+		{@const matchesForEachRound = tournament.matches.reduce((accumulator, currentValue) => {
+			if (accumulator[currentValue.round]) {
+				accumulator[currentValue.round].push(currentValue);
+			} else {
+				accumulator[currentValue.round] = [currentValue];
+			}
+			return accumulator;
+		}, {})}
+
 		<Table>
 			<TableHead>
 				<TableHeadCell>Round</TableHeadCell>
-				<TableHeadCell>Court</TableHeadCell>
-				<TableHeadCell>Home</TableHeadCell>
-				<TableHeadCell>Away</TableHeadCell>
+				<TableHeadCell>Ref</TableHeadCell>
+				{#each Array(tournament.settings.courts) as _, i}
+					<TableHeadCell>Court {i + 1}</TableHeadCell>
+				{/each}
 			</TableHead>
 			<TableBody>
-				{#each tournament.matches as match}
+				<!-- Need to iterate over ROUNDs here and fill each court -->
+				{#each Object.keys(matchesForEachRound) as round}
+					{@const matchesForRound = matchesForEachRound[round].sort((a, b) => a.court - b.court)}
 					<TableBodyRow>
-						<TableBodyCell>tbd</TableBodyCell>
-						<TableBodyCell>tbd</TableBodyCell>
-						<TableBodyCell>{match.matches_team1_fkey.name}</TableBodyCell>
-						<TableBodyCell>{match.matches_team2_fkey.name}</TableBodyCell>
+						<TableBodyCell>{round}</TableBodyCell>
+						<TableBodyCell>Some Ref</TableBodyCell>
+						{#each matchesForRound as match}
+							<TableBodyCell
+								>{match.matches_team1_fkey.name} vs {match.matches_team2_fkey.name}</TableBodyCell
+							>
+						{/each}
 					</TableBodyRow>
 				{/each}
 			</TableBody>
