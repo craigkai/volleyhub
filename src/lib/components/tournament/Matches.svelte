@@ -45,7 +45,9 @@
 			<TableBody>
 				<!-- Need to iterate over ROUNDs here and fill each court -->
 				{#each Object.keys(matchesForEachRound) as round}
-					{@const matchesForRound = matchesForEachRound[round].sort((a, b) => a.court - b.court)}
+					{@const matchesForRound = matchesForEachRound[round].sort(
+						(a, b) => a.round - b.round || a.court - b.court
+					)}
 					<TableBodyRow>
 						<TableBodyCell>{round}</TableBodyCell>
 						<TableBodyCell>Some Ref</TableBodyCell>

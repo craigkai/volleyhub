@@ -58,6 +58,8 @@
 	$: tournament.settings.date = dayjs(tournament?.settings?.date).format('YYYY-MM-DD');
 
 	let loadingEventPromise = loadEvent();
+
+	$: tournament, tournament.createMatches();
 </script>
 
 {#await loadingEventPromise}

@@ -162,17 +162,14 @@ export class Tournament {
             throw error(deleteRes.status, deleteRes.error);
         }
 
-        let round = 0;
         let courtsAvailable = this.settings.courts;
         let teamsAvailable = this.settings.teams.length;
 
         const userMatches: UserMatch[] = matches.map((match: UserMatch) => {
             if (courtsAvailable === 0 || teamsAvailable.length < 2) {
-                round = round + 1;
                 courtsAvailable = this.settings.courts;
                 teamsAvailable = this.settings.teams.length;
             }
-            match.round = round;
             match.court = this.settings.courts - courtsAvailable;
 
             courtsAvailable = courtsAvailable - 1;
