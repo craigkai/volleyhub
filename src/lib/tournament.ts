@@ -66,17 +66,8 @@ export class Tournament {
             throw error(res.status, res.error);
         }
 
-        // TODO: Handle updating teams
-        // if (this.id && this.settings) {
-        //     const teamsIds: string[] = [];)
-        //     input.teams.forEach(async (team: string) => {
-        //         console.error("here1")
-        //         await this.createTeam(team, this.id as string)
-        //             .then((id) => teamsIds.push(id as string))
-        //     });
-
-        //     this.settings.teams = teamsIds;
-        // }
+        // TODO: Reload this if it was changed
+        input.teams = this.settings.teams;
 
         this.settings = input;
 
@@ -105,16 +96,7 @@ export class Tournament {
             this.id = eventResponse.data.id;
             this.settings = eventResponse.data;
 
-            const teamsResponse: PostgrestResponse<TeamRow> = await this.supabaseClient
-                .from('teams')
-                .select()
-                .eq('event_id', eventId);
-
-            if (teamsResponse.error) {
-                throw error(teamsResponse?.status, teamsResponse.error);
-            }
-
-            this.settings.teams = teamsResponse.data;
+            this.settings.teams = await this.loadEventTeams();
 
             return this;
         } catch (err) {
@@ -158,31 +140,43 @@ export class Tournament {
         const deleteRes = await this.supabaseClient.from('matches').delete().eq('event_id', this.id);
 
         if (deleteRes.error) {
-            console.error(`Failed to create new matches: ${JSON.stringify(deleteRes.error)}`);
+            console.error(`Failed to delete old matches: ${JSON.stringify(deleteRes.error)}`);
             throw error(deleteRes.status, deleteRes.error);
         }
 
         let courtsAvailable = this.settings.courts;
         let teamsAvailable = this.settings.teams.length;
+        let round = 0;
 
-        const userMatches: UserMatch[] = matches.map((match: UserMatch) => {
+        let totalRounds = 0;
+        let userMatches: UserMatch[] = [];
+        matches.forEach((match: UserMatch) => {
+            // Short circuit if we have more matches than pool play games
+            // (you don't play every team).
+            if (totalRounds === this.settings.pools) {
+                return;
+            }
+
             if (courtsAvailable === 0 || teamsAvailable.length < 2) {
                 courtsAvailable = this.settings.courts;
                 teamsAvailable = this.settings.teams.length;
+                round = round + 1;
+                totalRounds = totalRounds + 1;
             }
+
             match.court = this.settings.courts - courtsAvailable;
+            match.round = round;
 
             courtsAvailable = courtsAvailable - 1;
-
             teamsAvailable = teamsAvailable - 2;
 
-            return {
+            userMatches.push({
                 event_id: this.id,
                 team1: match.player1.id,
                 team2: match.player2.id,
                 court: match.court,
                 round: match.round
-            };
+            });
         });
 
         // Call multi insert:
@@ -211,25 +205,41 @@ export class Tournament {
     Inserts new team into supabase, if a team exists where team name and event id match what we
     are trying to create, then return that team Id.
     */
-    async createTeam(team: string | TeamRow, eventId: string): Promise<string> {
+    async createTeam(team: TeamRow): Promise<TeamRow> {
         let res: PostgrestSingleResponse<TeamRow>;
-        if (typeof team === 'string') {
-            res = await this.supabaseClient
-                .from('teams')
-                .upsert({ name: team, event_id: eventId })
-                .select();
-        } else {
-            res = await this.supabaseClient
-                .from('teams')
-                .upsert({ ...team })
-                .select();
-        }
+        res = await this.supabaseClient
+            .from('teams')
+            .upsert({ ...team })
+            .select();
 
         if (res.error) {
             console.error('Failed to create new team');
             throw error(res.status, res.error);
         }
         return res.data.id;
+    }
+
+    async deleteTeam(team: TeamRow): Promise<void> {
+        let res: PostgrestSingleResponse<TeamRow>;
+        res = await this.supabaseClient.from('teams').delete().eq('id', team.id);
+
+        if (res.error) {
+            console.error('Failed to delete team');
+            throw error(res.status, res.error);
+        }
+    }
+
+    async loadEventTeams() {
+        const teamsResponse: PostgrestResponse<TeamRow> = await this.supabaseClient
+            .from('teams')
+            .select()
+            .eq('event_id', this.id);
+
+        if (teamsResponse.error) {
+            throw error(teamsResponse?.status, teamsResponse.error);
+        }
+        this.settings.teams = teamsResponse.data;
+        return this.settings.teams;
     }
 }
 

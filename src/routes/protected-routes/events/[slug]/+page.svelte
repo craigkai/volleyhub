@@ -59,14 +59,16 @@
 
 	let loadingEventPromise = loadEvent();
 
-	$: tournament, tournament.createMatches();
+	$: if (tournament?.settings && tournament?.settings?.teams?.length > 0) {
+		tournament.createMatches().catch((err) => error(err.body.message));
+	}
 </script>
 
 {#await loadingEventPromise}
 	<Spinner color="blue" />
 {:then}
 	<div class="flex flex-col justify-center items-center">
-		<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+		<div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
 			<div class="w-1/2 m-2">
 				<label class="block text-gray-700 text-sm font-bold mb-2" for="username">Event Name:</label>
 				<input class="bg-gray-200 p-2 rounded" type="text" bind:value={tournament.settings.name} />
@@ -120,6 +122,6 @@
 				{/if}
 			</div>
 			<Match {tournament} />
-		</form>
+		</div>
 	</div>
 {/await}
