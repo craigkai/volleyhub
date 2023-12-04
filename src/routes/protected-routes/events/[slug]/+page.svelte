@@ -7,11 +7,10 @@
 	import type { HttpError } from '@sveltejs/kit';
 	import { error, success } from '$lib/toast';
 	import dayjs from 'dayjs';
+	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 
 	export let data: PageData;
 	let tournament: Tournament = new Tournament(data?.supabase);
-
-	let name: string, courts: string, pools: string, date: string;
 
 	// Load our event or if creating we just load the edit component
 	async function loadEvent() {
@@ -44,15 +43,14 @@
 	async function updateTournament(): Promise<void> {
 		tournament
 			.updateTournament(tournament.id as string, {
-				teams,
-				name,
-				courts,
-				pools,
-				date
+				name: tournament.settings.name,
+				courts: tournament.settings.courts,
+				pools: tournament.settings.pools,
+				date: tournament.settings.date
 			})
 			.then((res) => {
 				tournament = res;
-				success(`Tournament udpated`);
+				success(`Tournament settings updated`);
 			})
 			.catch((err: { body: { message: string | SvelteToastOptions } }) => error(err.body.message));
 	}
