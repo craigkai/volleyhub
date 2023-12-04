@@ -3,6 +3,8 @@
 	import { Table, TableBody, TableBodyCell, TableBodyRow } from 'flowbite-svelte';
 
 	export let tournament: Tournament;
+	// TODO: Handle alerting that adding or removing a team will wipe out
+	// the current matches. Then make sure we actually do that.
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->

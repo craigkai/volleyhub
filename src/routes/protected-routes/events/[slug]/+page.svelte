@@ -2,10 +2,10 @@
 	import { Spinner } from 'flowbite-svelte';
 	import type { PageData } from '$types';
 	import { Tournament } from '$lib/tournament';
-	import Match from '$lib/components/tournament/Match.svelte';
+	import Match from '$lib/components/tournament/Matches.svelte';
 	import Teams from '$lib/components/tournament/Teams.svelte';
 	import type { HttpError } from '@sveltejs/kit';
-	import { error } from '$lib/toast';
+	import { error, success } from '$lib/toast';
 	import dayjs from 'dayjs';
 
 	export let data: PageData;
