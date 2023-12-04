@@ -101,8 +101,6 @@
 
 			<Teams {tournament} />
 
-			<Match {tournament} />
-
 			<div class="m-2">
 				{#if data?.eventId === 'create'}
 					<button
@@ -117,9 +115,11 @@
 						type="button"
 						on:click={() => updateTournament()}
 					>
-						Update Tournament</button
+						Update Tournament Settings</button
 					>
 				{/if}
+
+				<Match {tournament} />
 			</div>
 		</form>
 	</div>

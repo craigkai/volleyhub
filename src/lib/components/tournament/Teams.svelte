@@ -7,8 +7,7 @@
 	// the current matches. Then make sure we actually do that.
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
-<label class="block text-gray-700 text-sm font-bold mb-2">Teams:</label>
+<div class="block text-gray-700 text-sm font-bold mb-2">Teams:</div>
 
 {#if tournament?.settings?.teams}
 	<Table>
