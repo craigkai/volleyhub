@@ -9,6 +9,7 @@
 	import dayjs from 'dayjs';
 	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { goto } from '$app/navigation';
+	import { Input, Label, Button } from 'flowbite-svelte';
 
 	export let data: PageData;
 	let tournament: Tournament = new Tournament(data?.supabase);
@@ -28,7 +29,7 @@
 				name: tournament.settings.name,
 				courts: tournament.settings.courts,
 				pools: tournament.settings.pools,
-				date: tournament.settings.date
+				date: date
 			})
 			.then(() => {
 				success(`Tournament created`);
@@ -46,7 +47,7 @@
 				name: tournament.settings.name,
 				courts: tournament.settings.courts,
 				pools: tournament.settings.pools,
-				date: tournament.settings.date
+				date: date
 			})
 			.then((res) => {
 				tournament = res;
@@ -55,11 +56,11 @@
 			.catch((err: { body: { message: string | SvelteToastOptions } }) => error(err.body.message));
 	}
 
-	$: tournament.settings.date = dayjs(tournament?.settings?.date).format('YYYY-MM-DD');
+	$: date = dayjs(tournament?.settings?.date).format('YYYY-MM-DD');
 
 	let loadingEventPromise = loadEvent();
 
-	$: if (tournament?.settings && tournament?.settings?.teams?.length > 0) {
+	$: if (tournament?.settings && tournament.settings?.teams?.length > 0) {
 		tournament.createMatches().catch((err) => error(err.body.message));
 	}
 </script>
@@ -67,61 +68,49 @@
 {#await loadingEventPromise}
 	<Spinner color="blue" />
 {:then}
-	<div class="flex flex-col justify-center items-center">
-		<div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-			<div class="w-1/2 m-2">
-				<label class="block text-gray-700 text-sm font-bold mb-2" for="username">Event Name:</label>
-				<input class="bg-gray-200 p-2 rounded" type="text" bind:value={tournament.settings.name} />
+	<div class="flex flex-col items-center">
+		<div class="bg-white shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
+			<div class="m-2">
+				<Label for="first_name" class="mb-2">Event Name:</Label>
+				<Input type="text" id="eventName" bind:value={tournament.settings.name} required />
 			</div>
 
 			<div class="m-2">
-				<label class="block text-gray-700 text-sm font-bold mb-2" for="username"
-					>Number of Courts:</label
-				>
-				<input
-					class="bg-gray-200 p-2 rounded"
-					type="number"
-					bind:value={tournament.settings.courts}
-				/>
+				<Label for="first_name" class="mb-2">Number of Courts:</Label>
+				<Input type="number" id="eventCourts" bind:value={tournament.settings.courts} required />
 			</div>
 
 			<div class="m-2">
-				<label class="block text-gray-700 text-sm font-bold mb-2" for="username"
-					>Number of Pool Play Games:</label
-				>
-				<input
-					class="bg-gray-200 p-2 rounded"
-					type="number"
-					bind:value={tournament.settings.pools}
-				/>
+				<Label for="first_name" class="mb-2">Number of Pool Play Games:</Label>
+				<Input type="number" id="eventCourts" bind:value={tournament.settings.pools} required />
 			</div>
 
 			<div class="m-2">
 				<label class="block text-gray-700 text-sm font-bold mb-2" for="username">Date:</label>
-				<input class="bg-gray-200 p-2 rounded" type="date" bind:value={tournament.settings.date} />
+				<input class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
 			</div>
 
-			<Teams {tournament} />
+			<Teams bind:tournament />
 
 			<div class="m-2">
 				{#if data?.eventId === 'create'}
-					<button
+					<Button
 						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						type="button"
 						on:click={() => createNewEvent()}
 					>
-						Create Tournament</button
+						Create Tournament</Button
 					>{:else}
-					<button
+					<Button
 						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						type="button"
 						on:click={() => updateTournament()}
 					>
-						Update Tournament Settings</button
+						Update Tournament Settings</Button
 					>
 				{/if}
 			</div>
-			<Match {tournament} />
+			<Match bind:tournament />
 		</div>
 	</div>
 {/await}

@@ -52,6 +52,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"dayjs": "^1.11.10"
+		"dayjs": "^1.11.10",
+		"svelte-hamburgers": "^4.2.0"
 	}
 }

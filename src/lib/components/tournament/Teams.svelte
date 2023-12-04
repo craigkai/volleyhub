@@ -2,7 +2,7 @@
 	import { success, error } from '$lib/toast';
 	import type { Tournament } from '$lib/tournament';
 	import type { HttpError_1 } from '@sveltejs/kit';
-	import { Table, TableBody, TableBodyCell, TableBodyRow } from 'flowbite-svelte';
+	import { TableBody, TableBodyCell, TableBodyRow, TableSearch } from 'flowbite-svelte';
 
 	export let tournament: Tournament;
 	// TODO: Handle alerting that adding or removing a team will wipe out
@@ -17,7 +17,8 @@
 			.createTeam(newTeam)
 			.then(async () => {
 				await loadEventTeams();
-				success(`$newTeamName created`);
+				success(`${newTeamName} created`);
+				newTeamName = '';
 			})
 			.catch((err: HttpError_1) => error(err.body.message));
 	}
@@ -27,7 +28,7 @@
 			.deleteTeam(team)
 			.then(async () => {
 				await loadEventTeams();
-				success(team.name + ' deleted');
+				success(`${team.name} deleted`);
 			})
 			.catch((err: HttpError_1) => error(err.body.message));
 	}
@@ -38,17 +39,26 @@
 			.catch((err: HttpError_1) => error(err.body.message));
 
 		tournament.settings.teams = res;
+		tournament.matches = tournament.matches;
 	}
 
+	let searchTerm: string = '';
+	$: filteredTeams = tournament.settings.teams.filter(
+		(team: TeamRow) => team.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
+	);
 	let newTeamName = '';
 </script>
 
-<div class="block text-gray-700 text-sm font-bold mb-2">Teams:</div>
-
-{#if tournament?.settings?.teams}
-	<Table>
+<div class="m-4">
+	<div class="block text-gray-700 text-sm font-bold mb-2">Teams:</div>
+	<TableSearch
+		placeholder="Search by maker name"
+		striped={true}
+		hoverable={true}
+		bind:inputValue={searchTerm}
+	>
 		<TableBody>
-			{#each tournament.settings.teams as team}
+			{#each filteredTeams as team}
 				<TableBodyRow>
 					<TableBodyCell>{team.name}</TableBodyCell>
 					<TableBodyCell>
@@ -78,5 +88,5 @@
 				>
 			</TableBodyRow>
 		</TableBody>
-	</Table>
-{/if}
+	</TableSearch>
+</div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { error } from '$lib/toast';
+
 	import type { Tournament } from '$lib/tournament';
 	import {
 		Spinner,
@@ -34,7 +35,7 @@
 			return accumulator;
 		}, {})}
 
-		<Table>
+		<Table striped={true} hoverable={true}>
 			<TableHead>
 				<TableHeadCell>Round</TableHeadCell>
 				<TableHeadCell>Ref</TableHeadCell>

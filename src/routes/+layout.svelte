@@ -39,7 +39,7 @@
 </script>
 
 <svelte:window on:error={handleError} />
-<html class="dark" lang="en">
+<html class="light" lang="en">
 	<Header {data} />
 
 	<div class="flex-col min-h-screen overflow-hidden p-4">
