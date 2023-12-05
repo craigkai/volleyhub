@@ -39,10 +39,11 @@
 </script>
 
 <svelte:window on:error={handleError} />
+
 <html class="light" lang="en">
 	<Header {data} />
 
-	<div class="flex-col min-h-screen overflow-hidden p-4">
+	<div class="min-h-screen">
 		<SvelteToast {options} />
 
 		<slot {data} />

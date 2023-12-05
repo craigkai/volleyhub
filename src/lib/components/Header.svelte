@@ -16,7 +16,7 @@
 	<Hamburger bind:open --color="white" />
 </div>
 
-<header>
+<header class="w-full">
 	<!-- Navigation bar -->
 	<div class="bg-blue-500 p-4">
 		<a href="/" class="flex">

@@ -2,7 +2,7 @@
 	import { success, error } from '$lib/toast';
 	import type { Tournament } from '$lib/tournament';
 	import type { HttpError_1 } from '@sveltejs/kit';
-	import { TableBody, TableBodyCell, TableBodyRow, TableSearch } from 'flowbite-svelte';
+	import { TableBody, TableBodyCell, Table, TableBodyRow, TableSearch } from 'flowbite-svelte';
 
 	export let tournament: Tournament;
 	// TODO: Handle alerting that adding or removing a team will wipe out
@@ -49,9 +49,10 @@
 	let newTeamName = '';
 </script>
 
-<div class="m-4">
-	<div class="block text-gray-700 text-sm font-bold mb-2">Teams:</div>
+<div class="relative overflow-x-auto">
+	<div class="block text-gray-700 text-sm font-bold">Teams:</div>
 	<TableSearch
+		divClass="border-solid border-2 rounded"
 		placeholder="Search by maker name"
 		striped={true}
 		hoverable={true}
