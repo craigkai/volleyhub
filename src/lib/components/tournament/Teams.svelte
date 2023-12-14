@@ -2,7 +2,7 @@
 	import { success, error } from '$lib/toast';
 	import type { Tournament } from '$lib/tournament';
 	import type { HttpError_1 } from '@sveltejs/kit';
-	import { TableBody, TableBodyCell, TableBodyRow, TableSearch } from 'flowbite-svelte';
+	import { TableBody, TableBodyCell, Table, TableBodyRow, TableSearch } from 'flowbite-svelte';
 
 	export let tournament: Tournament;
 	// TODO: Handle alerting that adding or removing a team will wipe out
@@ -43,7 +43,7 @@
 	}
 
 	let searchTerm: string = '';
-	$: filteredTeams = tournament?.settings?.teams?.filter(
+	$: filteredTeams = tournament.settings.teams.filter(
 		(team: TeamRow) => team.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
 	);
 	let newTeamName = '';
@@ -58,39 +58,36 @@
 		hoverable={true}
 		bind:inputValue={searchTerm}
 	>
-		{#if filteredTeams && filteredTeams.length > 0}
-			<TableBody>
-				{#each filteredTeams as team}
-					<TableBodyRow>
-						<TableBodyCell>{team.name}</TableBodyCell>
-						<TableBodyCell>
-							<button
-								on:click={() => deleteTeam(team)}
-								class="font-medium text-blue-600 hover:underline dark:text-primary-500"
-								>Delete</button
-							></TableBodyCell
-						>
-					</TableBodyRow>
-				{/each}
+		<TableBody>
+			{#each filteredTeams as team}
 				<TableBodyRow>
-					<TableBodyCell>
-						<input
-							class="rounded rounded-lg text-black"
-							name="newTeam"
-							type="text"
-							bind:value={newTeamName}
-							placeholder="Add a new team..."
-						/>
-					</TableBodyCell>
+					<TableBodyCell>{team.name}</TableBodyCell>
 					<TableBodyCell>
 						<button
-							on:click={() => createTeam()}
-							class="font-medium text-blue-600 hover:underline dark:text-primary-500"
-							>Add new team</button
+							on:click={() => deleteTeam(team)}
+							class="font-medium text-blue-600 hover:underline dark:text-primary-500">Delete</button
 						></TableBodyCell
 					>
 				</TableBodyRow>
-			</TableBody>
-		{/if}
+			{/each}
+			<TableBodyRow>
+				<TableBodyCell>
+					<input
+						class="rounded rounded-lg text-black"
+						name="newTeam"
+						type="text"
+						bind:value={newTeamName}
+						placeholder="Add a new team..."
+					/>
+				</TableBodyCell>
+				<TableBodyCell>
+					<button
+						on:click={() => createTeam()}
+						class="font-medium text-blue-600 hover:underline dark:text-primary-500"
+						>Add new team</button
+					></TableBodyCell
+				>
+			</TableBodyRow>
+		</TableBody>
 	</TableSearch>
 </div>
