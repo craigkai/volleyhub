@@ -40,14 +40,16 @@
 
 <svelte:window on:error={handleError} />
 
-<html class="light" lang="en">
-	<Header {data} />
+<html lang="en">
+	<div class="dark:text-nord-12">
+		<Header {data} />
 
-	<div class="min-h-screen">
-		<SvelteToast {options} />
+		<div class="min-h-screen">
+			<SvelteToast {options} />
 
-		<slot {data} />
+			<slot {data} />
+		</div>
+
+		<Footer {data} />
 	</div>
-
-	<Footer {data} />
 </html>

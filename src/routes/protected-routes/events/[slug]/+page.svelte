@@ -69,7 +69,7 @@
 	<Spinner color="blue" />
 {:then}
 	<div class="flex flex-col items-center">
-		<div class="bg-white shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
+		<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
 			<div class="m-2">
 				<Label for="first_name" class="mb-2">Event Name:</Label>
 				<Input type="text" id="eventName" bind:value={tournament.settings.name} required />
@@ -86,7 +86,7 @@
 			</div>
 
 			<div class="m-2">
-				<label class="block text-gray-700 text-sm font-bold mb-2" for="username">Date:</label>
+				<label class="block text-sm font-bold mb-2" for="username">Date:</label>
 				<input class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
 			</div>
 
@@ -95,14 +95,14 @@
 			<div class="m-2">
 				{#if data?.eventId === 'create'}
 					<Button
-						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						type="button"
 						on:click={() => createNewEvent()}
 					>
 						Create Tournament</Button
 					>{:else}
 					<Button
-						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						type="button"
 						on:click={() => updateTournament()}
 					>

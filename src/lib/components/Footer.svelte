@@ -7,7 +7,7 @@
 <footer
 	class="whitepsace-nowrap
     p-8 relative inset-x-0 bottom-0
-    w-full bg-blue-500
+    w-full bg-blue-500 dark:bg-nord-1
 "
 >
 	Copyright? Yeah right
