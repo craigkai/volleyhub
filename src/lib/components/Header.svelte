@@ -12,7 +12,7 @@
 	let currentUserPromise = getCurrentUser();
 </script>
 
-<div class="absolute end-0">
+<div class="absolute end-0 lg:hidden">
 	<Hamburger bind:open --color="white" />
 </div>
 
