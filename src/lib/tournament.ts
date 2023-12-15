@@ -17,7 +17,7 @@ export class Tournament {
 	*/
 	async createEvent(input: EventRow): Promise<Tournament> {
 		if (!input.name || !input.pools || !input.courts) {
-			throw error(400, `Tournament create call does not have all required values`);
+			error(400, `Tournament create call does not have all required values`);
 		}
 
 		const ownerId = (await this.supabaseClient.auth.getUser()).data.user?.id;
@@ -36,7 +36,7 @@ export class Tournament {
 
 		if (res.error) {
 			console.error('Failed to create new event');
-			throw error(res.status, res.error);
+			error(res.status, res.error);
 		}
 
 		this.id = res.data.id;
@@ -48,7 +48,7 @@ export class Tournament {
 	//  TODO: Handle adding/removing teams
 	async updateTournament(id: string, input: EventRow): Promise<Tournament> {
 		if (!input.name || !input.date || !input.pools || !input.courts) {
-			throw error(400, `Tournament update call does not have all required values`);
+			error(400, `Tournament update call does not have all required values`);
 		}
 
 		const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
@@ -63,7 +63,7 @@ export class Tournament {
 			.select();
 
 		if (res.error) {
-			throw error(res.status, res.error);
+			error(res.status, res.error);
 		}
 
 		// TODO: Reload this if it was changed
@@ -79,7 +79,7 @@ export class Tournament {
 	*/
 	async loadEvent(eventId?: string): Promise<Tournament> {
 		if (!eventId) {
-			throw error(400, 'Invalid event ID, are you sure your link is correct?');
+			error(400, 'Invalid event ID, are you sure your link is correct?');
 		}
 
 		try {
@@ -90,7 +90,7 @@ export class Tournament {
 				.single();
 
 			if (eventResponse.error) {
-				throw error(eventResponse.status, eventResponse.error.details);
+				error(eventResponse.status, eventResponse.error.details);
 			}
 
 			this.id = eventResponse.data.id;
@@ -114,7 +114,7 @@ export class Tournament {
 				.eq('id', this.id);
 
 			if (eventResponse.error) {
-				throw error(eventResponse.status, eventResponse.error.details);
+				error(eventResponse.status, eventResponse.error.details);
 			}
 
 			// Delete all teams, which should cascade and delete all matches
@@ -142,7 +142,7 @@ export class Tournament {
 			.eq('event_id', this.id);
 
 		if (res.error) {
-			throw error(res.status, res.error);
+			error(res.status, res.error);
 		}
 		this.matches = res.data;
 		return res.data;
@@ -163,7 +163,7 @@ export class Tournament {
 
 		if (deleteRes.error) {
 			console.error(`Failed to delete old matches: ${JSON.stringify(deleteRes.error)}`);
-			throw error(deleteRes.status, deleteRes.error);
+			error(deleteRes.status, deleteRes.error);
 		}
 
 		let courtsAvailable = this.settings.courts;
@@ -209,7 +209,7 @@ export class Tournament {
 
 		if (res.error) {
 			console.error(`Failed to create new matches: ${JSON.stringify(res.error)}`);
-			throw error(res.status, res.error);
+			error(res.status, res.error);
 		}
 
 		this.matches = res.data;
@@ -235,7 +235,7 @@ export class Tournament {
 
 		if (res.error) {
 			console.error('Failed to create new team');
-			throw error(res.status, res.error);
+			error(res.status, res.error);
 		}
 		return res.data.id;
 	}
@@ -248,7 +248,7 @@ export class Tournament {
 
 		if (res.error) {
 			console.error('Failed to delete team');
-			throw error(res.status, res.error);
+			error(res.status, res.error);
 		}
 	}
 
@@ -259,7 +259,7 @@ export class Tournament {
 			.eq('event_id', this.id);
 
 		if (teamsResponse.error) {
-			throw error(teamsResponse?.status, teamsResponse.error);
+			error(teamsResponse?.status, teamsResponse.error);
 		}
 		this.settings.teams = teamsResponse.data;
 		return this.settings.teams;
@@ -279,7 +279,7 @@ export async function loadEvents(
 		.eq('owner', ownerId)
 		.then((res: PostgrestResponse<EventRow>) => {
 			if (res?.error) {
-				throw error(res.status, res?.error);
+				error(res.status, res?.error);
 			}
 			return res.data;
 		});

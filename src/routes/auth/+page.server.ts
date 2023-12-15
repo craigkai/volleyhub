@@ -31,11 +31,11 @@ export const actions: Actions = {
 			});
 		}
 
-		throw redirect(303, '/protected-routes/dashboard');
+		redirect(303, '/protected-routes/dashboard');
 	},
 
 	signout: async ({ locals: { supabase } }) => {
 		await supabase.auth.signOut();
-		throw redirect(303, '/');
+		redirect(303, '/');
 	}
 };
