@@ -118,7 +118,7 @@ export class Tournament {
 			}
 
 			// Delete all teams, which should cascade and delete all matches
-			this.settings.teams.forEach((team: TeamRow) => {
+			this?.settings?.teams?.forEach((team: TeamRow) => {
 				this.deleteTeam(team);
 			});
 		} catch (err) {
