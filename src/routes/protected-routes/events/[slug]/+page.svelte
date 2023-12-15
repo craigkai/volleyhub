@@ -10,16 +10,18 @@
 	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { goto } from '$app/navigation';
 	import { Input, Label, Button } from 'flowbite-svelte';
+	import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
 
 	export let data: PageData;
-	let tournament: Tournament = new Tournament(data?.supabase);
+	const databaseService = new SupabaseDatabaseService(data?.supabase);
+	let tournament = new Tournament(databaseService, data?.supabase);
 
 	// Load our event or if creating we just load the edit component
 	async function loadEvent() {
 		if (data?.eventId != 'create') {
-			return await tournament
+			await tournament
 				.loadEvent(data?.eventId)
-				.catch((err: HttpError) => error(err.body.message));
+				.catch((err: HttpError) => error(err?.body?.message));
 		}
 	}
 
@@ -37,7 +39,7 @@
 				goto(`/protected-routes/events/${tournament?.id}`);
 			})
 			.catch((err: HttpError) => {
-				error(err.body.message);
+				error(err?.body?.message);
 			});
 	}
 
@@ -53,7 +55,9 @@
 				tournament = res;
 				success(`Tournament settings updated`);
 			})
-			.catch((err: { body: { message: string | SvelteToastOptions } }) => error(err.body.message));
+			.catch((err: { body: { message: string | SvelteToastOptions } }) =>
+				error(err?.body?.message)
+			);
 	}
 
 	async function deleteEvent(): Promise<void> {
@@ -63,7 +67,9 @@
 				goto('/protected-routes/dashboard');
 				success(`Deleted ${tournament.settings.name}`);
 			})
-			.catch((err: { body: { message: string | SvelteToastOptions } }) => error(err.body.message));
+			.catch((err: { body: { message: string | SvelteToastOptions } }) =>
+				error(err?.body?.message)
+			);
 	}
 
 	$: date = dayjs(tournament?.settings?.date).format('YYYY-MM-DD');
@@ -71,7 +77,7 @@
 	let loadingEventPromise = loadEvent();
 
 	$: if (tournament?.settings && tournament.settings?.teams?.length > 0) {
-		tournament.createMatches().catch((err) => error(err.body.message));
+		tournament.createMatches().catch((err: HttpError) => error(err?.body?.message));
 	}
 </script>
 

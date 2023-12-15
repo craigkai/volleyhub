@@ -1,12 +1,10 @@
 <script lang="ts">
 	import { success, error } from '$lib/toast';
 	import type { Tournament } from '$lib/tournament';
-	import type { HttpError_1 } from '@sveltejs/kit';
+	import type { HttpError } from '@sveltejs/kit';
 	import { TableBody, TableBodyCell, TableBodyRow, TableSearch } from 'flowbite-svelte';
 
 	export let tournament: Tournament;
-	// TODO: Handle alerting that adding or removing a team will wipe out
-	// the current matches. Then make sure we actually do that.
 
 	async function createTeam() {
 		const newTeam: TeamRow = {
@@ -20,7 +18,7 @@
 				success(`${newTeamName} created`);
 				newTeamName = '';
 			})
-			.catch((err: HttpError_1) => error(err.body.message));
+			.catch((err: HttpError) => error(err.body.message));
 	}
 
 	async function deleteTeam(team: TeamRow) {
@@ -28,15 +26,13 @@
 			.deleteTeam(team)
 			.then(async () => {
 				await loadEventTeams();
-				success(`${team.name} deleted`);
+				success(`team ${team.name} deleted`);
 			})
-			.catch((err: HttpError_1) => error(err.body.message));
+			.catch((err: HttpError) => error(err.body.message));
 	}
 
 	async function loadEventTeams() {
-		const res = await tournament
-			.loadEventTeams()
-			.catch((err: HttpError_1) => error(err.body.message));
+		const res = await tournament.loadTeams().catch((err: HttpError) => error(err.body.message));
 
 		tournament.settings.teams = res;
 		tournament.matches = tournament.matches;

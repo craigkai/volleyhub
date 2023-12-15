@@ -4,15 +4,16 @@
 	import { Spinner } from 'flowbite-svelte';
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { Card } from 'flowbite-svelte';
-	import { loadEvents } from '$lib/tournament';
 	import dayjs from 'dayjs';
 	import type { HttpError } from '@sveltejs/kit';
+	import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
 
 	export let data: PageData;
+	const databaseService = new SupabaseDatabaseService(data?.supabase);
 
-	let loadingEventPromise = loadEvents(data?.supabase, data.session?.user.id as string).catch(
-		(err: HttpError) => error(err.body.message)
-	);
+	let loadingEventPromise = databaseService
+		.loadEvents(data.session?.user.id as string)
+		.catch((err: HttpError) => error(err.body.message));
 </script>
 
 <div class="flex flex-col items-center">

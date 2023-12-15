@@ -73,7 +73,10 @@
 				tournament
 					.createMatches()
 					.then((res) => (tournament = res))
-					.catch((err) => error(err.body.message))}
+					.catch((err) => {
+						console.log(err);
+						error(err.body.message);
+					})}
 		>
 			Generate matches</button
 		>
