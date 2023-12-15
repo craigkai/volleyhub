@@ -2,7 +2,7 @@
 	import { success, error } from '$lib/toast';
 	import type { Tournament } from '$lib/tournament';
 	import type { HttpError_1 } from '@sveltejs/kit';
-	import { TableBody, TableBodyCell, Table, TableBodyRow, TableSearch } from 'flowbite-svelte';
+	import { TableBody, TableBodyCell, TableBodyRow, TableSearch } from 'flowbite-svelte';
 
 	export let tournament: Tournament;
 	// TODO: Handle alerting that adding or removing a team will wipe out
@@ -43,9 +43,10 @@
 	}
 
 	let searchTerm: string = '';
-	$: filteredTeams = tournament.settings.teams.filter(
-		(team: TeamRow) => team.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
-	);
+	$: filteredTeams =
+		tournament?.settings?.teams?.filter(
+			(team: TeamRow) => team.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
+		) || [];
 	let newTeamName = '';
 </script>
 

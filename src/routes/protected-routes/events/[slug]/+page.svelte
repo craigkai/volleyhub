@@ -66,7 +66,9 @@
 </script>
 
 {#await loadingEventPromise}
-	<Spinner color="blue" />
+	<div class="flex justify-center m-4">
+		<Spinner color="blue" />
+	</div>
 {:then}
 	<div class="flex flex-col items-center">
 		<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
@@ -90,7 +92,9 @@
 				<input class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
 			</div>
 
-			<Teams bind:tournament />
+			{#if data?.eventId !== 'create'}
+				<Teams bind:tournament />
+			{/if}
 
 			<div class="m-2">
 				{#if data?.eventId === 'create'}
@@ -110,7 +114,9 @@
 					>
 				{/if}
 			</div>
-			<Match bind:tournament />
+			{#if data?.eventId !== 'create'}
+				<Match bind:tournament />
+			{/if}
 		</div>
 	</div>
 {/await}

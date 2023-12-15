@@ -9,7 +9,7 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				'nord': {
+				nord: {
 					0: '#2E3440',
 					1: '#3B4252',
 					2: '#434C5E',
@@ -25,8 +25,8 @@ export default {
 					12: '#D08770',
 					13: '#EBCB8B',
 					14: '#A3BE8C',
-					15: '#B48EAD',
-				},
+					15: '#B48EAD'
+				}
 			}
 		}
 	}

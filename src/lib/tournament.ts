@@ -13,8 +13,8 @@ export class Tournament {
 		this.settings = {};
 	}
 	/*
-    Create a new event, this creates our event ONLY (tournament settings).
-    */
+	Create a new event, this creates our event ONLY (tournament settings).
+	*/
 	async createEvent(input: EventRow): Promise<Tournament> {
 		if (!input.name || !input.pools || !input.courts) {
 			throw error(400, `Tournament create call does not have all required values`);
@@ -75,8 +75,8 @@ export class Tournament {
 	}
 
 	/*
-        Attempt to load our event (tournament settings) via SupaBase, we load matches and teams elsewhere.
-    */
+		Attempt to load our event (tournament settings) via SupaBase, we load matches and teams elsewhere.
+	*/
 	async loadEvent(eventId?: string): Promise<Tournament> {
 		if (!eventId) {
 			throw error(400, 'Invalid event ID, are you sure your link is correct?');
@@ -111,8 +111,8 @@ export class Tournament {
 	}
 
 	/*
-    Load all matches for the current tournament.
-    */
+	Load all matches for the current tournament.
+	*/
 	async loadMatches(): Promise<MatchRow> {
 		const res: PostgrestSingleResponse<MatchRow> = await this.supabaseClient
 			.from('matches')
@@ -149,7 +149,7 @@ export class Tournament {
 		let round = 0;
 
 		let totalRounds = 0;
-		let userMatches: UserMatch[] = [];
+		const userMatches: UserMatch[] = [];
 		matches.forEach((match: UserMatch) => {
 			// Short circuit if we have more matches than pool play games
 			// (you don't play every team).
@@ -195,19 +195,18 @@ export class Tournament {
 	}
 
 	/*
-    Either adding updating match metadata such as teams in the match or adding results.
-    */
+	Either adding updating match metadata such as teams in the match or adding results.
+	*/
 	async updateMatch() {
 		throw new Error('Function not implemented.');
 	}
 
 	/*
-    Inserts new team into supabase, if a team exists where team name and event id match what we
-    are trying to create, then return that team Id.
-    */
+	Inserts new team into supabase, if a team exists where team name and event id match what we
+	are trying to create, then return that team Id.
+	*/
 	async createTeam(team: TeamRow): Promise<TeamRow> {
-		let res: PostgrestSingleResponse<TeamRow>;
-		res = await this.supabaseClient
+		const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
 			.from('teams')
 			.upsert({ ...team })
 			.select();
@@ -220,8 +219,10 @@ export class Tournament {
 	}
 
 	async deleteTeam(team: TeamRow): Promise<void> {
-		let res: PostgrestSingleResponse<TeamRow>;
-		res = await this.supabaseClient.from('teams').delete().eq('id', team.id);
+		const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
+			.from('teams')
+			.delete()
+			.eq('id', team.id);
 
 		if (res.error) {
 			console.error('Failed to delete team');
@@ -244,8 +245,8 @@ export class Tournament {
 }
 
 /*
-    Load all events for the provided owner Id.
-    */
+	Load all events for the provided owner Id.
+	*/
 export async function loadEvents(
 	supabaseClient: supabaseClient,
 	ownerId: string
