@@ -74,6 +74,11 @@
 			<TableBodyRow>
 				<TableBodyCell>
 					<input
+						on:keydown={(e) => {
+							if (e?.key === 'Enter') {
+								createTeam();
+							}
+						}}
 						class="rounded rounded-lg text-black"
 						name="newTeam"
 						type="text"
@@ -83,7 +88,7 @@
 				</TableBodyCell>
 				<TableBodyCell>
 					<button
-						on:click={() => createTeam()}
+						on:click={createTeam}
 						class="font-medium text-blue-600 hover:underline dark:text-primary-500"
 						>Add new team</button
 					></TableBodyCell
