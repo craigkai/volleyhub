@@ -56,6 +56,16 @@
 			.catch((err: { body: { message: string | SvelteToastOptions } }) => error(err.body.message));
 	}
 
+	async function deleteEvent(): Promise<void> {
+		tournament
+			.deleteEvent()
+			.then(() => {
+				goto('/protected-routes/dashboard');
+				success(`Deleted ${tournament.settings.name}`);
+			})
+			.catch((err: { body: { message: string | SvelteToastOptions } }) => error(err.body.message));
+	}
+
 	$: date = dayjs(tournament?.settings?.date).format('YYYY-MM-DD');
 
 	let loadingEventPromise = loadEvent();
@@ -116,6 +126,14 @@
 			</div>
 			{#if data?.eventId !== 'create'}
 				<Match bind:tournament />
+			{/if}
+
+			{#if data?.eventId !== 'create'}
+				<button
+					class="bg-nord-12 m-2 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+					type="button"
+					on:click={deleteEvent}>Delete</button
+				>
 			{/if}
 		</div>
 	</div>

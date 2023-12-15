@@ -106,6 +106,28 @@ export class Tournament {
 		}
 	}
 
+	async deleteEvent(): Promise<void> {
+		try {
+			const eventResponse: PostgrestSingleResponse<EventRow> = await this.supabaseClient
+				.from('events')
+				.delete()
+				.eq('id', this.id);
+
+			if (eventResponse.error) {
+				throw error(eventResponse.status, eventResponse.error.details);
+			}
+
+			// Delete all teams, which should cascade and delete all matches
+			this.settings.teams.forEach((team: TeamRow) => {
+				this.deleteTeam(team);
+			});
+		} catch (err) {
+			// Handle and log the error appropriately
+			console.error('Failed to load event:', err);
+			throw err;
+		}
+	}
+
 	async saveTournament(): Promise<void> {
 		throw new Error('Function not implemented.');
 	}
