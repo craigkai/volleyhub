@@ -109,7 +109,7 @@ export class Tournament {
 					return;
 				}
 
-				if (courtsAvailable === 0 || teamsAvailable.length < 2) {
+				if (courtsAvailable === 0 || teamsAvailable < 2) {
 					courtsAvailable = this.settings.courts;
 					teamsAvailable = this.settings.teams.length;
 					round = round + 1;
@@ -120,15 +120,16 @@ export class Tournament {
 				match.round = round;
 
 				courtsAvailable = courtsAvailable - 1;
+				if (teamsAvailable >= 2) {
+					userMatches.push({
+						event_id: this.id,
+						team1: match.player1.id,
+						team2: match.player2.id,
+						court: match.court,
+						round: match.round
+					});
+				}
 				teamsAvailable = teamsAvailable - 2;
-
-				userMatches.push({
-					event_id: this.id,
-					team1: match.player1.id,
-					team2: match.player2.id,
-					court: match.court,
-					round: match.round
-				});
 			});
 
 			// Call multi insert:
@@ -140,6 +141,7 @@ export class Tournament {
 			error(500, Error(err as string));
 		}
 	}
+
 
 	/*
 	Inserts new team into supabase, if a team exists where team name and event id match what we

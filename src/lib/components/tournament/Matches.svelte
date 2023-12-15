@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { error } from '$lib/toast';
-
 	import type { Tournament } from '$lib/tournament';
+	import type { HttpError } from '@sveltejs/kit';
 	import {
 		Spinner,
 		Table,
@@ -13,6 +13,16 @@
 	} from 'flowbite-svelte';
 
 	export let tournament: Tournament;
+
+	async function generateMatches() {
+		tournament
+			.createMatches()
+			.catch((err: HttpError) => {
+				console.log(err);
+				error(err?.body?.message);
+			})
+			.then((res: Tournament) => (tournament = res));
+	}
 
 	const matchesPromise = tournament.loadMatches();
 </script>
@@ -69,14 +79,7 @@
 		<button
 			class="bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 			type="button"
-			on:click={() =>
-				tournament
-					.createMatches()
-					.then((res) => (tournament = res))
-					.catch((err) => {
-						console.log(err);
-						error(err.body.message);
-					})}
+			on:click={generateMatches}
 		>
 			Generate matches</button
 		>
