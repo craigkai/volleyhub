@@ -164,4 +164,13 @@ export class SupabaseDatabaseService implements DatabaseService {
         this.handleDatabaseError(response);
         return response.data ?? [];
     }
+
+    async updateMatch(match: MatchRow): Promise<MatchRow> {
+        const response: MatchRow = await this.supabaseClient.from('matches')
+            .update(match)
+            .eq('id', match.id)
+            .select('*');
+        this.handleDatabaseError(response);
+        return response.data;
+    }
 }

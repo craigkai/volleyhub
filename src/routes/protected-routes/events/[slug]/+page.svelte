@@ -2,7 +2,7 @@
 	import { Spinner } from 'flowbite-svelte';
 	import type { PageData } from '$types';
 	import { Tournament } from '$lib/tournament';
-	import Match from '$lib/components/tournament/Matches.svelte';
+	import Matches from '$lib/components/tournament/Matches.svelte';
 	import Teams from '$lib/components/tournament/Teams.svelte';
 	import type { HttpError } from '@sveltejs/kit';
 	import { error, success } from '$lib/toast';
@@ -15,6 +15,7 @@
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
 	let tournament = new Tournament(databaseService, data?.supabase);
+	console.log('Tournament is ' + tournament);
 
 	// Load our event or if creating we just load the edit component
 	async function loadEvent() {
@@ -51,8 +52,7 @@
 				pools: tournament.settings.pools,
 				date: date
 			})
-			.then((res) => {
-				tournament = res;
+			.then(() => {
 				success(`Tournament settings updated`);
 			})
 			.catch((err: { body: { message: string | SvelteToastOptions } }) =>
@@ -108,7 +108,7 @@
 				<input class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
 			</div>
 
-			{#if data?.eventId !== 'create'}
+			{#if data?.eventId !== 'create' && tournament}
 				<Teams bind:tournament />
 			{/if}
 
@@ -130,8 +130,8 @@
 					>
 				{/if}
 			</div>
-			{#if data?.eventId !== 'create'}
-				<Match bind:tournament />
+			{#if data?.eventId !== 'create' && tournament}
+				<Matches bind:tournament />
 			{/if}
 
 			{#if data?.eventId !== 'create'}

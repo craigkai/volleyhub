@@ -18,7 +18,9 @@
 
 <div class="flex flex-col items-center">
 	{#await loadingEventPromise}
-		<Spinner color="blue" />
+		<div class="flex justify-center m-4">
+			<Spinner color="blue" />
+		</div>
 	{:then events}
 		A place to see your tournaments you manage
 		{#if events && events.length > 0}

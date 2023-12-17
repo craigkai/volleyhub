@@ -35,7 +35,6 @@
 		const res = await tournament.loadTeams().catch((err: HttpError) => error(err.body.message));
 
 		tournament.settings.teams = res;
-		tournament.matches = tournament.matches;
 	}
 
 	let searchTerm: string = '';

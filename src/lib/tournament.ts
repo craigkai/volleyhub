@@ -142,6 +142,11 @@ export class Tournament {
 		}
 	}
 
+	async updateMatch(match: MatchRow): Promise<MatchRow> {
+		const res: MatchRow = await this.databaseService.updateMatch(match);
+		return res;
+	}
+
 
 	/*
 	Inserts new team into supabase, if a team exists where team name and event id match what we

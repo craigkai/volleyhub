@@ -11,6 +11,7 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
+	import ViewMatch from './Match.svelte';
 
 	export let tournament: Tournament;
 
@@ -30,7 +31,9 @@
 <div class="block text-gray-700 text-sm font-bold">Matches:</div>
 <div class="relative overflow-x-auto">
 	{#await matchesPromise}
-		<Spinner color="blue" />
+		<div class="flex justify-center m-4">
+			<Spinner color="blue" />
+		</div>
 	{:then}
 		{#if tournament.matches && tournament.matches.length > 0}
 			<!--
@@ -60,15 +63,13 @@
 						{@const matchesForRound = matchesForEachRound[round].sort(
 							(a, b) => a.round - b.round || a.court - b.court
 						)}
-						<TableBodyRow>
-							<TableBodyCell>{round}</TableBodyCell>
-							<TableBodyCell>Some Ref</TableBodyCell>
-							{#each matchesForRound as match}
-								<TableBodyCell
-									>{match.matches_team1_fkey.name} vs {match.matches_team2_fkey.name}</TableBodyCell
-								>
-							{/each}
-						</TableBodyRow>
+						{#each matchesForRound as match}
+							<TableBodyRow>
+								<TableBodyCell>{round}</TableBodyCell>
+								<TableBodyCell>Some Ref</TableBodyCell>
+								<svelte:component this={ViewMatch} {match} />
+							</TableBodyRow>
+						{/each}
 					{/each}
 				</TableBody>
 			</Table>
