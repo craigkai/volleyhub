@@ -16,10 +16,12 @@
 	export let tournament: Tournament;
 
 	async function generateMatches() {
-		tournament.createMatches().catch((err: HttpError) => {
-			error(err?.body?.message);
-		});
-		.then((res: Tournament) => (tournament = res));
+		tournament
+			.createMatches()
+			.catch((err: HttpError) => {
+				error(err?.body?.message);
+			})
+			.then((res: Tournament) => (tournament = res));
 	}
 
 	const matchesPromise = tournament.loadMatches();
