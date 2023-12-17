@@ -15,7 +15,6 @@
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
 	let tournament = new Tournament(databaseService, data?.supabase);
-	console.log('Tournament is ' + tournament);
 
 	// Load our event or if creating we just load the edit component
 	async function loadEvent() {
@@ -76,9 +75,9 @@
 
 	let loadingEventPromise = loadEvent();
 
-	$: if (tournament?.settings && tournament.settings?.teams?.length > 0) {
-		tournament.createMatches().catch((err: HttpError) => error(err?.body?.message));
-	}
+	// $: if (tournament?.settings && tournament.settings?.teams?.length > 0) {
+	// 	tournament.createMatches().catch((err: HttpError) => error(err?.body?.message));
+	// }
 </script>
 
 {#await loadingEventPromise}

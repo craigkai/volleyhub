@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { RoundRobin } from './roundRobin';
 import type { DatabaseService } from './SupabaseDatabaseService';
+import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 
 export class Tournament {
 	private databaseService: DatabaseService;
@@ -142,8 +143,9 @@ export class Tournament {
 		}
 	}
 
-	async updateMatch(match: MatchRow): Promise<MatchRow> {
-		const res: MatchRow = await this.databaseService.updateMatch(match);
+	async updateMatch<T>(match: MatchRow): Promise<PostgrestSingleResponse<T>> {
+		const res = await this.databaseService.updateMatch(match);
+		match = res.data;
 		return res;
 	}
 

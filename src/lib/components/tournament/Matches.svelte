@@ -16,13 +16,10 @@
 	export let tournament: Tournament;
 
 	async function generateMatches() {
-		tournament
-			.createMatches()
-			.catch((err: HttpError) => {
-				console.log(err);
-				error(err?.body?.message);
-			})
-			.then((res: Tournament) => (tournament = res));
+		tournament.createMatches().catch((err: HttpError) => {
+			error(err?.body?.message);
+		});
+		.then((res: Tournament) => (tournament = res));
 	}
 
 	const matchesPromise = tournament.loadMatches();
@@ -52,7 +49,6 @@
 			<Table striped={true} hoverable={true} class="border-solid border-2 rounded">
 				<TableHead>
 					<TableHeadCell>Round</TableHeadCell>
-					<TableHeadCell>Ref</TableHeadCell>
 					{#each Array(tournament.settings.courts) as _, i}
 						<TableHeadCell>Court {i + 1}</TableHeadCell>
 					{/each}
@@ -63,13 +59,15 @@
 						{@const matchesForRound = matchesForEachRound[round].sort(
 							(a, b) => a.round - b.round || a.court - b.court
 						)}
-						{#each matchesForRound as match}
-							<TableBodyRow>
-								<TableBodyCell>{round}</TableBodyCell>
-								<TableBodyCell>Some Ref</TableBodyCell>
-								<svelte:component this={ViewMatch} {match} />
-							</TableBodyRow>
-						{/each}
+						<TableBodyRow>
+							<TableBodyCell>{round}</TableBodyCell>
+							<!-- Can have multiple matches per round if we have multiple courts -->
+							{#each matchesForRound as match}
+								<TableBodyCell>
+									<ViewMatch bind:tournament bind:match />
+								</TableBodyCell>
+							{/each}
+						</TableBodyRow>
 					{/each}
 				</TableBody>
 			</Table>

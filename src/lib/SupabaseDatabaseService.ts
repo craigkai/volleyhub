@@ -15,6 +15,7 @@ export interface DatabaseService {
     createTeam(team: TeamRow): Promise<TeamRow>;
     deleteMatchesByEvent(eventId: string): Promise<void>;
     insertMatches(matches: MatchRow[]): Promise<MatchRow[]>;
+    updateMatch(match: MatchRow): Promise<MatchRow>;
 }
 
 export class SupabaseDatabaseService implements DatabaseService {
@@ -165,12 +166,17 @@ export class SupabaseDatabaseService implements DatabaseService {
         return response.data ?? [];
     }
 
-    async updateMatch(match: MatchRow): Promise<MatchRow> {
+    async updateMatch<T>(match: MatchRow): Promise<PostgrestResponse<T>> {
         const response: MatchRow = await this.supabaseClient.from('matches')
-            .update(match)
+            .update({
+                team1_score: match.team1_score,
+                team2_score: match.team2_score,
+            })
             .eq('id', match.id)
-            .select('*');
+            .select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
+            .single();
+
         this.handleDatabaseError(response);
-        return response.data;
+        return response;
     }
 }

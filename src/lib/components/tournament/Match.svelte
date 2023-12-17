@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Tournament } from '$lib/tournament';
 	import { type HttpError } from '@sveltejs/kit';
-	import { TableBodyCell, Tooltip } from 'flowbite-svelte';
+	import { Tooltip, Label, Input } from 'flowbite-svelte';
 	import { error, success } from '$lib/toast';
 
 	export let match: MatchRow;
@@ -11,9 +11,9 @@
 
 	async function updateMatch() {
 		tournament
-			?.updateMatch(match)
+			.updateMatch(match)
 			.then(() => success('Match updated'))
-			.catch((err: HttpError) => error(err?.body?.message));
+			.catch((err: HttpError) => error(err?.body?.message ?? `Something went wrong: ${err}`));
 	}
 </script>
 
@@ -21,51 +21,50 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div on:click={() => (editing = true)}>
 	{#if editing}
-		<TableBodyCell>{match.matches_team1_fkey.name} vs {match.matches_team2_fkey.name}</TableBodyCell
-		>
-		<TableBodyCell>
-			<input
-				type="text"
-				bind:value={match.team1_score}
-				on:blur={() => (editing = false)}
-				on:keydown={(e) => {
-					if (e?.key === 'Enter') {
-						updateMatch();
-						editing = false;
-					}
-				}}
-			/>
-		</TableBodyCell>
-		<TableBodyCell>
-			<input
-				type="text"
-				bind:value={match.team2_score}
-				on:blur={() => (editing = false)}
-				on:keydown={(e) => {
-					if (e?.key === 'Enter') {
-						updateMatch();
-						editing = false;
-					}
-				}}
-			/>
-		</TableBodyCell>
+		<Label for="team1-score-input" class="block mb-2">{match.matches_team1_fkey.name} score:</Label>
+		<Input
+			id="team1-score-input"
+			size="md"
+			bind:value={match.team1_score}
+			on:blur={() => (editing = false)}
+			on:keydown={(e) => {
+				if (e?.key === 'Enter') {
+					updateMatch();
+					editing = false;
+				}
+			}}
+		/>
+
+		<Label for="team2-score-input" class="block mb-2">{match.matches_team2_fkey.name} score:</Label>
+		<Input
+			id="team2-score-input"
+			size="sm"
+			bind:value={match.team2_score}
+			on:blur={() => (editing = false)}
+			on:keydown={(e) => {
+				if (e?.key === 'Enter') {
+					updateMatch();
+					editing = false;
+				}
+			}}
+		/>
 	{:else}
-		<TableBodyCell>
+		<div>
 			<span
 				class="p-2 rounded"
 				class:bg-green-300={match?.team1_score > match?.team2_score}
 				class:bg-red-300={match?.team2_score > match?.team1_score}
 			>
-				{match.matches_team1_fkey.name}</span
+				{match?.matches_team1_fkey?.name}</span
 			>
 			vs
 			<span
 				class="p-2 rounded"
 				class:bg-green-300={match?.team2_score > match?.team1_score}
 				class:bg-red-300={match?.team1_score > match?.team2_score}
-				>{match.matches_team2_fkey.name}</span
-			></TableBodyCell
-		>
+				>{match?.matches_team2_fkey?.name}</span
+			>
+		</div>
 		{#if match?.team1_score && match?.team2_score}
 			<Tooltip>{match?.team1_score} to {match?.team2_score}</Tooltip>
 		{/if}
