@@ -2,7 +2,7 @@
 	import type { Tournament } from '$lib/tournament';
 	import { type HttpError } from '@sveltejs/kit';
 	import { TableBodyCell, Tooltip } from 'flowbite-svelte';
-	import { error } from '$lib/toast';
+	import { error, success } from '$lib/toast';
 
 	export let match: MatchRow;
 	export let tournament: Tournament;
@@ -10,7 +10,10 @@
 	let editing: boolean = false;
 
 	async function updateMatch() {
-		tournament.updateMatch(match).catch((err: HttpError) => error(err?.body?.message));
+		tournament
+			?.updateMatch(match)
+			.then(() => success('Match updated'))
+			.catch((err: HttpError) => error(err?.body?.message));
 	}
 </script>
 
@@ -25,15 +28,25 @@
 				type="text"
 				bind:value={match.team1_score}
 				on:blur={() => (editing = false)}
-				on:keydown={() => updateMatch()}
+				on:keydown={(e) => {
+					if (e?.key === 'Enter') {
+						updateMatch();
+						editing = false;
+					}
+				}}
 			/>
 		</TableBodyCell>
 		<TableBodyCell>
 			<input
 				type="text"
-				bind:value={match.team1_score}
+				bind:value={match.team2_score}
 				on:blur={() => (editing = false)}
-				on:keydown={() => updateMatch()}
+				on:keydown={(e) => {
+					if (e?.key === 'Enter') {
+						updateMatch();
+						editing = false;
+					}
+				}}
 			/>
 		</TableBodyCell>
 	{:else}
