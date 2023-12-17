@@ -8,6 +8,7 @@
 	export let tournament: Tournament;
 
 	let editing: boolean = false;
+	export let readOnly: boolean = false;
 
 	async function updateMatch() {
 		tournament
@@ -20,7 +21,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div on:click={() => (editing = true)}>
-	{#if editing}
+	{#if !readOnly && editing}
 		<Label for="team1-score-input" class="block mb-2">{match.matches_team1_fkey.name} score:</Label>
 		<Input
 			id="team1-score-input"

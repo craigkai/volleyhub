@@ -14,6 +14,7 @@
 	import ViewMatch from './Match.svelte';
 
 	export let tournament: Tournament;
+	export let readOnly: boolean = false;
 
 	async function generateMatches() {
 		tournament
@@ -66,7 +67,7 @@
 							<!-- Can have multiple matches per round if we have multiple courts -->
 							{#each matchesForRound as match}
 								<TableBodyCell>
-									<ViewMatch bind:tournament bind:match />
+									<ViewMatch bind:tournament bind:match {readOnly} />
 								</TableBodyCell>
 							{/each}
 						</TableBodyRow>
@@ -76,13 +77,15 @@
 		{/if}
 	{/await}
 
-	<div class="m-2">
-		<button
-			class="bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-			type="button"
-			on:click={generateMatches}
-		>
-			Generate matches</button
-		>
-	</div>
+	{#if !readOnly}
+		<div class="m-2">
+			<button
+				class="bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+				type="button"
+				on:click={generateMatches}
+			>
+				Generate matches</button
+			>
+		</div>
+	{/if}
 </div>

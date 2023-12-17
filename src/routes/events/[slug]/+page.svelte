@@ -1,33 +1,36 @@
 <script lang="ts">
 	import { Spinner } from 'flowbite-svelte';
-	import type { PageData } from '../$types';
+	import type { PageData } from '$types';
 	import { Tournament } from '$lib/tournament';
-	import View from '$lib/components/tournament/View.svelte';
-	import { error } from '$lib/toast';
+	import Matches from '$lib/components/tournament/Matches.svelte';
 	import type { HttpError } from '@sveltejs/kit';
-	export let data: PageData;
+	import { error } from '$lib/toast';
+	import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
 
-	let tournament: Tournament = new Tournament(data?.supabase);
+	export let data: PageData;
+	const databaseService = new SupabaseDatabaseService(data?.supabase);
+	let tournament = new Tournament(databaseService, data?.supabase);
+
 	// Load our event or if creating we just load the edit component
 	async function loadEvent() {
-		return await tournament
-			.loadTournament(data?.eventId, data?.eventName)
-			.catch((err: HttpError) => error(err.body.message));
+		if (data?.eventId != 'create') {
+			await tournament
+				.loadEvent(data?.eventId)
+				.catch((err: HttpError) => error(err?.body?.message));
+		}
 	}
 
 	let loadingEventPromise = loadEvent();
 </script>
 
 {#await loadingEventPromise}
-	<Spinner color="blue" />
+	<div class="flex justify-center m-4">
+		<Spinner color="blue" />
+	</div>
 {:then}
-	{#if tournament?.matches}
-		<h1>Tournament name: {tournament?.name}</h1>
-
-		<div class="w-1/2 m-2">
-			<View {tournament} />
+	<div class="flex flex-col items-center">
+		<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
+			<Matches {tournament} readOnly={true} />
 		</div>
-	{:else}
-		Is your link correct? We are having a hard time loading this tournament
-	{/if}
+	</div>
 {/await}
