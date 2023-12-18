@@ -51,7 +51,8 @@
 				pools: tournament.settings.pools,
 				date: date
 			})
-			.then(() => {
+			.then((res: Tournament) => {
+				tournament = res;
 				success(`Tournament settings updated`);
 			})
 			.catch((err: { body: { message: string | SvelteToastOptions } }) =>

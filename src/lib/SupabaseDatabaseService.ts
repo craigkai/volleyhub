@@ -83,7 +83,8 @@ export class SupabaseDatabaseService implements DatabaseService {
                 date: input.date
             })
             .eq('id', id)
-            .select();
+            .select()
+            .single();
 
         this.handleDatabaseError(res);
         return res.data;
