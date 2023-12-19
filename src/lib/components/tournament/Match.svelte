@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Tournament } from '$lib/tournament';
-	import { type HttpError } from '@sveltejs/kit';
 	import { Tooltip, Label, Input } from 'flowbite-svelte';
 	import { error, success } from '$lib/toast';
 
@@ -11,16 +10,25 @@
 	export let readOnly: boolean = false;
 
 	async function updateMatch() {
-		tournament
-			.updateMatch(match)
-			.then(() => success('Match updated'))
-			.catch((err: HttpError) => error(err?.body?.message ?? `Something went wrong: ${err}`));
+		try {
+			await tournament.updateMatch(match);
+			success('Match updated');
+		} catch (err: any) {
+			error(err?.body?.message ?? `Something went wrong: ${err}`);
+		}
 	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div on:click={() => (editing = true)}>
+<div
+	on:click={() => (editing = true)}
+	on:keydown={(e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			editing = true;
+		}
+	}}
+>
 	{#if !readOnly && editing}
 		<Label for="team1-score-input" class="block mb-2">{match.matches_team1_fkey.name} score:</Label>
 		<Input

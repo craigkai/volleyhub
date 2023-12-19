@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { error } from '$lib/toast';
 	import type { Tournament } from '$lib/tournament';
-	import type { HttpError } from '@sveltejs/kit';
 	import {
 		Spinner,
 		Table,
@@ -16,13 +15,17 @@
 	export let tournament: Tournament;
 	export let readOnly: boolean = false;
 
-	async function generateMatches() {
-		tournament
-			.createMatches()
-			.catch((err: HttpError) => {
-				error(err?.body?.message);
-			})
-			.then((res: Tournament) => (tournament = res));
+	async function generateMatches(): Promise<void> {
+		try {
+			const res: Tournament | void = await tournament.createMatches();
+			if (res) {
+				tournament = res;
+			} else {
+				throw new Error('Failed to create matches');
+			}
+		} catch (err) {
+			error(err?.body?.message);
+		}
 	}
 
 	const matchesPromise = tournament.loadMatches();

@@ -7,28 +7,28 @@
 	export let tournament: Tournament;
 
 	async function createTeam() {
-		const newTeam: TeamRow = {
-			name: newTeamName,
-			event_id: tournament.id
-		};
-		tournament
-			.createTeam(newTeam)
-			.then(async () => {
-				await loadEventTeams();
-				success(`${newTeamName} created`);
-				newTeamName = '';
-			})
-			.catch((err: HttpError) => error(err.body.message));
+		try {
+			const newTeam: TeamRow = {
+				name: newTeamName,
+				event_id: tournament.id
+			};
+			await tournament.createTeam(newTeam);
+			await loadEventTeams();
+			success(`${newTeamName} created`);
+			newTeamName = '';
+		} catch (err: any) {
+			error(err?.body?.message ?? `Something went wrong: ${err}`);
+		}
 	}
 
 	async function deleteTeam(team: TeamRow) {
-		tournament
-			.deleteTeam(team)
-			.then(async () => {
-				await loadEventTeams();
-				success(`team ${team.name} deleted`);
-			})
-			.catch((err: HttpError) => error(err.body.message));
+		try {
+			await tournament.deleteTeam(team);
+			await loadEventTeams();
+			success(`team ${team.name} deleted`);
+		} catch (err: any) {
+			error(err?.body?.message ?? `Something went wrong: ${err}`);
+		}
 	}
 
 	async function loadEventTeams() {

@@ -13,7 +13,7 @@ export const error = (m: string | SvelteToastOptions) => {
 			'--toastBarBackground': 'white'
 		}
 	});
-}
+};
 
 export const success = (m: string | SvelteToastOptions) =>
 	toast.push(m, {

@@ -3,13 +3,31 @@ import { RoundRobin } from './roundRobin';
 import type { DatabaseService } from './SupabaseDatabaseService';
 import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 
+/**
+ * The Tournament class represents a tournament in the application.
+ * It provides methods for creating and managing a tournament.
+ */
 export class Tournament {
+	// The service used to interact with the database
 	private databaseService: DatabaseService;
+
+	// The Supabase client used to interact with the Supabase API
 	supabaseClient: supabaseClient;
+
+	// The ID of the tournament
 	id: string;
+
+	// The settings of the tournament
 	settings: EventRow;
+
+	// The matches of the tournament
 	matches?: MatchRow[];
 
+	/**
+	 * The constructor for the Tournament class.
+	 * @param {DatabaseService} databaseService - The service used to interact with the database.
+	 * @param {supabaseClient} supabaseClient - The Supabase client used to interact with the Supabase API.
+	 */
 	constructor(databaseService: DatabaseService, supabaseClient: supabaseClient) {
 		this.databaseService = databaseService;
 		this.supabaseClient = supabaseClient;
@@ -17,9 +35,12 @@ export class Tournament {
 		this.id = '';
 	}
 
-	/*
-	Create a new event, this creates our event ONLY (tournament settings).
-	*/
+	/**
+	 * Create a new event. This creates the tournament settings only.
+	 * @param {EventRow} input - The data for the event to create.
+	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the newly created tournament.
+	 * @throws {Error} - Throws an error if the event data does not have all required values.
+	 */
 	async createEvent(input: EventRow): Promise<Tournament> {
 		if (!input.name || !input.pools || !input.courts) {
 			error(400, Error(`Tournament create call does not have all required values`));
@@ -34,6 +55,13 @@ export class Tournament {
 		return this;
 	}
 
+	/**
+	 * Updates the tournament with the given data.
+	 * @param {string} id - The id of our tournament.
+	 * @param {EventRow} input - The data to update the tournament with.
+	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the updated tournament.
+	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
+	 */
 	async updateTournament(id: string, input: EventRow): Promise<Tournament> {
 		if (!input.name || !input.date || !input.pools || !input.courts) {
 			error(400, `Tournament update call does not have all required values`);
@@ -149,7 +177,6 @@ export class Tournament {
 		return res;
 	}
 
-
 	/*
 	Inserts new team into supabase, if a team exists where team name and event id match what we
 	are trying to create, then return that team Id.
@@ -167,4 +194,83 @@ export class Tournament {
 	async deleteTeam(team: TeamRow): Promise<void> {
 		this.settings.teams = await this.databaseService.deleteTeam(team);
 	}
+}
+
+if (import.meta.vitest) {
+	const { vi, it, expect, describe, beforeEach } = import.meta.vitest;
+
+	describe('Tournament', () => {
+		let tournament: Tournament;
+		let mockDatabaseService: any;
+		let mockSupabaseClient: any;
+
+		beforeEach(() => {
+			mockDatabaseService = {
+				updateTournament: vi.fn()
+			};
+			mockSupabaseClient = {
+				updateTournament: vi.fn()
+			};
+			tournament = new Tournament(mockDatabaseService, mockSupabaseClient);
+		});
+
+		it('should throw an error if not all required values are provided', async () => {
+			const input: Partial<EventRow> = {
+				name: 'Test Tournament'
+				// date, pools, and courts are missing
+			};
+
+			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow(
+				'Tournament update call does not have all required values'
+			);
+		});
+	});
+
+	describe('Tournament', () => {
+		let tournament: Tournament;
+		let mockDatabaseService: any;
+		let mockSupabaseClient: any;
+
+		beforeEach(() => {
+			mockDatabaseService = {
+				updateTournament: vi.fn()
+			};
+			mockSupabaseClient = {
+				updateTournament: vi.fn()
+			};
+			tournament = new Tournament(mockDatabaseService, mockSupabaseClient);
+		});
+
+		it('should throw an error if not all required values are provided', async () => {
+			const input: Partial<EventRow> = {
+				name: 'Test Tournament'
+				// date, pools, and courts are missing
+			};
+
+			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow(
+				'Tournament update call does not have all required values'
+			);
+		});
+
+		it('should update the tournament if all required values are provided', async () => {
+			const input: EventRow = {
+				name: 'Test Tournament',
+				date: new Date(),
+				pools: 4,
+				courts: 2
+			};
+
+			const updatedTournament: EventRow = {
+				...input,
+				id: '1'
+			};
+
+			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
+
+			await expect(tournament.updateTournament('1', input)).resolves.toEqual(tournament);
+
+			expect(tournament.settings).toEqual(updatedTournament);
+			expect(mockDatabaseService.updateTournament).toHaveBeenCalledWith('1', input);
+		});
+	});
 }
