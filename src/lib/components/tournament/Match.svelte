@@ -2,6 +2,7 @@
 	import type { Tournament } from '$lib/tournament';
 	import { Tooltip, Label, Input } from 'flowbite-svelte';
 	import { error, success } from '$lib/toast';
+	import { CheckSolid, CloseSolid } from 'flowbite-svelte-icons';
 
 	export let match: MatchRow;
 	export let tournament: Tournament;
@@ -12,7 +13,7 @@
 	async function updateMatch() {
 		try {
 			await tournament.updateMatch(match);
-			success('Match updated');
+			success(`Match ${match.matches_team1_fkey.name} vs ${match.matches_team2_fkey.name} updated`);
 		} catch (err: any) {
 			error(err?.body?.message ?? `Something went wrong: ${err}`);
 		}
@@ -23,61 +24,72 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-	on:click={() => (editing = true)}
-	on:keydown={(e) => {
-		if (e.key === 'Enter' || e.key === ' ') {
-			editing = true;
-		}
-	}}
->
-	{#if !readOnly && editing}
-		<Label for="team1-score-input" class="block mb-2">{match.matches_team1_fkey.name} score:</Label>
+{#if !readOnly && editing}
+	<div class="flex flex-row">
+		<Label for="team1-score-input" class="block m-2">{match.matches_team1_fkey.name}:</Label>
 		<Input
 			id="team1-score-input"
 			size="md"
 			bind:value={match.team1_score}
-			on:blur={() => (editing = false)}
 			on:keydown={(e) => {
 				if (e?.key === 'Enter') {
 					updateMatch();
+					editing = false;
+				} else if (e?.key === 'ESC') {
 					editing = false;
 				}
 			}}
 		/>
 
-		<Label for="team2-score-input" class="block mb-2">{match.matches_team2_fkey.name} score:</Label>
+		<Label for="team2-score-input" class="block m-2">{match.matches_team2_fkey.name}:</Label>
 		<Input
 			id="team2-score-input"
 			size="sm"
 			bind:value={match.team2_score}
-			on:blur={() => (editing = false)}
 			on:keydown={(e) => {
 				if (e?.key === 'Enter') {
 					updateMatch();
 					editing = false;
+				} else if (e?.key === 'ESC') {
+					editing = false;
 				}
 			}}
 		/>
-	{:else}
-		<div>
-			<span
-				class="p-2 rounded"
-				class:bg-green-300={hasMatchResult && match?.team1_score > match?.team2_score}
-				class:bg-red-300={hasMatchResult && match?.team2_score > match?.team1_score}
-			>
-				{match?.matches_team1_fkey?.name}</span
-			>
-			vs
-			<span
-				class="p-2 rounded"
-				class:bg-green-300={hasMatchResult && match?.team2_score > match?.team1_score}
-				class:bg-red-300={hasMatchResult && match?.team1_score > match?.team2_score}
-				>{match?.matches_team2_fkey?.name}</span
-			>
-		</div>
-		{#if hasMatchResult}
-			<Tooltip>{match?.team1_score} to {match?.team2_score}</Tooltip>
-		{/if}
+
+		<CheckSolid
+			color="green"
+			class="m-2 cursor-pointer"
+			on:click={() => {
+				updateMatch();
+				editing = false;
+			}}
+		/>
+		<CloseSolid color="red" class="m-2 cursor-pointer" on:click={() => (editing = false)} />
+	</div>
+{:else}
+	<div
+		on:click={() => {
+			if (!editing) {
+				editing = true;
+			}
+		}}
+	>
+		<span
+			class="p-2 rounded"
+			class:bg-green-300={hasMatchResult && match?.team1_score > match?.team2_score}
+			class:bg-red-300={hasMatchResult && match?.team2_score > match?.team1_score}
+		>
+			{match?.matches_team1_fkey?.name}</span
+		>
+		vs
+		<span
+			class="p-2 rounded"
+			class:bg-green-300={hasMatchResult && match?.team2_score > match?.team1_score}
+			class:bg-red-300={hasMatchResult && match?.team1_score > match?.team2_score}
+			>{match?.matches_team2_fkey?.name}</span
+		>
+	</div>
+	{#if hasMatchResult}
+		<Tooltip>{match?.team1_score} to {match?.team2_score}</Tooltip>
 	{/if}
-</div>
+{/if}
