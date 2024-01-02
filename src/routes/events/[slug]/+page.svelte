@@ -30,10 +30,6 @@
 {:then}
 	<div class="flex flex-col items-center">
 		{tournament?.settings?.name}
-		<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
-			<div class="m-2">
-				<Matches {tournament} readOnly={true} />
-			</div>
-		</div>
+		<Matches {tournament} readOnly={true} />
 	</div>
 {/await}

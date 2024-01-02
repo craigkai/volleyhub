@@ -45,50 +45,48 @@
 	let newTeamName = '';
 </script>
 
-<div class="relative overflow-x-auto">
-	<div class="block text-gray-700 text-sm font-bold">Teams:</div>
-	<TableSearch
-		divClass="border-solid border-2 rounded"
-		placeholder="Search by maker name"
-		striped={true}
-		hoverable={true}
-		bind:inputValue={searchTerm}
-	>
-		<TableBody>
-			{#each filteredTeams as team}
-				<TableBodyRow>
-					<TableBodyCell>{team.name}</TableBodyCell>
-					<TableBodyCell>
-						<button
-							on:click={() => deleteTeam(team)}
-							class="font-medium text-blue-600 hover:underline dark:text-primary-500">Delete</button
-						></TableBodyCell
-					>
-				</TableBodyRow>
-			{/each}
+<div class="block text-gray-700 text-sm font-bold">Teams:</div>
+<TableSearch
+	divClass="border-solid border-2 rounded"
+	placeholder="Search by maker name"
+	striped={true}
+	hoverable={true}
+	bind:inputValue={searchTerm}
+>
+	<TableBody>
+		{#each filteredTeams as team}
 			<TableBodyRow>
-				<TableBodyCell>
-					<input
-						on:keydown={(e) => {
-							if (e?.key === 'Enter') {
-								createTeam();
-							}
-						}}
-						class="rounded rounded-lg text-black"
-						name="newTeam"
-						type="text"
-						bind:value={newTeamName}
-						placeholder="Add a new team..."
-					/>
-				</TableBodyCell>
+				<TableBodyCell>{team.name}</TableBodyCell>
 				<TableBodyCell>
 					<button
-						on:click={createTeam}
-						class="font-medium text-blue-600 hover:underline dark:text-primary-500"
-						>Add new team</button
+						on:click={() => deleteTeam(team)}
+						class="font-medium text-blue-600 hover:underline dark:text-primary-500">Delete</button
 					></TableBodyCell
 				>
 			</TableBodyRow>
-		</TableBody>
-	</TableSearch>
-</div>
+		{/each}
+		<TableBodyRow>
+			<TableBodyCell>
+				<input
+					on:keydown={(e) => {
+						if (e?.key === 'Enter') {
+							createTeam();
+						}
+					}}
+					class="rounded rounded-lg text-black"
+					name="newTeam"
+					type="text"
+					bind:value={newTeamName}
+					placeholder="Add a new team..."
+				/>
+			</TableBodyCell>
+			<TableBodyCell>
+				<button
+					on:click={createTeam}
+					class="font-medium text-blue-600 hover:underline dark:text-primary-500"
+					>Add new team</button
+				></TableBodyCell
+			>
+		</TableBodyRow>
+	</TableBody>
+</TableSearch>
