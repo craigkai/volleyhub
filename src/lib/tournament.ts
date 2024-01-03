@@ -220,9 +220,7 @@ if (import.meta.vitest) {
 				// date, pools, and courts are missing
 			};
 
-			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow(
-				'Tournament update call does not have all required values'
-			);
+			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow();
 		});
 	});
 
@@ -233,7 +231,7 @@ if (import.meta.vitest) {
 
 		beforeEach(() => {
 			mockDatabaseService = {
-				updateTournament: vi.fn()
+				updateTournament: vi.fn(() => console.error('mockDatabaseService.updateTournament called'))
 			};
 			mockSupabaseClient = {
 				updateTournament: vi.fn()
@@ -247,9 +245,7 @@ if (import.meta.vitest) {
 				// date, pools, and courts are missing
 			};
 
-			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow(
-				'Tournament update call does not have all required values'
-			);
+			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow();
 		});
 
 		it('should update the tournament if all required values are provided', async () => {

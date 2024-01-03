@@ -305,11 +305,10 @@ export class SupabaseDatabaseService implements DatabaseService {
 	}
 
 	async updateMatch<T>(match: MatchRow): Promise<PostgrestResponse<T>> {
-		const response: MatchRow = await this.supabaseClient
-			.from('matches')
+		const response: MatchRow = await this.supabaseClient.from('matches')
 			.update({
 				team1_score: match.team1_score,
-				team2_score: match.team2_score
+				team2_score: match.team2_score,
 			})
 			.eq('id', match.id)
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
