@@ -48,7 +48,7 @@
 <div class="block text-gray-700 text-sm font-bold">Teams:</div>
 <TableSearch
 	divClass="border-solid border-2 rounded"
-	placeholder="Search by maker name"
+	placeholder="Search by team name"
 	striped={true}
 	hoverable={true}
 	bind:inputValue={searchTerm}

@@ -75,10 +75,6 @@
 	$: date = dayjs(tournament?.settings?.date).format('YYYY-MM-DD');
 
 	let loadingEventPromise = loadEvent();
-
-	// $: if (tournament?.settings && tournament.settings?.teams?.length > 0) {
-	// 	tournament.createMatches().catch((err: HttpError) => error(err?.body?.message));
-	// }
 </script>
 
 {#await loadingEventPromise}

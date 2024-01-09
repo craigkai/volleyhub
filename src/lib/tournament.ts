@@ -69,7 +69,7 @@ export class Tournament {
 
 		const res: EventRow = await this.databaseService.updateTournament(id, input);
 
-		this.settings = res;
+		this.settings = { ...res, teams: this.settings.teams };
 		return this;
 	}
 
