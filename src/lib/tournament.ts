@@ -119,9 +119,18 @@ export class Tournament {
 	}
 
 	async createMatches() {
-		try {
-			const matches = RoundRobin(this.settings.teams);
+		if (!this?.settings?.teams || this?.settings?.teams?.length === 0) {
+			console.error("Can't generate matches without Teams");
+			error(500, Error("Can't generate matches without Teams"));
+		}
 
+		try {
+			let matches: any[] = [];
+			// If we have more pool play games than matches we got
+			// back, then we need to generate some more.
+			while (matches.length < this.settings.pools * this.settings.teams.length) {
+				matches = matches.concat(RoundRobin(this.settings.teams));
+			}
 			// Delete all old matches as they are now invalid
 			await this.databaseService.deleteMatchesByEvent(this.id);
 
@@ -134,7 +143,7 @@ export class Tournament {
 			matches.forEach((match: UserMatch) => {
 				// Short circuit if we have more matches than pool play games
 				// (you don't play every team).
-				if (totalRounds === this.settings.pools) {
+				if (userMatches.length === this.settings.pools * (this.settings.teams.length / 2)) {
 					return;
 				}
 
@@ -206,7 +215,38 @@ if (import.meta.vitest) {
 
 		beforeEach(() => {
 			mockDatabaseService = {
-				updateTournament: vi.fn()
+				updateTournament: vi.fn(() => console.log('mockDatabaseService.updateTournament called')),
+				deleteMatchesByEvent: vi.fn(() =>
+					console.log('mockDatabaseService.updateTournament called')
+				),
+				getCurrentUser: vi.fn(() => {
+					console.log('mockDatabaseService.getCurrentUser called');
+					return {
+						id: 1
+					};
+				}),
+				createEvent: vi.fn((input) => {
+					console.log('mockDatabaseService.createEvent called');
+					input.id = 1;
+					return input;
+				}),
+				loadTeams: vi.fn(() => {
+					console.log('mockDatabaseService.loadTeams called');
+					return [
+						{
+							name: 'Team1',
+							event_id: tournament.id
+						},
+						{
+							name: 'Team2',
+							event_id: tournament.id
+						}
+					];
+				}),
+				insertMatches: vi.fn((input) => {
+					console.log('mockDatabaseService.insertMatches called');
+					return input;
+				})
 			};
 			mockSupabaseClient = {
 				updateTournament: vi.fn()
@@ -221,22 +261,6 @@ if (import.meta.vitest) {
 			};
 
 			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow();
-		});
-	});
-
-	describe('Tournament', () => {
-		let tournament: Tournament;
-		let mockDatabaseService: any;
-		let mockSupabaseClient: any;
-
-		beforeEach(() => {
-			mockDatabaseService = {
-				updateTournament: vi.fn(() => console.error('mockDatabaseService.updateTournament called'))
-			};
-			mockSupabaseClient = {
-				updateTournament: vi.fn()
-			};
-			tournament = new Tournament(mockDatabaseService, mockSupabaseClient);
 		});
 
 		it('should throw an error if not all required values are provided', async () => {
@@ -252,7 +276,7 @@ if (import.meta.vitest) {
 			const input: EventRow = {
 				name: 'Test Tournament',
 				date: new Date(),
-				pools: 4,
+				pools: 1,
 				courts: 2
 			};
 
@@ -267,6 +291,83 @@ if (import.meta.vitest) {
 
 			expect(tournament.settings).toEqual(updatedTournament);
 			expect(mockDatabaseService.updateTournament).toHaveBeenCalledWith('1', input);
+		});
+
+
+		it('Test matches are correct with two teams and one pool play game', async () => {
+			const input: EventRow = {
+				name: 'Test Tournament',
+				date: new Date(),
+				pools: 1,
+				courts: 2
+			};
+
+			const updatedTournament: EventRow = {
+				...input,
+				id: '1'
+			};
+
+			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
+
+			await tournament.createEvent(input);
+			const teams = Array.from({ length: 2 }, (_x, i) => {
+				return {
+					id: `team${i}`,
+					event_id: 1
+				}
+			});
+			tournament.settings.teams = teams;
+			await tournament.createMatches();
+
+			expect(tournament?.matches?.length).toEqual(1);
+
+			const gamesPerTeam: any = { team0: 0, team1: 0 };
+			tournament?.matches?.forEach((match: MatchRow) => {
+				gamesPerTeam[match.team1]++;
+				gamesPerTeam[match.team2]++;
+			});
+			Object.keys(gamesPerTeam).forEach((team: string) => {
+				expect(gamesPerTeam[team]).toEqual(1);
+			});
+		});
+
+		it('Test matches are correct with four teams and three pool play games', async () => {
+			const input: EventRow = {
+				name: 'Test Tournament',
+				date: new Date(),
+				pools: 3,
+				courts: 2
+			};
+
+			const updatedTournament: EventRow = {
+				...input,
+				id: '1'
+			};
+
+			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
+
+			await tournament.createEvent(input);
+			const teams = Array.from({ length: 4 }, (_x, i) => {
+				return {
+					id: `team${i}`,
+					event_id: 1
+				}
+			});
+			tournament.settings.teams = teams;
+			await tournament.createMatches();
+
+			// Teams / 2 * pool play
+			expect(tournament?.matches?.length).toEqual(3 * (4 / 2));
+
+			const gamesPerTeam: any = { team0: 0, team1: 0, team2: 0, team3: 0 };
+			tournament?.matches?.forEach((match: MatchRow) => {
+				gamesPerTeam[match.team1]++;
+				gamesPerTeam[match.team2]++;
+
+			});
+			Object.keys(gamesPerTeam).forEach((team: string) => {
+				expect(gamesPerTeam[team]).toEqual(3);
+			});
 		});
 	});
 }
