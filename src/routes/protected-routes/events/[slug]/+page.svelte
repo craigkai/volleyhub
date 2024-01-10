@@ -55,7 +55,7 @@
 			.updateTournament(tournament.id as string, {
 				...tournament.settings,
 				name: tournament.settings.name,
-				courts: tournament.settings.courts,
+				courts: Number(tournament.settings.courts),
 				pools: Number(tournament.settings.pools),
 				date: date
 			})
