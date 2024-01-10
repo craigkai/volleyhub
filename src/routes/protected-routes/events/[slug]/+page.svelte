@@ -46,9 +46,10 @@
 	async function updateTournament(): Promise<void> {
 		tournament
 			.updateTournament(tournament.id as string, {
+				...tournament.settings,
 				name: tournament.settings.name,
 				courts: tournament.settings.courts,
-				pools: tournament.settings.pools,
+				pools: Number(tournament.settings.pools),
 				date: date
 			})
 			.then((res: Tournament) => {

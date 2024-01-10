@@ -8,9 +8,9 @@
 
 	async function createTeam() {
 		try {
-			const newTeam: TeamRow = {
+			const newTeam: Partial<TeamRow> = {
 				name: newTeamName,
-				event_id: tournament.id
+				event_id: tournament.id as unknown as number
 			};
 			await tournament.createTeam(newTeam);
 			await loadEventTeams();
@@ -34,12 +34,12 @@
 	async function loadEventTeams() {
 		const res = await tournament.loadTeams().catch((err: HttpError) => error(err.body.message));
 
-		tournament.settings.teams = res;
+		tournament.teams = res || [];
 	}
 
 	let searchTerm: string = '';
 	$: filteredTeams =
-		tournament?.settings?.teams?.filter(
+		tournament?.teams?.filter(
 			(team: TeamRow) => team.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
 		) || [];
 	let newTeamName = '';

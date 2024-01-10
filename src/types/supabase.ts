@@ -43,30 +43,33 @@ export interface Database {
 			};
 			matches: {
 				Row: {
+					court: number;
 					created_at: string;
 					event_id: number;
 					id: number;
-					status: string | null;
+					round: number;
 					team1: number;
 					team1_score: number | null;
 					team2: number;
 					team2_score: number | null;
 				};
 				Insert: {
+					court?: number;
 					created_at?: string;
 					event_id: number;
 					id?: number;
-					status?: string | null;
+					round?: number;
 					team1: number;
 					team1_score?: number | null;
 					team2: number;
 					team2_score?: number | null;
 				};
 				Update: {
+					court?: number;
 					created_at?: string;
 					event_id?: number;
 					id?: number;
-					status?: string | null;
+					round?: number;
 					team1?: number;
 					team1_score?: number | null;
 					team2?: number;

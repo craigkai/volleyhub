@@ -1,7 +1,8 @@
 import { error } from '@sveltejs/kit';
 import { RoundRobin } from './roundRobin';
 import type { DatabaseService } from './SupabaseDatabaseService';
-import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+import { eventsRowSchema } from '../types/schemas';
+import type { Match } from './Match';
 
 /**
  * The Tournament class represents a tournament in the application.
@@ -20,6 +21,8 @@ export class Tournament {
 	// The settings of the tournament
 	settings: EventRow;
 
+	teams?: TeamRow[];
+
 	// The matches of the tournament
 	matches?: MatchRow[];
 
@@ -31,7 +34,15 @@ export class Tournament {
 	constructor(databaseService: DatabaseService, supabaseClient: supabaseClient) {
 		this.databaseService = databaseService;
 		this.supabaseClient = supabaseClient;
-		this.settings = {};
+		this.settings = eventsRowSchema.parse({
+			name: '',
+			date: '',
+			pools: 0,
+			courts: 0,
+			owner: '',
+			id: 0,
+			created_at: ''
+		});
 		this.id = '';
 	}
 
@@ -41,16 +52,19 @@ export class Tournament {
 	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the newly created tournament.
 	 * @throws {Error} - Throws an error if the event data does not have all required values.
 	 */
-	async createEvent(input: EventRow): Promise<Tournament> {
-		if (!input.name || !input.pools || !input.courts) {
-			error(400, Error(`Tournament create call does not have all required values`));
+	async createEvent(input: Partial<EventRow>): Promise<Tournament> {
+		if (!input.name || !input.date || !input.pools || !input.courts) {
+			error(400, `Tournament create call does not have all required values`);
 		}
-		const ownerId = (await this.databaseService.getCurrentUser()).id;
+		const currentUser = await this.databaseService.getCurrentUser();
+		const ownerId = currentUser ? currentUser.id : null;
 
-		const res: EventRow = await this.databaseService.createEvent(input, ownerId);
+		const res: EventRow | null = await this.databaseService.createEvent(input, ownerId as string);
 
-		this.id = res.id;
-		this.settings = res;
+		if (res !== null) {
+			this.id = res.id as unknown as string;
+			this.settings = res;
+		}
 
 		return this;
 	}
@@ -63,13 +77,22 @@ export class Tournament {
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
 	async updateTournament(id: string, input: EventRow): Promise<Tournament> {
-		if (!input.name || !input.date || !input.pools || !input.courts) {
-			error(400, `Tournament update call does not have all required values`);
+		const result = eventsRowSchema.safeParse(input); // Validate input using Zod
+		if (!result.success) {
+			error(
+				400,
+				Error(
+					`Tournament update call input param incorrect: ${JSON.stringify(result.error.format())}`
+				)
+			);
 		}
 
-		const res: EventRow = await this.databaseService.updateTournament(id, input);
+		const res: EventRow | null = await this.databaseService.updateTournament(id, input);
 
-		this.settings = { ...res, teams: this.settings.teams };
+		if (res !== null) {
+			this.settings = res;
+		}
+
 		return this;
 	}
 
@@ -81,13 +104,13 @@ export class Tournament {
 			error(400, Error('Invalid event ID, are you sure your link is correct?'));
 		}
 
-		const eventResponse: EventRow = await this.databaseService.loadEvent(eventId);
-		this.id = eventResponse.id;
+		const eventResponse: EventRow | null = await this.databaseService.loadEvent(eventId);
+		this.id = eventResponse?.id.toString() || '';
 
-		// if we did not an Id value back, something has gone wrong!
+		// if we did not get an Id value back, something has gone wrong!
 		if (this.id) {
-			this.settings = eventResponse;
-			this.settings.teams = await this.loadTeams();
+			this.settings = eventResponse!;
+			this.teams = (await this.loadTeams()) as TeamRow[]; // Update the type of this.teams
 		} else {
 			console.error(`Failed to load event ${JSON.stringify(eventResponse)}`);
 			error(404, Error(`Could not find event with Id ${eventId}`));
@@ -100,7 +123,7 @@ export class Tournament {
 			await this.databaseService.deleteEvent(this.id);
 
 			// Delete all teams, which should cascade and delete all matches
-			this.settings?.teams?.forEach((team: TeamRow) => {
+			this?.teams?.forEach((team: TeamRow) => {
 				this.databaseService.deleteTeam(team);
 			});
 		} catch (err) {
@@ -113,29 +136,42 @@ export class Tournament {
 	/*
 	Load all matches for the current tournament.
 	*/
-	async loadMatches(): Promise<MatchRow> {
-		this.matches = await this.databaseService.loadMatches(this.id);
+	async loadMatches(): Promise<MatchRow[] | undefined> {
+		const res = await this.databaseService.loadMatches(this.id);
+		if (res) {
+			this.matches = res;
+		}
 		return this.matches;
 	}
 
 	async createMatches() {
-		if (!this?.settings?.teams || this?.settings?.teams?.length === 0) {
+		if (!this?.teams || this?.teams?.length === 0) {
 			console.error("Can't generate matches without Teams");
 			error(500, Error("Can't generate matches without Teams"));
 		}
 
+		if (!this?.settings?.pools || this.settings.pools <= 0) {
+			console.error("Can't generate matches without Pools");
+			error(500, Error("Can't generate matches without Pools"));
+		}
+
+		if (!this?.settings?.courts || this.settings.courts <= 0) {
+			console.error("Can't generate matches without courts");
+			error(500, Error("Can't generate matches without courts"));
+		}
+
 		try {
-			let matches: any[] = [];
+			let matches: Match[] = [];
 			// If we have more pool play games than matches we got
 			// back, then we need to generate some more.
-			while (matches.length < this.settings.pools * this.settings.teams.length) {
-				matches = matches.concat(RoundRobin(this.settings.teams));
+			while (matches.length < (this.settings.pools) * this.teams.length) {
+				matches = matches.concat(RoundRobin(this.teams));
 			}
 			// Delete all old matches as they are now invalid
 			await this.databaseService.deleteMatchesByEvent(this.id);
 
 			let courtsAvailable = this.settings.courts;
-			let teamsAvailable = this.settings.teams.length;
+			let teamsAvailable = this.teams.length;
 			let round = 0;
 
 			let totalRounds = 0;
@@ -143,13 +179,16 @@ export class Tournament {
 			matches.forEach((match: UserMatch) => {
 				// Short circuit if we have more matches than pool play games
 				// (you don't play every team).
-				if (userMatches.length === this.settings.pools * (this.settings.teams.length / 2)) {
+				if (
+					this.settings &&
+					userMatches.length === (this.settings.pools) * (this.teams.length / 2)
+				) {
 					return;
 				}
 
 				if (courtsAvailable === 0 || teamsAvailable < 2) {
 					courtsAvailable = this.settings.courts;
-					teamsAvailable = this.settings.teams.length;
+					teamsAvailable = this?.teams?.length;
 					round = round + 1;
 					totalRounds = totalRounds + 1;
 				}
@@ -171,7 +210,10 @@ export class Tournament {
 			});
 
 			// Call multi insert:
-			this.matches = await this.databaseService.insertMatches(userMatches);
+			const res = await this.databaseService.insertMatches(userMatches);
+			if (res) {
+				this.matches = res;
+			}
 			return this;
 		} catch (err) {
 			// Handle and log the error appropriately
@@ -180,28 +222,33 @@ export class Tournament {
 		}
 	}
 
-	async updateMatch<T>(match: MatchRow): Promise<PostgrestSingleResponse<T>> {
+	async updateMatch(match: MatchRow): Promise<MatchRow> {
 		const res = await this.databaseService.updateMatch(match);
-		match = res.data;
-		return res;
+		if (res) {
+			match = res;
+		}
+		return match;
 	}
 
 	/*
 	Inserts new team into supabase, if a team exists where team name and event id match what we
 	are trying to create, then return that team Id.
 	*/
-	async createTeam(team: TeamRow): Promise<TeamRow> {
-		const res: TeamRow = await this.databaseService.createTeam(team);
-		return res.id;
+	async createTeam(team: Partial<TeamRow>): Promise<number | undefined> {
+		const res: TeamRow | null = await this.databaseService.createTeam(team);
+		return res?.id;
 	}
 
-	async loadTeams(): Promise<TeamRow[]> {
-		this.settings.teams = await this.databaseService.loadTeams(this.id);
-		return this.settings.teams;
+	async loadTeams(): Promise<TeamRow[] | undefined> {
+		const res = await this.databaseService.loadTeams(this.id);
+		if (res) {
+			this.teams = res;
+		}
+		return this.teams;
 	}
 
 	async deleteTeam(team: TeamRow): Promise<void> {
-		this.settings.teams = await this.databaseService.deleteTeam(team);
+		await this.databaseService.deleteTeam(team);
 	}
 }
 
@@ -273,16 +320,21 @@ if (import.meta.vitest) {
 		});
 
 		it('should update the tournament if all required values are provided', async () => {
-			const input: EventRow = {
+			const input: Partial<EventRow> = {
 				name: 'Test Tournament',
-				date: new Date(),
+				date: new Date().toString(),
 				pools: 1,
-				courts: 2
+				courts: 2,
+				id: 1,
+				created_at: 'test',
+				owner: 'test'
 			};
 
 			const updatedTournament: EventRow = {
 				...input,
-				id: '1'
+				id: 1,
+				courts: input.courts,
+				created_at: 'test',
 			};
 
 			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
@@ -293,18 +345,19 @@ if (import.meta.vitest) {
 			expect(mockDatabaseService.updateTournament).toHaveBeenCalledWith('1', input);
 		});
 
-
 		it('Test matches are correct with two teams and one pool play game', async () => {
-			const input: EventRow = {
+			const input: Partial<EventRow> = {
 				name: 'Test Tournament',
-				date: new Date(),
+				date: new Date().toString(),
 				pools: 1,
-				courts: 2
+				courts: 2,
+				owner: 'test'
 			};
 
-			const updatedTournament: EventRow = {
+			const updatedTournament: Partial<EventRow> = {
 				...input,
-				id: '1'
+				id: 1,
+				courts: input.courts
 			};
 
 			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
@@ -314,9 +367,9 @@ if (import.meta.vitest) {
 				return {
 					id: `team${i}`,
 					event_id: 1
-				}
+				};
 			});
-			tournament.settings.teams = teams;
+			tournament.teams = teams;
 			await tournament.createMatches();
 
 			expect(tournament?.matches?.length).toEqual(1);
@@ -332,16 +385,16 @@ if (import.meta.vitest) {
 		});
 
 		it('Test matches are correct with four teams and three pool play games', async () => {
-			const input: EventRow = {
+			const input: Partial<EventRow> = {
 				name: 'Test Tournament',
-				date: new Date(),
+				date: new Date().toString(),
 				pools: 3,
 				courts: 2
 			};
 
-			const updatedTournament: EventRow = {
+			const updatedTournament: Partial<EventRow> = {
 				...input,
-				id: '1'
+				id: 1
 			};
 
 			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
@@ -350,10 +403,13 @@ if (import.meta.vitest) {
 			const teams = Array.from({ length: 4 }, (_x, i) => {
 				return {
 					id: `team${i}`,
-					event_id: 1
-				}
+					event_id: 1,
+					created_at: '',
+					name: `team${i}`,
+					state: 'active'
+				};
 			});
-			tournament.settings.teams = teams;
+			tournament.teams = teams;
 			await tournament.createMatches();
 
 			// Teams / 2 * pool play
@@ -363,7 +419,6 @@ if (import.meta.vitest) {
 			tournament?.matches?.forEach((match: MatchRow) => {
 				gamesPerTeam[match.team1]++;
 				gamesPerTeam[match.team2]++;
-
 			});
 			Object.keys(gamesPerTeam).forEach((team: string) => {
 				expect(gamesPerTeam[team]).toEqual(3);

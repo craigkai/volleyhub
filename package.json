@@ -55,6 +55,8 @@
 	"type": "module",
 	"dependencies": {
 		"dayjs": "^1.11.10",
-		"svelte-hamburgers": "^4.2.0"
+		"supabase-to-zod": "^1.0.4",
+		"svelte-hamburgers": "^4.2.0",
+		"zod": "^3.22.4"
 	}
 }

@@ -1,36 +1,37 @@
 // Importing necessary types from supabase-js and sveltejs/kit
 import type { PostgrestSingleResponse, PostgrestResponse, User } from '@supabase/supabase-js';
-import type { Tournament } from './tournament';
 import { error, type NumericRange } from '@sveltejs/kit';
+import { eventsRowSchema, matchesRowSchema, teamsRowSchema } from '../types/schemas';
+import { z } from 'zod';
 
 // DatabaseService interface declaration
 export interface DatabaseService {
 	// Method to handle database errors
 	handleDatabaseError<T>(response: PostgrestSingleResponse<T> | PostgrestResponse<T>): void;
 	// Method to create a new event
-	createEvent(input: EventRow, ownerId: string): Promise<EventRow>;
+	createEvent(input: EventRow, ownerId: string): Promise<EventRow | null>;
 	// Method to update a tournament
-	updateTournament(id: string, input: EventRow): Promise<Tournament>;
+	updateTournament(id: string, input: EventRow): Promise<EventRow | null>;
 	// Method to get the current user
-	getCurrentUser(): Promise<User>;
+	getCurrentUser(): Promise<User | null>;
 	// Method to load an event
-	loadEvent(eventId: string): Promise<EventRow>;
+	loadEvent(eventId: string): Promise<EventRow | null>;
 	// Method to load teams
-	loadTeams(eventId: string): Promise<TeamRow[]>;
+	loadTeams(eventId: string): Promise<TeamRow[] | null>;
 	// Method to delete an event
 	deleteEvent(eventId: string): Promise<void>;
 	// Method to delete a team
 	deleteTeam(team: TeamRow): Promise<void>;
 	// Method to load matches
-	loadMatches(eventId: string): Promise<MatchRow[]>;
+	loadMatches(eventId: string): Promise<MatchRow[] | null>;
 	// Method to create a team
-	createTeam(team: TeamRow): Promise<TeamRow>;
+	createTeam(team: Partial<TeamRow>): Promise<TeamRow | null>;
 	// Method to delete matches by event
 	deleteMatchesByEvent(eventId: string): Promise<void>;
 	// Method to insert matches
-	insertMatches(matches: MatchRow[]): Promise<MatchRow[]>;
+	insertMatches(matches: MatchRow[]): Promise<MatchRow[] | null>;
 	// Method to update a match
-	updateMatch(match: MatchRow): Promise<MatchRow>;
+	updateMatch(match: MatchRow): Promise<MatchRow | null>;
 }
 
 // SupabaseDatabaseService class implementing DatabaseService interface
@@ -60,7 +61,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns Promise<User> - Returns a promise that resolves to the User object of the currently authenticated user.
 	 * @throws {Error} - Throws an error if there's an issue retrieving the user.
 	 */
-	async getCurrentUser(): Promise<User> {
+	async getCurrentUser(): Promise<User | null> {
 		try {
 			// Use the Supabase client to get the current user
 			const response = await this.supabaseClient.auth.getUser();
@@ -87,7 +88,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the newly created event.
 	 * @throws {Error} - Throws an error if there's an issue creating the event.
 	 */
-	async createEvent(input: EventRow, ownerId: string): Promise<EventRow> {
+	async createEvent(input: EventRow, ownerId: string): Promise<EventRow | null> {
 		try {
 			// Insert the new event into the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
@@ -105,6 +106,12 @@ export class SupabaseDatabaseService implements DatabaseService {
 			// Handle any errors that may have occurred during the database operation
 			this.handleDatabaseError(res);
 
+			const result = eventsRowSchema.safeParse(res.data); // Validate results using Zod
+			if (!result.success) {
+				const err = { status: 500, error: result.error } as unknown as PostgrestResponse<EventRow>;
+				this.handleDatabaseError(err);
+			}
+
 			// Return the newly created event
 			return res.data;
 		} catch (error) {
@@ -121,7 +128,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the updated tournament.
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
-	async updateTournament(id: string, input: EventRow): Promise<EventRow> {
+	async updateTournament(id: string, input: EventRow): Promise<EventRow | null> {
 		try {
 			// Update the tournament in the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
@@ -139,6 +146,12 @@ export class SupabaseDatabaseService implements DatabaseService {
 			// Handle any errors that may have occurred during the database operation
 			this.handleDatabaseError(res);
 
+			const result = eventsRowSchema.safeParse(res.data); // Validate results using Zod
+			if (!result.success) {
+				const err = { status: 500, error: result.error } as unknown as PostgrestResponse<EventRow>;
+				this.handleDatabaseError(err);
+			}
+
 			// Return the updated tournament
 			return res.data;
 		} catch (error) {
@@ -154,7 +167,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the loaded event.
 	 * @throws {Error} - Throws an error if there's an issue loading the event.
 	 */
-	async loadEvent(eventId: string): Promise<EventRow> {
+	async loadEvent(eventId: string): Promise<EventRow | null> {
 		try {
 			// Load the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
@@ -165,6 +178,12 @@ export class SupabaseDatabaseService implements DatabaseService {
 
 			// Handle any errors that may have occurred during the database operation
 			this.handleDatabaseError(res);
+
+			const result = eventsRowSchema.safeParse(res.data); // Validate results using Zod
+			if (!result.success) {
+				const err = { status: 500, error: result.error } as unknown as PostgrestResponse<EventRow>;
+				this.handleDatabaseError(err);
+			}
 
 			// Return the loaded event
 			return res.data;
@@ -181,7 +200,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<TeamRow[]>} - Returns a promise that resolves to an array of the loaded teams.
 	 * @throws {Error} - Throws an error if there's an issue loading the teams.
 	 */
-	async loadTeams(eventId: string): Promise<TeamRow[]> {
+	async loadTeams(eventId: string): Promise<TeamRow[] | null> {
 		try {
 			// Load the teams from the 'teams' table
 			const res: PostgrestResponse<TeamRow> = await this.supabaseClient
@@ -191,6 +210,13 @@ export class SupabaseDatabaseService implements DatabaseService {
 
 			// Handle any errors that may have occurred during the database operation
 			this.handleDatabaseError(res);
+
+			const teamsRowSchemaArray = z.array(teamsRowSchema);
+			const result = teamsRowSchemaArray.safeParse(res.data); // Validate results using Zod
+			if (!result.success) {
+				const err = { status: 500, error: result.error } as unknown as PostgrestResponse<TeamRow>;
+				this.handleDatabaseError(err);
+			}
 
 			// Return the loaded teams
 			return res.data as TeamRow[]; // Add type assertion here
@@ -210,7 +236,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	async deleteEvent(eventId: string): Promise<void> {
 		try {
 			// Delete the event from the 'events' table
-			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient
 				.from('events')
 				.delete()
 				.eq('id', eventId);
@@ -230,38 +256,52 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<MatchRow[]>} - Returns a promise that resolves to an array of the loaded matches.
 	 * @throws {Error} - Throws an error if there's an issue loading the matches.
 	 */
-	async loadMatches(eventId: string): Promise<MatchRow[]> {
+	async loadMatches(eventId: string): Promise<MatchRow[] | null> {
 		// Load the matches from the 'matches' table
-		const response: PostgrestSingleResponse<MatchRow> = await this.supabaseClient
+		const res: PostgrestSingleResponse<any[]> = await this.supabaseClient
 			.from('matches')
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
 			.eq('event_id', eventId);
 
 		// Handle any errors that may have occurred during the database operation
-		this.handleDatabaseError(response);
+		this.handleDatabaseError(res);
+
+		const matchesRowSchemaArray = z.array(matchesRowSchema);
+		const result = matchesRowSchemaArray.safeParse(res.data); // Validate results using Zod
+		if (!result.success) {
+			const err = { status: 500, error: result.error } as unknown as PostgrestResponse<MatchRow>;
+			this.handleDatabaseError(err);
+		}
 
 		// Return the loaded matches
-		return response.data;
+		return res.data;
 	}
 
 	/**
 	 * Create a new team in the database or update an existing one.
-	 * @param {TeamRow} team - The data for the team.
+	 * @param {Partial<TeamRow>} team - The data for the team.
 	 * @returns {Promise<TeamRow>} - Returns a promise that resolves to the newly created or updated team.
 	 * @throws {Error} - Throws an error if there's an issue creating or updating the team.
 	 */
-	async createTeam(team: TeamRow): Promise<TeamRow> {
+	async createTeam(team: Partial<TeamRow>): Promise<TeamRow | null> {
 		// Upsert the team into the 'teams' table
-		const response: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
+		const res = await this.supabaseClient
 			.from('teams')
 			.upsert({ ...team })
 			.select();
 
 		// Handle any errors that may have occurred during the database operation
-		this.handleDatabaseError(response);
+		this.handleDatabaseError(res);
+
+		const teamsRowSchemaArray = z.array(teamsRowSchema);
+		const result = teamsRowSchemaArray.safeParse(res.data); // Validate results using Zod
+		if (!result.success) {
+			const err = { status: 500, error: result.error } as unknown as PostgrestResponse<TeamRow>;
+			this.handleDatabaseError(err);
+		}
 
 		// Return the newly created or updated team
-		return response.data;
+		return res.data as unknown as TeamRow;
 	}
 
 	/**
@@ -272,20 +312,25 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 */
 	async loadEvents(ownerId: string): Promise<EventRow[]> {
 		// Load the events from the 'events' table
-		const response = await this.supabaseClient.from('events').select('*').eq('owner', ownerId);
+		const res = await this.supabaseClient.from('events').select('*').eq('owner', ownerId);
 
 		// Handle any errors that may have occurred during the database operation
-		this.handleDatabaseError(response);
+		this.handleDatabaseError(res);
+
+		const eventsRowSchemaArray = z.array(eventsRowSchema);
+
+		const result = eventsRowSchemaArray.safeParse(res.data); // Validate results using Zod
+		if (!result.success) {
+			const err = { status: 500, error: result.error } as unknown as PostgrestResponse<EventRow>;
+			this.handleDatabaseError(err);
+		}
 
 		// Return the loaded events or an empty array if no events were found
-		return response.data ?? [];
+		return res.data ?? [];
 	}
 
 	async deleteTeam(team: TeamRow): Promise<void> {
-		const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
-			.from('teams')
-			.delete()
-			.eq('id', team.id);
+		const res = await this.supabaseClient.from('teams').delete().eq('id', team.id);
 		this.handleDatabaseError(res);
 	}
 
@@ -295,17 +340,34 @@ export class SupabaseDatabaseService implements DatabaseService {
 	}
 
 	async insertMatches(matches: MatchRow[]): Promise<MatchRow[]> {
-		const response = await this.supabaseClient
+		const res = await this.supabaseClient
 			.from('matches')
 			.insert(matches)
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)');
 
-		this.handleDatabaseError(response);
-		return response.data ?? [];
+		this.handleDatabaseError(res);
+
+		const matchesRowSchemaArray = z.array(matchesRowSchema);
+		const result = matchesRowSchemaArray.safeParse(res.data); // Validate results using Zod
+		if (!result.success) {
+			const err = { status: 500, error: result.error } as unknown as PostgrestResponse<MatchRow>;
+			this.handleDatabaseError(err);
+		}
+
+		return res.data ?? [];
 	}
 
-	async updateMatch<T>(match: MatchRow): Promise<PostgrestResponse<T>> {
-		const response: MatchRow = await this.supabaseClient
+	async updateMatch<T>(match: MatchRow): Promise<{
+		created_at: string;
+		id: number;
+		status: string | null;
+		event_id: number;
+		team1: number;
+		team1_score: number | null;
+		team2: number;
+		team2_score: number | null;
+	} | null> {
+		const res = await this.supabaseClient
 			.from('matches')
 			.update({
 				team1_score: match.team1_score,
@@ -315,7 +377,14 @@ export class SupabaseDatabaseService implements DatabaseService {
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
 			.single();
 
-		this.handleDatabaseError(response);
-		return response;
+		this.handleDatabaseError(res);
+
+		const result = matchesRowSchema.safeParse(res.data); // Validate results using Zod
+		if (!result.success) {
+			const err = { status: 500, error: result.error } as unknown as PostgrestResponse<MatchRow>;
+			this.handleDatabaseError(err);
+		}
+
+		return res.data;
 	}
 }

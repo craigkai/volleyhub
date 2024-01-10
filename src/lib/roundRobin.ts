@@ -2,7 +2,7 @@ import type { Match } from './Match';
 import { shuffle } from './Shuffle';
 
 export function RoundRobin(
-	players: number | string[],
+	players: TeamRow[],
 	startingRound: number = 1,
 	ordered: boolean = false
 ): Match[] {
