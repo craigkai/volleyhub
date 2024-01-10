@@ -16,11 +16,18 @@
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
 	let tournament = new Tournament(databaseService, data?.supabase);
 
+	let date = tournament?.settings?.date
+		? dayjs(tournament?.settings?.date).format('YYYY-MM-DD')
+		: '';
+
 	// Load our event or if creating we just load the edit component
 	async function loadEvent() {
 		if (data?.eventId != 'create') {
 			await tournament
 				.loadEvent(data?.eventId)
+				.then((res: Tournament) => {
+					date = dayjs(res?.settings?.date).format('YYYY-MM-DD');
+				})
 				.catch((err: HttpError) => error(err?.body?.message));
 		}
 	}
@@ -72,7 +79,7 @@
 			);
 	}
 
-	$: date = dayjs(tournament?.settings?.date).format('YYYY-MM-DD');
+	$: date, (date = dayjs(date).format('YYYY-MM-DD'));
 
 	let loadingEventPromise = loadEvent();
 </script>
@@ -100,8 +107,8 @@
 			</div>
 
 			<div class="m-2">
-				<label class="block text-sm font-bold mb-2" for="username">Date:</label>
-				<input class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
+				<label class="block text-sm font-bold mb-2" for="date">Date:</label>
+				<input id="date" class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
 			</div>
 
 			{#if data?.eventId !== 'create' && tournament}
