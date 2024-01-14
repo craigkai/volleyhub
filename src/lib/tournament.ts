@@ -12,9 +12,6 @@ export class Tournament {
 	// The service used to interact with the database
 	private databaseService: DatabaseService;
 
-	// The Supabase client used to interact with the Supabase API
-	supabaseClient: supabaseClient;
-
 	// The ID of the tournament
 	id: string;
 
@@ -29,11 +26,9 @@ export class Tournament {
 	/**
 	 * The constructor for the Tournament class.
 	 * @param {DatabaseService} databaseService - The service used to interact with the database.
-	 * @param {supabaseClient} supabaseClient - The Supabase client used to interact with the Supabase API.
 	 */
-	constructor(databaseService: DatabaseService, supabaseClient: supabaseClient) {
+	constructor(databaseService: DatabaseService) {
 		this.databaseService = databaseService;
-		this.supabaseClient = supabaseClient;
 		this.settings = eventsRowSchema.parse({
 			name: '',
 			date: '',
@@ -292,10 +287,7 @@ if (import.meta.vitest) {
 					return input;
 				})
 			};
-			mockSupabaseClient = {
-				updateTournament: vi.fn()
-			};
-			tournament = new Tournament(mockDatabaseService, mockSupabaseClient);
+			tournament = new Tournament(mockDatabaseService);
 		});
 
 		it('should throw an error if not all required values are provided', async () => {

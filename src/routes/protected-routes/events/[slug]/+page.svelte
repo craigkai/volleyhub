@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Spinner } from 'flowbite-svelte';
 	import type { PageData } from '$types';
 	import { Tournament } from '$lib/tournament';
 	import Matches from '$lib/components/tournament/Matches.svelte';
@@ -10,27 +9,13 @@
 	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { goto } from '$app/navigation';
 	import { Input, Label, Button } from 'flowbite-svelte';
-	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 
 	export let data: PageData;
-	const databaseService = new SupabaseDatabaseService(data?.supabase);
-	let tournament = new Tournament(databaseService, data?.supabase);
+	let tournament: Tournament = data?.tournament;
 
 	let date = tournament?.settings?.date
 		? dayjs(tournament?.settings?.date).format('YYYY-MM-DD')
 		: '';
-
-	// Load our event or if creating we just load the edit component
-	async function loadEvent() {
-		if (data?.eventId != 'create') {
-			await tournament
-				.loadEvent(data?.eventId)
-				.then((res: Tournament) => {
-					date = dayjs(res?.settings?.date).format('YYYY-MM-DD');
-				})
-				.catch((err: HttpError) => error(err?.body?.message));
-		}
-	}
 
 	async function createNewEvent(): Promise<void> {
 		tournament
@@ -81,70 +66,62 @@
 	}
 
 	$: date, (date = dayjs(date).format('YYYY-MM-DD'));
-
-	let loadingEventPromise = loadEvent();
 </script>
 
-{#await loadingEventPromise}
-	<div class="flex justify-center m-4">
-		<Spinner color="blue" />
-	</div>
-{:then}
-	<div class="flex flex-col items-center">
-		<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
-			<div class="m-2">
-				<Label for="first_name" class="mb-2">Event Name:</Label>
-				<Input type="text" id="eventName" bind:value={tournament.settings.name} required />
-			</div>
+<div class="flex flex-col items-center">
+	<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
+		<div class="m-2">
+			<Label for="first_name" class="mb-2">Event Name:</Label>
+			<Input type="text" id="eventName" bind:value={tournament.settings.name} required />
+		</div>
 
-			<div class="m-2">
-				<Label for="first_name" class="mb-2">Number of Courts:</Label>
-				<Input type="number" id="eventCourts" bind:value={tournament.settings.courts} required />
-			</div>
+		<div class="m-2">
+			<Label for="first_name" class="mb-2">Number of Courts:</Label>
+			<Input type="number" id="eventCourts" bind:value={tournament.settings.courts} required />
+		</div>
 
-			<div class="m-2">
-				<Label for="first_name" class="mb-2">Number of Pool Play Games:</Label>
-				<Input type="number" id="eventCourts" bind:value={tournament.settings.pools} required />
-			</div>
+		<div class="m-2">
+			<Label for="first_name" class="mb-2">Number of Pool Play Games:</Label>
+			<Input type="number" id="eventCourts" bind:value={tournament.settings.pools} required />
+		</div>
 
-			<div class="m-2">
-				<label class="block text-sm font-bold mb-2" for="date">Date:</label>
-				<input id="date" class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
-			</div>
+		<div class="m-2">
+			<label class="block text-sm font-bold mb-2" for="date">Date:</label>
+			<input id="date" class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
+		</div>
 
-			{#if data?.eventId !== 'create' && tournament}
-				<Teams bind:tournament />
-			{/if}
+		{#if data?.eventId !== 'create' && tournament}
+			<Teams bind:tournament />
+		{/if}
 
-			<div class="m-2">
-				{#if data?.eventId === 'create'}
-					<Button
-						class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						type="button"
-						on:click={() => createNewEvent()}
-					>
-						Create Tournament</Button
-					>{:else}
-					<Button
-						class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						type="button"
-						on:click={() => updateTournament()}
-					>
-						Update Tournament Settings</Button
-					>
-				{/if}
-			</div>
-			{#if data?.eventId !== 'create' && tournament}
-				<Matches bind:tournament />
-			{/if}
-
-			{#if data?.eventId !== 'create'}
-				<button
-					class="bg-nord-12 m-2 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+		<div class="m-2">
+			{#if data?.eventId === 'create'}
+				<Button
+					class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 					type="button"
-					on:click={deleteEvent}>Delete</button
+					on:click={() => createNewEvent()}
+				>
+					Create Tournament</Button
+				>{:else}
+				<Button
+					class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+					type="button"
+					on:click={() => updateTournament()}
+				>
+					Update Tournament Settings</Button
 				>
 			{/if}
 		</div>
+		{#if data?.eventId !== 'create' && tournament}
+			<Matches bind:tournament />
+		{/if}
+
+		{#if data?.eventId !== 'create'}
+			<button
+				class="bg-nord-12 m-2 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+				type="button"
+				on:click={deleteEvent}>Delete</button
+			>
+		{/if}
 	</div>
-{/await}
+</div>

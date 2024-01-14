@@ -1,4 +1,6 @@
 import { writable } from 'svelte/store';
+import { Tournament } from './tournament';
 
-// We cache our state in a store so we don't refresh on navigation (we do on refresh)
-export const state = writable({});
+// We store our loaded event as a writable store so that we can centrally subscribe to supabase
+// and update when the database emits events.
+export const event = writable<Tournament>();
