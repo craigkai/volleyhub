@@ -5,7 +5,7 @@
 	import Matches from '$lib/components/tournament/Matches.svelte';
 	import type { HttpError } from '@sveltejs/kit';
 	import { error } from '$lib/toast';
-	import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
+	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);

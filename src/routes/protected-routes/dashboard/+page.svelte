@@ -6,7 +6,7 @@
 	import { Card } from 'flowbite-svelte';
 	import dayjs from 'dayjs';
 	import type { HttpError } from '@sveltejs/kit';
-	import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
+	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);

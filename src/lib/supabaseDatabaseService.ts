@@ -357,7 +357,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 		return res.data ?? [];
 	}
 
-	async updateMatch<T>(match: MatchRow): Promise<{
+	async updateMatch(match: MatchRow): Promise<{
 		created_at: string;
 		id: number;
 		status: string | null;
@@ -366,12 +366,16 @@ export class SupabaseDatabaseService implements DatabaseService {
 		team1_score: number | null;
 		team2: number;
 		team2_score: number | null;
+		court: number; // Add the missing 'court' property
+		round: number; // Add the missing 'round' property
 	} | null> {
 		const res = await this.supabaseClient
 			.from('matches')
 			.update({
 				team1_score: match.team1_score,
-				team2_score: match.team2_score
+				team2_score: match.team2_score,
+				court: match.court, // Add the missing 'court' property
+				round: match.round // Add the missing 'round' property
 			})
 			.eq('id', match.id)
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)')

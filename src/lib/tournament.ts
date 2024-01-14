@@ -1,8 +1,8 @@
 import { error } from '@sveltejs/kit';
 import { RoundRobin } from './roundRobin';
-import type { DatabaseService } from './SupabaseDatabaseService';
+import type { DatabaseService } from './supabaseDatabaseService';
 import { eventsRowSchema } from '../types/schemas';
-import type { Match } from './Match';
+import type { Match } from './matches';
 
 /**
  * The Tournament class represents a tournament in the application.
@@ -164,7 +164,7 @@ export class Tournament {
 			let matches: Match[] = [];
 			// If we have more pool play games than matches we got
 			// back, then we need to generate some more.
-			while (matches.length < (this.settings.pools) * this.teams.length) {
+			while (matches.length < this.settings.pools * this.teams.length) {
 				matches = matches.concat(RoundRobin(this.teams));
 			}
 			// Delete all old matches as they are now invalid
@@ -179,10 +179,7 @@ export class Tournament {
 			matches.forEach((match: UserMatch) => {
 				// Short circuit if we have more matches than pool play games
 				// (you don't play every team).
-				if (
-					this.settings &&
-					userMatches.length === (this.settings.pools) * (this.teams.length / 2)
-				) {
+				if (this.settings && userMatches.length === this.settings.pools * (this.teams.length / 2)) {
 					return;
 				}
 
@@ -334,7 +331,7 @@ if (import.meta.vitest) {
 				...input,
 				id: 1,
 				courts: input.courts,
-				created_at: 'test',
+				created_at: 'test'
 			};
 
 			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);

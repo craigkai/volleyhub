@@ -10,7 +10,7 @@
 	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { goto } from '$app/navigation';
 	import { Input, Label, Button } from 'flowbite-svelte';
-	import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
+	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);

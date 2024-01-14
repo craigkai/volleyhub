@@ -1,5 +1,4 @@
-import type { Match } from './Match';
-import { shuffle } from './Shuffle';
+import { shuffle } from './shuffle';
 
 export function RoundRobin(
 	players: TeamRow[],
