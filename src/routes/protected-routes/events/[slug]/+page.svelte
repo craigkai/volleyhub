@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from '$types';
-	import { Tournament } from '$lib/tournament';
+	import { Event } from '$lib/event';
+	import { Matches as MatchesInstance } from '$lib/matches';
+	import { Teams as TeamsInstance } from '$lib/teams';
 	import Matches from '$lib/components/tournament/Matches.svelte';
 	import Teams from '$lib/components/tournament/Teams.svelte';
 	import type { HttpError } from '@sveltejs/kit';
@@ -11,18 +13,18 @@
 	import { Input, Label, Button } from 'flowbite-svelte';
 
 	export let data: PageData;
-	let tournament: Tournament = data?.tournament;
+	let tournament: Event = data?.tournament;
+	let matches: MatchesInstance = data?.matches;
+	let teams: TeamsInstance = data?.teams;
 
-	let date = tournament?.settings?.date
-		? dayjs(tournament?.settings?.date).format('YYYY-MM-DD')
-		: '';
+	let date = tournament?.date ? dayjs(tournament?.date).format('YYYY-MM-DD') : '';
 
 	async function createNewEvent(): Promise<void> {
 		tournament
 			.createEvent({
-				name: tournament.settings.name,
-				courts: tournament.settings.courts,
-				pools: tournament.settings.pools,
+				name: tournament.name,
+				courts: tournament.courts,
+				pools: tournament.pools,
 				date: date
 			})
 			.then(() => {
@@ -37,14 +39,14 @@
 
 	async function updateTournament(): Promise<void> {
 		tournament
-			.updateTournament(tournament.id as string, {
-				...tournament.settings,
-				name: tournament.settings.name,
-				courts: Number(tournament.settings.courts),
-				pools: Number(tournament.settings.pools),
+			.updateEvent(tournament.id, {
+				...tournament,
+				name: tournament.name,
+				courts: Number(tournament.courts),
+				pools: Number(tournament.pools),
 				date: date
 			})
-			.then((res: Tournament) => {
+			.then((res: Event) => {
 				tournament = res;
 				success(`Tournament settings updated`);
 			})
@@ -58,7 +60,7 @@
 			.deleteEvent()
 			.then(() => {
 				goto('/protected-routes/dashboard');
-				success(`Deleted ${tournament.settings.name}`);
+				success(`Deleted ${tournament.name}`);
 			})
 			.catch((err: { body: { message: string | SvelteToastOptions } }) =>
 				error(err?.body?.message)
@@ -72,17 +74,17 @@
 	<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
 		<div class="m-2">
 			<Label for="first_name" class="mb-2">Event Name:</Label>
-			<Input type="text" id="eventName" bind:value={tournament.settings.name} required />
+			<Input type="text" id="eventName" bind:value={tournament.name} required />
 		</div>
 
 		<div class="m-2">
 			<Label for="first_name" class="mb-2">Number of Courts:</Label>
-			<Input type="number" id="eventCourts" bind:value={tournament.settings.courts} required />
+			<Input type="number" id="eventCourts" bind:value={tournament.courts} required />
 		</div>
 
 		<div class="m-2">
 			<Label for="first_name" class="mb-2">Number of Pool Play Games:</Label>
-			<Input type="number" id="eventCourts" bind:value={tournament.settings.pools} required />
+			<Input type="number" id="eventCourts" bind:value={tournament.pools} required />
 		</div>
 
 		<div class="m-2">
@@ -91,7 +93,7 @@
 		</div>
 
 		{#if data?.eventId !== 'create' && tournament}
-			<Teams bind:tournament />
+			<Teams bind:teams />
 		{/if}
 
 		<div class="m-2">
@@ -113,7 +115,7 @@
 			{/if}
 		</div>
 		{#if data?.eventId !== 'create' && tournament}
-			<Matches bind:tournament />
+			<Matches bind:tournament bind:matches teams={teams.teams} />
 		{/if}
 
 		{#if data?.eventId !== 'create'}

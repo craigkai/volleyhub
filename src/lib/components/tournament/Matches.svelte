@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { error } from '$lib/toast';
-	import type { Tournament } from '$lib/tournament';
+	import { Event } from '$lib/event';
 	import {
-		Spinner,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -11,74 +10,70 @@
 		TableHeadCell
 	} from 'flowbite-svelte';
 	import ViewMatch from './Match.svelte';
+	import { Matches } from '$lib/matches';
 
-	export let tournament: Tournament;
+	export let matches: Matches;
+	export let tournament: Event;
+	export let teams: TeamRow[];
 	export let readOnly: boolean = false;
 
 	async function generateMatches(): Promise<void> {
 		try {
-			const res: Tournament | void = await tournament.createMatches();
+			const res: Matches = await matches.createMatches(tournament, teams);
 			if (res) {
-				tournament = res;
+				matches = res;
 			} else {
 				throw new Error('Failed to create matches');
 			}
-		} catch (err) {
+		} catch (err: any) {
+			console.error(err);
 			error(err?.body?.message);
 		}
 	}
-
-	const matchesPromise = tournament.loadMatches();
 </script>
 
 <div class="block text-gray-700 text-sm font-bold">Matches:</div>
 
-{#await matchesPromise}
-	<div class="flex justify-center m-4">
-		<Spinner color="blue" />
-	</div>
-{:then}
-	{#if tournament.matches && tournament.matches.length > 0}
-		<!--
+{#if matches.matches && matches.matches.length > 0}
+	<!--
 			Reduce our matches into a dict where the key is the round the
 			match is played in.
 		-->
-		{@const matchesForEachRound = tournament.matches.reduce((accumulator, currentValue) => {
-			if (accumulator[currentValue.round]) {
-				accumulator[currentValue.round].push(currentValue);
-			} else {
-				accumulator[currentValue.round] = [currentValue];
-			}
-			return accumulator;
-		}, {})}
+	{@const matchesForEachRound = matches.matches.reduce((accumulator, currentValue) => {
+		if (accumulator[currentValue.round]) {
+			accumulator[currentValue.round].push(currentValue);
+		} else {
+			accumulator[currentValue.round] = [currentValue];
+		}
+		return accumulator;
+	}, {})}
 
-		<Table striped={true} hoverable={true} class="border-solid border-2 rounded">
-			<TableHead>
-				<TableHeadCell>Round</TableHeadCell>
-				{#each Array(tournament.settings.courts) as _, i}
-					<TableHeadCell>Court {i + 1}</TableHeadCell>
-				{/each}
-			</TableHead>
-			<TableBody>
-				<!-- Need to iterate over ROUNDs here and fill each court -->
-				{#each Object.keys(matchesForEachRound) as round}
-					{@const matchesForRound = matchesForEachRound[round].sort(
-						(a, b) => a.round - b.round || a.court - b.court
-					)}
-					<TableBodyRow>
-						<TableBodyCell>{round}</TableBodyCell>
-						<!-- Can have multiple matches per round if we have multiple courts -->
-						{#each matchesForRound as match}
-							<TableBodyCell>
-								<ViewMatch bind:tournament bind:match {readOnly} />
-							</TableBodyCell>
-						{/each}
-					</TableBodyRow>
-				{/each}
-			</TableBody>
-		</Table>
-	{/if}
-{/await}
+	<Table striped={true} hoverable={true} class="border-solid border-2 rounded">
+		<TableHead>
+			<TableHeadCell>Round</TableHeadCell>
+			{#each Array(tournament.courts) as _, i}
+				<TableHeadCell>Court {i + 1}</TableHeadCell>
+			{/each}
+		</TableHead>
+		<TableBody>
+			<!-- Need to iterate over ROUNDs here and fill each court -->
+			{#each Object.keys(matchesForEachRound) as round}
+				{@const matchesForRound = matchesForEachRound[round].sort(
+					(a, b) => a.round - b.round || a.court - b.court
+				)}
+				<TableBodyRow>
+					<TableBodyCell>{round}</TableBodyCell>
+					<!-- Can have multiple matches per round if we have multiple courts -->
+					{#each matchesForRound as match}
+						<TableBodyCell>
+							<ViewMatch bind:matches bind:match {readOnly} />
+						</TableBodyCell>
+					{/each}
+				</TableBodyRow>
+			{/each}
+		</TableBody>
+	</Table>
+{/if}
 
 {#if !readOnly}
 	<div class="m-2">

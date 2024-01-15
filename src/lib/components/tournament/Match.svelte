@@ -1,18 +1,18 @@
 <script lang="ts">
-	import type { Tournament } from '$lib/tournament';
 	import { Tooltip, Label, Input } from 'flowbite-svelte';
 	import { error, success } from '$lib/toast';
 	import { CheckSolid, CloseSolid } from 'flowbite-svelte-icons';
+	import { Matches } from '$lib/matches';
 
 	export let match: MatchRow;
-	export let tournament: Tournament;
+	export let matches: Matches;
 
 	let editing: boolean = false;
 	export let readOnly: boolean = false;
 
 	async function updateMatch() {
 		try {
-			await tournament.updateMatch(match);
+			await matches.updateMatch(match);
 			success(`Match ${match.matches_team1_fkey.name} vs ${match.matches_team2_fkey.name} updated`);
 		} catch (err: any) {
 			error(err?.body?.message ?? `Something went wrong: ${err}`);

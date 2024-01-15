@@ -1,13 +1,17 @@
 <script lang="ts">
 	import type { PageData } from '$types';
-	import { Tournament } from '$lib/tournament';
+	import { Event } from '$lib/event';
+	import { Matches as MatchesInstance } from '$lib/matches';
 	import Matches from '$lib/components/tournament/Matches.svelte';
+	import type { Teams } from '$lib/teams';
 
 	export let data: PageData;
-	let tournament: Tournament = data?.tournament;
+	const event: Event = data?.tournament;
+	const matches: MatchesInstance = data?.matches;
+	const teams: Teams = data?.teams;
 </script>
 
 <div class="flex flex-col items-center">
-	{tournament?.settings?.name}
-	<Matches {tournament} readOnly={true} />
+	{event?.name}
+	<Matches tournament={event} {matches} {teams} readOnly={true} />
 </div>

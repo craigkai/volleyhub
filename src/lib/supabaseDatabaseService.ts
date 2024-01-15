@@ -1,5 +1,10 @@
 // Importing necessary types from supabase-js and sveltejs/kit
-import type { PostgrestSingleResponse, PostgrestResponse, User } from '@supabase/supabase-js';
+import type {
+	PostgrestSingleResponse,
+	PostgrestResponse,
+	User,
+	RealtimeChannel
+} from '@supabase/supabase-js';
 import { error, type NumericRange } from '@sveltejs/kit';
 import { eventsRowSchema, matchesRowSchema, teamsRowSchema } from '../types/schemas';
 import { z } from 'zod';
@@ -8,6 +13,7 @@ import { z } from 'zod';
 export interface DatabaseService {
 	// Method to handle database errors
 	handleDatabaseError<T>(response: PostgrestSingleResponse<T> | PostgrestResponse<T>): void;
+	subscribeToChanges(id: string): Promise<RealtimeChannel>;
 	// Method to create a new event
 	createEvent(input: EventRow, ownerId: string): Promise<EventRow | null>;
 	// Method to update a tournament
@@ -42,6 +48,20 @@ export class SupabaseDatabaseService implements DatabaseService {
 	// Constructor to initialize Supabase client
 	constructor(supabaseClient: supabaseClient) {
 		this.supabaseClient = supabaseClient;
+	}
+
+	async subscribeToChanges(id: string): Promise<RealtimeChannel> {
+		console.log('Subscribing to changes');
+		return this.supabaseClient
+			.channel('matches_updated')
+			.on(
+				'postgres_changes',
+				{ event: '*', schema: 'public', table: 'matches', filter: 'event_id=eq.' + id },
+				(payload) => {
+					console.error('Change received!', payload);
+				}
+			)
+			.subscribe();
 	}
 
 	// Method to handle database errors

@@ -1,18 +1,18 @@
 <script lang="ts">
+	import type { Teams } from '$lib/teams';
 	import { success, error } from '$lib/toast';
-	import type { Tournament } from '$lib/tournament';
 	import type { HttpError } from '@sveltejs/kit';
 	import { TableBody, TableBodyCell, TableBodyRow, TableSearch } from 'flowbite-svelte';
 
-	export let tournament: Tournament;
+	export let teams: Teams;
 
 	async function createTeam() {
 		try {
 			const newTeam: Partial<TeamRow> = {
 				name: newTeamName,
-				event_id: tournament.id as unknown as number
+				event_id: teams.event_id
 			};
-			await tournament.createTeam(newTeam);
+			await teams.createTeam(newTeam);
 			await loadEventTeams();
 			success(`${newTeamName} created`);
 			newTeamName = '';
@@ -23,7 +23,7 @@
 
 	async function deleteTeam(team: TeamRow) {
 		try {
-			await tournament.deleteTeam(team);
+			await teams.deleteTeam(team);
 			await loadEventTeams();
 			success(`team ${team.name} deleted`);
 		} catch (err: any) {
@@ -32,14 +32,14 @@
 	}
 
 	async function loadEventTeams() {
-		const res = await tournament.loadTeams().catch((err: HttpError) => error(err.body.message));
+		const res = await teams.load().catch((err: HttpError) => error(err.body.message));
 
-		tournament.teams = res || [];
+		teams.teams = res || [];
 	}
 
 	let searchTerm: string = '';
 	$: filteredTeams =
-		tournament?.teams?.filter(
+		teams?.teams?.filter(
 			(team: TeamRow) => team.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
 		) || [];
 	let newTeamName = '';
