@@ -6,41 +6,42 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 export class Matches {
 	private databaseService: DatabaseService;
 
-	event_id: string;
+	eventId: string;
 	matches?: MatchRow[];
 	subscriptionChannel?: RealtimeChannel;
 
-	constructor(event_id: string, databaseService: DatabaseService) {
+	constructor(eventId: string, databaseService: DatabaseService) {
 		this.databaseService = databaseService;
-		this.event_id = event_id;
+		this.eventId = eventId;
 	}
 
 	/*
 	Load all matches for the current tournament.
 	*/
 	async load() {
-		const res = await this.databaseService.loadMatches(this.event_id);
+		const res = await this.databaseService.loadMatches(this.eventId);
 
 		if (res) {
 			this.matches = res;
 		}
 
-		this.subscriptionChannel = await this.databaseService.subscribeToChanges(this.event_id);
+		// TODO: Figure out how to subscribe to changes
+		// this.subscriptionChannel = await this.databaseService.subscribeToChanges(this.eventId);
 		return this.matches;
 	}
 
-	async createMatches(settings: EventRow, teams: TeamRow[]): Promise<Matches> {
-		if (!teams || teams?.length === 0) {
+	async createMatches({ pools, courts }: EventRow, teams: TeamRow[]): Promise<Matches> {
+		if (!teams || teams.length === 0) {
 			console.error("Can't generate matches without Teams");
 			error(500, Error("Can't generate matches without Teams"));
 		}
 
-		if (!settings?.pools || settings.pools <= 0) {
+		if (!pools || pools <= 0) {
 			console.error("Can't generate matches without Pools");
 			error(500, Error("Can't generate matches without Pools"));
 		}
 
-		if (!settings?.courts || settings.courts <= 0) {
+		if (!courts || courts <= 0) {
 			console.error("Can't generate matches without courts");
 			error(500, Error("Can't generate matches without courts"));
 		}
@@ -49,13 +50,13 @@ export class Matches {
 			let matches: Match[] = [];
 			// If we have more pool play games than matches we got
 			// back, then we need to generate some more.
-			while (matches.length < settings.pools * teams.length) {
+			while (matches.length < pools * teams.length) {
 				matches = matches.concat(RoundRobin(teams));
 			}
 			// Delete all old matches as they are now invalid
-			await this.databaseService.deleteMatchesByEvent(this.event_id);
+			await this.databaseService.deleteMatchesByEvent(this.eventId);
 
-			let courtsAvailable = settings.courts;
+			let courtsAvailable = courts;
 			let teamsAvailable = teams.length;
 			let round = 0;
 
@@ -64,24 +65,24 @@ export class Matches {
 			matches.forEach((match: UserMatch) => {
 				// Short circuit if we have more matches than pool play games
 				// (you don't play every team).
-				if (settings?.pools && userMatches.length === settings.pools * (teams.length / 2)) {
+				if (pools && userMatches.length === pools * (teams.length / 2)) {
 					return;
 				}
 
 				if (courtsAvailable === 0 || teamsAvailable < 2) {
-					courtsAvailable = settings.courts;
+					courtsAvailable = courts;
 					teamsAvailable = teams?.length;
 					round = round + 1;
 					totalRounds = totalRounds + 1;
 				}
 
-				match.court = settings.courts - courtsAvailable;
+				match.court = courts - courtsAvailable;
 				match.round = round;
 
 				courtsAvailable = courtsAvailable - 1;
 				if (teamsAvailable >= 2) {
 					userMatches.push({
-						event_id: this.event_id,
+						eventId: this.eventId,
 						team1: match.player1.id,
 						team2: match.player2.id,
 						court: match.court,
@@ -105,10 +106,10 @@ export class Matches {
 	}
 
 	async updateMatch(match: MatchRow): Promise<MatchRow> {
-		const res = await this.databaseService.updateMatch(match);
-		if (res) {
-			match = res;
+		const updatedMatch = await this.databaseService.updateMatch(match);
+		if (updatedMatch === null) {
+			error(500, new Error('Failed to update match.'));
 		}
-		return match;
+		return updatedMatch;
 	}
 }

@@ -12,7 +12,7 @@
 
 	async function updateMatch() {
 		try {
-			await matches.updateMatch(match);
+			match = await matches.updateMatch(match);
 			success(`Match ${match.matches_team1_fkey.name} vs ${match.matches_team2_fkey.name} updated`);
 		} catch (err: any) {
 			error(err?.body?.message ?? `Something went wrong: ${err}`);

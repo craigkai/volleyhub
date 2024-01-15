@@ -23,8 +23,8 @@ export class Event {
 	 * The constructor for the Tournament class.
 	 * @param {DatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: string, databaseService: DatabaseService) {
-		if (!event_id) {
+	constructor(eventId: string, databaseService: DatabaseService) {
+		if (!eventId) {
 			error(400, Error('Invalid event ID, are you sure your link is correct?'));
 		}
 
@@ -35,7 +35,7 @@ export class Event {
 		this.courts = 0;
 		this.owner = '';
 		this.created_at = '';
-		this.id = event_id;
+		this.id = eventId;
 	}
 
 	/**
@@ -87,7 +87,6 @@ export class Event {
 				this[key as keyof Event] = res[key as keyof Event];
 			});
 		}
-
 		return this;
 	}
 
@@ -152,11 +151,11 @@ export class Event {
 // 					return [
 // 						{
 // 							name: 'Team1',
-// 							event_id: tournament.id
+// 							  eventId: tournament.id
 // 						},
 // 						{
 // 							name: 'Team2',
-// 							event_id: tournament.id
+// 							  eventId: tournament.id
 // 						}
 // 					];
 // 				}),
@@ -233,7 +232,7 @@ export class Event {
 // 			const teams = Array.from({ length: 2 }, (_x, i) => {
 // 				return {
 // 					id: `team${i}`,
-// 					event_id: 1
+// 					  eventId: 1
 // 				};
 // 			});
 // 			tournament.teams = teams;
@@ -270,7 +269,7 @@ export class Event {
 // 			const teams = Array.from({ length: 4 }, (_x, i) => {
 // 				return {
 // 					id: `team${i}`,
-// 					event_id: 1,
+// 					  eventId: 1,
 // 					created_at: '',
 // 					name: `team${i}`,
 // 					state: 'active'
