@@ -92,10 +92,6 @@
 			<input id="date" class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
 		</div>
 
-		{#if data?.eventId !== 'create' && tournament}
-			<Teams bind:teams />
-		{/if}
-
 		<div class="m-2">
 			{#if data?.eventId === 'create'}
 				<Button
@@ -112,6 +108,12 @@
 				>
 					Update Tournament Settings</Button
 				>
+			{/if}
+		</div>
+
+		<div class="m-2">
+			{#if data?.eventId !== 'create' && tournament}
+				<Teams bind:teams />
 			{/if}
 		</div>
 		{#if data?.eventId !== 'create' && tournament}
