@@ -1,4 +1,4 @@
-import type { DatabaseService } from './SupabaseDatabaseService';
+import type { DatabaseService } from './supabaseDatabaseService';
 import { error } from '@sveltejs/kit';
 
 export class Teams {

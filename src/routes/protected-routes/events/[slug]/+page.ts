@@ -1,4 +1,4 @@
-import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
+import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 import { error } from '$lib/toast';
 import { Event } from '$lib/event';
 import { Teams } from '$lib/teams';

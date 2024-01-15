@@ -1,4 +1,4 @@
-import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
+import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 import { error } from '$lib/toast';
 import type { HttpError } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
