@@ -44,7 +44,7 @@ export class Event {
 	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the newly created tournament.
 	 * @throws {Error} - Throws an error if the event data does not have all required values.
 	 */
-	async createEvent(input: Partial<EventRow>): Promise<Event> {
+	async create(input: Partial<EventRow>): Promise<Event> {
 		if (!input.name || !input.date || !input.pools || !input.courts) {
 			error(400, `Tournament create call does not have all required values`);
 		}
@@ -69,17 +69,7 @@ export class Event {
 	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the updated tournament.
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
-	async updateEvent(id: string, input: EventRow): Promise<Event> {
-		const result = eventsRowSchema.safeParse(input); // Validate input using Zod
-		if (!result.success) {
-			error(
-				400,
-				Error(
-					`Tournament update call input param incorrect: ${JSON.stringify(result.error.format())}`
-				)
-			);
-		}
-
+	async update(id: string, input: EventRow): Promise<Event> {
 		const res: EventRow | null = await this.databaseService.updateTournament(id, input);
 
 		if (res !== null) {
@@ -105,14 +95,10 @@ export class Event {
 		return this;
 	}
 
-	async deleteEvent(): Promise<void> {
+	async delete(): Promise<void> {
 		try {
+			// Cascade event should delete teams and matches
 			await this.databaseService.deleteEvent(this.id);
-
-			// Delete all teams, which should cascade and delete all matches
-			this?.teams?.forEach((team: TeamRow) => {
-				this.databaseService.deleteTeam(team);
-			});
 		} catch (err) {
 			// Handle and log the error appropriately
 			console.error('Failed to delete event:', err);
@@ -121,174 +107,63 @@ export class Event {
 	}
 }
 
-// if (import.meta.vitest) {
-// 	const { vi, it, expect, describe, beforeEach } = import.meta.vitest;
+if (import.meta.vitest) {
+	const { vi, it, expect, beforeEach } = import.meta.vitest;
 
-// 	describe('Tournament', () => {
-// 		let tournament: Tournament;
-// 		let mockDatabaseService: any;
-// 		let mockSupabaseClient: any;
+	let mockDatabaseService: any;
+	let event: Event;
 
-// 		beforeEach(() => {
-// 			mockDatabaseService = {
-// 				updateTournament: vi.fn(() => console.log('mockDatabaseService.updateTournament called')),
-// 				deleteMatchesByEvent: vi.fn(() =>
-// 					console.log('mockDatabaseService.updateTournament called')
-// 				),
-// 				getCurrentUser: vi.fn(() => {
-// 					console.log('mockDatabaseService.getCurrentUser called');
-// 					return {
-// 						id: 1
-// 					};
-// 				}),
-// 				createEvent: vi.fn((input) => {
-// 					console.log('mockDatabaseService.createEvent called');
-// 					input.id = 1;
-// 					return input;
-// 				}),
-// 				loadTeams: vi.fn(() => {
-// 					console.log('mockDatabaseService.loadTeams called');
-// 					return [
-// 						{
-// 							name: 'Team1',
-// 							  eventId: tournament.id
-// 						},
-// 						{
-// 							name: 'Team2',
-// 							  eventId: tournament.id
-// 						}
-// 					];
-// 				}),
-// 				insertMatches: vi.fn((input) => {
-// 					console.log('mockDatabaseService.insertMatches called');
-// 					return input;
-// 				})
-// 			};
-// 			tournament = new Tournament(mockDatabaseService);
-// 		});
+	beforeEach(() => {
+		mockDatabaseService = {
+			updateTournament: vi.fn(() => console.log('mockDatabaseService.updateTournament called')),
+			deleteTournament: vi.fn(() => console.log('mockDatabaseService.deleteTournament called')),
+			getCurrentUser: vi.fn(() => {
+				return {
+					id: 1
+				};
+			}),
+			createEvent: vi.fn((input: any) => {
+				input.id = 1;
+				return input;
+			}),
+			// Remove if not relevant to the current tests
+			updateMatch: vi.fn((input: any) => {
+				return input;
+			})
+		};
+		event = new Event('1', mockDatabaseService);
+	});
 
-// 		it('should throw an error if not all required values are provided', async () => {
-// 			const input: Partial<EventRow> = {
-// 				name: 'Test Tournament'
-// 				// date, pools, and courts are missing
-// 			};
+	it('should throw an error if not all required values are provided', async () => {
+		const input: Partial<EventRow> = {
+			name: 'Test Tournament'
+			// date, pools, and courts are missing
+		};
 
-// 			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow();
-// 		});
+		await expect(event.update('1', input as EventRow)).rejects.toThrow();
+	});
 
-// 		it('should throw an error if not all required values are provided', async () => {
-// 			const input: Partial<EventRow> = {
-// 				name: 'Test Tournament'
-// 				// date, pools, and courts are missing
-// 			};
+	it('should update the tournament if all required values are provided', async () => {
+		const input: Partial<EventRow> = {
+			name: 'Test Tournament',
+			date: new Date().toString(),
+			pools: 1,
+			courts: 2,
+			id: '1',
+			created_at: 'test',
+			owner: 'test'
+		};
 
-// 			await expect(tournament.updateTournament('1', input as EventRow)).rejects.toThrow();
-// 		});
+		const updatedTournament: Event = {
+			...input,
+			databaseService: mockDatabaseService
+		};
 
-// 		it('should update the tournament if all required values are provided', async () => {
-// 			const input: Partial<EventRow> = {
-// 				name: 'Test Tournament',
-// 				date: new Date().toString(),
-// 				pools: 1,
-// 				courts: 2,
-// 				id: 1,
-// 				created_at: 'test',
-// 				owner: 'test'
-// 			};
+		mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
 
-// 			const updatedTournament: EventRow = {
-// 				...input,
-// 				id: 1,
-// 				courts: input.courts,
-// 				created_at: 'test'
-// 			};
+		await expect(event.update('1', input as EventRow)).resolves.toEqual(event);
 
-// 			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
-
-// 			await expect(tournament.updateTournament('1', input)).resolves.toEqual(tournament);
-
-// 			expect(tournament.settings).toEqual(updatedTournament);
-// 			expect(mockDatabaseService.updateTournament).toHaveBeenCalledWith('1', input);
-// 		});
-
-// 		it('Test matches are correct with two teams and one pool play game', async () => {
-// 			const input: Partial<EventRow> = {
-// 				name: 'Test Tournament',
-// 				date: new Date().toString(),
-// 				pools: 1,
-// 				courts: 2,
-// 				owner: 'test'
-// 			};
-
-// 			const updatedTournament: Partial<EventRow> = {
-// 				...input,
-// 				id: 1,
-// 				courts: input.courts
-// 			};
-
-// 			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
-
-// 			await tournament.createEvent(input);
-// 			const teams = Array.from({ length: 2 }, (_x, i) => {
-// 				return {
-// 					id: `team${i}`,
-// 					  eventId: 1
-// 				};
-// 			});
-// 			tournament.teams = teams;
-// 			await tournament.createMatches();
-
-// 			expect(tournament?.matches?.length).toEqual(1);
-
-// 			const gamesPerTeam: any = { team0: 0, team1: 0 };
-// 			tournament?.matches?.forEach((match: MatchRow) => {
-// 				gamesPerTeam[match.team1]++;
-// 				gamesPerTeam[match.team2]++;
-// 			});
-// 			Object.keys(gamesPerTeam).forEach((team: string) => {
-// 				expect(gamesPerTeam[team]).toEqual(1);
-// 			});
-// 		});
-
-// 		it('Test matches are correct with four teams and three pool play games', async () => {
-// 			const input: Partial<EventRow> = {
-// 				name: 'Test Tournament',
-// 				date: new Date().toString(),
-// 				pools: 3,
-// 				courts: 2
-// 			};
-
-// 			const updatedTournament: Partial<EventRow> = {
-// 				...input,
-// 				id: 1
-// 			};
-
-// 			mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
-
-// 			await tournament.createEvent(input);
-// 			const teams = Array.from({ length: 4 }, (_x, i) => {
-// 				return {
-// 					id: `team${i}`,
-// 					  eventId: 1,
-// 					created_at: '',
-// 					name: `team${i}`,
-// 					state: 'active'
-// 				};
-// 			});
-// 			tournament.teams = teams;
-// 			await tournament.createMatches();
-
-// 			// Teams / 2 * pool play
-// 			expect(tournament?.matches?.length).toEqual(3 * (4 / 2));
-
-// 			const gamesPerTeam: any = { team0: 0, team1: 0, team2: 0, team3: 0 };
-// 			tournament?.matches?.forEach((match: MatchRow) => {
-// 				gamesPerTeam[match.team1]++;
-// 				gamesPerTeam[match.team2]++;
-// 			});
-// 			Object.keys(gamesPerTeam).forEach((team: string) => {
-// 				expect(gamesPerTeam[team]).toEqual(3);
-// 			});
-// 		});
-// 	});
-// }
+		expect(event).toEqual(updatedTournament);
+		expect(mockDatabaseService.updateTournament).toHaveBeenCalledWith('1', input as EventRow);
+	});
+}
