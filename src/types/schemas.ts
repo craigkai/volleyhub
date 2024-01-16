@@ -53,7 +53,9 @@ export const matchesRowSchema = z.object({
 	team1: z.number(),
 	team1_score: z.number().nullable(),
 	team2: z.number(),
-	team2_score: z.number().nullable()
+	team2_score: z.number().nullable(),
+	matches_team1_fkey: z.any(),
+	matches_team2_fkey: z.any()
 });
 
 export const matchesInsertSchema = z.object({

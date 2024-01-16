@@ -21,21 +21,21 @@ export interface DatabaseService {
 	// Method to get the current user
 	getCurrentUser(): Promise<any | null>;
 	// Method to load an event
-	loadEvent(event_id: string): Promise<EventRow | null>;
+	loadEvent(event_id: number): Promise<EventRow | null>;
 	// Method to load teams
-	loadTeams(event_id: string): Promise<TeamRow[] | null>;
+	loadTeams(event_id: number): Promise<TeamRow[] | null>;
 	// Method to delete an event
-	deleteEvent(event_id: string): Promise<void>;
+	deleteEvent(event_id: number): Promise<void>;
 	// Method to delete a team
 	deleteTeam(team: TeamRow): Promise<void>;
 	// Method to load matches
-	loadMatches(event_id: string): Promise<MatchRow[] | null>;
+	loadMatches(event_id: number): Promise<MatchRow[] | null>;
 	// Method to create a team
 	createTeam(team: Partial<TeamRow>): Promise<TeamRow | null>;
 	// Method to delete matches by event
-	deleteMatchesByEvent(event_id: string): Promise<void>;
+	deleteMatchesByEvent(event_id: number): Promise<void>;
 	// Method to insert matches
-	insertMatches(matches: MatchRow[]): Promise<MatchRow[] | null>;
+	insertMatches(matches: UserMatch[]): Promise<MatchRow[] | null>;
 	// Method to update a match
 	updateMatch(match: MatchRow): Promise<MatchRow | null>;
 }
@@ -187,7 +187,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the loaded event.
 	 * @throws {Error} - Throws an error if there's an issue loading the event.
 	 */
-	async loadEvent(event_id: string): Promise<EventRow | null> {
+	async loadEvent(event_id: number): Promise<EventRow | null> {
 		try {
 			// Load the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
@@ -220,7 +220,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<TeamRow[]>} - Returns a promise that resolves to an array of the loaded teams.
 	 * @throws {Error} - Throws an error if there's an issue loading the teams.
 	 */
-	async loadTeams(event_id: string): Promise<TeamRow[] | null> {
+	async loadTeams(event_id: number): Promise<TeamRow[] | null> {
 		try {
 			// Load the teams from the 'teams' table
 			const res: PostgrestResponse<TeamRow> = await this.supabaseClient
@@ -253,7 +253,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<void>} - Returns a promise that resolves when the event has been deleted.
 	 * @throws {Error} - Throws an error if there's an issue deleting the event.
 	 */
-	async deleteEvent(event_id: string): Promise<void> {
+	async deleteEvent(event_id: number): Promise<void> {
 		try {
 			// Delete the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient
@@ -276,7 +276,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<MatchRow[]>} - Returns a promise that resolves to an array of the loaded matches.
 	 * @throws {Error} - Throws an error if there's an issue loading the matches.
 	 */
-	async loadMatches(event_id: string): Promise<MatchRow[] | null> {
+	async loadMatches(event_id: number): Promise<MatchRow[] | null> {
 		// Load the matches from the 'matches' table
 		const res: PostgrestSingleResponse<any[]> = await this.supabaseClient
 			.from('matches')
@@ -353,7 +353,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 		this.handleDatabaseError(res);
 	}
 
-	async deleteMatchesByEvent(event_id: string): Promise<void> {
+	async deleteMatchesByEvent(event_id: number): Promise<void> {
 		const response = await this.supabaseClient.from('matches').delete().eq('event_id', event_id);
 		this.handleDatabaseError(response);
 	}

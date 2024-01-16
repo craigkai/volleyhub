@@ -26,7 +26,13 @@ declare global {
 		};
 	}
 
-	type UserMatch = Match & { court: string; round: string };
+	type UserMatch = Match & {
+		court: number;
+		round: number;
+		event_id: number;
+		team1: number;
+		team2: number;
+	};
 
 	interface Locals {
 		supabase: SupabaseClient<Database>;

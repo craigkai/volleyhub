@@ -1,6 +1,5 @@
 import { error } from '@sveltejs/kit';
 import type { DatabaseService } from './supabaseDatabaseService';
-import { eventsRowSchema } from '../types/schemas';
 
 /**
  * The Tournament class represents a tournament in the application.
@@ -11,7 +10,7 @@ export class Event {
 	private databaseService: DatabaseService;
 
 	// The ID of the tournament
-	id: string;
+	id: number;
 	name: string;
 	date: string;
 	pools: number;
@@ -23,7 +22,7 @@ export class Event {
 	 * The constructor for the Tournament class.
 	 * @param {DatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: string, databaseService: DatabaseService) {
+	constructor(event_id: number, databaseService: DatabaseService) {
 		if (!event_id) {
 			error(400, Error('Invalid event ID, are you sure your link is correct?'));
 		}

@@ -6,11 +6,11 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 export class Matches {
 	private databaseService: DatabaseService;
 
-	event_id: string;
+	event_id: number;
 	matches?: MatchRow[];
 	subscriptionChannel?: RealtimeChannel;
 
-	constructor(event_id: string, databaseService: DatabaseService) {
+	constructor(event_id: number, databaseService: DatabaseService) {
 		this.databaseService = databaseService;
 		this.event_id = event_id;
 	}
@@ -62,7 +62,7 @@ export class Matches {
 
 			let totalRounds = 0;
 			const userMatches: UserMatch[] = [];
-			matches.forEach((match: UserMatch) => {
+			matches.forEach((match: Match) => {
 				// Short circuit if we have more matches than pool play games
 				// (you don't play every team).
 				if (pools && userMatches.length === pools * (teams.length / 2)) {
@@ -83,8 +83,8 @@ export class Matches {
 				if (teamsAvailable >= 2) {
 					userMatches.push({
 						event_id: this.event_id,
-						team1: match.player1.id,
-						team2: match.player2.id,
+						team1: match?.player1?.id,
+						team2: match?.player2?.id,
 						court: match.court,
 						round: match.round
 					});
@@ -135,10 +135,10 @@ if (import.meta.vitest) {
 				return input;
 			}),
 			deleteMatchesByEvent: vi.fn(),
-			insertMatches: vi.fn(),
+			insertMatches: vi.fn((matches: UserMatch[]) => matches),
 			loadMatches: vi.fn()
 		};
-		matches = new Matches('1', mockDatabaseService);
+		matches = new Matches(1, mockDatabaseService);
 	});
 
 	it('Test matches are correct with two teams and one pool play game', async () => {

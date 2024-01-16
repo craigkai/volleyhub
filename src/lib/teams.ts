@@ -4,14 +4,14 @@ import { error } from '@sveltejs/kit';
 export class Teams {
 	private databaseService: DatabaseService;
 
-	event_id: string;
+	event_id: number;
 	teams: TeamRow[] = [];
 
 	/**
 	 * The constructor for the Tournament class.
 	 * @param {DatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: string, databaseService: DatabaseService) {
+	constructor(event_id: number, databaseService: DatabaseService) {
 		this.databaseService = databaseService;
 		this.event_id = event_id;
 	}
