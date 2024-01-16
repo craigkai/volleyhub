@@ -11,7 +11,6 @@
 	} from 'flowbite-svelte';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches';
-	import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
 
 	export let matches: Matches;
 	export let tournament: Event;
