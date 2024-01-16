@@ -23,8 +23,8 @@ export class Event {
 	 * The constructor for the Tournament class.
 	 * @param {DatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(eventId: string, databaseService: DatabaseService) {
-		if (!eventId) {
+	constructor(event_id: string, databaseService: DatabaseService) {
+		if (!event_id) {
 			error(400, Error('Invalid event ID, are you sure your link is correct?'));
 		}
 
@@ -35,7 +35,7 @@ export class Event {
 		this.courts = 0;
 		this.owner = '';
 		this.created_at = '';
-		this.id = eventId;
+		this.id = event_id;
 	}
 
 	/**

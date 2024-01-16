@@ -12,7 +12,7 @@
 				name: newTeamName,
 				event_id: teams.event_id
 			};
-			await teams.createTeam(newTeam);
+			await teams.create(newTeam);
 			await loadEventTeams();
 			success(`${newTeamName} created`);
 			newTeamName = '';
@@ -23,7 +23,7 @@
 
 	async function deleteTeam(team: TeamRow) {
 		try {
-			await teams.deleteTeam(team);
+			await teams.delete(team);
 			await loadEventTeams();
 			success(`team ${team.name} deleted`);
 		} catch (err: any) {

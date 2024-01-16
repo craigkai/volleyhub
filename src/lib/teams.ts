@@ -4,16 +4,16 @@ import { error } from '@sveltejs/kit';
 export class Teams {
 	private databaseService: DatabaseService;
 
-	eventId: string;
+	event_id: string;
 	teams: TeamRow[] = [];
 
 	/**
 	 * The constructor for the Tournament class.
 	 * @param {DatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(eventId: string, databaseService: DatabaseService) {
+	constructor(event_id: string, databaseService: DatabaseService) {
 		this.databaseService = databaseService;
-		this.eventId = eventId;
+		this.event_id = event_id;
 	}
 
 	/**
@@ -21,7 +21,7 @@ export class Teams {
 	 * @returns {Promise<TeamRow[] | undefined>} - A promise that resolves to the loaded teams.
 	 */
 	async load(): Promise<TeamRow[] | undefined> {
-		const res = await this.databaseService.loadTeams(this.eventId);
+		const res = await this.databaseService.loadTeams(this.event_id);
 		if (res) {
 			this.teams = res;
 		}
@@ -34,7 +34,7 @@ export class Teams {
 	 * @param {Partial<TeamRow>} team - The team data to be created.
 	 * @returns {Promise<number | undefined>} - A promise that resolves to the team ID.
 	 */
-	async createTeam(team: Partial<TeamRow>): Promise<number | undefined> {
+	async create(team: Partial<TeamRow>): Promise<number | undefined> {
 		try {
 			const res: TeamRow | null = await this.databaseService.createTeam(team);
 			return res?.id;
@@ -50,7 +50,7 @@ export class Teams {
 	 * @param {TeamRow} team - The team to be deleted.
 	 * @returns {Promise<void>} - A promise that resolves when the team is successfully deleted.
 	 */
-	async deleteTeam(team: TeamRow): Promise<void> {
+	async delete(team: TeamRow): Promise<void> {
 		try {
 			await this.databaseService.deleteTeam(team);
 		} catch (err) {

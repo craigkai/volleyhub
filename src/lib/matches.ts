@@ -6,27 +6,27 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 export class Matches {
 	private databaseService: DatabaseService;
 
-	eventId: string;
+	event_id: string;
 	matches?: MatchRow[];
 	subscriptionChannel?: RealtimeChannel;
 
-	constructor(eventId: string, databaseService: DatabaseService) {
+	constructor(event_id: string, databaseService: DatabaseService) {
 		this.databaseService = databaseService;
-		this.eventId = eventId;
+		this.event_id = event_id;
 	}
 
 	/*
 	Load all matches for the current tournament.
 	*/
 	async load() {
-		const res = await this.databaseService.loadMatches(this.eventId);
+		const res = await this.databaseService.loadMatches(this.event_id);
 
 		if (res) {
 			this.matches = res;
 		}
 
 		// TODO: Figure out how to subscribe to changes
-		// this.subscriptionChannel = await this.databaseService.subscribeToChanges(this.eventId);
+		// this.subscriptionChannel = await this.databaseService.subscribeToChanges(this.event_id);
 		return this.matches;
 	}
 
@@ -54,7 +54,7 @@ export class Matches {
 				matches = matches.concat(RoundRobin(teams));
 			}
 			// Delete all old matches as they are now invalid
-			await this.databaseService.deleteMatchesByEvent(this.eventId);
+			await this.databaseService.deleteMatchesByEvent(this.event_id);
 
 			let courtsAvailable = courts;
 			let teamsAvailable = teams.length;
@@ -82,7 +82,7 @@ export class Matches {
 				courtsAvailable = courtsAvailable - 1;
 				if (teamsAvailable >= 2) {
 					userMatches.push({
-						eventId: this.eventId,
+						event_id: this.event_id,
 						team1: match.player1.id,
 						team2: match.player2.id,
 						court: match.court,

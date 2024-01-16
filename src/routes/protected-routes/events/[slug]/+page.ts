@@ -36,5 +36,5 @@ export const load: PageLoad = async ({ params, parent }) => {
 		});
 	}
 
-	return { teams, matches, tournament, eventId: params.slug };
+	return { teams, matches, tournament, event_id: params.slug };
 };

@@ -19,7 +19,7 @@
 
 	async function generateMatches(): Promise<void> {
 		try {
-			const res: Matches = await matches.createMatches(tournament, teams);
+			const res: Matches = await matches.create(tournament, teams);
 			if (res) {
 				matches = res;
 			} else {

@@ -21,7 +21,7 @@
 
 	async function createNewEvent(): Promise<void> {
 		tournament
-			.createEvent({
+			.create({
 				name: tournament.name,
 				courts: tournament.courts,
 				pools: tournament.pools,
@@ -39,7 +39,7 @@
 
 	async function updateTournament(): Promise<void> {
 		tournament
-			.updateEvent(tournament.id, {
+			.update(tournament.id, {
 				...tournament,
 				name: tournament.name,
 				courts: Number(tournament.courts),
@@ -57,7 +57,7 @@
 
 	async function deleteEvent(): Promise<void> {
 		tournament
-			.deleteEvent()
+			.delete()
 			.then(() => {
 				goto('/protected-routes/dashboard');
 				success(`Deleted ${tournament.name}`);
@@ -93,7 +93,7 @@
 		</div>
 
 		<div class="m-2">
-			{#if data?.eventId === 'create'}
+			{#if data?.event_id === 'create'}
 				<Button
 					class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 					type="button"
@@ -112,15 +112,15 @@
 		</div>
 
 		<div class="m-2">
-			{#if data?.eventId !== 'create' && tournament}
+			{#if data?.event_id !== 'create' && tournament}
 				<Teams bind:teams />
 			{/if}
 		</div>
-		{#if data?.eventId !== 'create' && tournament}
+		{#if data?.event_id !== 'create' && tournament}
 			<Matches bind:tournament bind:matches teams={teams.teams} />
 		{/if}
 
-		{#if data?.eventId !== 'create'}
+		{#if data?.event_id !== 'create'}
 			<button
 				class="bg-nord-12 m-2 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 				type="button"
