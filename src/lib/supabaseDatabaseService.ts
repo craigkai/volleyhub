@@ -13,7 +13,7 @@ import { z } from 'zod';
 export interface DatabaseService {
 	// Method to handle database errors
 	handleDatabaseError<T>(response: PostgrestSingleResponse<T> | PostgrestResponse<T>): void;
-	subscribeToChanges(id: string): Promise<RealtimeChannel>;
+	subscribeToChanges(event_id: number): Promise<RealtimeChannel>;
 	// Method to create a new event
 	createEvent(input: EventRow, ownerId: string): Promise<EventRow | null>;
 	// Method to update a tournament
@@ -50,13 +50,13 @@ export class SupabaseDatabaseService implements DatabaseService {
 		this.supabaseClient = supabaseClient;
 	}
 
-	async subscribeToChanges(id: string): Promise<RealtimeChannel> {
+	async subscribeToChanges(event_id: number): Promise<RealtimeChannel> {
 		console.log('Subscribing to changes');
 		return this.supabaseClient
 			.channel('matches_updated')
 			.on(
 				'postgres_changes',
-				{ event: '*', schema: 'public', table: 'matches', filter: 'event_id=eq.' + id },
+				{ event: '*', schema: 'public', table: 'matches' },
 				(payload) => {
 					console.error('Change received!', payload);
 				}

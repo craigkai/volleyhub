@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import type { DatabaseService } from './supabaseDatabaseService';
+import type { SupabaseDatabaseService } from './supabaseDatabaseService';
 
 /**
  * The Tournament class represents a tournament in the application.
@@ -7,7 +7,7 @@ import type { DatabaseService } from './supabaseDatabaseService';
  */
 export class Event {
 	// The service used to interact with the database
-	private databaseService: DatabaseService;
+	private databaseService: SupabaseDatabaseService;
 
 	// The ID of the tournament
 	id: number;
@@ -22,7 +22,7 @@ export class Event {
 	 * The constructor for the Tournament class.
 	 * @param {DatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: number, databaseService: DatabaseService) {
+	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
 		if (!event_id) {
 			error(400, Error('Invalid event ID, are you sure your link is correct?'));
 		}

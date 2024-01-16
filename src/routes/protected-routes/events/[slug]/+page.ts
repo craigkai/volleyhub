@@ -12,9 +12,9 @@ export const load: PageLoad = async ({ params, parent }) => {
 	const data = await parent(['data']);
 
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
-	const tournament = new Event(params.slug, databaseService);
-	const matches = new Matches(params.slug, databaseService);
-	const teams = new Teams(params.slug, databaseService);
+	const tournament = new Event(Number(params.slug), databaseService);
+	const matches = new Matches(Number(params.slug), databaseService);
+	const teams = new Teams(Number(params.slug), databaseService);
 
 	if (params.slug != 'create') {
 		await tournament.load().catch((err: HttpError) => {

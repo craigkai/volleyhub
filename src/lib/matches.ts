@@ -1,16 +1,16 @@
 import { error } from '@sveltejs/kit';
-import type { DatabaseService } from './supabaseDatabaseService';
+import type { SupabaseDatabaseService } from './supabaseDatabaseService';
 import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export class Matches {
-	private databaseService: DatabaseService;
+	private databaseService: SupabaseDatabaseService;
 
 	event_id: number;
 	matches?: MatchRow[];
 	subscriptionChannel?: RealtimeChannel;
 
-	constructor(event_id: number, databaseService: DatabaseService) {
+	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
 		this.databaseService = databaseService;
 		this.event_id = event_id;
 	}
@@ -25,12 +25,10 @@ export class Matches {
 			this.matches = res;
 		}
 
-		// TODO: Figure out how to subscribe to changes
-		// this.subscriptionChannel = await this.databaseService.subscribeToChanges(this.event_id);
 		return this.matches;
 	}
 
-	async create({ pools, courts }: Partial<EventRow>, teams: TeamRow[]): Promise<Matches> {
+	async create({ pools, courts }: Partial<EventRow>, teams: TeamRow[]): Promise<Matches | undefined> {
 		if (!teams || teams.length === 0) {
 			console.error("Can't generate matches without Teams");
 			error(500, Error("Can't generate matches without Teams"));

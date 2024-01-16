@@ -11,6 +11,7 @@
 	} from 'flowbite-svelte';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches';
+	import { SupabaseDatabaseService } from '$lib/SupabaseDatabaseService';
 
 	export let matches: Matches;
 	export let tournament: Event;
@@ -19,7 +20,7 @@
 
 	async function generateMatches(): Promise<void> {
 		try {
-			const res: Matches = await matches.create(tournament, teams);
+			const res: Matches | undefined = await matches.create(tournament, teams);
 			if (res) {
 				matches = res;
 			} else {

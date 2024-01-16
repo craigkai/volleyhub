@@ -1,17 +1,17 @@
-import type { DatabaseService } from './supabaseDatabaseService';
+import type { SupabaseDatabaseService } from './supabaseDatabaseService';
 import { error } from '@sveltejs/kit';
 
 export class Teams {
-	private databaseService: DatabaseService;
+	private databaseService: SupabaseDatabaseService;
 
 	event_id: number;
 	teams: TeamRow[] = [];
 
 	/**
 	 * The constructor for the Tournament class.
-	 * @param {DatabaseService} databaseService - The service used to interact with the database.
+	 * @param {SupabaseDatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: number, databaseService: DatabaseService) {
+	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
 		this.databaseService = databaseService;
 		this.event_id = event_id;
 	}
