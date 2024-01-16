@@ -25,6 +25,7 @@ export class Matches {
 			this.matches = res;
 		}
 
+		this.subscriptionChannel = await this.databaseService.subscribeToChanges(this.event_id);
 		return this.matches;
 	}
 

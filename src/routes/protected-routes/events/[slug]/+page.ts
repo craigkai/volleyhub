@@ -9,28 +9,25 @@ import type { PageLoad } from './$types';
 
 // src/routes/events/+page.server.ts
 export const load: PageLoad = async ({ params, parent }) => {
-	const data = await parent(['data']);
+	const { supabase } = await parent();
 
-	const databaseService = new SupabaseDatabaseService(data?.supabase);
+	const databaseService = new SupabaseDatabaseService(supabase);
 	const tournament = new Event(Number(params.slug), databaseService);
 	const matches = new Matches(Number(params.slug), databaseService);
 	const teams = new Teams(Number(params.slug), databaseService);
 
 	if (params.slug != 'create') {
 		await tournament.load().catch((err: HttpError) => {
-			console.error(err);
 			error(err?.body?.message);
 			return;
 		});
 
 		await matches.load().catch((err: HttpError) => {
-			console.error(err);
 			error(err?.body?.message);
 			return;
 		});
 
 		await teams.load().catch((err: HttpError) => {
-			console.error(err);
 			error(err?.body?.message);
 			return;
 		});

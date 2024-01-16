@@ -8,6 +8,7 @@ import type {
 import { error, type NumericRange } from '@sveltejs/kit';
 import { eventsRowSchema, matchesRowSchema, teamsRowSchema } from '../types/schemas';
 import { z } from 'zod';
+import { RealtimeClient } from '@supabase/realtime-js'
 
 // DatabaseService interface declaration
 export interface DatabaseService {
@@ -51,17 +52,18 @@ export class SupabaseDatabaseService implements DatabaseService {
 	}
 
 	async subscribeToChanges(event_id: number): Promise<RealtimeChannel> {
-		console.log('Subscribing to changes');
-		return this.supabaseClient
-			.channel('matches_updated')
-			.on(
-				'postgres_changes',
-				{ event: '*', schema: 'public', table: 'matches' },
-				(payload) => {
-					console.error('Change received!', payload);
-				}
-			)
-			.subscribe();
+		// console.log('Subscribing to changes');
+
+		// return this.supabaseClient.realtime
+		// 	.channel('*')
+		// 	.on(
+		// 		'postgres_changes',
+		// 		{ event: '*', schema: 'public', table: 'matches', filter: 'event_id.eq.' + event_id },
+		// 		(payload) => {
+		// 			console.log('Change received!', payload);
+		// 		}
+		// 	)
+		// 	.subscribe(status => console.log("Realtime SSR status", status));
 	}
 
 	// Method to handle database errors
@@ -399,7 +401,6 @@ export class SupabaseDatabaseService implements DatabaseService {
 			.eq('id', match.id)
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
 			.single();
-
 		this.handleDatabaseError(res);
 
 		const result = matchesRowSchema.safeParse(res.data); // Validate results using Zod

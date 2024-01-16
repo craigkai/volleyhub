@@ -1,5 +1,5 @@
 // src/hooks.server.ts
-import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
+import { createServerClient } from '@supabase/ssr';
 import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import { dev } from '$app/environment';
@@ -8,10 +8,18 @@ const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_KEY;
 
 export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.supabase = createSupabaseServerClient({
-		supabaseUrl: PUBLIC_SUPABASE_URL,
-		supabaseKey: PUBLIC_SUPABASE_ANON_KEY,
-		event
+	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+		cookies: {
+			get: (key) => event.cookies.get(key),
+			// NOTE: defaulting path to '/' here to support Sveltekit v2 which requires it to be
+			// specified.
+			set: (key, value, options) => {
+				event.cookies.set(key, value, { path: '/', ...options });
+			},
+			remove: (key, options) => {
+				event.cookies.delete(key, { path: '/', ...options });
+			}
+		}
 	});
 
 	/**
@@ -23,7 +31,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		let {
 			data: { session }
 		} = await event.locals.supabase.auth.getSession();
-
 		if (dev) {
 			const { data, error } = await event.locals.supabase.auth.signInWithPassword({
 				email: import.meta.env.VITE_ADMIN_USER,
@@ -34,7 +41,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 			}
 			session = data.session;
 		}
-
 		return session;
 	};
 

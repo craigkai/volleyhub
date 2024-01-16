@@ -6,13 +6,13 @@ import type { PageLoad } from './$types';
 
 // src/routes/events/+page.server.ts
 export const load: PageLoad = async ({ parent }) => {
-	const data = await parent(['data']);
+	const { supabase, session } = await parent();
 
-	const databaseService = new SupabaseDatabaseService(data?.supabase);
+	const databaseService = new SupabaseDatabaseService(supabase);
+
 	const events = await databaseService
-		.loadEvents(data.session?.user.id as string)
+		.loadEvents(session?.user.id as string)
 		.catch((err: HttpError) => {
-			console.error(err);
 			error(err.body.message);
 		});
 

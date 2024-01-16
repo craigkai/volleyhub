@@ -1,19 +1,27 @@
 // src/routes/+layout.ts
-import { createSupabaseLoadClient } from '@supabase/auth-helpers-sveltekit';
 import type { LayoutLoad } from './$types';
-import type { Database } from '../types/supabase';
+import { createBrowserClient, isBrowser, parse } from '@supabase/ssr';
 
-const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_KEY || '';
+const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_KEY;
 
-export const load: LayoutLoad = async ({ fetch, data, depends, url }) => {
+export const load: LayoutLoad = async ({ depends, url, data }) => {
 	depends('supabase:auth');
 
-	const supabase = createSupabaseLoadClient<Database>({
-		supabaseUrl: PUBLIC_SUPABASE_URL,
-		supabaseKey: PUBLIC_SUPABASE_ANON_KEY,
-		event: { fetch },
-		serverSession: data.session
+	const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+		global: {
+			fetch
+		},
+		cookies: {
+			get(key) {
+				if (!isBrowser()) {
+					return JSON.stringify(data.session);
+				}
+
+				const cookie = parse(document.cookie);
+				return cookie[key];
+			}
+		}
 	});
 
 	const {
