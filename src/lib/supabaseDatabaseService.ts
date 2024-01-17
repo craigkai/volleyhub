@@ -3,18 +3,19 @@ import type {
 	PostgrestSingleResponse,
 	PostgrestResponse,
 	User,
-	RealtimeChannel
+	RealtimeChannel,
+	RealtimePostgresChangesPayload
 } from '@supabase/supabase-js';
 import { error, type NumericRange } from '@sveltejs/kit';
 import { eventsRowSchema, matchesRowSchema, teamsRowSchema } from '../types/schemas';
 import { z } from 'zod';
-import { RealtimeClient } from '@supabase/realtime-js'
 
 // DatabaseService interface declaration
 export interface DatabaseService {
 	// Method to handle database errors
 	handleDatabaseError<T>(response: PostgrestSingleResponse<T> | PostgrestResponse<T>): void;
-	subscribeToChanges(event_id: number): Promise<RealtimeChannel>;
+	// Method to subscribe to changes
+	subscribeToChanges(callback: () => {}, table: string, filter?: string): Promise<RealtimeChannel>;
 	// Method to create a new event
 	createEvent(input: EventRow, ownerId: string): Promise<EventRow | null>;
 	// Method to update a tournament
@@ -51,19 +52,31 @@ export class SupabaseDatabaseService implements DatabaseService {
 		this.supabaseClient = supabaseClient;
 	}
 
-	async subscribeToChanges(event_id: number): Promise<RealtimeChannel> {
-		// console.log('Subscribing to changes');
+	async subscribeToChanges(
+		callback: (
+			payload: RealtimePostgresChangesPayload<{
+				[key: string]: any;
+			}>
+		) => {},
+		table: string,
+		filter?: string
+	): Promise<RealtimeChannel> {
+		console.debug('Subscribing to changes');
 
-		// return this.supabaseClient.realtime
-		// 	.channel('*')
-		// 	.on(
-		// 		'postgres_changes',
-		// 		{ event: '*', schema: 'public', table: 'matches', filter: 'event_id.eq.' + event_id },
-		// 		(payload) => {
-		// 			console.log('Change received!', payload);
-		// 		}
-		// 	)
-		// 	.subscribe(status => console.log("Realtime SSR status", status));
+		return this.supabaseClient
+			.channel('*')
+			.on(
+				'postgres_changes',
+				{ event: '*', schema: 'public', table: table, filter: filter },
+				(
+					payload: RealtimePostgresChangesPayload<{
+						[key: string]: any;
+					}>
+				) => {
+					callback(payload);
+				}
+			)
+			.subscribe((status) => console.debug('Realtime status', status));
 	}
 
 	// Method to handle database errors

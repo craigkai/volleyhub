@@ -11,10 +11,11 @@
 	} from 'flowbite-svelte';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches';
+	import type { Teams } from '$lib/teams';
 
 	export let matches: Matches;
 	export let tournament: Event;
-	export let teams: TeamRow[];
+	export let teams: Teams;
 	export let readOnly: boolean = false;
 
 	async function generateMatches(): Promise<void> {
@@ -26,10 +27,12 @@
 				throw new Error('Failed to create matches');
 			}
 		} catch (err: any) {
-			console.error(err);
 			error(err?.body?.message);
 		}
 	}
+
+	// Subscribe via realtime to changes in matches
+	matches.subscribe();
 </script>
 
 <div class="block text-gray-700 text-sm font-bold">Matches:</div>

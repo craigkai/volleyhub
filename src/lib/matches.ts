@@ -1,14 +1,13 @@
 import { error } from '@sveltejs/kit';
 import type { SupabaseDatabaseService } from './supabaseDatabaseService';
 import { RoundRobin } from './roundRobin';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 export class Matches {
 	private databaseService: SupabaseDatabaseService;
 
 	event_id: number;
 	matches?: MatchRow[];
-	subscriptionChannel?: RealtimeChannel;
 
 	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
 		this.databaseService = databaseService;
@@ -25,11 +24,35 @@ export class Matches {
 			this.matches = res;
 		}
 
-		this.subscriptionChannel = await this.databaseService.subscribeToChanges(this.event_id);
 		return this.matches;
 	}
 
-	async create({ pools, courts }: Partial<EventRow>, teams: TeamRow[]): Promise<Matches | undefined> {
+	async matchUpdated(
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: MatchRow;
+		}>
+	): Promise<void> {
+		const old = payload.old.id as MatchRow;
+		const matchIndex = this.matches?.findIndex((m: MatchRow) => m.id === old.id);
+		if (matchIndex !== undefined && matchIndex !== -1) {
+			this.matches?.splice(matchIndex, 1, payload.new as MatchRow);
+			const matches = this.matches;
+			this.matches = matches;
+		}
+	}
+
+	async subscribe(): Promise<RealtimeChannel> {
+		return await this.databaseService.subscribeToChanges(
+			() => this.matchUpdated,
+			'matches',
+			'event_id=eq.' + this.event_id
+		);
+	}
+
+	async create(
+		{ pools, courts }: Partial<EventRow>,
+		teams: TeamRow[]
+	): Promise<Matches | undefined> {
 		if (!teams || teams.length === 0) {
 			console.error("Can't generate matches without Teams");
 			error(500, Error("Can't generate matches without Teams"));
