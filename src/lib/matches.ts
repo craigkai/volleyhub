@@ -2,11 +2,20 @@ import { error } from '@sveltejs/kit';
 import type { SupabaseDatabaseService } from './supabaseDatabaseService';
 import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { writable, type Writable } from 'svelte/store';
+import {
+	writable,
+	type Unsubscriber,
+	type Writable,
+	type Invalidator,
+	type Subscriber
+} from 'svelte/store';
 
-export class Matches {
+export class Matches implements Writable<Matches> {
 	private databaseService: SupabaseDatabaseService;
-	public subscribe: Function;
+	public subscribe: (
+		run: Subscriber<Matches>,
+		invalidate?: Invalidator<Matches> | undefined
+	) => Unsubscriber;
 	private _set: Function;
 	private _update: Function;
 
