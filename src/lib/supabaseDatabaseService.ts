@@ -16,7 +16,12 @@ export interface DatabaseService {
 	// Method to handle database errors
 	handleDatabaseError<T>(response: PostgrestSingleResponse<T> | PostgrestResponse<T>): void;
 	// Method to subscribe to changes
-	subscribeToChanges(self: Matches, callback: () => {}, table: string, filter?: string): Promise<RealtimeChannel>;
+	subscribeToChanges(
+		self: Matches,
+		callback: () => {},
+		table: string,
+		filter?: string
+	): Promise<RealtimeChannel>;
 	// Method to create a new event
 	createEvent(input: EventRow, ownerId: string): Promise<EventRow | null>;
 	// Method to update a tournament

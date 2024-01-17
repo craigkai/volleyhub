@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { SupabaseDatabaseService } from './supabaseDatabaseService';
 import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { writable, type Writable } from 'svelte/store'
+import { writable, type Writable } from 'svelte/store';
 
 export class Matches {
 	private databaseService: SupabaseDatabaseService;
@@ -50,7 +50,6 @@ export class Matches {
 
 		const matchIndex = self.matches?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
-
 			udpated.matches_team1_fkey = self.matches[matchIndex].matches_team1_fkey;
 			udpated.matches_team2_fkey = self.matches[matchIndex].matches_team2_fkey;
 
@@ -58,7 +57,7 @@ export class Matches {
 			const matches = self.matches;
 
 			self._update((that: Matches) => {
-				that.matches = matches
+				that.matches = matches;
 				return that;
 			});
 		}
@@ -141,7 +140,7 @@ export class Matches {
 			// Call multi insert:
 			const res = await this.databaseService.insertMatches(userMatches);
 			if (res) {
-				this._update((that: Matches) => that.matches = res)
+				this._update((that: Matches) => (that.matches = res));
 			}
 			return this;
 		} catch (err) {
