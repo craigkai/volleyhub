@@ -149,7 +149,10 @@ export class Matches implements Writable<Matches> {
 			// Call multi insert:
 			const res = await this.databaseService.insertMatches(userMatches);
 			if (res) {
-				this._update((that: Matches) => (that.matches = res));
+				this._update((that: Matches) => {
+					that.matches = res;
+					return that;
+				});
 			}
 			return this;
 		} catch (err) {
