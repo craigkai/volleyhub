@@ -21,7 +21,7 @@
 				error(err?.body?.message);
 			})
 			.then(async () => {
-				return await matches
+				return await $matches
 					.load()
 					.catch((err: HttpError) => {
 						error(err?.body?.message);
@@ -34,6 +34,7 @@
 			});
 	}
 	const loadingInitialDataPromise = loadInitialData();
+	// $: console.log($matches);
 </script>
 
 {#await loadingInitialDataPromise}

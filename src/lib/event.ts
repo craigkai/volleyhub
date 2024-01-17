@@ -68,7 +68,7 @@ export class Event {
 	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the updated tournament.
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
-	async update(id: string, input: EventRow): Promise<Event> {
+	async update(id: number, input: EventRow): Promise<Event> {
 		const res: EventRow | null = await this.databaseService.updateTournament(id, input);
 
 		if (res !== null) {

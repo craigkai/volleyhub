@@ -29,7 +29,7 @@
 			})
 			.then(async () => {
 				date = tournament?.date ? dayjs(tournament?.date).format('YYYY-MM-DD') : '';
-				return await matches
+				return await $matches
 					.load()
 					.catch((err: HttpError) => {
 						error(err?.body?.message);
@@ -144,7 +144,7 @@
 				{/if}
 			</div>
 			{#if data?.event_id !== 'create' && tournament}
-				<Matches bind:tournament bind:matches teams={teams.teams} />
+				<Matches bind:tournament bind:matches {teams} />
 			{/if}
 
 			{#if data?.event_id !== 'create'}
