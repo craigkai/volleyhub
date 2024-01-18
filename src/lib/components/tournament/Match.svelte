@@ -68,6 +68,7 @@
 	</div>
 {:else}
 	<div
+	class="flex justify-center  place-items-center"
 		on:click={() => {
 			if (!editing) {
 				editing = true;
