@@ -1,159 +1,36 @@
 <script lang="ts">
 	import type { PageData } from '$types';
-	import { Event } from '$lib/event';
+	import { Event as EventInstance } from '$lib/event';
+	import Settings from '$lib/components/tournament/Settings.svelte';
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams as TeamsInstance } from '$lib/teams';
 	import Matches from '$lib/components/tournament/Matches.svelte';
 	import Teams from '$lib/components/tournament/Teams.svelte';
-	import type { HttpError } from '@sveltejs/kit';
-	import { error, success } from '$lib/toast';
-	import dayjs from 'dayjs';
-	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
-	import { goto } from '$app/navigation';
-	import { Input, Label, Button } from 'flowbite-svelte';
+	import { loadInitialData } from '$lib/helper';
 	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
-	let tournament = new Event(data.event_id, databaseService);
+	let tournament = new EventInstance(data.event_id, databaseService);
 	let matches = new MatchesInstance(data.event_id, databaseService);
 	let teams = new TeamsInstance(data.event_id, databaseService);
 
-	let date = tournament?.date ? dayjs(tournament?.date).format('YYYY-MM-DD') : '';
-
-	async function loadInitialData(): Promise<any> {
-		return await tournament
-			.load()
-			.catch((err: HttpError) => {
-				error(err?.body?.message);
-			})
-			.then(async () => {
-				date = tournament?.date ? dayjs(tournament?.date).format('YYYY-MM-DD') : '';
-				return await $matches
-					.load()
-					.catch((err: HttpError) => {
-						error(err?.body?.message);
-					})
-					.then(async () => {
-						return await teams.load().catch((err: HttpError) => {
-							error(err?.body?.message);
-						});
-					});
-			});
-	}
-	const loadingInitialDataPromise = loadInitialData();
-
-	async function createNewEvent(): Promise<void> {
-		tournament
-			.create({
-				name: tournament.name,
-				courts: tournament.courts,
-				pools: tournament.pools,
-				date: date
-			})
-			.then(() => {
-				success(`Tournament created`);
-				// Navigate to the page with the [slug] value set to our tournament Id
-				goto(`/protected-routes/events/${tournament?.id}`);
-			})
-			.catch((err: HttpError) => {
-				error(err?.body?.message);
-			});
-	}
-
-	async function updateTournament(): Promise<void> {
-		tournament
-			.update(tournament.id, {
-				...tournament,
-				name: tournament.name,
-				courts: Number(tournament.courts),
-				pools: Number(tournament.pools),
-				date: date
-			})
-			.then((res: Event) => {
-				tournament = res;
-				success(`Tournament settings updated`);
-			})
-			.catch((err: { body: { message: string | SvelteToastOptions } }) =>
-				error(err?.body?.message)
-			);
-	}
-
-	async function deleteEvent(): Promise<void> {
-		tournament
-			.delete()
-			.then(() => {
-				goto('/protected-routes/dashboard');
-				success(`Deleted ${tournament.name}`);
-			})
-			.catch((err: { body: { message: string | SvelteToastOptions } }) =>
-				error(err?.body?.message)
-			);
-	}
-
-	$: date, (date = dayjs(date).format('YYYY-MM-DD'));
+	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 </script>
 
 {#await loadingInitialDataPromise}
 	loading...
 {:then}
 	<div class="flex flex-col items-center">
-		<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
-			<div class="m-2">
-				<Label for="first_name" class="mb-2">Event Name:</Label>
-				<Input type="text" id="eventName" bind:value={tournament.name} required />
-			</div>
+		<Settings bind:tournament event_id={data.event_id} />
 
-			<div class="m-2">
-				<Label for="first_name" class="mb-2">Number of Courts:</Label>
-				<Input type="number" id="eventCourts" bind:value={tournament.courts} required />
-			</div>
-
-			<div class="m-2">
-				<Label for="first_name" class="mb-2">Number of Pool Play Games:</Label>
-				<Input type="number" id="eventCourts" bind:value={tournament.pools} required />
-			</div>
-
-			<div class="m-2">
-				<label class="block text-sm font-bold mb-2" for="date">Date:</label>
-				<input id="date" class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
-			</div>
-
-			<div class="m-2">
-				{#if data?.event_id === 'create'}
-					<Button
-						class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						type="button"
-						on:click={() => createNewEvent()}
-					>
-						Create Tournament</Button
-					>{:else}
-					<Button
-						class="bg-nord-10 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						type="button"
-						on:click={() => updateTournament()}
-					>
-						Update Tournament Settings</Button
-					>
-				{/if}
-			</div>
-
-			<div class="m-2">
-				{#if data?.event_id !== 'create' && tournament}
-					<Teams bind:teams />
-				{/if}
-			</div>
+		<div class="m-2">
 			{#if data?.event_id !== 'create' && tournament}
-				<Matches bind:tournament bind:matches {teams} />
-			{/if}
-
-			{#if data?.event_id !== 'create'}
-				<button
-					class="bg-nord-12 m-2 hover:bg-nord-9 dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-					type="button"
-					on:click={deleteEvent}>Delete</button
-				>
+				<Teams bind:teams />
 			{/if}
 		</div>
+		{#if data?.event_id !== 'create' && tournament}
+			<Matches bind:tournament bind:matches {teams} />
+		{/if}
 	</div>
 {/await}
