@@ -9,13 +9,19 @@ import type {
 import { error, type NumericRange } from '@sveltejs/kit';
 import { eventsRowSchema, matchesRowSchema, teamsRowSchema } from '../types/schemas';
 import { z } from 'zod';
+import type { Matches } from './matches';
 
 // DatabaseService interface declaration
 export interface DatabaseService {
 	// Method to handle database errors
 	handleDatabaseError<T>(response: PostgrestSingleResponse<T> | PostgrestResponse<T>): void;
 	// Method to subscribe to changes
-	subscribeToChanges(callback: () => {}, table: string, filter?: string): Promise<RealtimeChannel>;
+	subscribeToChanges(
+		self: Matches,
+		callback: () => {},
+		table: string,
+		filter?: string
+	): Promise<RealtimeChannel>;
 	// Method to create a new event
 	createEvent(input: EventRow, ownerId: string): Promise<EventRow | null>;
 	// Method to update a tournament
@@ -53,7 +59,9 @@ export class SupabaseDatabaseService implements DatabaseService {
 	}
 
 	async subscribeToChanges(
+		self: Matches,
 		callback: (
+			self: Matches,
 			payload: RealtimePostgresChangesPayload<{
 				[key: string]: any;
 			}>
@@ -73,7 +81,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 						[key: string]: any;
 					}>
 				) => {
-					callback(payload);
+					callback(self, payload);
 				}
 			)
 			.subscribe((status) => console.debug('Realtime status', status));

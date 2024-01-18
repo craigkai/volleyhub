@@ -2,14 +2,32 @@ import { error } from '@sveltejs/kit';
 import type { SupabaseDatabaseService } from './supabaseDatabaseService';
 import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import {
+	writable,
+	type Unsubscriber,
+	type Writable,
+	type Invalidator,
+	type Subscriber
+} from 'svelte/store';
 
-export class Matches {
+export class Matches implements Writable<Matches> {
 	private databaseService: SupabaseDatabaseService;
+	public subscribe: (
+		run: Subscriber<Matches>,
+		invalidate?: Invalidator<Matches> | undefined
+	) => Unsubscriber;
+	private _set: Function;
+	private _update: Function;
 
 	event_id: number;
 	matches?: MatchRow[];
 
 	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
+		let { subscribe, set, update } = writable(this);
+		this.subscribe = subscribe;
+		this._set = set;
+		this._update = update;
+
 		this.databaseService = databaseService;
 		this.event_id = event_id;
 	}
@@ -21,29 +39,43 @@ export class Matches {
 		const res = await this.databaseService.loadMatches(this.event_id);
 
 		if (res) {
-			this.matches = res;
+			this._update((that: Matches) => {
+				that.matches = res;
+				return that;
+			});
 		}
 
-		return this.matches;
+		return this;
 	}
 
 	async matchUpdated(
+		self: Matches,
 		payload: RealtimePostgresChangesPayload<{
 			[key: string]: MatchRow;
 		}>
 	): Promise<void> {
-		const old = payload.old.id as MatchRow;
-		const matchIndex = this.matches?.findIndex((m: MatchRow) => m.id === old.id);
+		const old = payload.old as MatchRow;
+		const udpated = payload.new as MatchRow;
+
+		const matchIndex = self.matches?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
-			this.matches?.splice(matchIndex, 1, payload.new as MatchRow);
-			const matches = this.matches;
-			this.matches = matches;
+			udpated.matches_team1_fkey = self.matches[matchIndex].matches_team1_fkey;
+			udpated.matches_team2_fkey = self.matches[matchIndex].matches_team2_fkey;
+
+			self.matches?.splice(matchIndex, 1, udpated as MatchRow);
+			const matches = self.matches;
+
+			self._update((that: Matches) => {
+				that.matches = matches;
+				return that;
+			});
 		}
 	}
 
-	async subscribe(): Promise<RealtimeChannel> {
+	async subscribeToDB(): Promise<RealtimeChannel> {
 		return await this.databaseService.subscribeToChanges(
-			() => this.matchUpdated,
+			this,
+			this.matchUpdated,
 			'matches',
 			'event_id=eq.' + this.event_id
 		);
@@ -117,7 +149,10 @@ export class Matches {
 			// Call multi insert:
 			const res = await this.databaseService.insertMatches(userMatches);
 			if (res) {
-				this.matches = res;
+				this._update((that: Matches) => {
+					that.matches = res;
+					return that;
+				});
 			}
 			return this;
 		} catch (err) {

@@ -11,6 +11,7 @@
 	} from 'flowbite-svelte';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches';
+	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import type { Teams } from '$lib/teams';
 
 	export let matches: Matches;
@@ -20,10 +21,8 @@
 
 	async function generateMatches(): Promise<void> {
 		try {
-			const res: Matches | undefined = await matches.create(tournament, teams);
-			if (res) {
-				matches = res;
-			} else {
+			const res: Matches | undefined = await $matches.create(tournament, teams.teams);
+			if (!res) {
 				throw new Error('Failed to create matches');
 			}
 		} catch (err: any) {
@@ -31,18 +30,21 @@
 		}
 	}
 
-	// Subscribe via realtime to changes in matches
-	matches.subscribe();
+	let matchesSubscription: RealtimeChannel | undefined;
+	async function subscribeToMatches() {
+		matchesSubscription = await matches.subscribeToDB();
+	}
+	subscribeToMatches();
 </script>
 
 <div class="block text-gray-700 text-sm font-bold">Matches:</div>
 
-{#if matches.matches && matches.matches.length > 0}
+{#if $matches.matches && $matches.matches.length > 0}
 	<!--
 			Reduce our matches into a dict where the key is the round the
 			match is played in.
 		-->
-	{@const matchesForEachRound = matches.matches.reduce((accumulator, currentValue) => {
+	{@const matchesForEachRound = $matches.matches.reduce((accumulator, currentValue) => {
 		if (accumulator[currentValue.round]) {
 			accumulator[currentValue.round].push(currentValue);
 		} else {
@@ -69,7 +71,7 @@
 					<!-- Can have multiple matches per round if we have multiple courts -->
 					{#each matchesForRound as match}
 						<TableBodyCell>
-							<ViewMatch bind:matches bind:match {readOnly} />
+							<ViewMatch {matches} {match} {readOnly} />
 						</TableBodyCell>
 					{/each}
 				</TableBodyRow>
