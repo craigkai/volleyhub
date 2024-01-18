@@ -9,6 +9,7 @@ import type {
 import { error, type NumericRange } from '@sveltejs/kit';
 import { eventsRowSchema, matchesRowSchema, teamsRowSchema } from '../types/schemas';
 import { z } from 'zod';
+import { Event } from '$lib/event';
 import type { Matches } from './matches';
 
 // DatabaseService interface declaration
@@ -23,7 +24,7 @@ export interface DatabaseService {
 		filter?: string
 	): Promise<RealtimeChannel>;
 	// Method to create a new event
-	createEvent(input: EventRow, ownerId: string): Promise<EventRow | null>;
+	createEvent(input: Event, ownerId: string): Promise<EventRow | null>;
 	// Method to update a tournament
 	updateTournament(id: string, input: EventRow): Promise<EventRow | null>;
 	// Method to get the current user
@@ -131,7 +132,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the newly created event.
 	 * @throws {Error} - Throws an error if there's an issue creating the event.
 	 */
-	async createEvent(input: EventRow, ownerId: string): Promise<EventRow | null> {
+	async createEvent(input: Event, ownerId: string): Promise<EventRow | null> {
 		try {
 			// Insert the new event into the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
@@ -141,7 +142,8 @@ export class SupabaseDatabaseService implements DatabaseService {
 					name: input.name,
 					pools: input.pools,
 					courts: input.courts,
-					date: input.date
+					date: input.date,
+					scoring: input.scoring
 				})
 				.select()
 				.single();

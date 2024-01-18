@@ -5,21 +5,15 @@
 	import { Input, Label, Button } from 'flowbite-svelte';
 	import { error, success } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
+	import { Select } from 'flowbite-svelte';
 	import { Event } from '$lib/event';
 
 	export let tournament: Event;
 	export let event_id: number | string;
 
-	let date = tournament?.date ? dayjs(tournament?.date).format('YYYY-MM-DD') : '';
-
 	async function createNewEvent(): Promise<void> {
 		tournament
-			.create({
-				name: tournament.name,
-				courts: tournament.courts,
-				pools: tournament.pools,
-				date: date
-			})
+			.create(tournament)
 			.then(() => {
 				success(`Tournament created`);
 				// Navigate to the page with the [slug] value set to our tournament Id
@@ -32,13 +26,7 @@
 
 	async function updateTournament(): Promise<void> {
 		tournament
-			.update(tournament.id, {
-				...tournament,
-				name: tournament.name,
-				courts: Number(tournament.courts),
-				pools: Number(tournament.pools),
-				date: date
-			})
+			.update(tournament.id, tournament)
 			.then((res: Event) => {
 				tournament = res;
 				success(`Tournament settings updated`);
@@ -60,7 +48,7 @@
 			);
 	}
 
-	$: date, (date = dayjs(date).format('YYYY-MM-DD'));
+	$: tournament?.date, (tournament.date = dayjs(tournament?.date).format('YYYY-MM-DD'));
 </script>
 
 <div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
@@ -81,7 +69,21 @@
 
 	<div class="m-2">
 		<label class="block text-sm font-bold mb-2" for="date">Date:</label>
-		<input id="date" class="bg-gray-200 p-2 rounded" type="date" bind:value={date} />
+		<input id="date" class="bg-gray-200 p-2 rounded" type="date" bind:value={tournament.date} />
+	</div>
+
+	<div class="m-2">
+		<Label>
+			Pool Play Scoring:
+			<Select
+				class="mt-2"
+				items={[
+					{ value: 'points', name: 'Points' },
+					{ value: 'wins', name: 'Wins' }
+				]}
+				bind:value={tournament.scoring}
+			/>
+		</Label>
 	</div>
 
 	<div class="m-2">

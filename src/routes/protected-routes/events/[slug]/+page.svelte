@@ -4,6 +4,7 @@
 	import Settings from '$lib/components/tournament/Settings.svelte';
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams as TeamsInstance } from '$lib/teams';
+	import Standings from '$lib/components/tournament/Standings.svelte';
 	import Matches from '$lib/components/tournament/Matches.svelte';
 	import Teams from '$lib/components/tournament/Teams.svelte';
 	import { loadInitialData } from '$lib/helper';
@@ -31,6 +32,7 @@
 		</div>
 		{#if data?.event_id !== 'create' && tournament}
 			<Matches bind:tournament bind:matches {teams} />
+			<Standings event={tournament} />
 		{/if}
 	</div>
 {/await}

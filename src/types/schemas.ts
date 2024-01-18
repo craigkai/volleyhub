@@ -21,7 +21,8 @@ export const eventsRowSchema = z.object({
 	id: z.number(),
 	name: z.string(),
 	owner: z.string(),
-	pools: z.number().nullable()
+	pools: z.number().nullable(),
+	scoring: z.string().nullable()
 });
 
 export const eventsInsertSchema = z.object({
@@ -31,7 +32,8 @@ export const eventsInsertSchema = z.object({
 	id: z.number().optional(),
 	name: z.string(),
 	owner: z.string(),
-	pools: z.number().optional().nullable()
+	pools: z.number().optional().nullable(),
+	scoring: z.string().optional().nullable()
 });
 
 export const eventsUpdateSchema = z.object({
@@ -41,7 +43,8 @@ export const eventsUpdateSchema = z.object({
 	id: z.number().optional(),
 	name: z.string().optional(),
 	owner: z.string().optional(),
-	pools: z.number().optional().nullable()
+	pools: z.number().optional().nullable(),
+	scoring: z.string().optional().nullable()
 });
 
 export const matchesRowSchema = z.object({
@@ -53,9 +56,7 @@ export const matchesRowSchema = z.object({
 	team1: z.number(),
 	team1_score: z.number().nullable(),
 	team2: z.number(),
-	team2_score: z.number().nullable(),
-	matches_team1_fkey: z.any(),
-	matches_team2_fkey: z.any()
+	team2_score: z.number().nullable()
 });
 
 export const matchesInsertSchema = z.object({

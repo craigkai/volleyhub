@@ -6,6 +6,7 @@
 	import Matches from '$lib/components/tournament/Matches.svelte';
 	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 	import { loadInitialData } from '$lib/helper';
+	import Standings from '$lib/components/tournament/Standings.svelte';
 
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
@@ -22,5 +23,7 @@
 	<div class="flex flex-col items-center">
 		{tournament?.name}
 		<Matches {tournament} {matches} {teams} readOnly={true} />
+
+		<Standings event={tournament} />
 	</div>
 {/await}

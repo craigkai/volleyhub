@@ -11,12 +11,13 @@ export class Event {
 
 	// The ID of the tournament
 	id: number;
-	name: string;
-	date: string;
-	pools: number;
-	courts: number;
-	owner: string;
-	created_at: string;
+	name?: string;
+	date?: string;
+	pools?: number;
+	courts?: number;
+	owner?: string;
+	created_at?: string;
+	scoring?: string;
 
 	/**
 	 * The constructor for the Tournament class.
@@ -28,12 +29,6 @@ export class Event {
 		}
 
 		this.databaseService = databaseService;
-		this.name = '';
-		this.date = '';
-		this.pools = 0;
-		this.courts = 0;
-		this.owner = '';
-		this.created_at = '';
 		this.id = event_id;
 	}
 
@@ -43,8 +38,10 @@ export class Event {
 	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the newly created tournament.
 	 * @throws {Error} - Throws an error if the event data does not have all required values.
 	 */
-	async create(input: Partial<EventRow>): Promise<Event> {
-		if (!input.name || !input.date || !input.pools || !input.courts) {
+	async create(input: Event): Promise<Event> {
+		console.log(input)
+
+		if (!input.name || !input.date || !input.pools || !input.courts || !input.scoring) {
 			error(400, `Tournament create call does not have all required values`);
 		}
 		const currentUser = await this.databaseService.getCurrentUser();
@@ -68,7 +65,7 @@ export class Event {
 	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the updated tournament.
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
-	async update(id: number, input: EventRow): Promise<Event> {
+	async update(id: number, input: Event): Promise<Event> {
 		const res: EventRow | null = await this.databaseService.updateTournament(id, input);
 
 		if (res !== null) {
