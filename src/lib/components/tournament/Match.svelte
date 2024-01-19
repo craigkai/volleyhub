@@ -74,7 +74,7 @@
 		}}
 	>
 		<span
-			class="p-2 rounded"
+			class="p-1 rounded"
 			class:bg-green-300={match?.team1_score &&
 				match?.team2_score &&
 				match.team1_score > match.team2_score}
@@ -86,7 +86,7 @@
 		>
 		vs
 		<span
-			class="p-2 rounded"
+			class="p-1 rounded"
 			class:bg-green-300={match?.team1_score &&
 				match?.team2_score &&
 				match?.team2_score > match?.team1_score}
