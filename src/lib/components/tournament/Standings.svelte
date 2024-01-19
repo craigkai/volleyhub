@@ -25,16 +25,21 @@
 		return acc;
 	}, {});
 
+	const scoring = event.scoring;
+
 	$matches.matches.forEach((match: MatchRow) => {
 		if (match.team1_score && match.team2_score) {
-			teamScores[match.matches_team1_fkey.name] += match.team1_score;
-			teamScores[match.matches_team2_fkey.name] += match.team2_score;
+			if (scoring === 'points') {
+				teamScores[match.matches_team1_fkey.name] += match.team1_score;
+				teamScores[match.matches_team2_fkey.name] += match.team2_score;
+			} else {
+				teamScores[match.matches_team1_fkey.name] += match.team1_score > match.team2_score ? 1 : 0;
+				teamScores[match.matches_team2_fkey.name] += match.team2_score > match.team1_score ? 1 : 0;
+			}
 		}
 	});
 
 	const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
-
-	const scoring = event.scoring;
 </script>
 
 Scoring based on {scoring}
