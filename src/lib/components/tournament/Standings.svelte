@@ -54,7 +54,7 @@ Scoring based on {scoring}
 
 <Table>
 	<TableHead>
-		<TableHeadCell>Rank</TableHeadCell>
+		<!-- <TableHeadCell>Rank</TableHeadCell> -->
 		<TableHeadCell>Team</TableHeadCell>
 		<TableHeadCell>Score</TableHeadCell>
 	</TableHead>
@@ -63,7 +63,7 @@ Scoring based on {scoring}
 			{@const isDefaultTeam =
 				defaultTeam && defaultTeam === orderedTeamScores[i] ? 'bg-green-200' : ''}
 			<TableBodyRow class={isDefaultTeam}>
-				<TableBodyCell>{i}</TableBodyCell>
+				<!-- <TableBodyCell>{i}</TableBodyCell> -->
 				<TableBodyCell>{orderedTeamScores[i]}</TableBodyCell>
 				<TableBodyCell>{teamScores[orderedTeamScores[i]]}</TableBodyCell>
 			</TableBodyRow>

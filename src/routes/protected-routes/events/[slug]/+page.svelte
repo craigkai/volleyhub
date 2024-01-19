@@ -34,11 +34,11 @@
 					</TabItem>
 
 					<TabItem title="matches">
-						<Matches bind:tournament bind:matches {teams} />
+						<Matches bind:tournament bind:matches {teams} defaultTeam="" />
 					</TabItem>
 
 					<TabItem title="standings">
-						<Standings event={tournament} {matches} {teams} defaultTeam={''} />
+						<Standings event={tournament} {matches} {teams} defaultTeam="" />
 					</TabItem>
 				</Tabs>
 			{/if}
