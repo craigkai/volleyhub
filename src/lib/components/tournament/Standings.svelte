@@ -46,7 +46,7 @@ Scoring based on {scoring}
 		<TableHeadCell>Team</TableHeadCell>
 		<TableHeadCell>Score</TableHeadCell>
 	</TableHead>
-	<TableBody class="divide-y">
+	<TableBody>
 		{#each { length: orderedTeamScores.length } as _, i}
 			<TableBodyRow>
 				<TableBodyCell>{i}</TableBodyCell>

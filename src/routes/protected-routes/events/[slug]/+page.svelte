@@ -28,19 +28,20 @@
 
 		<div class="m-2">
 			{#if data?.event_id !== 'create' && tournament}
-				<Teams bind:teams />
+				<Tabs>
+					<TabItem open title="teams">
+						<Teams bind:teams />
+					</TabItem>
+
+					<TabItem title="matches">
+						<Matches bind:tournament bind:matches {teams} />
+					</TabItem>
+
+					<TabItem title="standings">
+						<Standings event={tournament} {matches} {teams} />
+					</TabItem>
+				</Tabs>
 			{/if}
 		</div>
-		{#if data?.event_id !== 'create' && tournament}
-			<Tabs>
-				<TabItem open title="matches">
-					<Matches bind:tournament bind:matches {teams} />
-				</TabItem>
-
-				<TabItem title="standings">
-					<Standings event={tournament} {matches} {teams} />
-				</TabItem>
-			</Tabs>
-		{/if}
 	</div>
 {/await}
