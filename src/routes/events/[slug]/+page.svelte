@@ -7,6 +7,7 @@
 	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 	import { loadInitialData } from '$lib/helper';
 	import Standings from '$lib/components/tournament/Standings.svelte';
+	import { Tabs, TabItem } from 'flowbite-svelte';
 
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
@@ -22,8 +23,14 @@
 {:then}
 	<div class="flex flex-col items-center">
 		{tournament?.name}
-		<Matches {tournament} {matches} {teams} readOnly={true} />
+		<Tabs>
+			<TabItem open title="matches">
+				<Matches {tournament} {matches} {teams} readOnly={true} />
+			</TabItem>
 
-		<Standings event={tournament} />
+			<TabItem title="standings">
+				<Standings event={tournament} {matches} {teams} />
+			</TabItem>
+		</Tabs>
 	</div>
 {/await}

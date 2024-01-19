@@ -9,6 +9,7 @@
 	import Teams from '$lib/components/tournament/Teams.svelte';
 	import { loadInitialData } from '$lib/helper';
 	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
+	import { Tabs, TabItem } from 'flowbite-svelte';
 
 	export let data: PageData;
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
@@ -31,8 +32,15 @@
 			{/if}
 		</div>
 		{#if data?.event_id !== 'create' && tournament}
-			<Matches bind:tournament bind:matches {teams} />
-			<Standings event={tournament} />
+			<Tabs>
+				<TabItem open title="matches">
+					<Matches bind:tournament bind:matches {teams} />
+				</TabItem>
+
+				<TabItem title="standings">
+					<Standings event={tournament} {matches} {teams} />
+				</TabItem>
+			</Tabs>
 		{/if}
 	</div>
 {/await}
