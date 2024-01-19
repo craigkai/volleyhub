@@ -5,7 +5,7 @@
 
 	export let data: PageData;
 
-	let open: boolean = true;
+	let open: boolean = false;
 
 	async function getCurrentUser() {
 		return await data.supabase.auth.getUser();
