@@ -18,8 +18,6 @@
 			error(err?.body?.message ?? `Something went wrong: ${err}`);
 		}
 	}
-
-	$: hasMatchResult = match?.team1_score && match?.team2_score;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -68,7 +66,7 @@
 	</div>
 {:else}
 	<div
-	class="flex justify-center  place-items-center"
+		class="flex justify-center place-items-center"
 		on:click={() => {
 			if (!editing) {
 				editing = true;
@@ -77,20 +75,27 @@
 	>
 		<span
 			class="p-2 rounded"
-			class:bg-green-300={hasMatchResult && match?.team1_score > match?.team2_score}
-			class:bg-red-300={hasMatchResult && match?.team2_score > match?.team1_score}
+			class:bg-green-300={match?.team1_score &&
+				match?.team2_score &&
+				match.team1_score > match.team2_score}
+			class:bg-red-300={match?.team1_score &&
+				match?.team2_score &&
+				match.team2_score > match.team1_score}
 		>
 			{match?.matches_team1_fkey?.name}</span
 		>
 		vs
 		<span
 			class="p-2 rounded"
-			class:bg-green-300={hasMatchResult && match?.team2_score > match?.team1_score}
-			class:bg-red-300={hasMatchResult && match?.team1_score > match?.team2_score}
-			>{match?.matches_team2_fkey?.name}</span
+			class:bg-green-300={match?.team1_score &&
+				match?.team2_score &&
+				match?.team2_score > match?.team1_score}
+			class:bg-red-300={match?.team1_score &&
+				match?.team2_score &&
+				match?.team1_score > match?.team2_score}>{match?.matches_team2_fkey?.name}</span
 		>
 	</div>
-	{#if hasMatchResult}
+	{#if match?.team1_score && match?.team2_score}
 		<Tooltip>{match?.team1_score} to {match?.team2_score}</Tooltip>
 	{/if}
 {/if}

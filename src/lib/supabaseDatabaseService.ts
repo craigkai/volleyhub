@@ -383,7 +383,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 		this.handleDatabaseError(response);
 	}
 
-	async insertMatches(matches: MatchRow[]): Promise<MatchRow[]> {
+	async insertMatches(matches: UserMatch[]): Promise<MatchRow[]> {
 		const res = await this.supabaseClient
 			.from('matches')
 			.insert(matches)
@@ -412,6 +412,8 @@ export class SupabaseDatabaseService implements DatabaseService {
 		team2_score: number | null;
 		court: number; // Add the missing 'court' property
 		round: number; // Add the missing 'round' property
+		matches_team1_fkey: { name: string }; // Add the missing 'matches_team1_fkey' property
+		matches_team2_fkey: { name: string }; // Add the missing 'matches_team2_fkey' property
 	} | null> {
 		const res = await this.supabaseClient
 			.from('matches')

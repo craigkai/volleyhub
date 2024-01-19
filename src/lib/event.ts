@@ -39,7 +39,7 @@ export class Event {
 	 * @throws {Error} - Throws an error if the event data does not have all required values.
 	 */
 	async create(input: Event): Promise<Event> {
-		console.log(input)
+		console.log(input);
 
 		if (!input.name || !input.date || !input.pools || !input.courts || !input.scoring) {
 			error(400, `Tournament create call does not have all required values`);

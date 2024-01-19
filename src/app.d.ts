@@ -9,7 +9,10 @@ import type { eventsRowSchema, matchesRowSchema, teamsRowSchema } from './types/
 declare global {
 	type TeamRow = z.infer<typeof teamsRowSchema>;
 	type EventRow = z.infer<typeof eventsRowSchema>;
-	type MatchRow = z.infer<typeof matchesRowSchema>;
+	type MatchRow = z.infer<typeof matchesRowSchema> & {
+		matches_team1_fkey: { name: string };
+		matches_team2_fkey: { name: string };
+	};
 
 	interface Match {
 		round: number;
@@ -26,7 +29,7 @@ declare global {
 		};
 	}
 
-	type UserMatch = Match & {
+	type UserMatch = Partial<Match> & {
 		court: number;
 		round: number;
 		event_id: number;

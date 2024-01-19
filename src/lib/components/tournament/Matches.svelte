@@ -66,7 +66,9 @@
 				{@const matchesForRound = matchesForEachRound[round].sort(
 					(a, b) => a.round - b.round || a.court - b.court
 				)}
-				{@const matchesIncomplete = matchesForRound.filter((match) => !match.team1_score || !match.team2_score)}
+				{@const matchesIncomplete = matchesForRound.filter(
+					(match) => !match.team1_score || !match.team2_score
+				)}
 				<TableBodyRow>
 					<TableBodyCell>{round}</TableBodyCell>
 					<!-- Can have multiple matches per round if we have multiple courts -->
