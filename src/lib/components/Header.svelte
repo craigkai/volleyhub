@@ -14,7 +14,7 @@
 	let btnClass = 'hover:bg-nord-6 dark:hover:bg-nord-1 rounded-lg text-xl p-2';
 </script>
 
-<div class="absolute end-0 lg:hidden md:hidden">
+<div class="absolute end-0">
 	<Hamburger bind:open --color="white" />
 </div>
 
