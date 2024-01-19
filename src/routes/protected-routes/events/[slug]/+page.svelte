@@ -38,7 +38,7 @@
 					</TabItem>
 
 					<TabItem title="standings">
-						<Standings event={tournament} {matches} {teams} />
+						<Standings event={tournament} {matches} {teams} defaultTeam={''} />
 					</TabItem>
 				</Tabs>
 			{/if}

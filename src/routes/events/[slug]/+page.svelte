@@ -14,7 +14,7 @@
 
 	const databaseService = new SupabaseDatabaseService(data?.supabase);
 	const tournament = new Event(data.event_id, databaseService);
-	const matches = new MatchesInstance(data.event_id, databaseService);
+	let matches = new MatchesInstance(data.event_id, databaseService);
 	const teams = new Teams(data.event_id, databaseService);
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
@@ -45,7 +45,7 @@
 			</TabItem>
 
 			<TabItem title="standings">
-				<Standings event={tournament} {matches} {teams} {defaultTeam} />
+				<Standings event={tournament} bind:matches {teams} {defaultTeam} />
 			</TabItem>
 		</Tabs>
 	</div>
