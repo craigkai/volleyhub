@@ -8,14 +8,13 @@
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
-		TableHeadCell,
-		Checkbox,
-		TableSearch
+		TableHeadCell
 	} from 'flowbite-svelte';
 
 	export let event: Event;
 	export let matches: Matches;
 	export let teams: Teams;
+	export let defaultTeam: string;
 
 	interface TeamScores {
 		[key: string]: number;
@@ -48,7 +47,9 @@ Scoring based on {scoring}
 	</TableHead>
 	<TableBody>
 		{#each { length: orderedTeamScores.length } as _, i}
-			<TableBodyRow>
+			{@const isDefaultTeam =
+				defaultTeam && defaultTeam === orderedTeamScores[i] ? 'bg-green-200' : ''}
+			<TableBodyRow class={isDefaultTeam}>
 				<TableBodyCell>{i}</TableBodyCell>
 				<TableBodyCell>{orderedTeamScores[i]}</TableBodyCell>
 				<TableBodyCell>{teamScores[orderedTeamScores[i]]}</TableBodyCell>

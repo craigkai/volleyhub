@@ -31,9 +31,11 @@
 			Select a team:
 			<Select
 				class="mt-2"
-				items={teams.teams.map((team) => {
-					return { value: team.name, name: team.name };
-				})}
+				items={teams.teams
+					.map((team) => {
+						return { value: team.name, name: team.name };
+					})
+					.concat([{ value: '', name: 'none' }])}
 				bind:value={defaultTeam}
 			/>
 		</Label>
@@ -43,7 +45,7 @@
 			</TabItem>
 
 			<TabItem title="standings">
-				<Standings event={tournament} {matches} {teams} />
+				<Standings event={tournament} {matches} {teams} {defaultTeam} />
 			</TabItem>
 		</Tabs>
 	</div>
