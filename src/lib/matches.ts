@@ -69,6 +69,8 @@ export class Matches implements Writable<Matches> {
 				that.matches = matches;
 				return that;
 			});
+		} else {
+			console.error('Failed to find match to update.');
 		}
 	}
 
