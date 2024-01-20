@@ -85,7 +85,12 @@ export class SupabaseDatabaseService implements DatabaseService {
 					callback(self, payload);
 				}
 			)
-			.subscribe((status) => console.debug('Realtime status', status));
+			.subscribe((status) => {
+				// We call the load function to update in case our content is stale
+				// we we re-connect to the web socket.
+				self.load();
+				console.debug('Realtime status', status)
+			});
 	}
 
 	// Method to handle database errors
