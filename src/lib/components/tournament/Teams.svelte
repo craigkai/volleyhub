@@ -2,7 +2,8 @@
 	import type { Teams } from '$lib/teams';
 	import { success, error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
-	import { TableBody, TableBodyCell, TableBodyRow, TableSearch } from 'flowbite-svelte';
+	import { TableBody, TableBodyCell, TableBodyRow, Table } from 'flowbite-svelte';
+	import { Input, Label } from 'flowbite-svelte';
 
 	export let teams: Teams;
 
@@ -36,28 +37,17 @@
 
 		teams.teams = res || [];
 	}
-
-	let searchTerm: string = '';
-	$: filteredTeams =
-		teams?.teams?.filter(
-			(team: TeamRow) => team.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
-		) || [];
 	let newTeamName = '';
 </script>
 
 <div class="block text-gray-700 text-sm font-bold">Teams:</div>
-<TableSearch
-	divClass="border-solid border-2 rounded"
-	placeholder="Search by team name"
-	striped={true}
-	hoverable={true}
-	bind:inputValue={searchTerm}
->
+
+<Table>
 	<TableBody>
-		{#each filteredTeams as team}
+		{#each teams?.teams as team}
 			<TableBodyRow>
-				<TableBodyCell>{team.name}</TableBodyCell>
-				<TableBodyCell>
+				<TableBodyCell colspan="1">{team.name}</TableBodyCell>
+				<TableBodyCell colspan="1">
 					<button
 						on:click={() => deleteTeam(team)}
 						class="font-medium text-blue-600 hover:underline dark:text-primary-500">Delete</button
@@ -66,27 +56,25 @@
 			</TableBodyRow>
 		{/each}
 		<TableBodyRow>
-			<TableBodyCell>
-				<input
+			<TableBodyCell colspan="1">
+				<Input
+					size="sm"
+					type="text"
+					id="newTeam"
 					on:keydown={(e) => {
 						if (e?.key === 'Enter') {
 							createTeam();
 						}
 					}}
-					class="rounded rounded-lg text-black"
-					name="newTeam"
-					type="text"
 					bind:value={newTeamName}
-					placeholder="Add a new team..."
 				/>
 			</TableBodyCell>
-			<TableBodyCell>
+			<TableBodyCell colspan="1">
 				<button
 					on:click={createTeam}
-					class="font-medium text-blue-600 hover:underline dark:text-primary-500"
-					>Add new team</button
+					class="font-medium text-blue-600 hover:underline dark:text-primary-500">add</button
 				></TableBodyCell
 			>
 		</TableBodyRow>
 	</TableBody>
-</TableSearch>
+</Table>
