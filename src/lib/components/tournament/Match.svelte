@@ -23,46 +23,43 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 {#if !readOnly && editing}
-	<div class="flex flex-row">
-		<Label for="team1-score-input" class="block m-2">{match.matches_team1_fkey.name}:</Label>
+	<div class="flex flex-col">
+		<Label for="team1-score-input">{match.matches_team1_fkey.name}:</Label>
 		<Input
 			id="team1-score-input"
 			size="md"
 			bind:value={match.team1_score}
+			on:blur={() => {
+				editing = false;
+			}}
 			on:keydown={(e) => {
+				console.log(e);
 				if (e?.key === 'Enter') {
 					updateMatch();
 					editing = false;
-				} else if (e?.key === 'ESC') {
+				} else if (e?.key === 'Escape') {
 					editing = false;
 				}
 			}}
 		/>
 
-		<Label for="team2-score-input" class="block m-2">{match.matches_team2_fkey.name}:</Label>
+		<Label for="team2-score-input">{match.matches_team2_fkey.name}:</Label>
 		<Input
 			id="team2-score-input"
 			size="sm"
 			bind:value={match.team2_score}
+			on:blur={() => {
+				editing = false;
+			}}
 			on:keydown={(e) => {
 				if (e?.key === 'Enter') {
 					updateMatch();
 					editing = false;
-				} else if (e?.key === 'ESC') {
+				} else if (e?.key === 'Escape') {
 					editing = false;
 				}
 			}}
 		/>
-
-		<CheckSolid
-			color="green"
-			class="m-2 cursor-pointer"
-			on:click={() => {
-				updateMatch();
-				editing = false;
-			}}
-		/>
-		<CloseSolid color="red" class="m-2 cursor-pointer" on:click={() => (editing = false)} />
 	</div>
 {:else}
 	<div
