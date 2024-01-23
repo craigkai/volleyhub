@@ -13,12 +13,21 @@
 	import { Matches } from '$lib/matches';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import type { Teams } from '$lib/teams';
+	import { Alert, Button } from 'flowbite-svelte';
 
 	export let matches: Matches;
 	export let tournament: Event;
 	export let teams: Teams;
 	export let readOnly: boolean = false;
 	export let defaultTeam: string;
+
+	let showGenerateMatchesAlert: boolean = false;
+
+	async function checkGenerateMatches() {
+		if (($matches?.matches?.length ?? 0) > 0) {
+			showGenerateMatchesAlert = true;
+		}
+	}
 
 	async function generateMatches(): Promise<void> {
 		try {
@@ -29,6 +38,7 @@
 		} catch (err: any) {
 			error(err?.body?.message);
 		}
+		showGenerateMatchesAlert = false;
 	}
 
 	let matchesSubscription: RealtimeChannel | undefined;
@@ -102,11 +112,30 @@
 {/if}
 
 {#if !readOnly}
+	{#if showGenerateMatchesAlert}
+		<div class="m-2">
+			<Alert color="red">
+				<div class="flex items-center gap-3">
+					<span class="text-lg font-medium">Generate new matches?</span>
+				</div>
+				<p class="mt-2 mb-4 text-sm">
+					You already have some match content, are you sure you want to wipe that?
+				</p>
+				<div class="flex gap-2">
+					<Button class="text-black" size="xs" on:click={generateMatches}>Yes</Button>
+					<Button class="text-black" size="xs" on:click={() => (showGenerateMatchesAlert = false)}
+						>No</Button
+					>
+				</div>
+			</Alert>
+		</div>
+	{/if}
+
 	<div class="m-2">
 		<button
 			class="bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 			type="button"
-			on:click={generateMatches}
+			on:click={checkGenerateMatches}
 		>
 			Generate matches</button
 		>
