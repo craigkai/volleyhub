@@ -73,7 +73,21 @@
 	</div>
 
 	<div class="m-2">
-		<label class="block text-sm font-bold mb-2" for="date">Date:</label>
+		<Label>
+			Ref'ing:
+			<Select
+				class="mt-2"
+				items={[
+					{ value: 'provided', name: 'Provided' },
+					{ value: 'teams', name: 'Teams' }
+				]}
+				bind:value={tournament.refs}
+			/>
+		</Label>
+	</div>
+
+	<div class="m-2">
+		<Label class="mb-2">Date:</Label>
 		<input id="date" class="bg-gray-200 p-2 rounded" type="date" bind:value={tournament.date} />
 	</div>
 

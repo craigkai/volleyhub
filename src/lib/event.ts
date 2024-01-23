@@ -18,6 +18,7 @@ export class Event {
 	owner?: string;
 	created_at?: string;
 	scoring?: string;
+	refs?: string;
 
 	/**
 	 * The constructor for the Tournament class.
@@ -39,9 +40,7 @@ export class Event {
 	 * @throws {Error} - Throws an error if the event data does not have all required values.
 	 */
 	async create(input: Event): Promise<Event> {
-		console.log(input);
-
-		if (!input.name || !input.date || !input.pools || !input.courts || !input.scoring) {
+		if (!input.name || !input.date || !input.pools || !input.courts || !input.scoring || !input.refs) {
 			error(400, `Tournament create call does not have all required values`);
 		}
 		const currentUser = await this.databaseService.getCurrentUser();
