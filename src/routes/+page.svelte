@@ -1,3 +1,28 @@
-<script lang="ts"></script>
+<script lang="ts">
+	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
+	import { Card } from 'flowbite-svelte';
+	import dayjs from 'dayjs';
 
-<div class="flex justify-center m-4">This homepage does not have any content currently...</div>
+	export let data: PageData;
+
+	const databaseService = new SupabaseDatabaseService(data?.supabase);
+	const eventsPromise = databaseService.getEvents();
+</script>
+
+{#await eventsPromise}
+	loading...
+{:then events}
+	<div class="m-2">
+		<div>Upcoming events:</div>
+		{#each events as event}
+			<Card class="m-2" href="/events/{event.id}">
+				<h5 class="mb-2 text-2xl font-bold tracking-tight">
+					{event.name}
+				</h5>
+				<h4 class="mb-2 text-xl font-bold tracking-tight">
+					{dayjs(event.date).format('YYYY-MM-DD')}
+				</h4>
+			</Card>
+		{/each}
+	</div>
+{/await}

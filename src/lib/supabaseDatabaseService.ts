@@ -31,6 +31,8 @@ export interface DatabaseService {
 	getCurrentUser(): Promise<any | null>;
 	// Method to load an event
 	loadEvent(event_id: number): Promise<EventRow | null>;
+	// Method to get events
+	getEvents(): Promise<EventRow[] | null>;
 	// Method to load teams
 	loadTeams(event_id: number): Promise<TeamRow[] | null>;
 	// Method to delete an event
@@ -441,4 +443,19 @@ export class SupabaseDatabaseService implements DatabaseService {
 
 		return res.data;
 	}
+
+	async getEvents(): Promise<EventRow[] | null> {
+		const res = await this.supabaseClient.from('events').select('*').gte('date', new Date().toISOString());
+		this.handleDatabaseError(res);
+
+		const eventsRowSchemaArray = z.array(eventsRowSchema);
+		const result = eventsRowSchemaArray.safeParse(res.data); // Validate results using Zod
+		if (!result.success) {
+			const err = { status: 500, error: result.error } as unknown as PostgrestResponse<EventRow>;
+			this.handleDatabaseError(err);
+		}
+
+		return res.data;
+	}
+
 }
