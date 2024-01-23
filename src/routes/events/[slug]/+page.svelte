@@ -4,6 +4,7 @@
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams } from '$lib/teams';
 	import Matches from '$lib/components/tournament/Matches.svelte';
+	import Bracket from '$lib/components/tournament/Bracket.svelte';
 	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 	import { loadInitialData } from '$lib/helper';
 	import Standings from '$lib/components/tournament/Standings.svelte';
@@ -47,6 +48,10 @@
 			<TabItem title="standings">
 				<Standings event={tournament} bind:matches {teams} {defaultTeam} />
 			</TabItem>
+
+			<!-- <TabItem title="Bracket">
+				<Bracket {tournament} {matches} />
+			</TabItem> -->
 		</Tabs>
 	</div>
 {/await}
