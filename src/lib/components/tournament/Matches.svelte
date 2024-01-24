@@ -88,11 +88,21 @@
 					match.matches_team1_fkey.name,
 					match.matches_team2_fkey.name
 				])}
+
 				<TableBodyRow>
 					<!-- Can have multiple matches per round if we have multiple courts -->
 					{#each matchesForRound as match}
 						<TableBodyCell>
+							<ViewMatch {matches} {match} {readOnly} />
+						</TableBodyCell>
+					{/each}
+					{#if tournament.refs === 'teams'}
+						<TableBodyCell>
 							<div class="flex place-items-center">
+								<div class="m-1">
+									{matchesForRound[0]?.matches_ref_fkey?.name}
+								</div>
+
 								{#if teamsThisRound.includes(defaultTeam)}
 									<svg
 										class="w-[17px] h-[17px] text-gray-800 dark:text-white"
@@ -106,12 +116,8 @@
 										/>
 									</svg>
 								{/if}
-								<ViewMatch {matches} {match} {readOnly} />
 							</div>
 						</TableBodyCell>
-					{/each}
-					{#if tournament.refs === 'teams'}
-						<TableBodyCell>{matchesForRound[0]?.matches_ref_fkey?.name}</TableBodyCell>
 					{/if}
 				</TableBodyRow>
 			{/each}
