@@ -125,7 +125,7 @@ export class Matches implements Writable<Matches> {
 			const userMatches: UserMatch[] = [];
 
 			const teamsPerRound: { number: number[] } = { 0: [] };
-			matches.forEach((match: Partial<MatchRow>) => {
+			matches.sort((a, b) => a.round - b.round).forEach((match: Partial<MatchRow>) => {
 				if (match.team1 === 0 || match.team2 === 0) {
 					// bye
 					return;
