@@ -92,7 +92,7 @@
 					<!-- Can have multiple matches per round if we have multiple courts -->
 					{#each matchesForRound as match}
 						<TableBodyCell>
-							<div class="flex flex-row">
+							<div class="flex place-items-center">
 								{#if teamsThisRound.includes(defaultTeam)}
 									<svg
 										class="w-[17px] h-[17px] text-gray-800 dark:text-white"
