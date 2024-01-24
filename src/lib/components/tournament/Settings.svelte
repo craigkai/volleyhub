@@ -12,6 +12,9 @@
 	export let event_id: number | string;
 
 	async function createNewEvent(): Promise<void> {
+		tournament.courts = Number(tournament.courts);
+		tournament.pools = Number(tournament.pools);
+
 		tournament
 			.create(tournament)
 			.then(async () => {
@@ -30,15 +33,19 @@
 	}
 
 	async function updateTournament(): Promise<void> {
+		tournament.courts = Number(tournament.courts);
+		tournament.pools = Number(tournament.pools);
+
 		tournament
 			.update(tournament.id, tournament)
 			.then((res: Event) => {
 				tournament = res;
 				success(`Tournament settings updated`);
 			})
-			.catch((err: { body: { message: string | SvelteToastOptions } }) =>
-				error(err?.body?.message)
-			);
+			.catch((err) => {
+				console.error(err);
+				error(err.body?.message ?? `Something went wrong: ${err}`);
+			});
 	}
 
 	async function deleteEvent(): Promise<void> {
