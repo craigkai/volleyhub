@@ -10,6 +10,8 @@
 	import Standings from '$lib/components/tournament/Standings.svelte';
 	import { Tabs, TabItem } from 'flowbite-svelte';
 	import { Label, Select } from 'flowbite-svelte';
+	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 
 	export let data: PageData;
 
@@ -20,6 +22,16 @@
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 	let defaultTeam = data.default_team;
+
+	function updateHistory() {
+		if (browser) {
+			$page.url.searchParams.set('team', defaultTeam);
+			const url = $page.url.href;
+			window.history.replaceState({}, '', url);
+		}
+	}
+
+	$: defaultTeam, updateHistory();
 </script>
 
 {#await loadingInitialDataPromise}
