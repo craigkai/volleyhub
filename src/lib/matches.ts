@@ -122,7 +122,7 @@ export class Matches implements Writable<Matches> {
 			let round = 0;
 
 			let totalRounds = 0;
-			const userMatches: UserMatch[] = [];
+			let userMatches: UserMatch[] = [];
 
 			const teamsPerRound: { number: number[] } = { 0: [] };
 			matches
@@ -169,14 +169,16 @@ export class Matches implements Writable<Matches> {
 
 			if (refs === 'teams') {
 				Object.keys(teamsPerRound).forEach((round: string) => {
-					userMatches.forEach((match: UserMatch) => {
+					const userMatchesClone = Object.assign([], userMatches);
+
+					userMatchesClone.forEach((match: UserMatch, i) => {
 						if (match.round === Number(round)) {
 							const ref = this.determineReferee(
 								teamsPerRound[round],
 								teams.map((t) => t.id),
 								userMatches
 							);
-							match.ref = ref;
+							userMatches[i].ref = ref;
 						}
 					});
 				});
@@ -215,24 +217,22 @@ export class Matches implements Writable<Matches> {
 		const availableTeams = teams.filter((team) => !teamsPerRound.includes(team) && team !== 0);
 
 		// Exclude teams that have already refereed in previous matches
-		const teamsWithPreviousReferee = new Set(previousMatches.map((match) => match.ref));
-		const availableTeamsByRefsCount: { [key: number]: number } = availableTeams.reduce(
-			(acc, team) => {
-				if (teamsWithPreviousReferee.has(team)) {
-					acc[team] = acc[team] ? acc[team] + 1 : 1;
-				} else {
-					acc[team] = 0;
+		const availableTeamsByRefsCount: { [key: number]: number } = previousMatches.reduce(
+			(acc, match) => {
+				if (acc[match.ref]) {
+					acc[match.ref] = acc[match.ref] ? acc[match.ref] + 1 : 1;
 				}
 				return acc;
 			},
 			{}
 		);
-		const availableTeamsOrdered = Object.keys(availableTeamsByRefsCount).sort(
+
+		const availableTeamsSorted = availableTeams.sort(
 			(a, b) => availableTeamsByRefsCount[a] - availableTeamsByRefsCount[b]
 		);
 
 		// Choose a referee from the remaining available teams
-		return Number(availableTeamsOrdered[0]);
+		return Number(availableTeamsSorted[0]);
 	}
 }
 
