@@ -226,7 +226,7 @@ export class Matches implements Writable<Matches> {
 			{}
 		);
 		const availableTeamsOrdered = Object.keys(availableTeamsByRefsCount).sort(
-			(a, b) => availableTeamsByRefsCount[b] - availableTeamsByRefsCount[a]
+			(a, b) => availableTeamsByRefsCount[a] - availableTeamsByRefsCount[b]
 		);
 
 		// Choose a referee from the remaining available teams
