@@ -169,9 +169,7 @@ export class Matches implements Writable<Matches> {
 
 			if (refs === 'teams') {
 				Object.keys(teamsPerRound).forEach((round: string) => {
-					const userMatchesClone = Object.assign([], userMatches);
-
-					userMatchesClone.forEach((match: UserMatch, i) => {
+					userMatches.forEach((match: UserMatch, i) => {
 						if (match.round === Number(round)) {
 							const ref = this.determineReferee(
 								teamsPerRound[round],
@@ -219,6 +217,7 @@ export class Matches implements Writable<Matches> {
 		// Exclude teams that have already refereed in previous matches
 		const availableTeamsByRefsCount: { [key: number]: number } = previousMatches.reduce(
 			(acc, match) => {
+				console.log(match.ref)
 				if (match.ref) {
 					acc[match.ref] = acc[match.ref] ? acc[match.ref] + 1 : 1;
 				}
@@ -226,13 +225,14 @@ export class Matches implements Writable<Matches> {
 			},
 			{}
 		);
+		console.log(availableTeamsByRefsCount[12])
 
-		const availableTeamsSorted = availableTeams.sort(
-			(a, b) => availableTeamsByRefsCount[a] ?? 0 - availableTeamsByRefsCount[b] ?? 0
+		availableTeams.sort(
+			(a, b) => (availableTeamsByRefsCount[a] ?? 0) - (availableTeamsByRefsCount[b] ?? 0)
 		);
 
 		// Choose a referee from the remaining available teams
-		return Number(availableTeamsSorted[0]);
+		return Number(availableTeams[0]);
 	}
 }
 
