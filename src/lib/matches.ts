@@ -55,15 +55,15 @@ export class Matches implements Writable<Matches> {
 		}>
 	): Promise<void> {
 		const old = payload.old as MatchRow;
-		const udpated = payload.new as MatchRow;
+		const updated = payload.new as MatchRow;
 
 		const matchIndex = self.matches?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
-			udpated.matches_team1_fkey = self.matches[matchIndex].matches_team1_fkey;
-			udpated.matches_team2_fkey = self.matches[matchIndex].matches_team2_fkey;
-			udpated.matches_ref_fkey = self.matches[matchIndex].matches_ref_fkey;
+			updated.matches_team1_fkey = self.matches[matchIndex].matches_team1_fkey;
+			updated.matches_team2_fkey = self.matches[matchIndex].matches_team2_fkey;
+			updated.matches_ref_fkey = self.matches[matchIndex].matches_ref_fkey;
 
-			self.matches?.splice(matchIndex, 1, udpated as MatchRow);
+			self.matches?.splice(matchIndex, 1, updated as MatchRow);
 			const matches = self.matches;
 
 			self._update((that: Matches) => {
