@@ -61,7 +61,9 @@ Scoring based on {scoring}
 	<TableBody>
 		{#each { length: orderedTeamScores.length } as _, i}
 			{@const isDefaultTeam =
-				defaultTeam && defaultTeam === orderedTeamScores[i] ? 'bg-green-200' : ''}
+				defaultTeam && defaultTeam === orderedTeamScores[i]
+					? 'bg-yellow-200 border-2 border-solid border-yellow-300'
+					: ''}
 			<TableBodyRow class={isDefaultTeam}>
 				<!-- <TableBodyCell>{i}</TableBodyCell> -->
 				<TableBodyCell>{orderedTeamScores[i]}</TableBodyCell>

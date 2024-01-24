@@ -48,6 +48,8 @@
 		matchesSubscription = await matches.subscribeToDB();
 	}
 	subscribeToMatches();
+
+	const defaultTdClass = 'px-6 py-4 whitespace-nowrap font-medium';
 </script>
 
 <div class="block text-gray-700 text-sm font-bold">Matches:</div>
@@ -81,42 +83,37 @@
 				{@const matchesForRound = matchesForEachRound[round].sort(
 					(a, b) => a.round - b.round || a.court - b.court
 				)}
-				{@const matchesIncomplete = matchesForRound.filter(
-					(match) => !match.team1_score || !match.team2_score
-				)}
-				{@const teamsThisRound = matchesForRound.flatMap((match) => [
-					match.matches_team1_fkey.name,
-					match.matches_team2_fkey.name
-				])}
 
 				<TableBodyRow>
 					<!-- Can have multiple matches per round if we have multiple courts -->
 					{#each matchesForRound as match}
-						<TableBodyCell>
-							<ViewMatch {matches} {match} {readOnly} />
+						{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
+						{@const teamsForMatch = [match.matches_team1_fkey.name, match.matches_team2_fkey.name]}
+						{@const hasDefaultTeam = teamsForMatch.includes(defaultTeam)}
+						{@const defaultTeamWin =
+							match.matches_team1_fkey.name == defaultTeam
+								? match.team1_score > match.team2_score
+								: match.team2_score > match.team1_score}
+						{@const rowTdClass = defaultTeamWin
+							? 'border-solid border-2 border-green-400 bg-green-200'
+							: 'border-solid border-2 border-red-400 bg-red-200'}
+						<TableBodyCell
+							tdClass={hasDefaultTeam
+								? matchComplete
+									? defaultTdClass + rowTdClass
+									: defaultTdClass + 'border-solid border-2 border-yellow-300 bg-yellow-200'
+								: defaultTdClass}
+						>
+							<ViewMatch {matches} {match} {readOnly} showWinLoss={!hasDefaultTeam} />
 						</TableBodyCell>
 					{/each}
 					{#if tournament.refs === 'teams'}
-						<TableBodyCell>
-							<div class="flex place-items-center">
-								<div class="m-1">
-									{matchesForRound[0]?.matches_ref_fkey?.name}
-								</div>
-
-								{#if teamsThisRound.includes(defaultTeam)}
-									<svg
-										class="w-[17px] h-[17px] text-gray-800 dark:text-white"
-										aria-hidden="true"
-										xmlns="http://www.w3.org/2000/svg"
-										fill="green"
-										viewBox="0 0 22 20"
-									>
-										<path
-											d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"
-										/>
-									</svg>
-								{/if}
-							</div>
+						<TableBodyCell
+							tdClass={matchesForRound[0]?.matches_ref_fkey?.name == defaultTeam
+								? defaultTdClass + 'border-solid border-2 border-yellow-300 bg-yellow-200'
+								: defaultTdClass}
+						>
+							{matchesForRound[0]?.matches_ref_fkey?.name}
 						</TableBodyCell>
 					{/if}
 				</TableBodyRow>

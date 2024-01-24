@@ -6,6 +6,8 @@
 	export let match: MatchRow;
 	export let matches: Matches;
 
+	export let showWinLoss: boolean = true;
+
 	let editing: boolean = false;
 	export let readOnly: boolean = false;
 
@@ -77,10 +79,12 @@
 	>
 		<span
 			class="p-1 rounded"
-			class:bg-green-300={match?.team1_score &&
+			class:bg-green-300={showWinLoss &&
+				match?.team1_score &&
 				match?.team2_score &&
 				match.team1_score > match.team2_score}
-			class:bg-red-300={match?.team1_score &&
+			class:bg-red-300={showWinLoss &&
+				match?.team1_score &&
 				match?.team2_score &&
 				match.team2_score > match.team1_score}
 		>
@@ -89,10 +93,12 @@
 		vs
 		<span
 			class="p-1 rounded"
-			class:bg-green-300={match?.team1_score &&
+			class:bg-green-300={showWinLoss &&
+				match?.team1_score &&
 				match?.team2_score &&
 				match?.team2_score > match?.team1_score}
-			class:bg-red-300={match?.team1_score &&
+			class:bg-red-300={showWinLoss &&
+				match?.team1_score &&
 				match?.team2_score &&
 				match?.team1_score > match?.team2_score}>{match?.matches_team2_fkey?.name}</span
 		>

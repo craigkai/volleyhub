@@ -125,45 +125,47 @@ export class Matches implements Writable<Matches> {
 			const userMatches: UserMatch[] = [];
 
 			const teamsPerRound: { number: number[] } = { 0: [] };
-			matches.sort((a, b) => a.round - b.round).forEach((match: Partial<MatchRow>) => {
-				if (match.team1 === 0 || match.team2 === 0) {
-					// bye
-					return;
-				}
+			matches
+				.sort((a, b) => a.round - b.round)
+				.forEach((match: Partial<MatchRow>) => {
+					if (match.team1 === 0 || match.team2 === 0) {
+						// bye
+						return;
+					}
 
-				// Short circuit if we have more matches than pool play games
-				// (you don't play every team).
-				if (pools && userMatches.length === pools * (teams.length / 2)) {
-					return;
-				}
+					// Short circuit if we have more matches than pool play games
+					// (you don't play every team).
+					if (pools && userMatches.length === pools * (teams.length / 2)) {
+						return;
+					}
 
-				if (courtsAvailable === 0 || teamsAvailable < 2) {
-					courtsAvailable = courts;
-					teamsAvailable = teams?.length;
-					round = round + 1;
-					totalRounds = totalRounds + 1;
-				}
+					if (courtsAvailable === 0 || teamsAvailable < 2) {
+						courtsAvailable = courts;
+						teamsAvailable = teams?.length;
+						round = round + 1;
+						totalRounds = totalRounds + 1;
+					}
 
-				teamsPerRound[round] = teamsPerRound[round]
-					? teamsPerRound[round].concat(match.team1, match.team2)
-					: [match.team1, match.team2];
+					teamsPerRound[round] = teamsPerRound[round]
+						? teamsPerRound[round].concat(match.team1, match.team2)
+						: [match.team1, match.team2];
 
-				match.court = courts - courtsAvailable;
-				match.round = round;
+					match.court = courts - courtsAvailable;
+					match.round = round;
 
-				courtsAvailable = courtsAvailable - 1;
-				if (teamsAvailable >= 2) {
-					userMatches.push({
-						event_id: this.event_id,
-						team1: match.team1 as number,
-						team2: match.team2 as number,
-						court: match.court,
-						round: match.round,
-						ref: match.ref
-					});
-				}
-				teamsAvailable = teamsAvailable - 2;
-			});
+					courtsAvailable = courtsAvailable - 1;
+					if (teamsAvailable >= 2) {
+						userMatches.push({
+							event_id: this.event_id,
+							team1: match.team1 as number,
+							team2: match.team2 as number,
+							court: match.court,
+							round: match.round,
+							ref: match.ref
+						});
+					}
+					teamsAvailable = teamsAvailable - 2;
+				});
 
 			if (refs === 'teams') {
 				Object.keys(teamsPerRound).forEach((round: string) => {
