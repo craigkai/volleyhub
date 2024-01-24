@@ -70,7 +70,7 @@
 		<TableHead>
 			{#each Array(tournament.courts) as _, i}
 				<TableHeadCell>Court {i + 1}</TableHeadCell>
-				{#if tournament.refs === 'provided'}
+				{#if tournament.refs === 'teams'}
 					<TableHeadCell>Ref</TableHeadCell>
 				{/if}
 			{/each}
