@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Tooltip, Label, Input } from 'flowbite-svelte';
 	import { error, success } from '$lib/toast';
-	import { CheckSolid, CloseSolid } from 'flowbite-svelte-icons';
 	import { Matches } from '$lib/matches';
 
 	export let match: MatchRow;
@@ -12,6 +11,10 @@
 
 	async function updateMatch() {
 		try {
+			// Need to convert string inputs to numbers
+			match.team1_score = Number(match.team1_score);
+			match.team2_score = Number(match.team2_score);
+
 			match = await matches.update(match);
 			success(`Match ${match.matches_team1_fkey.name} vs ${match.matches_team2_fkey.name} updated`);
 		} catch (err: any) {
@@ -28,12 +31,12 @@
 		<Input
 			id="team1-score-input"
 			size="md"
+			type="number"
 			bind:value={match.team1_score}
 			on:blur={() => {
 				editing = false;
 			}}
 			on:keydown={(e) => {
-				console.log(e);
 				if (e?.key === 'Enter') {
 					updateMatch();
 					editing = false;
@@ -47,6 +50,7 @@
 		<Input
 			id="team2-score-input"
 			size="sm"
+			type="number"
 			bind:value={match.team2_score}
 			on:blur={() => {
 				editing = false;

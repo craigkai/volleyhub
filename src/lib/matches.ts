@@ -61,6 +61,7 @@ export class Matches implements Writable<Matches> {
 		if (matchIndex !== undefined && matchIndex !== -1) {
 			udpated.matches_team1_fkey = self.matches[matchIndex].matches_team1_fkey;
 			udpated.matches_team2_fkey = self.matches[matchIndex].matches_team2_fkey;
+			udpated.matches_ref_fkey = self.matches[matchIndex].matches_ref_fkey;
 
 			self.matches?.splice(matchIndex, 1, udpated as MatchRow);
 			const matches = self.matches;

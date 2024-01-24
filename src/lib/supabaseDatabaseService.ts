@@ -181,16 +181,13 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
 	async updateTournament(id: string, input: EventRow): Promise<EventRow | null> {
+		const parsedEvent = eventsRowSchema.parse(input);
+
 		try {
 			// Update the tournament in the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
 				.from('events')
-				.update({
-					name: input.name,
-					pools: input.pools,
-					courts: input.courts,
-					date: input.date
-				})
+				.update(parsedEvent)
 				.eq('id', id)
 				.select()
 				.single();
@@ -409,14 +406,11 @@ export class SupabaseDatabaseService implements DatabaseService {
 	}
 
 	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
+		const parsedMatch = matchesRowSchema.parse(match);
+
 		const res = await this.supabaseClient
 			.from('matches')
-			.update({
-				team1_score: match.team1_score,
-				team2_score: match.team2_score,
-				court: match.court,
-				round: match.round
-			})
+			.update(parsedMatch)
 			.eq('id', match.id)
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
 			.single();
