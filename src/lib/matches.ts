@@ -219,7 +219,7 @@ export class Matches implements Writable<Matches> {
 		// Exclude teams that have already refereed in previous matches
 		const availableTeamsByRefsCount: { [key: number]: number } = previousMatches.reduce(
 			(acc, match) => {
-				if (acc[match.ref]) {
+				if (match.ref) {
 					acc[match.ref] = acc[match.ref] ? acc[match.ref] + 1 : 1;
 				}
 				return acc;
@@ -228,7 +228,7 @@ export class Matches implements Writable<Matches> {
 		);
 
 		const availableTeamsSorted = availableTeams.sort(
-			(a, b) => availableTeamsByRefsCount[a] - availableTeamsByRefsCount[b]
+			(a, b) => availableTeamsByRefsCount[a] ?? 0 - availableTeamsByRefsCount[b] ?? 0
 		);
 
 		// Choose a referee from the remaining available teams
