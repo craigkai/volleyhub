@@ -70,10 +70,10 @@
 		<TableHead>
 			{#each Array(tournament.courts) as _, i}
 				<TableHeadCell>Court {i + 1}</TableHeadCell>
-				{#if tournament.refs === 'teams'}
-					<TableHeadCell>Ref</TableHeadCell>
-				{/if}
 			{/each}
+			{#if tournament.refs === 'teams'}
+				<TableHeadCell>Ref</TableHeadCell>
+			{/if}
 		</TableHead>
 		<TableBody>
 			<!-- Need to iterate over ROUNDs here and fill each court -->
@@ -109,10 +109,10 @@
 								<ViewMatch {matches} {match} {readOnly} />
 							</div>
 						</TableBodyCell>
-						{#if tournament.refs === 'teams'}
-							<TableBodyCell>{match?.matches_ref_fkey?.name}</TableBodyCell>
-						{/if}
 					{/each}
+					{#if tournament.refs === 'teams'}
+						<TableBodyCell>{matchesForRound[0]?.matches_ref_fkey?.name}</TableBodyCell>
+					{/if}
 				</TableBodyRow>
 			{/each}
 		</TableBody>
