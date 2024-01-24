@@ -26,6 +26,8 @@
 	async function checkGenerateMatches() {
 		if (($matches?.matches?.length ?? 0) > 0) {
 			showGenerateMatchesAlert = true;
+		} else {
+			generateMatches();
 		}
 	}
 
@@ -68,6 +70,9 @@
 		<TableHead>
 			{#each Array(tournament.courts) as _, i}
 				<TableHeadCell>Court {i + 1}</TableHeadCell>
+				{#if tournament.refs === 'provided'}
+					<TableHeadCell>Ref</TableHeadCell>
+				{/if}
 			{/each}
 		</TableHead>
 		<TableBody>
@@ -104,6 +109,9 @@
 								<ViewMatch {matches} {match} {readOnly} />
 							</div>
 						</TableBodyCell>
+						{#if tournament.refs === 'teams'}
+							<TableBodyCell>{match?.matches_ref_fkey?.name}</TableBodyCell>
+						{/if}
 					{/each}
 				</TableBodyRow>
 			{/each}

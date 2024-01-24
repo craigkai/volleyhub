@@ -84,12 +84,16 @@ export class Matches implements Writable<Matches> {
 	}
 
 	async create(
-		{ pools, courts }: Partial<EventRow>,
+		{ pools, courts, refs }: Partial<EventRow>,
 		teams: TeamRow[]
 	): Promise<Matches | undefined> {
 		if (!teams || teams.length === 0) {
 			console.error("Can't generate matches without Teams");
 			error(500, Error("Can't generate matches without Teams"));
+		}
+
+		if (teams.length <= 2 && refs === 'teams') {
+			throw new Error('Cannot have refs with less than 3 teams');
 		}
 
 		if (!pools || pools <= 0) {
@@ -103,11 +107,11 @@ export class Matches implements Writable<Matches> {
 		}
 
 		try {
-			let matches: Match[] = [];
+			let matches: Partial<MatchRow>[] = [];
 			// If we have more pool play games than matches we got
 			// back, then we need to generate some more.
 			while (matches.length < pools * teams.length) {
-				matches = matches.concat(RoundRobin(teams));
+				matches = matches.concat(RoundRobin(teams.map((t) => t.id)));
 			}
 			// Delete all old matches as they are now invalid
 			await this.databaseService.deleteMatchesByEvent(this.event_id);
@@ -118,7 +122,14 @@ export class Matches implements Writable<Matches> {
 
 			let totalRounds = 0;
 			const userMatches: UserMatch[] = [];
-			matches.forEach((match: Match) => {
+
+			const teamsPerRound: { number: number[] } = { 0: [] };
+			matches.forEach((match: Partial<MatchRow>) => {
+				if (match.team1 === 0 || match.team2 === 0) {
+					// bye
+					return;
+				}
+
 				// Short circuit if we have more matches than pool play games
 				// (you don't play every team).
 				if (pools && userMatches.length === pools * (teams.length / 2)) {
@@ -132,6 +143,10 @@ export class Matches implements Writable<Matches> {
 					totalRounds = totalRounds + 1;
 				}
 
+				teamsPerRound[round] = teamsPerRound[round]
+					? teamsPerRound[round].concat(match.team1, match.team2)
+					: [match.team1, match.team2];
+
 				match.court = courts - courtsAvailable;
 				match.round = round;
 
@@ -139,14 +154,30 @@ export class Matches implements Writable<Matches> {
 				if (teamsAvailable >= 2) {
 					userMatches.push({
 						event_id: this.event_id,
-						team1: match?.player1?.id,
-						team2: match?.player2?.id,
+						team1: match.team1 as number,
+						team2: match.team2 as number,
 						court: match.court,
-						round: match.round
+						round: match.round,
+						ref: match.ref
 					});
 				}
 				teamsAvailable = teamsAvailable - 2;
 			});
+
+			if (refs === 'teams') {
+				Object.keys(teamsPerRound).forEach((round: string) => {
+					userMatches.forEach((match: UserMatch) => {
+						if (match.round === Number(round)) {
+							const ref = this.determineReferee(
+								teamsPerRound[round],
+								teams.map((t) => t.id),
+								userMatches
+							);
+							match.ref = ref;
+						}
+					});
+				});
+			}
 
 			// Call multi insert:
 			const res = await this.databaseService.insertMatches(userMatches);
@@ -170,6 +201,35 @@ export class Matches implements Writable<Matches> {
 			error(500, new Error('Failed to update match.'));
 		}
 		return updatedMatch;
+	}
+
+	determineReferee(
+		teamsPerRound: [{ number: number[] }],
+		teams: number[],
+		previousMatches: Partial<MatchRow>[]
+	): number {
+		// Exclude teams playing in the current round from the referee selection
+		const availableTeams = teams.filter((team) => !teamsPerRound.includes(team) && team !== 0);
+
+		// Exclude teams that have already refereed in previous matches
+		const teamsWithPreviousReferee = new Set(previousMatches.map((match) => match.ref));
+		const availableTeamsByRefsCount: { [key: number]: number } = availableTeams.reduce(
+			(acc, team) => {
+				if (teamsWithPreviousReferee.has(team)) {
+					acc[team] = acc[team] ? acc[team] + 1 : 1;
+				} else {
+					acc[team] = 0;
+				}
+				return acc;
+			},
+			{}
+		);
+		const availableTeamsOrdered = Object.keys(availableTeamsByRefsCount).sort(
+			(a, b) => availableTeamsByRefsCount[b] - availableTeamsByRefsCount[a]
+		);
+
+		// Choose a referee from the remaining available teams
+		return Number(availableTeamsOrdered[0]);
 	}
 }
 

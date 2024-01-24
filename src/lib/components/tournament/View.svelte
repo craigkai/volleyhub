@@ -44,8 +44,8 @@
 						<TableBodyRow>
 							<TableBodyCell>{match.round}</TableBodyCell>
 							<TableBodyCell>tbd</TableBodyCell>
-							<TableBodyCell>{match.player1}</TableBodyCell>
-							<TableBodyCell>{match.player2}</TableBodyCell>
+							<TableBodyCell>{match.team1}</TableBodyCell>
+							<TableBodyCell>{match.team2}</TableBodyCell>
 						</TableBodyRow>
 					{/each}
 				</TableBody>

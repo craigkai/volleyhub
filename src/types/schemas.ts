@@ -22,6 +22,7 @@ export const eventsRowSchema = z.object({
 	name: z.string(),
 	owner: z.string(),
 	pools: z.number().nullable(),
+	refs: z.string().nullable(),
 	scoring: z.string().nullable()
 });
 
@@ -33,6 +34,7 @@ export const eventsInsertSchema = z.object({
 	name: z.string(),
 	owner: z.string(),
 	pools: z.number().optional().nullable(),
+	refs: z.string().optional().nullable(),
 	scoring: z.string().optional().nullable()
 });
 
@@ -44,6 +46,7 @@ export const eventsUpdateSchema = z.object({
 	name: z.string().optional(),
 	owner: z.string().optional(),
 	pools: z.number().optional().nullable(),
+	refs: z.string().optional().nullable(),
 	scoring: z.string().optional().nullable()
 });
 
@@ -52,6 +55,7 @@ export const matchesRowSchema = z.object({
 	created_at: z.string(),
 	event_id: z.number(),
 	id: z.number(),
+	ref: z.number().nullable(),
 	round: z.number(),
 	team1: z.number(),
 	team1_score: z.number().nullable(),
@@ -64,6 +68,7 @@ export const matchesInsertSchema = z.object({
 	created_at: z.string().optional(),
 	event_id: z.number(),
 	id: z.number().optional(),
+	ref: z.number().optional().nullable(),
 	round: z.number().optional(),
 	team1: z.number(),
 	team1_score: z.number().optional().nullable(),
@@ -76,6 +81,7 @@ export const matchesUpdateSchema = z.object({
 	created_at: z.string().optional(),
 	event_id: z.number().optional(),
 	id: z.number().optional(),
+	ref: z.number().optional().nullable(),
 	round: z.number().optional(),
 	team1: z.number().optional(),
 	team1_score: z.number().optional().nullable(),

@@ -12,24 +12,10 @@ declare global {
 	type MatchRow = z.infer<typeof matchesRowSchema> & {
 		matches_team1_fkey: { name: string };
 		matches_team2_fkey: { name: string };
+		matches_ref_fkey: { name: string };
 	};
 
-	interface Match {
-		round: number;
-		match: number;
-		player1: string | number | null;
-		player2: string | number | null;
-		win?: {
-			round: number;
-			match: number;
-		};
-		loss?: {
-			round: number;
-			match: number;
-		};
-	}
-
-	type UserMatch = Partial<Match> & {
+	type UserMatch = Partial<MatchRow> & {
 		court: number;
 		round: number;
 		event_id: number;

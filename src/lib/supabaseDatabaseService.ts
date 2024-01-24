@@ -91,7 +91,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 				// We call the load function to update in case our content is stale
 				// we we re-connect to the web socket.
 				self.load();
-				console.debug('Realtime status', status)
+				console.debug('Realtime status', status);
 			});
 	}
 
@@ -312,7 +312,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 		// Load the matches from the 'matches' table
 		const res: PostgrestSingleResponse<any[]> = await this.supabaseClient
 			.from('matches')
-			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
+			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
 			.eq('event_id', event_id);
 
 		// Handle any errors that may have occurred during the database operation
@@ -394,7 +394,7 @@ export class SupabaseDatabaseService implements DatabaseService {
 		const res = await this.supabaseClient
 			.from('matches')
 			.insert(matches)
-			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)');
+			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)');
 
 		this.handleDatabaseError(res);
 
@@ -408,30 +408,17 @@ export class SupabaseDatabaseService implements DatabaseService {
 		return res.data ?? [];
 	}
 
-	async updateMatch(match: MatchRow): Promise<{
-		created_at: string;
-		id: number;
-		status: string | null;
-		event_id: number;
-		team1: number;
-		team1_score: number | null;
-		team2: number;
-		team2_score: number | null;
-		court: number; // Add the missing 'court' property
-		round: number; // Add the missing 'round' property
-		matches_team1_fkey: { name: string }; // Add the missing 'matches_team1_fkey' property
-		matches_team2_fkey: { name: string }; // Add the missing 'matches_team2_fkey' property
-	} | null> {
+	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
 		const res = await this.supabaseClient
 			.from('matches')
 			.update({
 				team1_score: match.team1_score,
 				team2_score: match.team2_score,
-				court: match.court, // Add the missing 'court' property
-				round: match.round // Add the missing 'round' property
+				court: match.court,
+				round: match.round
 			})
 			.eq('id', match.id)
-			.select('*, matches_team1_fkey(name), matches_team2_fkey(name)')
+			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
 			.single();
 		this.handleDatabaseError(res);
 
@@ -445,7 +432,10 @@ export class SupabaseDatabaseService implements DatabaseService {
 	}
 
 	async getEvents(): Promise<EventRow[] | null> {
-		const res = await this.supabaseClient.from('events').select('*').gte('date', new Date().toISOString());
+		const res = await this.supabaseClient
+			.from('events')
+			.select('*')
+			.gte('date', new Date().toISOString());
 		this.handleDatabaseError(res);
 
 		const eventsRowSchemaArray = z.array(eventsRowSchema);
@@ -457,5 +447,4 @@ export class SupabaseDatabaseService implements DatabaseService {
 
 		return res.data;
 	}
-
 }

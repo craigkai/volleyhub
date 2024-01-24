@@ -12,6 +12,7 @@ export interface Database {
 					name: string;
 					owner: string;
 					pools: number | null;
+					refs: string | null;
 					scoring: string | null;
 				};
 				Insert: {
@@ -22,6 +23,7 @@ export interface Database {
 					name: string;
 					owner: string;
 					pools?: number | null;
+					refs?: string | null;
 					scoring?: string | null;
 				};
 				Update: {
@@ -32,6 +34,7 @@ export interface Database {
 					name?: string;
 					owner?: string;
 					pools?: number | null;
+					refs?: string | null;
 					scoring?: string | null;
 				};
 				Relationships: [
@@ -50,6 +53,7 @@ export interface Database {
 					created_at: string;
 					event_id: number;
 					id: number;
+					ref: number | null;
 					round: number;
 					team1: number;
 					team1_score: number | null;
@@ -61,6 +65,7 @@ export interface Database {
 					created_at?: string;
 					event_id: number;
 					id?: number;
+					ref?: number | null;
 					round?: number;
 					team1: number;
 					team1_score?: number | null;
@@ -72,6 +77,7 @@ export interface Database {
 					created_at?: string;
 					event_id?: number;
 					id?: number;
+					ref?: number | null;
 					round?: number;
 					team1?: number;
 					team1_score?: number | null;
@@ -84,6 +90,13 @@ export interface Database {
 						columns: ['event_id'];
 						isOneToOne: false;
 						referencedRelation: 'events';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'matches_ref_fkey';
+						columns: ['ref'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
 						referencedColumns: ['id'];
 					},
 					{
