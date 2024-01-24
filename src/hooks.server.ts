@@ -61,15 +61,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	// Make the login our homepage for now
-	if (event.url.pathname === '/' && !event.url.host.includes('localhost')) {
-		const session = await event.locals.getSession();
-		if (!session) {
-			// the user is not signed in
-			redirect(303, '/auth');
-		}
-	}
-
 	return resolve(event, {
 		/**
 		 * There´s an issue with `filterSerializedResponseHeaders` not working when using `sequence`
