@@ -36,9 +36,6 @@
 			size="md"
 			type="number"
 			bind:value={match.team1_score}
-			on:blur={() => {
-				editing = false;
-			}}
 			on:keydown={(e) => {
 				if (e?.key === 'Enter') {
 					updateMatch();
@@ -55,9 +52,6 @@
 			size="sm"
 			type="number"
 			bind:value={match.team2_score}
-			on:blur={() => {
-				editing = false;
-			}}
 			on:keydown={(e) => {
 				if (e?.key === 'Enter') {
 					updateMatch();
