@@ -17,7 +17,7 @@
 			match.team1_score = Number(match.team1_score);
 			match.team2_score = Number(match.team2_score);
 
-			match = await matches.update(match);
+			match = await matches.put(match);
 			success(`Match ${match.matches_team1_fkey.name} vs ${match.matches_team2_fkey.name} updated`);
 		} catch (err: any) {
 			console.error(err);
