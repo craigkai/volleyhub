@@ -217,7 +217,6 @@ export class Matches implements Writable<Matches> {
 		// Exclude teams that have already refereed in previous matches
 		const availableTeamsByRefsCount: { [key: number]: number } = previousMatches.reduce(
 			(acc, match) => {
-				console.log(match.ref)
 				if (match.ref) {
 					acc[match.ref] = acc[match.ref] ? acc[match.ref] + 1 : 1;
 				}
@@ -225,7 +224,6 @@ export class Matches implements Writable<Matches> {
 			},
 			{}
 		);
-		console.log(availableTeamsByRefsCount[12])
 
 		availableTeams.sort(
 			(a, b) => (availableTeamsByRefsCount[a] ?? 0) - (availableTeamsByRefsCount[b] ?? 0)
@@ -302,7 +300,8 @@ if (import.meta.vitest) {
 			date: new Date().toString(),
 			pools: 3,
 			courts: 2,
-			owner: 'test'
+			owner: 'test',
+			refs: 'teams'
 		};
 
 		const teams = Array.from({ length: 4 }, (_x, i) => {
@@ -328,5 +327,41 @@ if (import.meta.vitest) {
 		Object.keys(gamesPerTeam).forEach((team: string) => {
 			expect(gamesPerTeam[team]).toEqual(3);
 		});
+	});
+
+	it('Test matches refs are correct with four teams and three pool play games one court', async () => {
+		const input: Partial<EventRow> = {
+			name: 'Test Tournament',
+			date: new Date().toString(),
+			pools: 10,
+			courts: 1,
+			owner: 'test',
+			refs: 'teams'
+		};
+
+		const teams = Array.from({ length: 7 }, (_x, i) => {
+			return {
+				id: `${i + 1}`,
+				event_id: '1',
+				created_at: '',
+				name: `team${i}`,
+				state: 'active'
+			};
+		});
+		await matches.load(); // Ensure matches are loaded before creating new ones
+		await matches.create(input, teams);
+
+		const refGamesPerTeam: any = {};
+		matches?.matches?.forEach((match: MatchRow) => {
+			if (match.ref) {
+				refGamesPerTeam[match.ref] = refGamesPerTeam[match.ref] ? refGamesPerTeam[match.ref] + 1 : 1;
+			}
+		});
+
+		const max = Math.max(...Object.values(refGamesPerTeam));
+		const min = Math.min(...Object.values(refGamesPerTeam));
+
+		// Even number of games and teams means ever team should ref the same amount of games
+		expect(min).toEqual(max);
 	});
 }
