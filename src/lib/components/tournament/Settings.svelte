@@ -19,13 +19,8 @@
 			.create(tournament)
 			.then(async () => {
 				success(`Tournament created`);
-				tournament.id = tournament?.id;
-				// Reload our tournament now that we have it in the db
-				await tournament.load().catch((err: HttpError) => {
-					error(err?.body?.message);
-				});
 				// Navigate to the page with the [slug] value set to our tournament Id
-				goto(`/protected-routes/events/${tournament?.id}`);
+				goto(`/protected-routes/events/${tournament.id}`);
 			})
 			.catch((err: HttpError) => {
 				error(err?.body?.message);
