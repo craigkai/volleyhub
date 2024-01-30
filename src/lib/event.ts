@@ -50,10 +50,14 @@ export class Event {
 		) {
 			error(400, `Tournament create call does not have all required values`);
 		}
+		if (input.hasOwnProperty('id')) {
+			delete (input as { id?: number }).id;
+		}
 		const currentUser = await this.databaseService.getCurrentUser();
 		const ownerId = currentUser ? currentUser.id : null;
+		input.owner = ownerId as string;
 
-		const res: EventRow | null = await this.databaseService.createEvent(input, ownerId as string);
+		const res: EventRow | null = await this.databaseService.createEvent(input);
 
 		if (res !== null) {
 			Object.keys(res as object).forEach((key) => {

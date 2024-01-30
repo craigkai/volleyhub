@@ -24,7 +24,7 @@ export interface DatabaseService {
 		filter?: string
 	): Promise<RealtimeChannel>;
 	// Method to create a new event
-	createEvent(input: Event, ownerId: string): Promise<EventRow | null>;
+	createEvent(input: Event): Promise<EventRow | null>;
 	// Method to update a tournament
 	updateTournament(id: string, input: EventRow): Promise<EventRow | null>;
 	// Method to get the current user
@@ -135,23 +135,17 @@ export class SupabaseDatabaseService implements DatabaseService {
 	/**
 	 * Create a new event in the database.
 	 * @param {EventRow} input - The data for the new event.
-	 * @param {string} ownerId - The ID of the owner of the event.
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the newly created event.
 	 * @throws {Error} - Throws an error if there's an issue creating the event.
 	 */
-	async createEvent(input: Event, ownerId: string): Promise<EventRow | null> {
+	async createEvent(input: Event): Promise<EventRow | null> {
 		try {
+			const parsedEvent = eventsRowSchema.partial().parse(input);
+
 			// Insert the new event into the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
 				.from('events')
-				.insert({
-					owner: ownerId,
-					name: input.name,
-					pools: input.pools,
-					courts: input.courts,
-					date: input.date,
-					scoring: input.scoring
-				})
+				.insert(parsedEvent)
 				.select()
 				.single();
 
