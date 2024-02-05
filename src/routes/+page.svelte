@@ -12,7 +12,7 @@
 {#await eventsPromise}
 	loading...
 {:then events}
-	<div class="m-2">
+	<div class="flex flex-col items-center">
 		<div>Upcoming events:</div>
 		{#each events as event}
 			<Card class="m-2" href="/events/{event.id}">
