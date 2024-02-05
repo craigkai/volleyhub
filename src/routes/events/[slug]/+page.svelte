@@ -61,9 +61,9 @@
 				<Standings event={tournament} bind:matches {teams} {defaultTeam} />
 			</TabItem>
 
-			<!-- <TabItem title="Bracket">
-				<Bracket {tournament} {matches} />
-			</TabItem> -->
+			<TabItem title="Bracket">
+				<Bracket {tournament} {matches} {teams} />
+			</TabItem>
 		</Tabs>
 	</div>
 {/await}

@@ -31,15 +31,18 @@
 		}, {});
 
 		$matches?.matches?.forEach((match: MatchRow) => {
-			if (match.team1_score && match.team2_score) {
-				if (scoring === 'points') {
-					teamScores[match.matches_team1_fkey.name] += match.team1_score || 0;
-					teamScores[match.matches_team2_fkey.name] += match.team2_score || 0;
-				} else {
-					teamScores[match.matches_team1_fkey.name] +=
-						match.team1_score > match.team2_score ? 1 : 0;
-					teamScores[match.matches_team2_fkey.name] +=
-						match.team2_score > match.team1_score ? 1 : 0;
+			// We only care about pool play not bracket/playoff matches
+			if (match.type === 'pool') {
+				if (match.team1_score && match.team2_score) {
+					if (scoring === 'points') {
+						teamScores[match.matches_team1_fkey.name] += match.team1_score || 0;
+						teamScores[match.matches_team2_fkey.name] += match.team2_score || 0;
+					} else {
+						teamScores[match.matches_team1_fkey.name] +=
+							match.team1_score > match.team2_score ? 1 : 0;
+						teamScores[match.matches_team2_fkey.name] +=
+							match.team2_score > match.team1_score ? 1 : 0;
+					}
 				}
 			}
 		});

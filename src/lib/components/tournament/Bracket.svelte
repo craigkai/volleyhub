@@ -1,9 +1,16 @@
 <script lang="ts">
 	import { Event } from '$lib/event';
 	import { Matches } from '$lib/matches';
+	import type { Teams } from '$lib/teams';
+	import { SingleEliminationBracket } from '$lib/bracket';
 
 	export let tournament: Event;
 	export let matches: Matches;
+	export let teams: Teams;
+
+	const teamNames = teams.teams.map((team) => team.name);
+	const bracket = new SingleEliminationBracket(teamNames);
+	const bracketStructure = bracket.getBracket();
 </script>
 
 <div class="container">
