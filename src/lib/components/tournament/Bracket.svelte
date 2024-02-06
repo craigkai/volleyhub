@@ -11,6 +11,8 @@
 	const teamNames = teams.teams.map((team) => team.name);
 	const bracket = new SingleEliminationBracket(teamNames);
 	const bracketStructure = bracket.getBracket();
+
+	matches.loadBracketMatches();
 </script>
 
 <div class="container">

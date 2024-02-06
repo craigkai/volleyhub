@@ -21,6 +21,7 @@ export class Matches implements Writable<Matches> {
 
 	event_id: number;
 	matches?: MatchRow[];
+	bracketMatches?: MatchRow[];
 
 	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
 		let { subscribe, set, update } = writable(this);
@@ -41,6 +42,23 @@ export class Matches implements Writable<Matches> {
 		if (res) {
 			this._update((that: Matches) => {
 				that.matches = res;
+				return that;
+			});
+		}
+
+		return this;
+	}
+
+	async loadBracketMatches() {
+		const res = await this.databaseService.loadMatches(this.event_id, {
+			column: 'type',
+			operator: 'eq',
+			value: 'bracket'
+		});
+
+		if (res) {
+			this._update((that: Matches) => {
+				that.bracketMatches = res;
 				return that;
 			});
 		}

@@ -12,6 +12,12 @@ import { z } from 'zod';
 import { Event } from '$lib/event';
 import type { Matches } from './matches';
 
+type Filter = {
+	column: string;
+	operator: string;
+	value: string;
+};
+
 // DatabaseService interface declaration
 export interface DatabaseService {
 	// Method to handle database errors
@@ -299,12 +305,18 @@ export class SupabaseDatabaseService implements DatabaseService {
 	 * @returns {Promise<MatchRow[]>} - Returns a promise that resolves to an array of the loaded matches.
 	 * @throws {Error} - Throws an error if there's an issue loading the matches.
 	 */
-	async loadMatches(event_id: number): Promise<MatchRow[] | null> {
-		// Load the matches from the 'matches' table
-		const res: PostgrestSingleResponse<any[]> = await this.supabaseClient
+	async loadMatches(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
+		const query = this.supabaseClient
 			.from('matches')
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
 			.eq('event_id', event_id);
+
+		if (filter) {
+			query.filter(filter.column, filter.operator, filter.value);
+		}
+
+		// Load the matches from the 'matches' table
+		const res: PostgrestSingleResponse<any[]> = await query;
 
 		// Handle any errors that may have occurred during the database operation
 		this.handleDatabaseError(res);
