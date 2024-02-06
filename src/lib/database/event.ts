@@ -68,9 +68,9 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
 	async updateEvent(id: number, input: EventRow): Promise<EventRow | null> {
-		const parsedEvent = eventsRowSchema.parse(input);
-
 		try {
+			const parsedEvent = eventsRowSchema.parse(input);
+
 			// Update the tournament in the 'events' table
 			const res: PostgrestResponse<EventRow> = await this.supabaseClient
 				.from('events')

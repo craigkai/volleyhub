@@ -14,7 +14,7 @@
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import type { Teams } from '$lib/teams';
 	import { Alert, Button } from 'flowbite-svelte';
-	import { page } from '$app/stores';
+	import type { HttpError } from '@sveltejs/kit';
 
 	export let matches: Matches;
 	export let tournament: Event;
@@ -39,7 +39,7 @@
 				error('Failed to create matches');
 			}
 		} catch (err) {
-			error(err.body.body.message);
+			error((err as HttpError).toString());
 		}
 		showGenerateMatchesAlert = false;
 	}

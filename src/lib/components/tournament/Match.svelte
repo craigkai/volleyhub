@@ -2,6 +2,7 @@
 	import { Tooltip, Label, Input } from 'flowbite-svelte';
 	import { error, success } from '$lib/toast';
 	import { Matches } from '$lib/matches';
+	import type { HttpError } from '@sveltejs/kit';
 
 	export let match: MatchRow;
 	export let matches: Matches;
@@ -20,8 +21,7 @@
 			match = await matches.put(match);
 			success(`Match ${match.matches_team1_fkey.name} vs ${match.matches_team2_fkey.name} updated`);
 		} catch (err) {
-			console.error(err);
-			error(err?.body?.message ?? `Something went wrong: ${err}`);
+			error((err as HttpError).toString());
 		}
 	}
 </script>

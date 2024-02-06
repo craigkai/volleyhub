@@ -18,7 +18,7 @@
 			success(`Team ${newTeamName} created`);
 			newTeamName = '';
 		} catch (err: any) {
-			error(err?.body?.message ?? `Something went wrong: ${err}`);
+			error((err as HttpError).toString());
 		}
 	}
 

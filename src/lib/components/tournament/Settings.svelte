@@ -23,7 +23,7 @@
 				goto(`/protected-routes/events/${tournament.id}`);
 			})
 			.catch((err: HttpError) => {
-				error(err?.body?.message);
+				error(err.toString());
 			});
 	}
 

@@ -130,7 +130,6 @@ export class Matches extends Base {
 
 			return this;
 		} catch (err) {
-			console.error('Failed to generate matches:', err);
 			this.handleError(500, err instanceof Error ? err.message : (err as string));
 		}
 	}
