@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
+	import { EventSupabaseDatabaseService } from '$lib/database/event';
 	import { Card, Spinner } from 'flowbite-svelte';
 	import dayjs from 'dayjs';
 
 	export let data: PageData;
 
-	const databaseService = new SupabaseDatabaseService(data?.supabase);
-	const eventsPromise = databaseService.getEvents();
+	const eventsDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
+	const eventsPromise = eventsDatabaseService.getEvents();
 </script>
 
 <div class="flex flex-col items-center">

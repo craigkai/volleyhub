@@ -1,5 +1,5 @@
 // src/routes/protected-routes/dashboard/+page.ts
-import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
+import { EventSupabaseDatabaseService } from '$lib/database/event';
 import { error } from '$lib/toast';
 import type { HttpError } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
@@ -8,9 +8,9 @@ import type { PageLoad } from './$types';
 export const load: PageLoad = async ({ parent }) => {
 	const { supabase, session } = await parent();
 
-	const databaseService = new SupabaseDatabaseService(supabase);
+	const eventsDatabaseService = new EventSupabaseDatabaseService(supabase);
 
-	const events = await databaseService
+	const events = await eventsDatabaseService
 		.loadEvents(session?.user.id as string)
 		.catch((err: HttpError) => {
 			error(err.body.message);

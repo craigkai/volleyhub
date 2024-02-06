@@ -5,20 +5,27 @@
 	import { Teams } from '$lib/teams';
 	import Matches from '$lib/components/tournament/Matches.svelte';
 	import Bracket from '$lib/components/tournament/Bracket.svelte';
-	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
+	import { EventSupabaseDatabaseService } from '$lib/database/event';
+	import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
+	import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 	import { loadInitialData } from '$lib/helper';
 	import Standings from '$lib/components/tournament/Standings.svelte';
 	import { Tabs, TabItem } from 'flowbite-svelte';
 	import { Label, Select } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
+	import { pushState } from '$app/navigation';
 
 	export let data: PageData;
 
-	const databaseService = new SupabaseDatabaseService(data?.supabase);
-	const tournament = new Event(data.event_id, databaseService);
-	let matches = new MatchesInstance(data.event_id, databaseService);
-	const teams = new Teams(data.event_id, databaseService);
+	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
+	const tournament = new Event(data.event_id, eventSupabaseDatabaseService);
+
+	const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(data?.supabase);
+	let matches = new MatchesInstance(data.event_id, matchesSupabaseDatabaseService);
+
+	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(data?.supabase);
+	const teams = new Teams(data.event_id, teamsSupabaseDatabaseService);
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 	let defaultTeam = data.default_team;
@@ -27,7 +34,7 @@
 		if (browser) {
 			$page.url.searchParams.set('team', defaultTeam);
 			const url = $page.url.href;
-			window.history.replaceState({}, '', url);
+			pushState(url, '');
 		}
 	}
 

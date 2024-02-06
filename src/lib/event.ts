@@ -1,13 +1,13 @@
-import { error } from '@sveltejs/kit';
-import type { SupabaseDatabaseService } from './supabaseDatabaseService';
+import type { EventSupabaseDatabaseService } from '$lib/database/event';
+import { Base } from './base';
 
 /**
  * The Tournament class represents a tournament in the application.
  * It provides methods for creating and managing a tournament.
  */
-export class Event {
+export class Event extends Base {
 	// The service used to interact with the database
-	private databaseService: SupabaseDatabaseService;
+	private databaseService: EventSupabaseDatabaseService;
 
 	// The ID of the tournament
 	id: number;
@@ -24,9 +24,10 @@ export class Event {
 	 * The constructor for the Tournament class.
 	 * @param {DatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
+	constructor(event_id: number, databaseService: EventSupabaseDatabaseService) {
+		super();
 		if (!event_id) {
-			error(400, Error('Invalid event ID, are you sure your link is correct?'));
+			this.handleError(400, 'Invalid event ID, are you sure your link is correct?');
 		}
 
 		this.databaseService = databaseService;
@@ -48,7 +49,7 @@ export class Event {
 			!input.scoring ||
 			!input.refs
 		) {
-			error(400, `Tournament create call does not have all required values`);
+			this.handleError(400, 'Tournament create call does not have all required values');
 		}
 		if (input.hasOwnProperty('id')) {
 			delete (input as { id?: number }).id;
@@ -76,7 +77,7 @@ export class Event {
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
 	async update(id: number, input: Event): Promise<Event> {
-		const res: EventRow | null = await this.databaseService.updateTournament(id, input);
+		const res: EventRow | null = await this.databaseService.updateEvent(id, input);
 
 		if (res !== null) {
 			Object.keys(res as object).forEach((key) => {
@@ -106,9 +107,7 @@ export class Event {
 			// Cascade event should delete teams and matches
 			await this.databaseService.deleteEvent(this.id);
 		} catch (err) {
-			// Handle and log the error appropriately
-			console.error('Failed to delete event:', err);
-			throw err;
+			this.handleError(500, `Failed to delete event: ${(err as Error).message}`);
 		}
 	}
 }
@@ -121,7 +120,7 @@ if (import.meta.vitest) {
 
 	beforeEach(() => {
 		mockDatabaseService = {
-			updateTournament: vi.fn(() => console.log('mockDatabaseService.updateTournament called')),
+			updateEvent: vi.fn(() => console.log('mockDatabaseService.updateEvent called')),
 			deleteTournament: vi.fn(() => console.log('mockDatabaseService.deleteTournament called')),
 			getCurrentUser: vi.fn(() => {
 				return {
@@ -165,11 +164,11 @@ if (import.meta.vitest) {
 			databaseService: mockDatabaseService
 		};
 
-		mockDatabaseService.updateTournament.mockResolvedValue(updatedTournament);
+		mockDatabaseService.updateEvent.mockResolvedValue(updatedTournament);
 
 		await expect(event.update('1', input as EventRow)).resolves.toEqual(event);
 
 		expect(event).toEqual(updatedTournament);
-		expect(mockDatabaseService.updateTournament).toHaveBeenCalledWith('1', input as EventRow);
+		expect(mockDatabaseService.updateEvent).toHaveBeenCalledWith('1', input as EventRow);
 	});
 }

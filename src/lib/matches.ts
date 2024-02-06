@@ -1,17 +1,11 @@
-import { error } from '@sveltejs/kit';
-import type { SupabaseDatabaseService } from './supabaseDatabaseService';
+import type { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import {
-	writable,
-	type Unsubscriber,
-	type Writable,
-	type Invalidator,
-	type Subscriber
-} from 'svelte/store';
+import { writable, type Unsubscriber, type Invalidator, type Subscriber } from 'svelte/store';
+import { Base } from './base';
 
-export class Matches implements Writable<Matches> {
-	private databaseService: SupabaseDatabaseService;
+export class Matches extends Base {
+	private databaseService: MatchesSupabaseDatabaseService;
 	public subscribe: (
 		run: Subscriber<Matches>,
 		invalidate?: Invalidator<Matches> | undefined
@@ -23,8 +17,9 @@ export class Matches implements Writable<Matches> {
 	matches?: MatchRow[];
 	bracketMatches?: MatchRow[];
 
-	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
-		let { subscribe, set, update } = writable(this);
+	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
+		super();
+		const { subscribe, set, update } = writable(this);
 		this.subscribe = subscribe;
 		this._set = set;
 		this._update = update;
@@ -91,7 +86,7 @@ export class Matches implements Writable<Matches> {
 				return that;
 			});
 		} else {
-			console.error('Failed to find match to update.');
+			this.handleError(400, 'Failed to find match to update.');
 		}
 	}
 
@@ -116,7 +111,7 @@ export class Matches implements Writable<Matches> {
 			courts = courts as number;
 			refs = refs as string;
 
-			const matches = this.generateMatches(pools, teams, refs);
+			const matches = this.generateMatches(pools, teams);
 			await this.databaseService.deleteMatchesByEvent(this.event_id);
 
 			const userMatches = this.prepareUserMatches(matches, courts, teams, pools);
@@ -136,7 +131,7 @@ export class Matches implements Writable<Matches> {
 			return this;
 		} catch (err) {
 			console.error('Failed to generate matches:', err);
-			error(500, err instanceof Error ? err : new Error(err as string));
+			this.handleError(500, err instanceof Error ? err.message : (err as string));
 		}
 	}
 
@@ -147,27 +142,23 @@ export class Matches implements Writable<Matches> {
 		refs: string | undefined | null
 	) {
 		if (!teams || teams.length === 0) {
-			console.error("Can't generate matches without Teams");
-			error(400, new Error("Can't generate matches without Teams"));
+			this.handleError(400, "Can't generate matches without Teams");
 		}
 
 		if (!pools || pools <= 0) {
-			console.error("Can't generate matches without Pools");
-			error(400, new Error("Can't generate matches without Pools"));
+			this.handleError(400, "Can't generate matches without Pools");
 		}
 
 		if (!courts || courts <= 0) {
-			console.error("Can't generate matches without courts");
-			error(400, new Error("Can't generate matches without courts"));
+			this.handleError(400, "Can't generate matches without courts");
 		}
 
 		if (teams.length <= 2 && refs && refs === 'teams') {
-			console.error('Cannot have refs with less than 3 teams');
-			error(400, new Error('Cannot have refs with less than 3 teams'));
+			this.handleError(400, 'Cannot have refs with less than 3 teams');
 		}
 	}
 
-	generateMatches(pools: number, teams: TeamRow[], refs: string) {
+	generateMatches(pools: number, teams: TeamRow[]) {
 		let matches: Partial<MatchRow>[] = [];
 		while (matches.length < pools * teams.length) {
 			matches = matches.concat(RoundRobin(teams.map((t) => t.id)));
@@ -259,7 +250,7 @@ export class Matches implements Writable<Matches> {
 	async put(match: MatchRow): Promise<MatchRow> {
 		const updatedMatch = await this.databaseService.updateMatch(match);
 		if (updatedMatch === null) {
-			error(500, new Error('Failed to update match.'));
+			this.handleError(500, 'Failed to update match.');
 		}
 		return updatedMatch;
 	}
@@ -413,7 +404,9 @@ if (import.meta.vitest) {
 		const refGamesPerTeam: any = {};
 		matches?.matches?.forEach((match: MatchRow) => {
 			if (match.ref) {
-				refGamesPerTeam[match.ref] = refGamesPerTeam[match.ref] ? refGamesPerTeam[match.ref] + 1 : 1;
+				refGamesPerTeam[match.ref] = refGamesPerTeam[match.ref]
+					? refGamesPerTeam[match.ref] + 1
+					: 1;
 			}
 		});
 

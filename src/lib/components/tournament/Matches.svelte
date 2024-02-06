@@ -14,6 +14,7 @@
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import type { Teams } from '$lib/teams';
 	import { Alert, Button } from 'flowbite-svelte';
+	import { page } from '$app/stores';
 
 	export let matches: Matches;
 	export let tournament: Event;
@@ -35,10 +36,10 @@
 		try {
 			const res: Matches | undefined = await $matches.create(tournament, teams.teams);
 			if (!res) {
-				throw new Error('Failed to create matches');
+				error('Failed to create matches');
 			}
-		} catch (err: any) {
-			error(err?.body?.message);
+		} catch (err) {
+			error(err.body.body.message);
 		}
 		showGenerateMatchesAlert = false;
 	}

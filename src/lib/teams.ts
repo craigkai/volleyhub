@@ -1,17 +1,19 @@
-import type { SupabaseDatabaseService } from './supabaseDatabaseService';
-import { error } from '@sveltejs/kit';
+import type { TeamsSupabaseDatabaseService } from '$lib/database/teams';
+import { Base } from './base';
 
-export class Teams {
-	private databaseService: SupabaseDatabaseService;
+export class Teams extends Base {
+	private databaseService: TeamsSupabaseDatabaseService;
 
 	event_id: number;
 	teams: TeamRow[] = [];
 
 	/**
-	 * The constructor for the Tournament class.
-	 * @param {SupabaseDatabaseService} databaseService - The service used to interact with the database.
+	 * The constructor for the Teams class.
+	 * @param {number} event_id - The ID of the event.
+	 * @param {TeamsSupabaseDatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: number, databaseService: SupabaseDatabaseService) {
+	constructor(event_id: number, databaseService: TeamsSupabaseDatabaseService) {
+		super();
 		this.databaseService = databaseService;
 		this.event_id = event_id;
 	}
@@ -22,9 +24,11 @@ export class Teams {
 	 */
 	async load(): Promise<TeamRow[] | undefined> {
 		const res = await this.databaseService.loadTeams(this.event_id);
-		if (res) {
-			this.teams = res;
+		if (res === null || res === undefined) {
+			console.warn('Failed to load teams for event', this.event_id);
+			return undefined;
 		}
+		this.teams = res;
 		return this.teams;
 	}
 
@@ -39,9 +43,7 @@ export class Teams {
 			const res: TeamRow | null = await this.databaseService.createTeam(team);
 			return res?.id;
 		} catch (err) {
-			// Handle and log the error appropriately
-			console.error('Failed to create team:', err);
-			error(500, Error('Failed to create team'));
+			this.handleError(500, `Failed to create team: ${(err as Error).message}`);
 		}
 	}
 
@@ -54,9 +56,7 @@ export class Teams {
 		try {
 			await this.databaseService.deleteTeam(team);
 		} catch (err) {
-			// Handle and log the error appropriately
-			console.error('Failed to delete team:', err);
-			error(500, Error('Failed to delete team'));
+			this.handleError(500, 'Failed to delete team');
 		}
 	}
 }

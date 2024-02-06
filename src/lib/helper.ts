@@ -4,13 +4,9 @@ import { Event } from './event';
 import { Matches } from './matches';
 import { Teams } from './teams';
 
-export async function loadInitialData(
-	tournament: Event,
-	matches: Matches,
-	teams: Teams
-): Promise<any> {
-	if (tournament.id !== 'create') {
-		return await tournament
+export async function loadInitialData(event: Event, matches: Matches, teams: Teams): Promise<any> {
+	if ((event.id as unknown as string) !== 'create') {
+		return await event
 			.load()
 			.catch((err: HttpError) => {
 				error(err?.body?.message);

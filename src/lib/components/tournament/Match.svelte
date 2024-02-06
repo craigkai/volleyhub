@@ -19,7 +19,7 @@
 
 			match = await matches.put(match);
 			success(`Match ${match.matches_team1_fkey.name} vs ${match.matches_team2_fkey.name} updated`);
-		} catch (err: any) {
+		} catch (err) {
 			console.error(err);
 			error(err?.body?.message ?? `Something went wrong: ${err}`);
 		}

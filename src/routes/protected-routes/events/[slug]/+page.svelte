@@ -4,18 +4,24 @@
 	import Settings from '$lib/components/tournament/Settings.svelte';
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams as TeamsInstance } from '$lib/teams';
+	import { EventSupabaseDatabaseService } from '$lib/database/event';
+	import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
+	import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 	import Standings from '$lib/components/tournament/Standings.svelte';
 	import Matches from '$lib/components/tournament/Matches.svelte';
 	import Teams from '$lib/components/tournament/Teams.svelte';
 	import { loadInitialData } from '$lib/helper';
-	import { SupabaseDatabaseService } from '$lib/supabaseDatabaseService';
 	import { Tabs, TabItem } from 'flowbite-svelte';
 
 	export let data: PageData;
-	const databaseService = new SupabaseDatabaseService(data?.supabase);
-	let tournament = new EventInstance(data.event_id, databaseService);
-	let matches = new MatchesInstance(data.event_id, databaseService);
-	let teams = new TeamsInstance(data.event_id, databaseService);
+	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
+	let tournament = new EventInstance(data.event_id, eventSupabaseDatabaseService);
+
+	const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(data?.supabase);
+	let matches = new MatchesInstance(data.event_id, matchesSupabaseDatabaseService);
+
+	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(data?.supabase);
+	let teams = new TeamsInstance(data.event_id, teamsSupabaseDatabaseService);
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 </script>

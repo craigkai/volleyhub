@@ -3,7 +3,7 @@
 	import { success, error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
 	import { TableBody, TableBodyCell, TableBodyRow, Table } from 'flowbite-svelte';
-	import { Input, Label } from 'flowbite-svelte';
+	import { Input } from 'flowbite-svelte';
 
 	export let teams: Teams;
 
