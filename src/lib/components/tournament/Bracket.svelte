@@ -3,14 +3,21 @@
 	import { Matches } from '$lib/matches';
 	import type { Teams } from '$lib/teams';
 	import { SingleEliminationBracket } from '$lib/bracket';
+	import { error } from '$lib/toast';
+	import type { HttpError } from '@sveltejs/kit';
 
 	export let tournament: Event;
 	export let matches: Matches;
 	export let teams: Teams;
 
 	const teamNames = teams.teams.map((team) => team.name);
-	const bracket = new SingleEliminationBracket(teamNames);
-	const bracketStructure = bracket.getBracket();
+	let bracketStructure = [];
+	try {
+		const bracket = new SingleEliminationBracket(teamNames);
+		bracket.getBracket();
+	} catch (err) {
+		error((err as HttpError).toString());
+	}
 
 	matches.loadBracketMatches();
 </script>
