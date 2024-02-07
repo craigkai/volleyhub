@@ -2,6 +2,7 @@
 	import type { PageData } from '$types';
 	import { Event as EventInstance } from '$lib/event';
 	import Settings from '$lib/components/tournament/Settings.svelte';
+	import Bracket from '$lib/components/tournament/Bracket.svelte';
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams as TeamsInstance } from '$lib/teams';
 	import { EventSupabaseDatabaseService } from '$lib/database/event';
@@ -45,6 +46,9 @@
 
 					<TabItem title="standings">
 						<Standings event={tournament} {matches} {teams} defaultTeam="" />
+					</TabItem>
+					<TabItem title="Bracket">
+						<Bracket {tournament} {matches} {teams} />
 					</TabItem>
 				</Tabs>
 			{/if}

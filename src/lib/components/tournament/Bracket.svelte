@@ -12,15 +12,21 @@
 
 	const teamNames = teams.teams.map((team) => team.name);
 	let bracketStructure = [];
+
 	try {
 		const bracket = new SingleEliminationBracket(teamNames);
-		bracket.getBracket();
+		bracketStructure = bracket.getBracket(); // Assign the bracket structure
 	} catch (err) {
 		error((err as HttpError).toString());
 	}
 
 	matches.loadBracketMatches();
 </script>
+
+<!--
+	Need to iterate over each round (should we make rounds text instead of ints? So we can have
+	a round like `semi-finals` instead of `3`?). Then iterate over each match in the round and generate our table.
+-->
 
 <div class="container">
 	<h1>{tournament.name}</h1>
