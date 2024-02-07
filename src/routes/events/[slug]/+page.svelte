@@ -10,11 +10,11 @@
 	import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 	import { loadInitialData } from '$lib/helper';
 	import Standings from '$lib/components/tournament/Standings.svelte';
-	import { Tabs, TabItem } from 'flowbite-svelte';
-	import { Label, Select } from 'flowbite-svelte';
+	import { Tabs, TabItem, Label, Select, Spinner } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { pushState } from '$app/navigation';
+	import { onMount, tick } from 'svelte';
 
 	export let data: PageData;
 
@@ -30,8 +30,14 @@
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 	let defaultTeam = data.default_team;
 
+	let historyReady = false;
+	onMount(async () => {
+		await tick();
+		historyReady = true;
+	});
+
 	function updateHistory() {
-		if (browser) {
+		if (browser && historyReady) {
 			$page.url.searchParams.set('team', defaultTeam);
 			const url = $page.url.href;
 			pushState(url, '');
@@ -41,10 +47,10 @@
 	$: defaultTeam, updateHistory();
 </script>
 
-{#await loadingInitialDataPromise}
-	loading...
-{:then}
-	<div class="flex flex-col items-center">
+<div class="flex flex-col items-center">
+	{#await loadingInitialDataPromise}
+		<Spinner />
+	{:then}
 		{tournament?.name}
 
 		<Label class="m-2">
@@ -72,5 +78,5 @@
 				<Bracket {tournament} {matches} {teams} />
 			</TabItem>
 		</Tabs>
-	</div>
-{/await}
+	{/await}
+</div>

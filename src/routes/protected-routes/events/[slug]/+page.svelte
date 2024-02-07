@@ -11,7 +11,7 @@
 	import Matches from '$lib/components/tournament/Matches.svelte';
 	import Teams from '$lib/components/tournament/Teams.svelte';
 	import { loadInitialData } from '$lib/helper';
-	import { Tabs, TabItem } from 'flowbite-svelte';
+	import { Tabs, TabItem, Spinner } from 'flowbite-svelte';
 
 	export let data: PageData;
 	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
@@ -26,10 +26,10 @@
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 </script>
 
-{#await loadingInitialDataPromise}
-	loading...
-{:then}
-	<div class="flex flex-col items-center">
+<div class="flex flex-col items-center">
+	{#await loadingInitialDataPromise}
+		<Spinner />
+	{:then}
 		<Settings bind:tournament event_id={data.event_id} />
 
 		<div class="m-2">
@@ -49,5 +49,5 @@
 				</Tabs>
 			{/if}
 		</div>
-	</div>
-{/await}
+	{/await}
+</div>
