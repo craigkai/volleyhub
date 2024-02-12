@@ -18,7 +18,9 @@ export function RoundRobin(
 		teamArray.push(0); // Add a dummy team
 	}
 
-	for (let r = startingRound; r < startingRound + teamArray.length - 1; r++) {
+	const totalRounds = teamArray.length - 1;
+
+	for (let r = startingRound; r <= startingRound + totalRounds; r++) {
 		const round: Partial<MatchRow>[] = [];
 
 		for (let i = 0; i < teamArray.length / 2; i++) {
@@ -32,6 +34,9 @@ export function RoundRobin(
 		}
 
 		matches = [...matches, ...round];
+
+		// Rotate the teams in the array, excluding the first team
+		teamArray = [teamArray[0], ...teamArray.slice(2), teamArray[1]];
 	}
 
 	return matches;

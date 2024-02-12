@@ -86,7 +86,7 @@ export class Matches extends Base {
 				return that;
 			});
 		} else {
-			this.handleError(400, 'Failed to find match to update.');
+			self.handleError(400, 'Failed to find match to update.');
 		}
 	}
 
