@@ -67,8 +67,9 @@
 		<Header {data} />
 
 		<div class="min-h-screen">
-			<SvelteToast {options} />
-
+			<div class="wrap">
+				<SvelteToast {options} />
+			</div>
 			<slot {data} />
 		</div>
 

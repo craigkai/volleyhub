@@ -13,6 +13,9 @@
 			matchId: match.id
 		});
 	}
+
+	const winClass = 'bg-green-300 dark:bg-green-700';
+	const lossClass = 'bg-red-300 dark:bg-red-700';
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -28,29 +31,33 @@
 	}}
 >
 	<span
-		class="p-1 rounded"
-		class:bg-green-300={showWinLoss &&
-			match?.team1_score &&
-			match?.team2_score &&
-			match.team1_score > match.team2_score}
-		class:bg-red-300={showWinLoss &&
-			match?.team1_score &&
-			match?.team2_score &&
-			match.team2_score > match.team1_score}
+		class="p-1 rounded {showWinLoss &&
+		match?.team1_score &&
+		match?.team2_score &&
+		match.team1_score > match.team2_score
+			? winClass
+			: ''} {showWinLoss &&
+		match?.team1_score &&
+		match?.team2_score &&
+		match.team2_score > match.team1_score
+			? lossClass
+			: ''}"
 	>
 		{match?.matches_team1_fkey?.name}</span
 	>
 	vs
 	<span
-		class="p-1 rounded"
-		class:bg-green-300={showWinLoss &&
-			match?.team1_score &&
-			match?.team2_score &&
-			match?.team2_score > match?.team1_score}
-		class:bg-red-300={showWinLoss &&
-			match?.team1_score &&
-			match?.team2_score &&
-			match?.team1_score > match?.team2_score}>{match?.matches_team2_fkey?.name}</span
+		class="p-1 rounded {showWinLoss &&
+		match?.team1_score &&
+		match?.team2_score &&
+		match.team2_score > match.team1_score
+			? winClass
+			: ''} {showWinLoss &&
+		match?.team1_score &&
+		match?.team2_score &&
+		match?.team1_score > match?.team2_score
+			? lossClass
+			: ''}">{match?.matches_team2_fkey?.name}</span
 	>
 </div>
 {#if match?.team1_score && match?.team2_score}

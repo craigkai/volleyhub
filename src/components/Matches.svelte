@@ -96,13 +96,14 @@
 								? match.team1_score > match.team2_score
 								: match.team2_score > match.team1_score}
 						{@const rowTdClass = defaultTeamWin
-							? 'border-solid border-2 border-green-400 bg-green-200'
-							: 'border-solid border-2 border-red-400 bg-red-200'}
+							? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
+							: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
 						<TableBodyCell
 							tdClass={hasDefaultTeam
 								? matchComplete
 									? defaultTdClass + rowTdClass
-									: defaultTdClass + 'border-solid border-2 border-yellow-300 bg-yellow-200'
+									: defaultTdClass +
+										'border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
 								: defaultTdClass}
 						>
 							<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
@@ -111,7 +112,8 @@
 					{#if tournament.refs === 'teams'}
 						<TableBodyCell
 							tdClass={matchesForRound[0]?.matches_ref_fkey?.name == defaultTeam
-								? defaultTdClass + 'border-solid border-2 border-yellow-300 bg-yellow-200'
+								? defaultTdClass +
+									'border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
 								: defaultTdClass}
 						>
 							{matchesForRound[0]?.matches_ref_fkey?.name}
