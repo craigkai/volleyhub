@@ -11,27 +11,7 @@
 		"strict": true,
 		"types": [
 			"vitest/importMeta"
-		],
-		"paths": {
-			"$src": [
-				"./src"
-			],
-			"$src/*": [
-				"./src/*"
-			],
-			"$lib": [
-				"./src/lib"
-			],
-			"$lib/*": [
-				"./src/lib/*"
-			],
-			"$components": [
-				"./src/components"
-			],
-			"$components/*": [
-				"./src/components/*"
-			]
-		}
+		]
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
 	//
