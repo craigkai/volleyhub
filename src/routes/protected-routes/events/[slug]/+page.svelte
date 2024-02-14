@@ -38,7 +38,9 @@
 
 <div class="flex flex-col items-center">
 	{#await loadingInitialDataPromise}
-		<Spinner />
+		<div class="h-screen flex flex-col items-center place-content-center">
+			<Spinner />
+		</div>
 	{:then}
 		<Settings bind:tournament event_id={data.event_id} />
 

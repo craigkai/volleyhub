@@ -9,10 +9,12 @@
 	const eventsPromise = eventsDatabaseService.getEvents();
 </script>
 
-<div class="flex flex-col items-center">
-	{#await eventsPromise}
+{#await eventsPromise}
+	<div class="h-screen flex flex-col items-center place-content-center">
 		<Spinner />
-	{:then events}
+	</div>
+{:then events}
+	<div class="flex flex-col items-center place-content-center">
 		<div>Upcoming events:</div>
 		{#each events as event}
 			<Card class="m-2" href="/events/{event.id}">
@@ -24,5 +26,5 @@
 				</h4>
 			</Card>
 		{/each}
-	{/await}
-</div>
+	</div>
+{/await}

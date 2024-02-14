@@ -49,7 +49,9 @@
 
 <div class="flex flex-col items-center">
 	{#await loadingInitialDataPromise}
-		<Spinner />
+		<div class="h-screen flex flex-col items-center place-content-center">
+			<Spinner />
+		</div>
 	{:then}
 		{tournament?.name}
 
