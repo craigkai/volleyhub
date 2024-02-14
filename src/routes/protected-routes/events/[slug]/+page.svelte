@@ -30,9 +30,9 @@
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 </script>
 
-{#if $page.state.showModal}
+{#if $page.state.showModal && $page.state.matchId}
 	<Modal size="xs" on:close={() => history.back()} open={true} outsideclose autoclose>
-		<EditMatch matchId={$page?.state?.matchId} bind:matches />
+		<EditMatch matchId={$page.state.matchId} bind:matches />
 	</Modal>
 {/if}
 
