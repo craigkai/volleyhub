@@ -105,7 +105,7 @@
 									: defaultTdClass + 'border-solid border-2 border-yellow-300 bg-yellow-200'
 								: defaultTdClass}
 						>
-							<ViewMatch {matches} {match} {readOnly} showWinLoss={!hasDefaultTeam} />
+							<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
 						</TableBodyCell>
 					{/each}
 					{#if tournament.refs === 'teams'}

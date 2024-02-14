@@ -27,12 +27,14 @@ declare global {
 		supabase: SupabaseClient<Database>;
 		getSession(): Promise<Session | null>;
 	}
+
 	interface PageData {
 		eventName?: string;
 		eventId?: string;
 		supabase: SupabaseClient<Database>;
 		session: Session | null;
 	}
+
 	namespace App {
 		// interface Error {}
 		interface Locals {
@@ -40,6 +42,11 @@ declare global {
 			getSession(): Promise<Session | null>;
 		}
 		// interface Platform {}
+
+		interface PageState {
+			matchId?: number;
+			showModal?: boolean;
+		}
 	}
 	type supabaseClient = SupabaseClient<Database>;
 }

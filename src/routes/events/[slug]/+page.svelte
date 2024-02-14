@@ -3,13 +3,13 @@
 	import { Event } from '$lib/event';
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams } from '$lib/teams';
-	import Matches from '$lib/components/tournament/Matches.svelte';
-	import Bracket from '$lib/components/tournament/Bracket.svelte';
+	import Matches from '$components/Matches.svelte';
+	import Bracket from '$components/Bracket.svelte';
 	import { EventSupabaseDatabaseService } from '$lib/database/event';
 	import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 	import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 	import { loadInitialData } from '$lib/helper';
-	import Standings from '$lib/components/tournament/Standings.svelte';
+	import Standings from '$components/Standings.svelte';
 	import { Tabs, TabItem, Label, Select, Spinner } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
