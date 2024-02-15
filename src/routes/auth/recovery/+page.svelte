@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { success, error } from '$lib/toast';
 
 	export let data: PageData;
@@ -9,6 +10,7 @@
 			.updateUser({ password: newPassword })
 			.then((_) => {
 				success('Password updated successfully');
+				goto('/protected-routes/dashboard');
 			})
 			.catch((err) => {
 				error(err.message);
