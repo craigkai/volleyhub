@@ -37,7 +37,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				password: import.meta.env.VITE_ADMIN_USER_PASSWORD
 			});
 			if (error) {
-				throw error;
+				console.error(error);
 			}
 			session = data.session;
 		}

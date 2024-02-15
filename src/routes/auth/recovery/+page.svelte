@@ -17,5 +17,7 @@
 	const whoAmI = data?.session?.user?.email;
 </script>
 
-<input type="password" bind:value={newPassword} />
-<button on:click={resetPassword}>Update Password for {whoAmI}</button>
+<div class="h-screen flex flex-col items-center place-content-center">
+	<input class="text-black dark:text-white" type="password" bind:value={newPassword} />
+	<button class="btn" on:click={resetPassword}>Update Password for {whoAmI}</button>
+</div>

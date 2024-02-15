@@ -15,8 +15,8 @@
 		<Auth
 			supabaseClient={data.supabase}
 			view="magic_link"
-			redirectTo={`${data.url}/auth`}
-			showLinks={false}
+			redirectTo={`${data.url}/auth/recovery`}
+			showLinks={true}
 			appearance={{ theme: ThemeSupa, className: { input: ['text-black', 'dark:text-white'] } }}
 		/>
 	</div>
