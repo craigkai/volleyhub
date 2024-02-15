@@ -5,12 +5,8 @@ import type { PageLoad } from './$types';
 
 // src/routes/events/+page.server.ts
 export const load: PageLoad = async ({ parent, url }) => {
-    const { supabase, session } = await parent();
-
-    console.log(url);
     if (url.searchParams.get('type') === 'recovery') {
         redirect(303, '/auth/recovery');
     }
-
     return {};
 };
