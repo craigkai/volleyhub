@@ -4,6 +4,16 @@
 	import { ThemeSupa } from '@supabase/auth-ui-shared';
 
 	export let data: PageData;
+
+	let email: string = '';
+	let password: string = '';
+	async function resetPassword() {
+		const { error } = await data.supabase.auth.resetPasswordForEmail(email, {
+			redirectTo: `${data.url}/update-password`
+		});
+
+		console.log(error);
+	}
 </script>
 
 <svelte:head>
@@ -15,8 +25,7 @@
 		<Auth
 			supabaseClient={data.supabase}
 			view="magic_link"
-			redirectTo={`${data.url}/logging-in?redirect=/`}
-			showLinks={false}
+			showLinks={true}
 			appearance={{ theme: ThemeSupa, style: { input: 'color: black' } }}
 		/>
 	</div>
