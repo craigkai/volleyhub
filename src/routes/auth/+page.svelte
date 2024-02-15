@@ -25,8 +25,9 @@
 		<Auth
 			supabaseClient={data.supabase}
 			view="magic_link"
-			showLinks={true}
-			appearance={{ theme: ThemeSupa, style: { input: 'color: black' } }}
+			redirectTo={`${data.url}/logging-in?redirect=/`}
+			showLinks={false}
+			appearance={{ theme: ThemeSupa, className: { input: ['text-black', 'dark:text-white'] } }}
 		/>
 	</div>
 </div>
