@@ -32,10 +32,15 @@ declare global {
 		eventName?: string;
 		eventId?: string;
 		supabase: SupabaseClient<Database>;
-		session: Session | null;
+		session: import('@supabase/auth-helpers-sveltekit').SupabaseSession
 	}
 
 	namespace App {
+		interface Supabase {
+			Database: import('./DatabaseDefinitions').Database
+			SchemaName: 'public'
+		}
+
 		// interface Error {}
 		interface Locals {
 			supabase: SupabaseClient;
@@ -61,4 +66,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export {};
+export { };
