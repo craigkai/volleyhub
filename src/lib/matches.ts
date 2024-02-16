@@ -64,77 +64,53 @@ export class Matches extends Base {
 
 	async matchUpdated(
 		self: Matches,
-		payload: RealtimePostgresChangesPayload<{
-			[key: string]: MatchRow;
-		}>
+		payload: RealtimePostgresChangesPayload<MatchRow>
 	): Promise<void> {
-		const old = payload.old as MatchRow;
-		const updated = payload.new as MatchRow;
-
-		// If we don't have the pool matches loaded, load them
-		if (Object.keys(old).length === 0) {
-			self.load();
-			return;
-		}
-
-		const matchIndex = self.matches?.findIndex((m: MatchRow) => m.id === old.id);
-		if (matchIndex !== undefined && matchIndex !== -1) {
-			if (self.matches) {
-				updated.matches_team1_fkey = self.matches[matchIndex].matches_team1_fkey;
-				updated.matches_team2_fkey = self.matches[matchIndex].matches_team2_fkey;
-				updated.matches_ref_fkey = self.matches[matchIndex].matches_ref_fkey;
-			}
-
-			self.matches?.splice(matchIndex, 1, updated as MatchRow);
-			const matches = self.matches;
-
-			self._update((that: Matches) => {
-				that.matches = matches;
-				return that;
-			});
-		} else {
-			self.handleError(400, 'Failed to find match to update.');
-		}
+		await this.handleMatchUpdate(self, payload, self.matches, 'matches');
 	}
 
 	async bracketMatchUpdated(
 		self: Matches,
-		payload: RealtimePostgresChangesPayload<{
-			[key: string]: MatchRow;
-		}>
+		payload: RealtimePostgresChangesPayload<MatchRow>
 	): Promise<void> {
-		if ((payload.new as MatchRow)?.type !== 'bracket') {
-			return;
+		if ((payload.new as MatchRow)?.type === 'bracket') {
+			await this.handleMatchUpdate(self, payload, self.bracketMatches, 'bracketMatches');
 		}
+	}
+
+	async handleMatchUpdate(
+		self: Matches,
+		payload: RealtimePostgresChangesPayload<MatchRow>,
+		matchesArray: MatchRow[] | undefined,
+		propertyName: 'matches' | 'bracketMatches'
+	): Promise<void> {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
-		// If we don't have the bracket matches loaded, load them
+		// If we don't have the matches loaded, load them
 		if (Object.keys(old).length === 0) {
-			self.loadBracketMatches();
+			propertyName === 'matches' ? await self.load() : await self.loadBracketMatches();
 			return;
 		}
 
-		const matchIndex = self.bracketMatches?.findIndex((m: MatchRow) => m.id === old.id);
+		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
-			if (self.bracketMatches) {
-				updated.matches_team1_fkey = self.bracketMatches[matchIndex].matches_team1_fkey;
-				updated.matches_team2_fkey = self.bracketMatches[matchIndex].matches_team2_fkey;
-				updated.matches_ref_fkey = self.bracketMatches[matchIndex].matches_ref_fkey;
+			if (matchesArray) {
+				updated.matches_team1_fkey = matchesArray[matchIndex].matches_team1_fkey;
+				updated.matches_team2_fkey = matchesArray[matchIndex].matches_team2_fkey;
+				updated.matches_ref_fkey = matchesArray[matchIndex].matches_ref_fkey;
 			}
 
-			self.bracketMatches?.splice(matchIndex, 1, updated as MatchRow);
-			const matches = self.bracketMatches;
+			matchesArray?.splice(matchIndex, 1, updated as MatchRow);
+			const matches = matchesArray;
 
 			self._update((that: Matches) => {
-				that.bracketMatches = matches;
+				that[propertyName] = matches;
 				return that;
 			});
 		} else {
-			self.handleError(400, 'Failed to find bracketMatches to update.');
+			self.handleError(400, `Failed to find ${propertyName} to update.`);
 		}
-
-		return;
 	}
 
 	async subscribeToBracketMatches(): Promise<RealtimeChannel> {
