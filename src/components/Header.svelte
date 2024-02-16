@@ -2,13 +2,16 @@
 	import type { PageData } from '$types';
 	import { Hamburger } from 'svelte-hamburgers';
 	import { DarkMode } from 'flowbite-svelte';
+	import { error } from '@sveltejs/kit';
+	import { goto } from '$app/navigation';
 
 	export let data: PageData;
+	let { supabase } = data;
 
 	let open: boolean = false;
 
 	async function getCurrentUser() {
-		return await data.supabase.auth.getUser();
+		return await supabase.auth.getUser();
 	}
 	let currentUserPromise = getCurrentUser();
 	let btnClass = 'hover:bg-nord-6 dark:hover:bg-nord-1 rounded-lg text-xl p-2';
@@ -62,15 +65,15 @@
 											>My Dashboard
 										</a>
 									</li>
-
 									<!-- <li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
 										<a
 											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
-											href="/protected-routes/profile"
+											href="#"
 											data-te-nav-link-ref
 											data-te-ripple-init
 											data-te-ripple-color="light"
-											>{currentuser?.data?.user?.email}'s Profile
+											on:click={handleSignOut}
+											>Sign out
 										</a>
 									</li> -->
 								{:else}
