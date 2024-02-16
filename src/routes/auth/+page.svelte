@@ -62,7 +62,7 @@
 	};
 
 	let method = 'magic';
-	$: method, (errorString = '');
+	$: method, ((errorString = ''), (message = ''));
 </script>
 
 <svelte:head>
