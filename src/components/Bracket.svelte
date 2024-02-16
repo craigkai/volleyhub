@@ -3,89 +3,110 @@
 	import { Matches } from '$lib/matches';
 	import type { Teams } from '$lib/teams';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
+	import { Button, Spinner } from 'flowbite-svelte';
 
 	export let tournament: Event;
 	export let matches: Matches;
 	export let teams: Teams;
+	export let readOnly: boolean = true;
 
 	const teamNames = teams.teams.map((team) => team.name);
 
-	matches.loadBracketMatches();
+	const loadingPromise = $matches.loadBracketMatches();
 
 	const numRounds = teamNames.length / 2 + (teamNames.length % 2);
 
 	let matchesSubscription: RealtimeChannel | undefined;
 	async function subscribeToMatches() {
-		matchesSubscription = await matches.subscribeToBracketMatches();
+		matchesSubscription = await $matches.subscribeToBracketMatches();
 	}
 	subscribeToMatches();
 
-	// TODO: Create a listener for when bracket macthes are updated, and auto create the next match in the bracket.
+	async function handleGenerateBracket() {
+		await $matches.createBracketMatches(tournament, teams.teams);
+	}
 	// TODO: Allow bracket matches to be edited.
 </script>
 
-<div class="container">
-	<div class="tournament-bracket tournament-bracket--rounded">
-		{#each Array(numRounds) as _, i}
-			{@const matchesInRound = matches?.bracketMatches?.filter((match) => match.round === i) || []}
-			<div class="tournament-bracket__round tournament-bracket__round--quarterfinals">
-				<h3 class="tournament-bracket__round-title">Round {i + 1}</h3>
-				<ul class="tournament-bracket__list">
-					{#if matchesInRound.length != 0}
-						{#each matchesInRound as match}
-							{@const team1Win =
-								match.team1_score && match.team2_score
-									? match.team1_score > match.team2_score
-									: false}
-							{@const team2Win = !team1Win && match.team1_score && match.team2_score}
-							<li class="tournament-bracket__item">
-								<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-								<div class="tournament-bracket__match" tabindex="0">
-									<table class="tournament-bracket__table">
-										<thead class="sr-only">
-											<tr>
-												<th>Team</th>
-												<th>Score</th>
-											</tr>
-										</thead>
-										<tbody class="tournament-bracket__content">
-											<tr
-												class:tournament-bracket__team--winner={team1Win}
-												class="tournament-bracket__team"
-											>
-												<td class="tournament-bracket__country">
-													<abbr class="tournament-bracket__code" title="team1"
-														>{match.matches_team1_fkey.name}</abbr
-													>
-												</td>
-												<td class="tournament-bracket__score">
-													<span class="tournament-bracket__number">{match?.team1_score}</span>
-												</td>
-											</tr>
-											<tr
-												class:tournament-bracket__team--winner={team2Win}
-												class="tournament-bracket__team"
-											>
-												<td class="tournament-bracket__country">
-													<abbr class="tournament-bracket__code" title="team1"
-														>{match.matches_team2_fkey.name}</abbr
-													>
-												</td>
-												<td class="tournament-bracket__score">
-													<span class="tournament-bracket__number">{match?.team2_score}</span>
-												</td>
-											</tr>
-										</tbody>
-									</table>
-								</div>
-							</li>
-						{/each}
-					{/if}
-				</ul>
-			</div>
-		{/each}
+{#await loadingPromise}
+	<div class="h-screen flex flex-col items-center place-content-center">
+		<Spinner />
 	</div>
-</div>
+{:then}
+	<div class="container">
+		<div class="tournament-bracket tournament-bracket--rounded">
+			{#each Array(numRounds) as _, i}
+				{@const matchesInRound =
+					$matches?.bracketMatches?.filter((match) => match.round === i) || []}
+				<div class="tournament-bracket__round tournament-bracket__round--quarterfinals">
+					<h3 class="tournament-bracket__round-title">Round {i + 1}</h3>
+					<ul class="tournament-bracket__list">
+						{#if matchesInRound.length != 0}
+							{#each matchesInRound as match}
+								{@const team1Win =
+									match.team1_score && match.team2_score
+										? match.team1_score > match.team2_score
+										: false}
+								{@const team2Win = !team1Win && match.team1_score && match.team2_score}
+								<li class="tournament-bracket__item">
+									<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+									<div class="tournament-bracket__match" tabindex="0">
+										<table class="tournament-bracket__table">
+											<thead class="sr-only">
+												<tr>
+													<th>Team</th>
+													<th>Score</th>
+												</tr>
+											</thead>
+											<tbody class="tournament-bracket__content">
+												<tr
+													class:tournament-bracket__team--winner={team1Win}
+													class="tournament-bracket__team"
+												>
+													<td class="tournament-bracket__country">
+														<abbr class="tournament-bracket__code" title="team1"
+															>{match.matches_team1_fkey.name}</abbr
+														>
+													</td>
+													<td class="tournament-bracket__score">
+														<span class="tournament-bracket__number">{match?.team1_score || 0}</span
+														>
+													</td>
+												</tr>
+												<tr
+													class:tournament-bracket__team--winner={team2Win}
+													class="tournament-bracket__team"
+												>
+													<td class="tournament-bracket__country">
+														<abbr class="tournament-bracket__code" title="team1"
+															>{match.matches_team2_fkey.name}</abbr
+														>
+													</td>
+													<td class="tournament-bracket__score">
+														<span class="tournament-bracket__number">{match?.team2_score || 0}</span
+														>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</li>
+							{/each}
+						{/if}
+					</ul>
+				</div>
+			{/each}
+		</div>
+	</div>
+
+	<div class="flex flex-col items-center">
+		{#if !readOnly}
+			{#if !matches?.bracketMatches || matches?.bracketMatches?.length === 0}
+				<Button color="light" on:click={handleGenerateBracket}>Generate initial bracket</Button>
+			{/if}
+		{/if}
+	</div>
+{/await}
 
 <style lang="less">
 	@breakpoint-xs: 24em;
@@ -101,46 +122,10 @@
 		}
 	}
 
-	html {
-		font-size: 15px;
-
-		@media (min-width: @breakpoint-sm) {
-			font-size: 14px;
-		}
-		@media (min-width: @breakpoint-md) {
-			font-size: 15px;
-		}
-		@media (min-width: @breakpoint-lg) {
-			font-size: 16px;
-		}
-	}
-
-	body {
-		background-color: #f1f1f1;
-		font-family: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
-	}
-
 	.container {
 		width: 90%;
 		min-width: 18em;
 		margin: 20px auto;
-	}
-
-	h1,
-	h2 {
-		text-align: center;
-	}
-
-	h1 {
-		font-size: 2rem;
-		font-weight: 700;
-		margin-bottom: 0.5em;
-	}
-
-	h2 {
-		font-size: 1.4rem;
-		font-weight: 600;
-		margin-bottom: 2em;
 	}
 
 	.sr-only {

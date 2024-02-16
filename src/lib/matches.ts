@@ -3,6 +3,7 @@ import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { writable, type Unsubscriber, type Invalidator, type Subscriber } from 'svelte/store';
 import { Base } from './base';
+import { Event } from './event';
 
 export class Matches extends Base {
 	private databaseService: MatchesSupabaseDatabaseService;
@@ -70,6 +71,12 @@ export class Matches extends Base {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
+		// If we don't have the pool matches loaded, load them
+		if (Object.keys(old).length === 0) {
+			self.load();
+			return;
+		}
+
 		const matchIndex = self.matches?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
 			if (self.matches) {
@@ -90,7 +97,8 @@ export class Matches extends Base {
 		}
 	}
 
-	async bracketMatchUpdated(self: Matches,
+	async bracketMatchUpdated(
+		self: Matches,
 		payload: RealtimePostgresChangesPayload<{
 			[key: string]: MatchRow;
 		}>
@@ -100,6 +108,12 @@ export class Matches extends Base {
 		}
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
+
+		// If we don't have the bracket matches loaded, load them
+		if (Object.keys(old).length === 0) {
+			self.loadBracketMatches();
+			return;
+		}
 
 		const matchIndex = self.bracketMatches?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
@@ -119,9 +133,6 @@ export class Matches extends Base {
 		} else {
 			self.handleError(400, 'Failed to find bracketMatches to update.');
 		}
-
-		// We want to generate the next round of matches when the previous round is complete
-		console.error("Bracket match updated")
 
 		return;
 	}
@@ -324,6 +335,66 @@ export class Matches extends Base {
 
 		// Choose a referee from the remaining available teams
 		return Number(availableTeams[0]);
+	}
+
+	async createBracketMatches(event: Event, teams: TeamRow[]) {
+		if (!((teams.length & (teams.length - 1)) === 0)) {
+			this.handleError(
+				400,
+				'Number of teams must be a power of 2 for a single-elimination bracket.'
+			);
+		}
+
+		let teamScores: TeamScores = {};
+		this?.matches?.forEach((match: MatchRow) => {
+			// We only care about pool play not bracket/playoff matches
+			if (match.team1_score && match.team2_score) {
+				if (!teamScores[match.matches_team1_fkey.name]) {
+					teamScores[match.matches_team1_fkey.name] = 0;
+				}
+
+				if (!teamScores[match.matches_team2_fkey.name]) {
+					teamScores[match.matches_team2_fkey.name] = 0;
+				}
+
+				if (event?.scoring === 'points') {
+					teamScores[match.matches_team1_fkey.name] += match?.team1_score || 0;
+					teamScores[match.matches_team2_fkey.name] += match?.team2_score || 0;
+				} else {
+					teamScores[match.matches_team1_fkey.name] +=
+						match.team1_score > match.team2_score ? 1 : 0;
+					teamScores[match.matches_team2_fkey.name] +=
+						match.team2_score > match.team1_score ? 1 : 0;
+				}
+			}
+		});
+		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
+		const matchups: any[] = [];
+
+		// Generate matchups
+		let court = 0;
+		const numCourts = event.courts;
+		let round = 0;
+		for (let i = 0; i < orderedTeamScores.length; i += 2) {
+			if (court === numCourts) {
+				round = round + 1;
+				court = 0;
+			}
+
+			const matchup: Partial<MatchRow> = {
+				team1: teams.find((t) => t.name === orderedTeamScores[i])?.id as number,
+				team2: teams.find((t) => t.name === orderedTeamScores[orderedTeamScores.length - 1 - i])
+					?.id as number,
+				event_id: this.event_id,
+				type: 'bracket',
+				round: round
+			};
+			court = court + 1;
+			matchups.push(matchup);
+		}
+		this.bracketMatches = await this.databaseService.insertMatches(matchups);
+
+		return this.bracketMatches;
 	}
 }
 

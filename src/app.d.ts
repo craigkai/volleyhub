@@ -15,6 +15,10 @@ declare global {
 		matches_ref_fkey: { name: string };
 	};
 
+	interface TeamScores {
+		[key: string]: number;
+	}
+
 	type UserMatch = Partial<MatchRow> & {
 		court: number;
 		round: number;

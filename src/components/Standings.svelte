@@ -16,10 +16,6 @@
 	export let teams: Teams;
 	export let defaultTeam: string;
 
-	interface TeamScores {
-		[key: string]: number;
-	}
-
 	let teamScores: TeamScores = {};
 
 	const scoring = event.scoring;

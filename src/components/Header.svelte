@@ -2,8 +2,6 @@
 	import type { PageData } from '$types';
 	import { Hamburger } from 'svelte-hamburgers';
 	import { DarkMode } from 'flowbite-svelte';
-	import { error } from '@sveltejs/kit';
-	import { goto } from '$app/navigation';
 
 	export let data: PageData;
 	let { supabase } = data;
