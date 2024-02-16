@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from '$types';
 	import { goto } from '$app/navigation';
+	import { Label, Input, Button } from 'flowbite-svelte';
 
 	export let data: PageData;
 	let { supabase } = data;
@@ -24,6 +25,9 @@
 	};
 
 	const handleSignInOtp = async () => {
+		if (!email) {
+			return (errorString = 'Please enter your email address.');
+		}
 		const { error: err } = await supabase.auth.signInWithOtp({
 			email: email,
 			options: {
@@ -58,47 +62,70 @@
 	};
 
 	let method = 'magic';
+	$: method, (errorString = '');
 </script>
 
 <svelte:head>
-	<title>User Management</title>
+	<title>User Auth</title>
 </svelte:head>
 
 <div class="row flex-center flex justify-center">
-	<div class="col-6 form-widget">
+	<div class="col-6 form-widget flex flex-col">
 		{#if method == 'magic'}
-			<input name="email" bind:value={email} />
-			<button on:click={handleSignInOtp}>Send a magic link</button>
+			<Label for="email" class="block m-2 text-gray-400">Email Address</Label>
+			<Input name="email" class="m-2 text-gray-400" bind:value={email} />
+			<Button class="m-2 text-gray-400" on:click={handleSignInOtp}>Send a magic link</Button>
 		{:else if method == 'password'}
-			<input name="email" bind:value={email} />
-			<input type="password" name="password" bind:value={password} />
-			<button on:click={handleSignIn}>Sign in</button>
-			<button on:click={() => (method = 'recovery')}>Forgot your password?</button>
+			<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
+			<Input name="email" bind:value={email} />
+
+			<Label for="password" class="block mb-2">Password</Label>
+			<Input type="password" bind:value={password} id="password" placeholder="•••••••••" required />
+
+			<Button class="m-2 text-gray-400" on:click={handleSignIn}>Sign in</Button>
+			<Button class="m-2 text-gray-400" on:click={() => (method = 'recovery')}
+				>Forgot your password?</Button
+			>
 		{:else if method == 'signup'}
 			<form on:submit={handleSignUp}>
-				<input name="email" bind:value={email} />
-				<input type="password" name="password" bind:value={password} />
-				<button>Sign up</button>
+				<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
+				<Input name="email" bind:value={email} />
+				<Input
+					type="password"
+					bind:value={password}
+					id="password"
+					placeholder="•••••••••"
+					required
+				/>
+				<Button class="text-gray-400 m-2" on:click={handleSignUp}>Sign up</Button>
 			</form>
 		{:else if method == 'recovery'}
-			<input name="email" bind:value={email} />
-			<button on:click={handleForgotPassword}>Send reset password instructions</button>
+			<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
+			<Input name="email" bind:value={email} />
+
+			<Button class="m-2 text-gray-400" on:click={handleForgotPassword}
+				>Send reset password instructions</Button
+			>
 		{/if}
 
-		<button on:click={() => (method = 'password')}>Already have an account? Sign in</button>
-		<button on:click={handleSignOut}>Sign out</button>
+		<Button class="m-2 text-gray-400" on:click={() => (method = 'password')}
+			>Already have an account? Sign in</Button
+		>
+		<Button class="m-2 text-gray-400" on:click={handleSignOut}>Sign out</Button>
+
+		<div class="text-center">
+			{#if message}
+				<span>{message}</span>
+			{/if}
+
+			{#if errorString}
+				<span class="danger">
+					{errorString}
+				</span>
+			{/if}
+		</div>
 	</div>
 </div>
-
-{#if message}
-	<span>{message}</span>
-{/if}
-
-{#if errorString}
-	<span class="danger">
-		{errorString}
-	</span>
-{/if}
 
 <style>
 	.danger {
