@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { success, error } from '$lib/toast';
+	import { Label, Input, Button } from 'flowbite-svelte';
 
 	export let data: PageData;
 
@@ -19,7 +20,17 @@
 	const whoAmI = data?.session?.user?.email;
 </script>
 
-<div class="h-screen flex flex-col items-center place-content-center">
-	<input class="text-black dark:text-white" type="password" bind:value={newPassword} />
-	<button class="btn" on:click={resetPassword}>Update Password for {whoAmI}</button>
+<div class="row flex-center flex justify-center">
+	<div class="col-6 form-widget flex flex-col">
+		<Label for="password" class="block mb-2">New Password</Label>
+		<Input
+			type="password"
+			bind:value={newPassword}
+			id="password"
+			placeholder="•••••••••"
+			required
+		/>
+
+		<Button class="m-2 text-gray-400" on:click={resetPassword}>Update Password for {whoAmI}</Button>
+	</div>
 </div>
