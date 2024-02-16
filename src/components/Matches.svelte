@@ -46,7 +46,7 @@
 
 	let matchesSubscription: RealtimeChannel | undefined;
 	async function subscribeToMatches() {
-		matchesSubscription = await matches.subscribeToDB();
+		matchesSubscription = await matches.subscribeToPoolMatches();
 	}
 	subscribeToMatches();
 

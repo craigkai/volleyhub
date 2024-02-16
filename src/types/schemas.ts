@@ -55,6 +55,7 @@ export const matchesRowSchema = z.object({
 	created_at: z.string(),
 	event_id: z.number(),
 	id: z.number(),
+	type: z.string().nullable(),
 	ref: z.number().nullable(),
 	round: z.number(),
 	team1: z.number(),

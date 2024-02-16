@@ -2,6 +2,7 @@
 	import { Event } from '$lib/event';
 	import { Matches } from '$lib/matches';
 	import type { Teams } from '$lib/teams';
+	import type { RealtimeChannel } from '@supabase/supabase-js';
 
 	export let tournament: Event;
 	export let matches: Matches;
@@ -12,6 +13,12 @@
 	matches.loadBracketMatches();
 
 	const numRounds = teamNames.length / 2 + (teamNames.length % 2);
+
+	let matchesSubscription: RealtimeChannel | undefined;
+	async function subscribeToMatches() {
+		matchesSubscription = await matches.subscribeToBracketMatches();
+	}
+	subscribeToMatches();
 
 	// TODO: Create a listener for when bracket macthes are updated, and auto create the next match in the bracket.
 	// TODO: Allow bracket matches to be edited.

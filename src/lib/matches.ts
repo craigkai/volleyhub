@@ -90,7 +90,52 @@ export class Matches extends Base {
 		}
 	}
 
-	async subscribeToDB(): Promise<RealtimeChannel> {
+	async bracketMatchUpdated(self: Matches,
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: MatchRow;
+		}>
+	): Promise<void> {
+		if ((payload.new as MatchRow)?.type !== 'bracket') {
+			return;
+		}
+		const old = payload.old as MatchRow;
+		const updated = payload.new as MatchRow;
+
+		const matchIndex = self.bracketMatches?.findIndex((m: MatchRow) => m.id === old.id);
+		if (matchIndex !== undefined && matchIndex !== -1) {
+			if (self.bracketMatches) {
+				updated.matches_team1_fkey = self.bracketMatches[matchIndex].matches_team1_fkey;
+				updated.matches_team2_fkey = self.bracketMatches[matchIndex].matches_team2_fkey;
+				updated.matches_ref_fkey = self.bracketMatches[matchIndex].matches_ref_fkey;
+			}
+
+			self.bracketMatches?.splice(matchIndex, 1, updated as MatchRow);
+			const matches = self.bracketMatches;
+
+			self._update((that: Matches) => {
+				that.bracketMatches = matches;
+				return that;
+			});
+		} else {
+			self.handleError(400, 'Failed to find bracketMatches to update.');
+		}
+
+		// We want to generate the next round of matches when the previous round is complete
+		console.error("Bracket match updated")
+
+		return;
+	}
+
+	async subscribeToBracketMatches(): Promise<RealtimeChannel> {
+		return await this.databaseService.subscribeToChanges(
+			this,
+			this.bracketMatchUpdated,
+			'matches',
+			'event_id=eq.' + this.event_id
+		);
+	}
+
+	async subscribeToPoolMatches(): Promise<RealtimeChannel> {
 		return await this.databaseService.subscribeToChanges(
 			this,
 			this.matchUpdated,
