@@ -80,7 +80,7 @@
 			</TabItem>
 
 			<TabItem title="Bracket">
-				<Bracket {tournament} {bracket} {teams} />
+				<Bracket {tournament} {bracket} {teams} {matches} />
 			</TabItem>
 		</Tabs>
 	{/await}

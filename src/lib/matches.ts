@@ -31,7 +31,11 @@ export class Matches extends Base {
 	Load all matches for the current tournament.
 	*/
 	async load() {
-		const res = await this.databaseService.load(this.event_id);
+		const res = await this.databaseService.load(this.event_id, {
+			column: 'type',
+			operator: 'eq',
+			value: 'pool'
+		});
 
 		if (res) {
 			this._update((that: Matches) => {
@@ -51,7 +55,7 @@ export class Matches extends Base {
 		const updated = payload.new as MatchRow;
 
 		// If we don't have the matches loaded, load them
-		if (Object.keys(old).length === 0) {
+		if (Object.keys(old).length === 0 || Object.keys(updated).length === 0) {
 			await self.load();
 			return;
 		}
@@ -73,7 +77,7 @@ export class Matches extends Base {
 				return that;
 			});
 		} else {
-			self.handleError(400, `Failed to find matche to update.`);
+			self.handleError(400, `Failed to find match to update.`);
 		}
 	}
 

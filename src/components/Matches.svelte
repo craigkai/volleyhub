@@ -32,11 +32,20 @@
 		}
 	}
 
+	let matchesSubscription: RealtimeChannel | undefined;
+	async function subscribeToMatches() {
+		matchesSubscription = await matches.subscribeToPoolMatches();
+	}
+
 	async function generateMatches(): Promise<void> {
 		try {
 			const res: Matches | undefined = await $matches.create(tournament, teams.teams);
 			if (!res) {
 				error('Failed to create matches');
+			} else {
+				if (!matchesSubscription) {
+					subscribeToMatches();
+				}
 			}
 		} catch (err) {
 			error((err as HttpError).toString());
@@ -44,11 +53,9 @@
 		showGenerateMatchesAlert = false;
 	}
 
-	let matchesSubscription: RealtimeChannel | undefined;
-	async function subscribeToMatches() {
-		matchesSubscription = await matches.subscribeToPoolMatches();
+	if (!$matches.matches) {
+		subscribeToMatches();
 	}
-	subscribeToMatches();
 
 	const defaultTdClass = 'px-6 py-4 whitespace-nowrap font-medium';
 </script>

@@ -4,10 +4,12 @@
 	import type { Teams } from '$lib/teams';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button, Spinner } from 'flowbite-svelte';
+	import { Matches } from '$lib/matches';
 
 	export let tournament: Event;
 	export let bracket: Brackets;
 	export let teams: Teams;
+	export let matches: Matches;
 	export let readOnly: boolean = true;
 
 	const teamNames = teams.teams.map((team) => team.name);
@@ -23,7 +25,7 @@
 	subscribeToMatches();
 
 	async function handleGenerateBracket() {
-		await $bracket.createBracketMatches(tournament, teams.teams);
+		await $bracket.createBracketMatches(tournament, teams.teams, $matches.matches || []);
 	}
 	// TODO: Allow bracket matches to be edited.
 	// TODO: Handle case where we can check the parent_id of each match
@@ -67,7 +69,7 @@
 												>
 													<td class="tournament-bracket__country">
 														<abbr class="tournament-bracket__code" title="team1"
-															>{match.brackets_team1_fkey.name}</abbr
+															>{match.matches_team1_fkey.name}</abbr
 														>
 													</td>
 													<td class="tournament-bracket__score">
@@ -81,7 +83,7 @@
 												>
 													<td class="tournament-bracket__country">
 														<abbr class="tournament-bracket__code" title="team1"
-															>{match.brackets_team2_fkey.name}</abbr
+															>{match.matches_team2_fkey.name}</abbr
 														>
 													</td>
 													<td class="tournament-bracket__score">

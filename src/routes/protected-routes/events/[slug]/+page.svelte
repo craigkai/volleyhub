@@ -62,7 +62,7 @@
 						<Standings event={tournament} {matches} {teams} defaultTeam="" />
 					</TabItem>
 					<TabItem title="Bracket">
-						<Bracket {tournament} {bracket} {teams} readOnly={false} />
+						<Bracket {tournament} {bracket} {teams} {matches} readOnly={false} />
 					</TabItem>
 				</Tabs>
 			{/if}

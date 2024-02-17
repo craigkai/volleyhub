@@ -44,7 +44,7 @@ export class Brackets extends Base {
 		return this;
 	}
 
-	async createBracketMatches(event: Event, teams: TeamRow[]) {
+	async createBracketMatches(event: Event, teams: TeamRow[], matches: MatchRow[]) {
 		if (!((teams.length & (teams.length - 1)) === 0)) {
 			this.handleError(
 				400,
@@ -53,7 +53,7 @@ export class Brackets extends Base {
 		}
 
 		let teamScores: TeamScores = {};
-		this?.bracketMatches?.forEach((match: MatchRow) => {
+		matches.forEach((match: MatchRow) => {
 			// We only care about pool play not bracket/playoff matches
 			if (match.team1_score && match.team2_score) {
 				if (!teamScores[match.matches_team1_fkey.name]) {
@@ -78,25 +78,28 @@ export class Brackets extends Base {
 		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 		const matchups: any[] = [];
 
-		// Generate matchups
-		let court = 0;
-		const numCourts = event.courts;
-		for (let i = 0; i < orderedTeamScores.length; i += 2) {
-			if (court === numCourts) {
-				court = 0;
-			}
+		const rounds = (orderedTeamScores.length = Math.pow(
+			2,
+			Math.ceil(Math.log2(orderedTeamScores.length))
+		));
 
+		// Generate matchups, this is only for the inital round of the bracket
+		for (let i = 0; i < orderedTeamScores.length; i += 2) {
 			const matchup: Partial<MatchRow> = {
 				team1: teams.find((t) => t.name === orderedTeamScores[i])?.id as number,
 				team2: teams.find((t) => t.name === orderedTeamScores[orderedTeamScores.length - 1 - i])
 					?.id as number,
 				event_id: this.event_id,
-				round: 0
+				round: 0,
+				type: 'bracket'
 			};
-			court = court + 1;
 			matchups.push(matchup);
 		}
-		this.bracketMatches = await this.databaseService.insertMatches(matchups);
+		const bracketMatches = await this.databaseService.insertMatches(matchups);
+		this._update((that: Brackets) => {
+			that.bracketMatches = bracketMatches;
+			return that;
+		});
 
 		return this.bracketMatches;
 	}
@@ -109,7 +112,7 @@ export class Brackets extends Base {
 		const updated = payload.new as MatchRow;
 
 		// If we don't have the matches loaded, load them
-		if (Object.keys(old).length === 0) {
+		if (Object.keys(old).length === 0 || Object.keys(updated).length === 0) {
 			self.load();
 			return;
 		}
