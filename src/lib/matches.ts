@@ -350,10 +350,8 @@ export class Matches extends Base {
 		// Generate matchups
 		let court = 0;
 		const numCourts = event.courts;
-		let round = 0;
 		for (let i = 0; i < orderedTeamScores.length; i += 2) {
 			if (court === numCourts) {
-				round = round + 1;
 				court = 0;
 			}
 
@@ -363,7 +361,7 @@ export class Matches extends Base {
 					?.id as number,
 				event_id: this.event_id,
 				type: 'bracket',
-				round: round
+				round: 0
 			};
 			court = court + 1;
 			matchups.push(matchup);
