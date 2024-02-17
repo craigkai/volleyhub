@@ -2,7 +2,7 @@ import { Event } from './event';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { Base } from './base';
 import { writable, type Unsubscriber, type Invalidator, type Subscriber } from 'svelte/store';
-import { MatchesSupabaseDatabaseService } from './database/matches';
+import type { MatchesSupabaseDatabaseService } from './database/matches';
 
 export class Brackets extends Base {
 	private databaseService: MatchesSupabaseDatabaseService;
