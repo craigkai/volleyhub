@@ -43,17 +43,9 @@ export class Matches extends Base {
 		return this;
 	}
 
-	async matchUpdated(
-		self: Matches,
-		payload: RealtimePostgresChangesPayload<MatchRow>
-	): Promise<void> {
-		await this.handleMatchUpdate(self, payload, self.matches);
-	}
-
 	async handleMatchUpdate(
 		self: Matches,
-		payload: RealtimePostgresChangesPayload<MatchRow>,
-		matchesArray: MatchRow[] | undefined
+		payload: RealtimePostgresChangesPayload<MatchRow>
 	): Promise<void> {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
@@ -63,6 +55,7 @@ export class Matches extends Base {
 			await self.load();
 			return;
 		}
+		const matchesArray = self.matches;
 
 		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
@@ -87,7 +80,7 @@ export class Matches extends Base {
 	async subscribeToPoolMatches(): Promise<RealtimeChannel> {
 		return await this.databaseService.subscribeToChanges(
 			this,
-			this.matchUpdated,
+			this.handleMatchUpdate,
 			'matches',
 			'event_id=eq.' + this.event_id
 		);
@@ -169,7 +162,7 @@ export class Matches extends Base {
 		let teamsAvailable = teams.length;
 		let round = 0;
 		let totalRounds = 0;
-		let userMatches: UserMatch[] = [];
+		const userMatches: UserMatch[] = [];
 		const teamsPerRound: { number: number[] } = { 0: [] };
 
 		matches
