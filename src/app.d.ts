@@ -2,7 +2,12 @@ import { SupabaseClient, Session } from '@supabase/supabase-js';
 import { Database } from './DatabaseDefinitions';
 import type { Database } from '../../types/supabase';
 import { z } from 'zod';
-import type { eventsRowSchema, matchesRowSchema, teamsRowSchema } from './types/schemas';
+import type {
+	eventsRowSchema,
+	matchesRowSchema,
+	teamsRowSchema,
+	bracketsRowSchema
+} from './types/schemas';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -13,6 +18,11 @@ declare global {
 		matches_team1_fkey: { name: string };
 		matches_team2_fkey: { name: string };
 		matches_ref_fkey: { name: string };
+	};
+
+	type BracketRow = z.infer<typeof bracketsRowSchema> & {
+		brackets_team1_fkey: { name: string };
+		brackets_team2_fkey: { name: string };
 	};
 
 	interface TeamScores {

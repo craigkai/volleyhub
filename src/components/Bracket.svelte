@@ -1,29 +1,29 @@
 <script lang="ts">
 	import { Event } from '$lib/event';
-	import { Matches } from '$lib/matches';
+	import { Brackets } from '$lib/brackets';
 	import type { Teams } from '$lib/teams';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button, Spinner } from 'flowbite-svelte';
 
 	export let tournament: Event;
-	export let matches: Matches;
+	export let bracket: Brackets;
 	export let teams: Teams;
 	export let readOnly: boolean = true;
 
 	const teamNames = teams.teams.map((team) => team.name);
 
-	const loadingPromise = $matches.loadBracketMatches();
+	const loadingPromise = $bracket.load();
 
 	const numRounds = teamNames.length / 2 + (teamNames.length % 2);
 
 	let matchesSubscription: RealtimeChannel | undefined;
 	async function subscribeToMatches() {
-		matchesSubscription = await $matches.subscribeToBracketMatches();
+		matchesSubscription = await $bracket.subscribeToBracketMatches();
 	}
 	subscribeToMatches();
 
 	async function handleGenerateBracket() {
-		await $matches.createBracketMatches(tournament, teams.teams);
+		await $bracket.createBracketMatches(tournament, teams.teams);
 	}
 	// TODO: Allow bracket matches to be edited.
 </script>
@@ -37,7 +37,7 @@
 		<div class="tournament-bracket tournament-bracket--rounded">
 			{#each Array(numRounds) as _, i}
 				{@const matchesInRound =
-					$matches?.bracketMatches?.filter((match) => match.round === i) || []}
+					$bracket?.bracketMatches?.filter((match) => match.round === i) || []}
 				<div class="tournament-bracket__round tournament-bracket__round--quarterfinals">
 					<h3 class="tournament-bracket__round-title">Round {i + 1}</h3>
 					<ul class="tournament-bracket__list">
@@ -65,7 +65,7 @@
 												>
 													<td class="tournament-bracket__country">
 														<abbr class="tournament-bracket__code" title="team1"
-															>{match.matches_team1_fkey.name}</abbr
+															>{match.brackets_team1_fkey.name}</abbr
 														>
 													</td>
 													<td class="tournament-bracket__score">
@@ -79,7 +79,7 @@
 												>
 													<td class="tournament-bracket__country">
 														<abbr class="tournament-bracket__code" title="team1"
-															>{match.matches_team2_fkey.name}</abbr
+															>{match.brackets_team2_fkey.name}</abbr
 														>
 													</td>
 													<td class="tournament-bracket__score">
@@ -101,7 +101,7 @@
 
 	<div class="flex flex-col items-center">
 		{#if !readOnly}
-			{#if !matches?.bracketMatches || matches?.bracketMatches?.length === 0}
+			{#if !bracket?.bracketMatches || bracket?.bracketMatches?.length === 0}
 				<Button color="light" on:click={handleGenerateBracket}>Generate initial bracket</Button>
 			{/if}
 		{/if}

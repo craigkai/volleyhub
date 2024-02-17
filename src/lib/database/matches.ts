@@ -1,11 +1,5 @@
 import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
-import type { Matches } from '$lib/matches';
-import type {
-	PostgrestResponse,
-	PostgrestSingleResponse,
-	RealtimeChannel,
-	RealtimePostgresChangesPayload
-} from '@supabase/supabase-js';
+import type { PostgrestResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { matchesRowSchema } from '../../types/schemas';
 
@@ -41,40 +35,6 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 
 		// Return the loaded matches
 		return res.data;
-	}
-
-	async subscribeToChanges(
-		self: Matches,
-		callback: (
-			self: Matches,
-			payload: RealtimePostgresChangesPayload<{
-				[key: string]: any;
-			}>
-		) => {},
-		table: string,
-		filter?: string
-	): Promise<RealtimeChannel> {
-		console.debug('Subscribing to changes');
-
-		return this.supabaseClient
-			.channel('*')
-			.on(
-				'postgres_changes',
-				{ event: '*', schema: 'public', table: table, filter: filter },
-				(
-					payload: RealtimePostgresChangesPayload<{
-						[key: string]: any;
-					}>
-				) => {
-					callback(self, payload);
-				}
-			)
-			.subscribe((status) => {
-				// We call the load function to update in case our content is stale
-				// we we re-connect to the web socket.
-				self.load();
-				console.debug('Realtime status', status);
-			});
 	}
 
 	async deleteMatchesByEvent(event_id: number): Promise<void> {

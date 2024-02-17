@@ -16,6 +16,8 @@
 	import EditMatch from '$components/EditMatch.svelte';
 	import { page } from '$app/stores';
 	import { Modal } from 'flowbite-svelte';
+	import { BracketsSupabaseDatabaseService } from '$lib/database/brackets';
+	import { Brackets } from '$lib/brackets';
 
 	export let data: PageData;
 	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
@@ -26,6 +28,9 @@
 
 	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(data?.supabase);
 	let teams = new TeamsInstance(data.event_id, teamsSupabaseDatabaseService);
+
+	const bracketsSupabaseDatabaseService = new BracketsSupabaseDatabaseService(data?.supabase);
+	const bracket = new Brackets(data.event_id, bracketsSupabaseDatabaseService);
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 </script>
@@ -59,7 +64,7 @@
 						<Standings event={tournament} {matches} {teams} defaultTeam="" />
 					</TabItem>
 					<TabItem title="Bracket">
-						<Bracket {tournament} {matches} {teams} readOnly={false} />
+						<Bracket {tournament} {bracket} {teams} readOnly={false} />
 					</TabItem>
 				</Tabs>
 			{/if}
