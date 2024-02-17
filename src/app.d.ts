@@ -20,11 +20,6 @@ declare global {
 		matches_ref_fkey: { name: string };
 	};
 
-	type BracketRow = z.infer<typeof bracketsRowSchema> & {
-		brackets_team1_fkey: { name: string };
-		brackets_team2_fkey: { name: string };
-	};
-
 	interface TeamScores {
 		[key: string]: number;
 	}
@@ -35,6 +30,7 @@ declare global {
 		event_id: number;
 		team1: number;
 		team2: number;
+		parent_id?: number;
 	};
 
 	interface Locals {

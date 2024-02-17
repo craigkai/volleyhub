@@ -31,7 +31,7 @@ export class Matches extends Base {
 	Load all matches for the current tournament.
 	*/
 	async load() {
-		const res = await this.databaseService.loadMatches(this.event_id);
+		const res = await this.databaseService.load(this.event_id);
 
 		if (res) {
 			this._update((that: Matches) => {

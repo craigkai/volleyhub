@@ -26,6 +26,8 @@
 		await $bracket.createBracketMatches(tournament, teams.teams);
 	}
 	// TODO: Allow bracket matches to be edited.
+	// TODO: Handle case where we can check the parent_id of each match
+	// should start with null.
 </script>
 
 {#await loadingPromise}

@@ -14,45 +14,6 @@ export const jsonSchema: z.ZodSchema<Json> = z.lazy(() =>
 		.nullable()
 );
 
-export const bracketsRowSchema = z.object({
-	court: z.number().nullable(),
-	created_at: z.string(),
-	event_id: z.number(),
-	id: z.number(),
-	parent_id: z.number().nullable(),
-	round: z.number().nullable(),
-	team1: z.number(),
-	team1_score: z.number().nullable(),
-	team2: z.number(),
-	team2_score: z.number().nullable()
-});
-
-export const bracketsInsertSchema = z.object({
-	court: z.number().optional().nullable(),
-	created_at: z.string().optional(),
-	event_id: z.number(),
-	id: z.number().optional(),
-	parent_id: z.number().optional().nullable(),
-	round: z.number().optional().nullable(),
-	team1: z.number(),
-	team1_score: z.number().optional().nullable(),
-	team2: z.number(),
-	team2_score: z.number().optional().nullable()
-});
-
-export const bracketsUpdateSchema = z.object({
-	court: z.number().optional().nullable(),
-	created_at: z.string().optional(),
-	event_id: z.number().optional(),
-	id: z.number().optional(),
-	parent_id: z.number().optional().nullable(),
-	round: z.number().optional().nullable(),
-	team1: z.number().optional(),
-	team1_score: z.number().optional().nullable(),
-	team2: z.number().optional(),
-	team2_score: z.number().optional().nullable()
-});
-
 export const eventsRowSchema = z.object({
 	courts: z.number().nullable(),
 	created_at: z.string(),
@@ -94,6 +55,7 @@ export const matchesRowSchema = z.object({
 	created_at: z.string(),
 	event_id: z.number(),
 	id: z.number(),
+	parent_id: z.number().nullable(),
 	ref: z.number().nullable(),
 	round: z.number(),
 	team1: z.number(),
@@ -108,6 +70,7 @@ export const matchesInsertSchema = z.object({
 	created_at: z.string().optional(),
 	event_id: z.number(),
 	id: z.number().optional(),
+	parent_id: z.number().optional().nullable(),
 	ref: z.number().optional().nullable(),
 	round: z.number().optional(),
 	team1: z.number(),
@@ -122,6 +85,7 @@ export const matchesUpdateSchema = z.object({
 	created_at: z.string().optional(),
 	event_id: z.number().optional(),
 	id: z.number().optional(),
+	parent_id: z.number().optional().nullable(),
 	ref: z.number().optional().nullable(),
 	round: z.number().optional(),
 	team1: z.number().optional(),

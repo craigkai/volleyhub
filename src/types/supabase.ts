@@ -3,67 +3,6 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
 	public: {
 		Tables: {
-			brackets: {
-				Row: {
-					court: number | null;
-					created_at: string;
-					event_id: number;
-					id: number;
-					parent_id: number | null;
-					round: number | null;
-					team1: number;
-					team1_score: number | null;
-					team2: number;
-					team2_score: number | null;
-				};
-				Insert: {
-					court?: number | null;
-					created_at?: string;
-					event_id: number;
-					id?: number;
-					parent_id?: number | null;
-					round?: number | null;
-					team1: number;
-					team1_score?: number | null;
-					team2: number;
-					team2_score?: number | null;
-				};
-				Update: {
-					court?: number | null;
-					created_at?: string;
-					event_id?: number;
-					id?: number;
-					parent_id?: number | null;
-					round?: number | null;
-					team1?: number;
-					team1_score?: number | null;
-					team2?: number;
-					team2_score?: number | null;
-				};
-				Relationships: [
-					{
-						foreignKeyName: 'public_brackets_parent_id_fkey';
-						columns: ['parent_id'];
-						isOneToOne: false;
-						referencedRelation: 'brackets';
-						referencedColumns: ['id'];
-					},
-					{
-						foreignKeyName: 'public_brackets_team1_fkey';
-						columns: ['team1'];
-						isOneToOne: false;
-						referencedRelation: 'teams';
-						referencedColumns: ['id'];
-					},
-					{
-						foreignKeyName: 'public_brackets_team2_fkey';
-						columns: ['team2'];
-						isOneToOne: false;
-						referencedRelation: 'teams';
-						referencedColumns: ['id'];
-					}
-				];
-			};
 			events: {
 				Row: {
 					courts: number | null;
@@ -114,6 +53,7 @@ export type Database = {
 					created_at: string;
 					event_id: number;
 					id: number;
+					parent_id: number | null;
 					ref: number | null;
 					round: number;
 					team1: number;
@@ -127,6 +67,7 @@ export type Database = {
 					created_at?: string;
 					event_id: number;
 					id?: number;
+					parent_id?: number | null;
 					ref?: number | null;
 					round?: number;
 					team1: number;
@@ -140,6 +81,7 @@ export type Database = {
 					created_at?: string;
 					event_id?: number;
 					id?: number;
+					parent_id?: number | null;
 					ref?: number | null;
 					round?: number;
 					team1?: number;
@@ -175,6 +117,13 @@ export type Database = {
 						columns: ['team2'];
 						isOneToOne: false;
 						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_matches_parent_id_fkey';
+						columns: ['parent_id'];
+						isOneToOne: false;
+						referencedRelation: 'matches';
 						referencedColumns: ['id'];
 					}
 				];

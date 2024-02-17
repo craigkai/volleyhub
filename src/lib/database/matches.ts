@@ -18,7 +18,7 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @returns {Promise<MatchRow[]>} - Returns a promise that resolves to an array of the loaded matches.
 	 * @throws {Error} - Throws an error if there's an issue loading the matches.
 	 */
-	async loadMatches(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
+	async load(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
 		const query = this.supabaseClient
 			.from('matches')
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')

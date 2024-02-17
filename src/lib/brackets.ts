@@ -2,10 +2,10 @@ import { Event } from './event';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { Base } from './base';
 import { writable, type Unsubscriber, type Invalidator, type Subscriber } from 'svelte/store';
-import { BracketsSupabaseDatabaseService } from './database/brackets';
+import { MatchesSupabaseDatabaseService } from './database/matches';
 
 export class Brackets extends Base {
-	private databaseService: BracketsSupabaseDatabaseService;
+	private databaseService: MatchesSupabaseDatabaseService;
 	public subscribe: (
 		run: Subscriber<Brackets>,
 		invalidate?: Invalidator<Brackets> | undefined
@@ -14,9 +14,9 @@ export class Brackets extends Base {
 	private _update: Function;
 
 	event_id: number;
-	bracketMatches?: BracketRow[];
+	bracketMatches?: MatchRow[];
 
-	constructor(event_id: number, databaseService: BracketsSupabaseDatabaseService) {
+	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
 		super();
 		const { subscribe, set, update } = writable(this);
 		this.subscribe = subscribe;
@@ -28,7 +28,11 @@ export class Brackets extends Base {
 	}
 
 	async load() {
-		const res = await this.databaseService.load(this.event_id);
+		const res = await this.databaseService.load(this.event_id, {
+			column: 'type',
+			operator: 'eq',
+			value: 'bracket'
+		});
 
 		if (res) {
 			this._update((that: Brackets) => {
@@ -49,24 +53,24 @@ export class Brackets extends Base {
 		}
 
 		let teamScores: TeamScores = {};
-		this?.bracketMatches?.forEach((match: BracketRow) => {
+		this?.bracketMatches?.forEach((match: MatchRow) => {
 			// We only care about pool play not bracket/playoff matches
 			if (match.team1_score && match.team2_score) {
-				if (!teamScores[match.brackets_team1_fkey.name]) {
-					teamScores[match.brackets_team1_fkey.name] = 0;
+				if (!teamScores[match.matches_team1_fkey.name]) {
+					teamScores[match.matches_team1_fkey.name] = 0;
 				}
 
-				if (!teamScores[match.brackets_team2_fkey.name]) {
-					teamScores[match.brackets_team2_fkey.name] = 0;
+				if (!teamScores[match.matches_team2_fkey.name]) {
+					teamScores[match.matches_team2_fkey.name] = 0;
 				}
 
 				if (event?.scoring === 'points') {
-					teamScores[match.brackets_team1_fkey.name] += match?.team1_score || 0;
-					teamScores[match.brackets_team2_fkey.name] += match?.team2_score || 0;
+					teamScores[match.matches_team1_fkey.name] += match?.team1_score || 0;
+					teamScores[match.matches_team2_fkey.name] += match?.team2_score || 0;
 				} else {
-					teamScores[match.brackets_team1_fkey.name] +=
+					teamScores[match.matches_team1_fkey.name] +=
 						match.team1_score > match.team2_score ? 1 : 0;
-					teamScores[match.brackets_team2_fkey.name] +=
+					teamScores[match.matches_team2_fkey.name] +=
 						match.team2_score > match.team1_score ? 1 : 0;
 				}
 			}
@@ -82,7 +86,7 @@ export class Brackets extends Base {
 				court = 0;
 			}
 
-			const matchup: Partial<BracketRow> = {
+			const matchup: Partial<MatchRow> = {
 				team1: teams.find((t) => t.name === orderedTeamScores[i])?.id as number,
 				team2: teams.find((t) => t.name === orderedTeamScores[orderedTeamScores.length - 1 - i])
 					?.id as number,
@@ -92,15 +96,15 @@ export class Brackets extends Base {
 			court = court + 1;
 			matchups.push(matchup);
 		}
-		this.bracketMatches = await this.databaseService.insertBracketMatches(matchups);
+		this.bracketMatches = await this.databaseService.insertMatches(matchups);
 
 		return this.bracketMatches;
 	}
 
 	async handleBracketMatchUpdate(
 		self: Brackets,
-		payload: RealtimePostgresChangesPayload<BracketRow>,
-		matchesArray: BracketRow[] | undefined
+		payload: RealtimePostgresChangesPayload<MatchRow>,
+		matchesArray: MatchRow[] | undefined
 	): Promise<void> {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
@@ -111,14 +115,14 @@ export class Brackets extends Base {
 			return;
 		}
 
-		const matchIndex = matchesArray?.findIndex((m: BracketRow) => m.id === old.id);
+		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
 			if (matchesArray) {
-				updated.brackets_team1_fkey = matchesArray[matchIndex].brackets_team1_fkey;
-				updated.brackets_team2_fkey = matchesArray[matchIndex].brackets_team2_fkey;
+				updated.matches_team1_fkey = matchesArray[matchIndex].matches_team1_fkey;
+				updated.matches_team2_fkey = matchesArray[matchIndex].matches_team2_fkey;
 			}
 
-			matchesArray?.splice(matchIndex, 1, updated as BracketRow);
+			matchesArray?.splice(matchIndex, 1, updated as MatchRow);
 			const matches = matchesArray;
 
 			self._update((that: Brackets) => {
