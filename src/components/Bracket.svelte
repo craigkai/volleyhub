@@ -4,22 +4,14 @@
 	import type { Teams } from '$lib/teams';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button, Spinner } from 'flowbite-svelte';
-	import { pushState } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { showModal } from '$lib/helper';
 
 	export let tournament: Event;
 	export let bracket: Brackets;
 	export let teams: Teams;
 	export let matches: Brackets;
 	export let readOnly: boolean = true;
-
-	function showModal(matchId: number) {
-		pushState('', {
-			showModal: true,
-			matchId: matchId,
-			type: 'bracket'
-		});
-	}
 
 	const teamNames = teams.teams.map((team) => team.name);
 
@@ -45,84 +37,80 @@
 		<Spinner />
 	</div>
 {:then}
-	{#if $bracket?.matches && $bracket?.matches?.length > 0}
-		<div class="container">
-			<div class="tournament-bracket tournament-bracket--rounded">
-				{#each Array(numRounds) as _, i}
-					{@const matchesInRound = $bracket?.matches?.filter((match) => match.round === i) || []}
-					<div class="tournament-bracket__round tournament-bracket__round--quarterfinals">
-						<h3 class="tournament-bracket__round-title">Round {i + 1}</h3>
-						<ul class="tournament-bracket__list">
-							{#if matchesInRound.length != 0}
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								{#each matchesInRound as match}
-									{@const team1Win =
-										match.team1_score && match.team2_score
-											? match.team1_score > match.team2_score
-											: false}
-									{@const team2Win = !team1Win && match.team1_score && match.team2_score}
-									<!-- svelte-ignore missing-declaration -->
-									<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-									<li
-										class="tournament-bracket__item"
-										on:click={() => {
-											if (!readOnly && !$page.state.showModal) {
-												showModal(match.id);
-											}
-										}}
-									>
-										<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-										<div class="tournament-bracket__match" tabindex="0">
-											<table class="tournament-bracket__table">
-												<thead class="sr-only">
-													<tr>
-														<th>Team</th>
-														<th>Score</th>
-													</tr>
-												</thead>
-												<tbody class="tournament-bracket__content">
-													<tr
-														class:tournament-bracket__team--winner={team1Win}
-														class="tournament-bracket__team"
-													>
-														<td class="tournament-bracket__country">
-															<abbr class="tournament-bracket__code" title="team1"
-																>{match.matches_team1_fkey.name}</abbr
-															>
-														</td>
-														<td class="tournament-bracket__score">
-															<span class="tournament-bracket__number"
-																>{match?.team1_score || 0}</span
-															>
-														</td>
-													</tr>
-													<tr
-														class:tournament-bracket__team--winner={team2Win}
-														class="tournament-bracket__team"
-													>
-														<td class="tournament-bracket__country">
-															<abbr class="tournament-bracket__code" title="team1"
-																>{match.matches_team2_fkey.name}</abbr
-															>
-														</td>
-														<td class="tournament-bracket__score">
-															<span class="tournament-bracket__number"
-																>{match?.team2_score || 0}</span
-															>
-														</td>
-													</tr>
-												</tbody>
-											</table>
-										</div>
-									</li>
-								{/each}
-							{/if}
-						</ul>
-					</div>
-				{/each}
-			</div>
+	<div class="container">
+		<div class="tournament-bracket tournament-bracket--rounded">
+			{#each Array(numRounds) as _, i}
+				{@const matchesInRound = $bracket?.matches?.filter((match) => match.round === i) || []}
+				<div class="tournament-bracket__round tournament-bracket__round--quarterfinals">
+					<h3 class="tournament-bracket__round-title">Round {i + 1}</h3>
+					<ul class="tournament-bracket__list">
+						{#if matchesInRound.length != 0}
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
+							{#each matchesInRound as match}
+								{@const team1Win =
+									match.team1_score && match.team2_score
+										? match.team1_score > match.team2_score
+										: false}
+								{@const team2Win = !team1Win && match.team1_score && match.team2_score}
+								<!-- svelte-ignore missing-declaration -->
+								<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+								<li
+									class="tournament-bracket__item"
+									on:click={() => {
+										if (!readOnly && !$page.state.showModal) {
+											showModal(match.id, 'bracket');
+										}
+									}}
+								>
+									<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+									<div class="tournament-bracket__match" tabindex="0">
+										<table class="tournament-bracket__table">
+											<thead class="sr-only">
+												<tr>
+													<th>Team</th>
+													<th>Score</th>
+												</tr>
+											</thead>
+											<tbody class="tournament-bracket__content">
+												<tr
+													class:tournament-bracket__team--winner={team1Win}
+													class="tournament-bracket__team"
+												>
+													<td class="tournament-bracket__country">
+														<abbr class="tournament-bracket__code" title="team1"
+															>{match.matches_team1_fkey.name}</abbr
+														>
+													</td>
+													<td class="tournament-bracket__score">
+														<span class="tournament-bracket__number">{match?.team1_score || 0}</span
+														>
+													</td>
+												</tr>
+												<tr
+													class:tournament-bracket__team--winner={team2Win}
+													class="tournament-bracket__team"
+												>
+													<td class="tournament-bracket__country">
+														<abbr class="tournament-bracket__code" title="team1"
+															>{match.matches_team2_fkey.name}</abbr
+														>
+													</td>
+													<td class="tournament-bracket__score">
+														<span class="tournament-bracket__number">{match?.team2_score || 0}</span
+														>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</li>
+							{/each}
+						{/if}
+					</ul>
+				</div>
+			{/each}
 		</div>
-	{/if}
+	</div>
 
 	<div class="flex flex-col items-center">
 		{#if !readOnly}
