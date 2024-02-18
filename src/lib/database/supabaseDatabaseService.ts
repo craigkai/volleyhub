@@ -83,7 +83,7 @@ export class SupabaseDatabaseService {
 		table: string,
 		filter?: string
 	): Promise<RealtimeChannel> {
-		console.debug('Subscribing to changes');
+		console.debug('Subscribing to changes for table ' + table + ' with filter ' + filter);
 
 		return this.supabaseClient
 			.channel('*')
@@ -100,7 +100,7 @@ export class SupabaseDatabaseService {
 			)
 			.subscribe((status) => {
 				// We call the load function to update in case our content is stale
-				// we we re-connect to the web socket.
+				// when we re-connect to the web socket.
 				self.load();
 				console.debug('Realtime status', status);
 			});

@@ -3,6 +3,7 @@ import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { writable, type Unsubscriber, type Invalidator, type Subscriber } from 'svelte/store';
 import { Base } from './base';
+import type { Brackets } from './brackets';
 
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
@@ -48,10 +49,9 @@ export class Matches extends Base {
 	}
 
 	async handleUpdate(
-		self: Matches,
-		payload: RealtimePostgresChangesPayload<MatchRow>
+		self: Matches | Brackets,
+		payload: RealtimePostgresChangesPayload<{ [key: string]: any; }>
 	): Promise<void> {
-		console.log('I AM HERE');
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
@@ -62,7 +62,7 @@ export class Matches extends Base {
 		}
 
 		if (self.constructor.name === 'Brackets') {
-			if (old.type !== 'bracket') {
+			if (updated.type !== 'bracket') {
 				// Updated match is not a bracket match, so we don't care about it
 				return;
 			}
@@ -94,6 +94,7 @@ export class Matches extends Base {
 		return await this.databaseService.subscribeToChanges(
 			this,
 			this.handleUpdate,
+			'matches',
 			'event_id=eq.' + this.event_id
 		);
 	}

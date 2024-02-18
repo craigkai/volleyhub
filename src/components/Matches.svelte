@@ -53,7 +53,7 @@
 		showGenerateMatchesAlert = false;
 	}
 
-	if (!$matches.matches) {
+	if ($matches.matches) {
 		subscribeToMatches();
 	}
 
