@@ -10,7 +10,8 @@
 	function showModal() {
 		pushState('', {
 			showModal: true,
-			matchId: match.id
+			matchId: match.id,
+			type: 'pool'
 		});
 	}
 

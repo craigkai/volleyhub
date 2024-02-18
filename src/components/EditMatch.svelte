@@ -9,7 +9,7 @@
 	export let matchId: number;
 	export let matches: Matches | Brackets;
 
-	let match = matches?.matches?.find((m) => m.id === matchId);
+	let match = $matches?.matches?.find((m) => m.id === matchId);
 
 	async function updateMatch() {
 		if (match) {
