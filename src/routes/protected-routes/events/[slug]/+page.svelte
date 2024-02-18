@@ -28,14 +28,18 @@
 	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(data?.supabase);
 	let teams = new TeamsInstance(data.event_id, teamsSupabaseDatabaseService);
 
-	const bracket = new Brackets(data.event_id, matchesSupabaseDatabaseService);
+	let bracket = new Brackets(data.event_id, matchesSupabaseDatabaseService);
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 </script>
 
 {#if $page.state.showModal && $page.state.matchId}
 	<Modal size="xs" on:close={() => history.back()} open={true} outsideclose autoclose>
-		<EditMatch matchId={$page.state.matchId} bind:matches />
+		{#if $page.state.type === 'pool'}
+			<EditMatch matchId={$page.state.matchId} bind:matches />
+		{:else}
+			<EditMatch matchId={$page.state.matchId} bind:matches={bracket} />
+		{/if}
 	</Modal>
 {/if}
 

@@ -60,6 +60,7 @@ declare global {
 
 		interface PageState {
 			matchId?: number;
+			type?: string;
 			showModal?: boolean;
 		}
 	}

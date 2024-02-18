@@ -4,13 +4,21 @@
 	import type { Teams } from '$lib/teams';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button, Spinner } from 'flowbite-svelte';
-	import { Matches } from '$lib/matches';
+	import { pushState } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	export let tournament: Event;
 	export let bracket: Brackets;
 	export let teams: Teams;
-	export let matches: Matches;
+	export let matches: Brackets;
 	export let readOnly: boolean = true;
+
+	function showModal(matchId: number) {
+		pushState('', {
+			showModal: true,
+			matchId: matchId
+		});
+	}
 
 	const teamNames = teams.teams.map((team) => team.name);
 
@@ -20,12 +28,12 @@
 
 	let matchesSubscription: RealtimeChannel | undefined;
 	async function subscribeToMatches() {
-		matchesSubscription = await $bracket.subscribeToBracketMatches();
+		matchesSubscription = await $bracket.subscribeToMatches();
 	}
 	subscribeToMatches();
 
 	async function handleGenerateBracket() {
-		await $bracket.createBracketMatches(tournament, teams.teams, $matches.matches || []);
+		await bracket.createBracketMatches(tournament, teams.teams, $matches.matches || []);
 	}
 	// TODO: Allow bracket matches to be edited.
 	// TODO: Handle case where we can check the parent_id of each match
@@ -40,19 +48,28 @@
 	<div class="container">
 		<div class="tournament-bracket tournament-bracket--rounded">
 			{#each Array(numRounds) as _, i}
-				{@const matchesInRound =
-					$bracket?.bracketMatches?.filter((match) => match.round === i) || []}
+				{@const matchesInRound = $bracket?.matches?.filter((match) => match.round === i) || []}
 				<div class="tournament-bracket__round tournament-bracket__round--quarterfinals">
 					<h3 class="tournament-bracket__round-title">Round {i + 1}</h3>
 					<ul class="tournament-bracket__list">
 						{#if matchesInRound.length != 0}
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
 							{#each matchesInRound as match}
 								{@const team1Win =
 									match.team1_score && match.team2_score
 										? match.team1_score > match.team2_score
 										: false}
 								{@const team2Win = !team1Win && match.team1_score && match.team2_score}
-								<li class="tournament-bracket__item">
+								<!-- svelte-ignore missing-declaration -->
+								<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+								<li
+									class="tournament-bracket__item"
+									on:click={() => {
+										if (!readOnly && !$page.state.showModal) {
+											showModal(match.id);
+										}
+									}}
+								>
 									<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 									<div class="tournament-bracket__match" tabindex="0">
 										<table class="tournament-bracket__table">
@@ -105,7 +122,7 @@
 
 	<div class="flex flex-col items-center">
 		{#if !readOnly}
-			{#if !bracket?.bracketMatches || bracket?.bracketMatches?.length === 0}
+			{#if !bracket?.matches || bracket?.matches?.length === 0}
 				<Button color="light" on:click={handleGenerateBracket}>Generate initial bracket</Button>
 			{/if}
 		{/if}

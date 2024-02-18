@@ -4,9 +4,10 @@
 	import { error, success } from '$lib/toast';
 	import { Matches } from '$lib/matches';
 	import { pushState } from '$app/navigation';
+	import type { Brackets } from '$lib/brackets';
 
 	export let matchId: number;
-	export let matches: Matches;
+	export let matches: Matches | Brackets;
 
 	let match = matches?.matches?.find((m) => m.id === matchId);
 

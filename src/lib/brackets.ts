@@ -1,32 +1,8 @@
 import { Event } from './event';
-import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { Base } from './base';
-import { writable, type Unsubscriber, type Invalidator, type Subscriber } from 'svelte/store';
-import type { MatchesSupabaseDatabaseService } from './database/matches';
+import { Matches } from './matches';
 
-export class Brackets extends Base {
-	private databaseService: MatchesSupabaseDatabaseService;
-	public subscribe: (
-		run: Subscriber<Brackets>,
-		invalidate?: Invalidator<Brackets> | undefined
-	) => Unsubscriber;
-	private _set: Function;
-	private _update: Function;
-
-	event_id: number;
-	bracketMatches?: MatchRow[];
-
-	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
-		super();
-		const { subscribe, set, update } = writable(this);
-		this.subscribe = subscribe;
-		this._set = set;
-		this._update = update;
-
-		this.databaseService = databaseService;
-		this.event_id = event_id;
-	}
-
+export class Brackets extends Matches {
+	// Overload Matches load method to only load our bracket matches.
 	async load() {
 		const res = await this.databaseService.load(this.event_id, {
 			column: 'type',
@@ -36,7 +12,7 @@ export class Brackets extends Base {
 
 		if (res) {
 			this._update((that: Brackets) => {
-				that.bracketMatches = res;
+				that.matches = res;
 				return that;
 			});
 		}
@@ -95,55 +71,12 @@ export class Brackets extends Base {
 			};
 			matchups.push(matchup);
 		}
-		const bracketMatches = await this.databaseService.insertMatches(matchups);
+		const matchesOutput = await this.databaseService.insertMatches(matchups);
 		this._update((that: Brackets) => {
-			that.bracketMatches = bracketMatches;
+			that.matches = matchesOutput;
 			return that;
 		});
 
-		return this.bracketMatches;
-	}
-
-	async handleBracketMatchUpdate(
-		self: Brackets,
-		payload: RealtimePostgresChangesPayload<MatchRow>
-	): Promise<void> {
-		const old = payload.old as MatchRow;
-		const updated = payload.new as MatchRow;
-
-		// If we don't have the matches loaded, load them
-		if (Object.keys(old).length === 0 || Object.keys(updated).length === 0) {
-			self.load();
-			return;
-		}
-
-		const matchesArray = self.bracketMatches;
-
-		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
-		if (matchIndex !== undefined && matchIndex !== -1) {
-			if (matchesArray) {
-				updated.matches_team1_fkey = matchesArray[matchIndex].matches_team1_fkey;
-				updated.matches_team2_fkey = matchesArray[matchIndex].matches_team2_fkey;
-			}
-
-			matchesArray?.splice(matchIndex, 1, updated as MatchRow);
-			const matches = matchesArray;
-
-			self._update((that: Brackets) => {
-				that.bracketMatches = matches;
-				return that;
-			});
-		} else {
-			self.handleError(400, `Failed to find bracket match to update.`);
-		}
-	}
-
-	async subscribeToBracketMatches(): Promise<RealtimeChannel> {
-		return await this.databaseService.subscribeToChanges(
-			this,
-			this.handleBracketMatchUpdate,
-			'brackets',
-			'event_id=eq.' + this.event_id
-		);
+		return this.matches;
 	}
 }

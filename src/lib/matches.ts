@@ -5,13 +5,13 @@ import { writable, type Unsubscriber, type Invalidator, type Subscriber } from '
 import { Base } from './base';
 
 export class Matches extends Base {
-	private databaseService: MatchesSupabaseDatabaseService;
+	public databaseService: MatchesSupabaseDatabaseService;
 	public subscribe: (
 		run: Subscriber<Matches>,
 		invalidate?: Invalidator<Matches> | undefined
 	) => Unsubscriber;
-	private _set: Function;
-	private _update: Function;
+	public _set: Function;
+	public _update: Function;
 
 	event_id: number;
 	matches?: MatchRow[];
@@ -47,7 +47,7 @@ export class Matches extends Base {
 		return this;
 	}
 
-	async handleMatchUpdate(
+	async handleUpdate(
 		self: Matches,
 		payload: RealtimePostgresChangesPayload<MatchRow>
 	): Promise<void> {
@@ -59,6 +59,14 @@ export class Matches extends Base {
 			await self.load();
 			return;
 		}
+
+		if (self.constructor.name === 'Brackets') {
+			if (old.type !== 'bracket') {
+				// Updated match is not a bracket match, so we don't care about it
+				return;
+			}
+		}
+
 		const matchesArray = self.matches;
 
 		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
@@ -81,11 +89,10 @@ export class Matches extends Base {
 		}
 	}
 
-	async subscribeToPoolMatches(): Promise<RealtimeChannel> {
+	async subscribeToMatches(): Promise<RealtimeChannel> {
 		return await this.databaseService.subscribeToChanges(
 			this,
-			this.handleMatchUpdate,
-			'matches',
+			this.handleUpdate,
 			'event_id=eq.' + this.event_id
 		);
 	}
