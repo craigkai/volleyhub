@@ -54,11 +54,6 @@ export class Brackets extends Matches {
 		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 		const matchups: any[] = [];
 
-		const rounds = (orderedTeamScores.length = Math.pow(
-			2,
-			Math.ceil(Math.log2(orderedTeamScores.length))
-		));
-
 		// Generate matchups, this is only for the inital round of the bracket
 		for (let i = 0; i < orderedTeamScores.length; i += 2) {
 			const matchup: Partial<MatchRow> = {
@@ -67,16 +62,23 @@ export class Brackets extends Matches {
 					?.id as number,
 				event_id: this.event_id,
 				round: 0,
-				type: 'bracket'
+				type: 'bracket',
+				sibling_id: matchups.length > 0 ? matchups[matchups.length - 1].id : null
 			};
-			matchups.push(matchup);
+			const res = await this.databaseService.insertMatches([matchup] as UserMatch[]);
+			matchups.push(res[0]);
 		}
-		const matchesOutput = await this.databaseService.insertMatches(matchups);
-		this._update((that: Brackets) => {
-			that.matches = matchesOutput;
-			return that;
-		});
+		await this.load();
 
 		return this.matches;
+	}
+
+	async nextRound(oldMatch: MatchRow, newMatch: MatchRow) {
+		console.log('Next round');
+		console.log(oldMatch, newMatch);
+
+		//
+		// Figure out if we know our next matchup and when we create a new match
+		// set the parent_id of the match to the previous match.
 	}
 }

@@ -1,125 +1,19 @@
+<!-- BracketTree.svelte -->
 <script lang="ts">
-	import { Event } from '$lib/event';
-	import { Brackets } from '$lib/brackets';
-	import type { Teams } from '$lib/teams';
-	import type { RealtimeChannel } from '@supabase/supabase-js';
-	import { Button, Spinner } from 'flowbite-svelte';
-	import { page } from '$app/stores';
-	import { showModal } from '$lib/helper';
+	import BracketRound from '$components/Bracket/BracketRound.svelte';
 
-	export let tournament: Event;
-	export let bracket: Brackets;
-	export let teams: Teams;
-	export let matches: Brackets;
-	export let readOnly: boolean = true;
-
-	const teamNames = teams.teams.map((team) => team.name);
-
-	const loadingPromise = $bracket.load();
-
-	const numRounds = teamNames.length / 2 + (teamNames.length % 2);
-
-	let matchesSubscription: RealtimeChannel | undefined;
-	async function subscribeToMatches() {
-		matchesSubscription = await bracket.subscribeToMatches();
-	}
-	subscribeToMatches();
-
-	async function handleGenerateBracket() {
-		await bracket.createBracketMatches(tournament, teams.teams, $matches.matches || []);
-	}
-	// TODO: Handle case where we can check the parent_id of each match
-	// should start with null.
+	export let matches: MatchRow[] | undefined;
+	export let readOnly: boolean;
+	console.log(matches);
 </script>
 
-{#await loadingPromise}
-	<div class="h-screen flex flex-col items-center place-content-center">
-		<Spinner />
-	</div>
-{:then}
-	<div class="container">
-		<div class="tournament-bracket tournament-bracket--rounded">
-			{#each Array(numRounds) as _, i}
-				{@const matchesInRound = $bracket?.matches?.filter((match) => match.round === i) || []}
-				<div class="tournament-bracket__round tournament-bracket__round--quarterfinals">
-					<h3 class="tournament-bracket__round-title">Round {i + 1}</h3>
-					<ul class="tournament-bracket__list">
-						{#if matchesInRound.length != 0}
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							{#each matchesInRound as match}
-								{@const team1Win =
-									match.team1_score && match.team2_score
-										? match.team1_score > match.team2_score
-										: false}
-								{@const team2Win = !team1Win && match.team1_score && match.team2_score}
-								<!-- svelte-ignore missing-declaration -->
-								<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-								<li
-									class="tournament-bracket__item"
-									on:click={() => {
-										if (!readOnly && !$page.state.showModal) {
-											showModal(match.id, 'bracket');
-										}
-									}}
-								>
-									<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-									<div class="tournament-bracket__match" tabindex="0">
-										<table class="tournament-bracket__table">
-											<thead class="sr-only">
-												<tr>
-													<th>Team</th>
-													<th>Score</th>
-												</tr>
-											</thead>
-											<tbody class="tournament-bracket__content">
-												<tr
-													class:tournament-bracket__team--winner={team1Win}
-													class="tournament-bracket__team"
-												>
-													<td class="tournament-bracket__country">
-														<abbr class="tournament-bracket__code" title="team1"
-															>{match.matches_team1_fkey.name}</abbr
-														>
-													</td>
-													<td class="tournament-bracket__score">
-														<span class="tournament-bracket__number">{match?.team1_score || 0}</span
-														>
-													</td>
-												</tr>
-												<tr
-													class:tournament-bracket__team--winner={team2Win}
-													class="tournament-bracket__team"
-												>
-													<td class="tournament-bracket__country">
-														<abbr class="tournament-bracket__code" title="team1"
-															>{match.matches_team2_fkey.name}</abbr
-														>
-													</td>
-													<td class="tournament-bracket__score">
-														<span class="tournament-bracket__number">{match?.team2_score || 0}</span
-														>
-													</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</li>
-							{/each}
-						{/if}
-					</ul>
-				</div>
-			{/each}
-		</div>
-	</div>
-
-	<div class="flex flex-col items-center">
-		{#if !readOnly}
-			{#if !bracket?.matches || bracket?.matches?.length === 0}
-				<Button color="light" on:click={handleGenerateBracket}>Generate initial bracket</Button>
-			{/if}
-		{/if}
-	</div>
-{/await}
+{#if matches && matches && matches.length > 0}
+	<ul class="tournament-bracket__list">
+		{#each matches.filter((match) => !match.parent_id) as currentMatch (currentMatch.id)}
+			<BracketRound {matches} {readOnly} match={currentMatch} />
+		{/each}
+	</ul>
+{/if}
 
 <style lang="less">
 	@breakpoint-xs: 24em;

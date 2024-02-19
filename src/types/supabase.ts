@@ -56,6 +56,7 @@ export type Database = {
 					parent_id: number | null;
 					ref: number | null;
 					round: number;
+					sibling_id: number | null;
 					team1: number;
 					team1_score: number | null;
 					team2: number;
@@ -70,6 +71,7 @@ export type Database = {
 					parent_id?: number | null;
 					ref?: number | null;
 					round?: number;
+					sibling_id?: number | null;
 					team1: number;
 					team1_score?: number | null;
 					team2: number;
@@ -84,6 +86,7 @@ export type Database = {
 					parent_id?: number | null;
 					ref?: number | null;
 					round?: number;
+					sibling_id?: number | null;
 					team1?: number;
 					team1_score?: number | null;
 					team2?: number;
@@ -117,6 +120,13 @@ export type Database = {
 						columns: ['team2'];
 						isOneToOne: false;
 						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_matches_id_fkey';
+						columns: ['id'];
+						isOneToOne: true;
+						referencedRelation: 'matches';
 						referencedColumns: ['id'];
 					},
 					{

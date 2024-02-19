@@ -50,7 +50,7 @@ export class Matches extends Base {
 
 	async handleUpdate(
 		self: Matches | Brackets,
-		payload: RealtimePostgresChangesPayload<{ [key: string]: any; }>
+		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
 	): Promise<void> {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
@@ -65,6 +65,9 @@ export class Matches extends Base {
 			if (updated.type !== 'bracket') {
 				// Updated match is not a bracket match, so we don't care about it
 				return;
+			} else {
+				// Generate next bracket match
+				(self as Brackets).nextRound(old, updated);
 			}
 		}
 
@@ -213,7 +216,9 @@ export class Matches extends Base {
 						team2: match.team2 as number,
 						court: match.court,
 						round: match.round,
-						ref: match.ref
+						ref: match.ref,
+						type: match?.type,
+						parent_id: match?.parent_id as number
 					});
 				}
 				teamsAvailable = teamsAvailable - 2;

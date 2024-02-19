@@ -4,7 +4,7 @@
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams } from '$lib/teams';
 	import Matches from '$components/Matches.svelte';
-	import Bracket from '$components/Bracket.svelte';
+	import Bracket from '$components/Bracket/Bracket.svelte';
 	import { EventSupabaseDatabaseService } from '$lib/database/event';
 	import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 	import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
