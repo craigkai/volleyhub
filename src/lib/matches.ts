@@ -309,7 +309,7 @@ if (import.meta.vitest) {
 			}),
 			deleteMatchesByEvent: vi.fn(),
 			insertMatches: vi.fn((matches: UserMatch[]) => matches),
-			loadMatches: vi.fn()
+			load: vi.fn()
 		};
 		matches = new Matches(1, mockDatabaseService);
 	});

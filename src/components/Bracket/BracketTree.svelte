@@ -4,7 +4,6 @@
 
 	export let matches: MatchRow[] | undefined;
 	export let readOnly: boolean;
-	console.log(matches);
 </script>
 
 {#if matches && matches && matches.length > 0}

@@ -61,9 +61,7 @@
 	{#if matches && matches.length > 0}
 		{@const childMatches = matches?.filter((m) => m.parent_id === match.id)}
 		{#if childMatches.length > 0}
-			<ul>
-				<BracketTree matches={childMatches} {readOnly} />
-			</ul>
+			<BracketTree matches={childMatches} {readOnly} />
 		{/if}
 	{/if}
 </li>
