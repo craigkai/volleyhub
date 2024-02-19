@@ -217,7 +217,7 @@ export class Matches extends Base {
 						court: match.court,
 						round: match.round,
 						ref: match.ref,
-						type: match?.type,
+						type: match?.type || 'pool',
 						parent_id: match?.parent_id as number
 					});
 				}

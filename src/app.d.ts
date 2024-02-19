@@ -20,6 +20,13 @@ declare global {
 		matches_ref_fkey: { name: string };
 	};
 
+	type Round = {
+		name: string;
+		value: number;
+		title: string;
+		matches: MatchRow[];
+	};
+
 	interface TeamScores {
 		[key: string]: number;
 	}

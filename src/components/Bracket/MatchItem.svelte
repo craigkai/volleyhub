@@ -1,25 +1,82 @@
-<!-- BracketTree.svelte -->
+<!-- MatchItem.svelte -->
 <script lang="ts">
-	import BracketRound from '$components/Bracket/BracketRound.svelte';
+	import type { Matches } from '$lib/matches';
+	import { updateMatch } from '$lib/helper';
 
-	export let matches: MatchRow[] | undefined;
-	export let readOnly: boolean;
+	export let match: MatchRow;
+	export let matchesInstance: Matches;
+	export let readOnly: boolean = true;
+
+	const team1Win =
+		match.team1_score && match.team2_score ? match.team1_score > match.team2_score : false;
+	const team2Win = !team1Win && match.team1_score && match.team2_score;
+
+	const children = $matchesInstance?.matches?.filter((m) => m.parent_id === match.id);
 </script>
 
-{#if matches && matches && matches.length > 0}
-	<ul class="tournament-bracket__list">
-		{#each matches.filter((match) => !match.parent_id) as currentMatch (currentMatch.id)}
-			<BracketRound {matches} {readOnly} match={currentMatch} />
-		{/each}
-	</ul>
+<!-- svelte-ignore missing-declaration -->
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<li class="tournament-bracket__item">
+	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+	<div class="tournament-bracket__match" tabindex="0">
+		<table class="tournament-bracket__table">
+			<tbody class="tournament-bracket__content">
+				<tr class:tournament-bracket__team--winner={team1Win} class="tournament-bracket__team">
+					<td class="tournament-bracket__country">
+						<abbr class="tournament-bracket__code" title="team1"
+							>{match.matches_team1_fkey.name}</abbr
+						>
+					</td>
+					<td class="tournament-bracket__score">
+						{#if readOnly}
+							<span class="tournament-bracket__number">{match?.team1_score || 0}</span>
+						{:else}
+							<input
+								class="border-solid border-2 text-center max-w-8"
+								bind:value={match.team1_score}
+								on:blur={() => updateMatch(match, matchesInstance)}
+							/>
+						{/if}
+					</td>
+				</tr>
+				<tr class:tournament-bracket__team--winner={team2Win} class="tournament-bracket__team">
+					<td class="tournament-bracket__country">
+						<abbr class="tournament-bracket__code" title="team"
+							>{match.matches_team2_fkey.name}</abbr
+						>
+					</td>
+					<td class="tournament-bracket__score">
+						{#if readOnly}
+							<span class="tournament-bracket__number">{match?.team2_score || 0}</span>
+						{:else}
+							<input
+								class="border-solid border-2 text-center max-w-8"
+								bind:value={match.team2_score}
+								on:blur={() => updateMatch(match, matchesInstance)}
+							/>
+						{/if}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</li>
+{#if children && children.length}
+	<svelte:self matches={children} {matchesInstance} {readOnly} />
 {/if}
 
 <style lang="less">
+	// VARIABLES
+	// ---------------------------
 	@breakpoint-xs: 24em;
 	@breakpoint-sm: 38em;
 	@breakpoint-md: 52em;
 	@breakpoint-lg: 72em;
 
+	//
+	// GENERAL RULES
+	// ---------------------------
 	* {
 		&,
 		&::before,
@@ -28,10 +85,46 @@
 		}
 	}
 
+	html {
+		font-size: 15px;
+
+		@media (min-width: @breakpoint-sm) {
+			font-size: 14px;
+		}
+		@media (min-width: @breakpoint-md) {
+			font-size: 15px;
+		}
+		@media (min-width: @breakpoint-lg) {
+			font-size: 16px;
+		}
+	}
+
+	body {
+		background-color: #f1f1f1;
+		font-family: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+	}
+
 	.container {
 		width: 90%;
 		min-width: 18em;
 		margin: 20px auto;
+	}
+
+	h1,
+	h2 {
+		text-align: center;
+	}
+
+	h1 {
+		font-size: 2rem;
+		font-weight: 700;
+		margin-bottom: 0.5em;
+	}
+
+	h2 {
+		font-size: 1.4rem;
+		font-weight: 600;
+		margin-bottom: 2em;
 	}
 
 	.sr-only {
@@ -460,7 +553,7 @@
 		border-color: spin(shade(#f5f5f5, 10%), -10);
 
 		.tournament-bracket__team--winner & {
-			background-color: rgb(155, 243, 155);
+			background-color: #fff176;
 			border-color: spin(shade(#fff176, 2%), -10);
 		}
 	}

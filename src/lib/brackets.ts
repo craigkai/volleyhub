@@ -73,12 +73,51 @@ export class Brackets extends Matches {
 		return this.matches;
 	}
 
-	async nextRound(oldMatch: MatchRow, newMatch: MatchRow) {
-		console.log('Next round');
-		console.log(oldMatch, newMatch);
+	async nextRound(oldMatchId: { id: number }, newMatch: MatchRow) {
+		try {
+			if (newMatch && newMatch.team1_score && newMatch.team2_score) {
+				const siblingMatch = this.matches?.find((m) => m.sibling_id === newMatch.id);
 
-		//
-		// Figure out if we know our next matchup and when we create a new match
-		// set the parent_id of the match to the previous match.
+				if (siblingMatch && siblingMatch.team1_score && siblingMatch.team2_score) {
+					const childMatch = this.matches?.find((m) => m.parent_id === newMatch.id);
+
+					if (childMatch) {
+						const childTeams = [childMatch.team1, childMatch.team2];
+						const correctTeams = [newMatch.team1, newMatch.team2];
+
+						if (childTeams.includes(correctTeams[0]) && childTeams.includes(correctTeams[1])) {
+							console.debug('Child match already has the correct teams');
+							return;
+						}
+
+						// Delete the incorrect child match
+						await this.databaseService.deleteMatch(childMatch.id);
+					}
+
+					const newBracketMatch: Partial<MatchRow> = {
+						team1: newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2,
+						team2:
+							siblingMatch.team1_score > siblingMatch.team2_score
+								? siblingMatch.team1
+								: siblingMatch.team2,
+						event_id: this.event_id,
+						round: newMatch.round + 1,
+						type: 'bracket',
+						sibling_id: null,
+						parent_id: newMatch.id
+					};
+
+					console.log('Inserting new match', newBracketMatch);
+
+					// Uncomment the following line when you're ready to insert the new bracket match
+					await this.databaseService.insertMatches([newBracketMatch] as UserMatch[]);
+				}
+			} else {
+				console.debug('Sibling match not complete');
+			}
+		} catch (error) {
+			this.handleError(500, `An error occurred in nextRound ${error}`);
+			// Handle the error appropriately (e.g., log, throw, or return an error response)
+		}
 	}
 }

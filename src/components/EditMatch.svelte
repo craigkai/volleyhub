@@ -1,32 +1,14 @@
 <script lang="ts">
 	import { Label, Input } from 'flowbite-svelte';
-	import type { HttpError } from '@sveltejs/kit';
-	import { error, success } from '$lib/toast';
 	import { Matches } from '$lib/matches';
 	import { pushState } from '$app/navigation';
 	import type { Brackets } from '$lib/brackets';
+	import { updateMatch } from '$lib/helper';
 
 	export let matchId: number;
 	export let matches: Matches | Brackets;
 
 	let match = $matches?.matches?.find((m) => m.id === matchId);
-
-	async function updateMatch() {
-		if (match) {
-			try {
-				// Need to convert string inputs to numbers
-				match.team1_score = Number(match.team1_score);
-				match.team2_score = Number(match.team2_score);
-
-				match = await matches.put(match);
-				success(
-					`Match ${match.matches_team1_fkey.name} vs ${match.matches_team2_fkey.name} updated`
-				);
-			} catch (err) {
-				error((err as HttpError).toString());
-			}
-		}
-	}
 
 	function closeModal() {
 		pushState('', {
@@ -45,7 +27,7 @@
 			bind:value={match.team1_score}
 			on:keydown={(e) => {
 				if (e?.key === 'Enter') {
-					updateMatch();
+					updateMatch(match, matches);
 				} else if (e?.key === 'Escape') {
 					closeModal();
 				}
@@ -60,7 +42,7 @@
 			bind:value={match.team2_score}
 			on:keydown={(e) => {
 				if (e?.key === 'Enter') {
-					updateMatch();
+					updateMatch(match, matches);
 				} else if (e?.key === 'Escape') {
 					closeModal();
 				}

@@ -42,6 +42,11 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.handleDatabaseError(response);
 	}
 
+	async deleteMatch(id: number): Promise<void> {
+		const response = await this.supabaseClient.from('matches').delete().eq('id', id);
+		this.handleDatabaseError(response);
+	}
+
 	async insertMatches(matches: UserMatch[]): Promise<MatchRow[]> {
 		const res = await this.supabaseClient
 			.from('matches')
