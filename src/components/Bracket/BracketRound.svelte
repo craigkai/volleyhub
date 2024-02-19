@@ -12,9 +12,11 @@
 <div class="tournament-bracket__round tournament-bracket__round--{round.name}">
 	<h3 class="tournament-bracket__round-title">{round.title}</h3>
 	<ul class="tournament-bracket__list">
-		{#each matches as match (match.id)}
-			<MatchItem {match} {matchesInstance} {readOnly} />
-		{/each}
+		{#if matches.length > 0}
+			{#each matches as match (match.id)}
+				<MatchItem {match} {matchesInstance} {readOnly} />
+			{/each}
+		{/if}
 	</ul>
 </div>
 

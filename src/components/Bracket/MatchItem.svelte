@@ -7,6 +7,8 @@
 	export let matchesInstance: Matches;
 	export let readOnly: boolean = true;
 
+	readOnly = true;
+
 	const team1Win =
 		match.team1_score && match.team2_score ? match.team1_score > match.team2_score : false;
 	const team2Win = !team1Win && match.team1_score && match.team2_score;
@@ -19,7 +21,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <li class="tournament-bracket__item">
 	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-	<div class="tournament-bracket__match" tabindex="0">
+	<div class="tournament-bracket__match">
 		<table class="tournament-bracket__table">
 			<tbody class="tournament-bracket__content">
 				<tr class:tournament-bracket__team--winner={team1Win} class="tournament-bracket__team">
@@ -29,17 +31,10 @@
 						>
 					</td>
 					<td class="tournament-bracket__score">
-						{#if readOnly}
-							<span class="tournament-bracket__number">{match?.team1_score || 0}</span>
-						{:else}
-							<input
-								class="border-solid border-2 text-center max-w-8"
-								bind:value={match.team1_score}
-								on:blur={() => updateMatch(match, matchesInstance)}
-							/>
-						{/if}
+						<span class="tournament-bracket__number">{match?.team1_score || 0}</span>
 					</td>
 				</tr>
+
 				<tr class:tournament-bracket__team--winner={team2Win} class="tournament-bracket__team">
 					<td class="tournament-bracket__country">
 						<abbr class="tournament-bracket__code" title="team"
@@ -47,24 +42,17 @@
 						>
 					</td>
 					<td class="tournament-bracket__score">
-						{#if readOnly}
-							<span class="tournament-bracket__number">{match?.team2_score || 0}</span>
-						{:else}
-							<input
-								class="border-solid border-2 text-center max-w-8"
-								bind:value={match.team2_score}
-								on:blur={() => updateMatch(match, matchesInstance)}
-							/>
-						{/if}
+						<span class="tournament-bracket__number">{match?.team2_score || 0}</span>
 					</td>
 				</tr>
 			</tbody>
 		</table>
 	</div>
 </li>
-{#if children && children.length}
+
+<!-- {#if children && children.length}
 	<svelte:self matches={children} {matchesInstance} {readOnly} />
-{/if}
+{/if} -->
 
 <style lang="less">
 	// VARIABLES
