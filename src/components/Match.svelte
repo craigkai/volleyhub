@@ -1,18 +1,12 @@
 <script lang="ts">
 	import { Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { pushState } from '$app/navigation';
+	import { showModal } from '$lib/helper';
 
 	export let match: MatchRow;
 	export let readOnly: boolean = false;
 
 	export let showWinLoss: boolean = true;
-	function showModal() {
-		pushState('', {
-			showModal: true,
-			matchId: match.id
-		});
-	}
 
 	const winClass = 'bg-green-300 dark:bg-green-700';
 	const lossClass = 'bg-red-300 dark:bg-red-700';
@@ -26,7 +20,7 @@
 	class="flex justify-center place-items-center"
 	on:click={() => {
 		if (!readOnly && !$page.state.showModal) {
-			showModal();
+			showModal(match.id, 'pool');
 		}
 	}}
 >

@@ -1,119 +1,70 @@
+<!-- MatchItem.svelte -->
 <script lang="ts">
-	import { Event } from '$lib/event';
-	import { Matches } from '$lib/matches';
-	import type { Teams } from '$lib/teams';
-	import type { RealtimeChannel } from '@supabase/supabase-js';
-	import { Button, Spinner } from 'flowbite-svelte';
+	import type { Matches } from '$lib/matches';
+	import { updateMatch } from '$lib/helper';
 
-	export let tournament: Event;
-	export let matches: Matches;
-	export let teams: Teams;
+	export let match: MatchRow;
+	export let matchesInstance: Matches;
 	export let readOnly: boolean = true;
 
-	const teamNames = teams.teams.map((team) => team.name);
+	readOnly = true;
 
-	const loadingPromise = $matches.loadBracketMatches();
+	const team1Win =
+		match.team1_score && match.team2_score ? match.team1_score > match.team2_score : false;
+	const team2Win = !team1Win && match.team1_score && match.team2_score;
 
-	const numRounds = teamNames.length / 2 + (teamNames.length % 2);
-
-	let matchesSubscription: RealtimeChannel | undefined;
-	async function subscribeToMatches() {
-		matchesSubscription = await $matches.subscribeToBracketMatches();
-	}
-	subscribeToMatches();
-
-	async function handleGenerateBracket() {
-		await $matches.createBracketMatches(tournament, teams.teams);
-	}
-	// TODO: Allow bracket matches to be edited.
+	const children = $matchesInstance?.matches?.filter((m) => m.parent_id === match.id);
 </script>
 
-{#await loadingPromise}
-	<div class="h-screen flex flex-col items-center place-content-center">
-		<Spinner />
-	</div>
-{:then}
-	<div class="container">
-		<div class="tournament-bracket tournament-bracket--rounded">
-			{#each Array(numRounds) as _, i}
-				{@const matchesInRound =
-					$matches?.bracketMatches?.filter((match) => match.round === i) || []}
-				<div class="tournament-bracket__round tournament-bracket__round--quarterfinals">
-					<h3 class="tournament-bracket__round-title">Round {i + 1}</h3>
-					<ul class="tournament-bracket__list">
-						{#if matchesInRound.length != 0}
-							{#each matchesInRound as match}
-								{@const team1Win =
-									match.team1_score && match.team2_score
-										? match.team1_score > match.team2_score
-										: false}
-								{@const team2Win = !team1Win && match.team1_score && match.team2_score}
-								<li class="tournament-bracket__item">
-									<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-									<div class="tournament-bracket__match" tabindex="0">
-										<table class="tournament-bracket__table">
-											<thead class="sr-only">
-												<tr>
-													<th>Team</th>
-													<th>Score</th>
-												</tr>
-											</thead>
-											<tbody class="tournament-bracket__content">
-												<tr
-													class:tournament-bracket__team--winner={team1Win}
-													class="tournament-bracket__team"
-												>
-													<td class="tournament-bracket__country">
-														<abbr class="tournament-bracket__code" title="team1"
-															>{match.matches_team1_fkey.name}</abbr
-														>
-													</td>
-													<td class="tournament-bracket__score">
-														<span class="tournament-bracket__number">{match?.team1_score || 0}</span
-														>
-													</td>
-												</tr>
-												<tr
-													class:tournament-bracket__team--winner={team2Win}
-													class="tournament-bracket__team"
-												>
-													<td class="tournament-bracket__country">
-														<abbr class="tournament-bracket__code" title="team1"
-															>{match.matches_team2_fkey.name}</abbr
-														>
-													</td>
-													<td class="tournament-bracket__score">
-														<span class="tournament-bracket__number">{match?.team2_score || 0}</span
-														>
-													</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</li>
-							{/each}
-						{/if}
-					</ul>
-				</div>
-			{/each}
-		</div>
-	</div>
+<!-- svelte-ignore missing-declaration -->
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<li class="tournament-bracket__item">
+	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+	<div class="tournament-bracket__match">
+		<table class="tournament-bracket__table">
+			<tbody class="tournament-bracket__content">
+				<tr class:tournament-bracket__team--winner={team1Win} class="tournament-bracket__team">
+					<td class="tournament-bracket__country">
+						<abbr class="tournament-bracket__code" title="team1"
+							>{match.matches_team1_fkey.name}</abbr
+						>
+					</td>
+					<td class="tournament-bracket__score">
+						<span class="tournament-bracket__number">{match?.team1_score || 0}</span>
+					</td>
+				</tr>
 
-	<div class="flex flex-col items-center">
-		{#if !readOnly}
-			{#if !matches?.bracketMatches || matches?.bracketMatches?.length === 0}
-				<Button color="light" on:click={handleGenerateBracket}>Generate initial bracket</Button>
-			{/if}
-		{/if}
+				<tr class:tournament-bracket__team--winner={team2Win} class="tournament-bracket__team">
+					<td class="tournament-bracket__country">
+						<abbr class="tournament-bracket__code" title="team"
+							>{match.matches_team2_fkey.name}</abbr
+						>
+					</td>
+					<td class="tournament-bracket__score">
+						<span class="tournament-bracket__number">{match?.team2_score || 0}</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
-{/await}
+</li>
+
+<!-- {#if children && children.length}
+	<svelte:self matches={children} {matchesInstance} {readOnly} />
+{/if} -->
 
 <style lang="less">
+	// VARIABLES
+	// ---------------------------
 	@breakpoint-xs: 24em;
 	@breakpoint-sm: 38em;
 	@breakpoint-md: 52em;
 	@breakpoint-lg: 72em;
 
+	//
+	// GENERAL RULES
+	// ---------------------------
 	* {
 		&,
 		&::before,
@@ -122,10 +73,46 @@
 		}
 	}
 
+	html {
+		font-size: 15px;
+
+		@media (min-width: @breakpoint-sm) {
+			font-size: 14px;
+		}
+		@media (min-width: @breakpoint-md) {
+			font-size: 15px;
+		}
+		@media (min-width: @breakpoint-lg) {
+			font-size: 16px;
+		}
+	}
+
+	body {
+		background-color: #f1f1f1;
+		font-family: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+	}
+
 	.container {
 		width: 90%;
 		min-width: 18em;
 		margin: 20px auto;
+	}
+
+	h1,
+	h2 {
+		text-align: center;
+	}
+
+	h1 {
+		font-size: 2rem;
+		font-weight: 700;
+		margin-bottom: 0.5em;
+	}
+
+	h2 {
+		font-size: 1.4rem;
+		font-weight: 600;
+		margin-bottom: 2em;
 	}
 
 	.sr-only {
@@ -554,7 +541,7 @@
 		border-color: spin(shade(#f5f5f5, 10%), -10);
 
 		.tournament-bracket__team--winner & {
-			background-color: rgb(155, 243, 155);
+			background-color: #fff176;
 			border-color: spin(shade(#fff176, 2%), -10);
 		}
 	}

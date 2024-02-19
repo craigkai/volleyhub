@@ -55,13 +55,15 @@ export const matchesRowSchema = z.object({
 	created_at: z.string(),
 	event_id: z.number(),
 	id: z.number(),
-	type: z.string().nullable(),
+	parent_id: z.number().nullable(),
 	ref: z.number().nullable(),
 	round: z.number(),
+	sibling_id: z.number().nullable(),
 	team1: z.number(),
 	team1_score: z.number().nullable(),
 	team2: z.number(),
-	team2_score: z.number().nullable()
+	team2_score: z.number().nullable(),
+	type: z.string()
 });
 
 export const matchesInsertSchema = z.object({
@@ -69,12 +71,15 @@ export const matchesInsertSchema = z.object({
 	created_at: z.string().optional(),
 	event_id: z.number(),
 	id: z.number().optional(),
+	parent_id: z.number().optional().nullable(),
 	ref: z.number().optional().nullable(),
 	round: z.number().optional(),
+	sibling_id: z.number().optional().nullable(),
 	team1: z.number(),
 	team1_score: z.number().optional().nullable(),
 	team2: z.number(),
-	team2_score: z.number().optional().nullable()
+	team2_score: z.number().optional().nullable(),
+	type: z.string().optional()
 });
 
 export const matchesUpdateSchema = z.object({
@@ -82,12 +87,15 @@ export const matchesUpdateSchema = z.object({
 	created_at: z.string().optional(),
 	event_id: z.number().optional(),
 	id: z.number().optional(),
+	parent_id: z.number().optional().nullable(),
 	ref: z.number().optional().nullable(),
 	round: z.number().optional(),
+	sibling_id: z.number().optional().nullable(),
 	team1: z.number().optional(),
 	team1_score: z.number().optional().nullable(),
 	team2: z.number().optional(),
-	team2_score: z.number().optional().nullable()
+	team2_score: z.number().optional().nullable(),
+	type: z.string().optional()
 });
 
 export const teamsRowSchema = z.object({

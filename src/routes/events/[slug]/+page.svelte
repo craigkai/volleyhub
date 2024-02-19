@@ -4,7 +4,7 @@
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams } from '$lib/teams';
 	import Matches from '$components/Matches.svelte';
-	import Bracket from '$components/Bracket.svelte';
+	import Bracket from '$components/Bracket/Bracket.svelte';
 	import { EventSupabaseDatabaseService } from '$lib/database/event';
 	import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 	import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
@@ -15,6 +15,7 @@
 	import { browser } from '$app/environment';
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
+	import { Brackets } from '$lib/brackets';
 
 	export let data: PageData;
 
@@ -26,6 +27,8 @@
 
 	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(data?.supabase);
 	const teams = new Teams(data.event_id, teamsSupabaseDatabaseService);
+
+	const bracket = new Brackets(data.event_id, matchesSupabaseDatabaseService);
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 	let defaultTeam = data.default_team;
@@ -77,7 +80,7 @@
 			</TabItem>
 
 			<TabItem title="Bracket">
-				<Bracket {tournament} {matches} {teams} />
+				<Bracket {tournament} {bracket} {teams} {matches} />
 			</TabItem>
 		</Tabs>
 	{/await}

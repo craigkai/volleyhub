@@ -2,7 +2,12 @@ import { SupabaseClient, Session } from '@supabase/supabase-js';
 import { Database } from './DatabaseDefinitions';
 import type { Database } from '../../types/supabase';
 import { z } from 'zod';
-import type { eventsRowSchema, matchesRowSchema, teamsRowSchema } from './types/schemas';
+import type {
+	eventsRowSchema,
+	matchesRowSchema,
+	teamsRowSchema,
+	bracketsRowSchema
+} from './types/schemas';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -15,6 +20,12 @@ declare global {
 		matches_ref_fkey: { name: string };
 	};
 
+	type Round = {
+		value: number;
+		title: string;
+		matches: MatchRow[];
+	};
+
 	interface TeamScores {
 		[key: string]: number;
 	}
@@ -25,6 +36,7 @@ declare global {
 		event_id: number;
 		team1: number;
 		team2: number;
+		parent_id?: number;
 	};
 
 	interface Locals {
@@ -54,6 +66,7 @@ declare global {
 
 		interface PageState {
 			matchId?: number;
+			type?: string;
 			showModal?: boolean;
 		}
 	}
@@ -70,4 +83,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export {};
+export { };

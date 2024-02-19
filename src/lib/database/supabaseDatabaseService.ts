@@ -1,7 +1,15 @@
 // Importing necessary types from supabase-js and sveltejs/kit
-import type { PostgrestSingleResponse, PostgrestResponse, User } from '@supabase/supabase-js';
+import type {
+	PostgrestSingleResponse,
+	PostgrestResponse,
+	User,
+	RealtimeChannel,
+	RealtimePostgresChangesPayload
+} from '@supabase/supabase-js';
 import { error, type NumericRange } from '@sveltejs/kit';
 import type { z } from 'zod';
+import { Brackets } from '$lib/brackets';
+import { Matches } from '$lib/matches';
 
 export class SupabaseDatabaseService {
 	// Private property for Supabase client
@@ -62,5 +70,39 @@ export class SupabaseDatabaseService {
 			console.error('An error occurred while getting the current user:', error);
 			throw error;
 		}
+	}
+
+	async subscribeToChanges(
+		self: Matches | Brackets,
+		callback: (
+			self: Matches | Brackets,
+			payload: RealtimePostgresChangesPayload<{
+				[key: string]: any;
+			}>
+		) => {},
+		table: string,
+		filter?: string
+	): Promise<RealtimeChannel> {
+		console.debug('Subscribing to changes for table ' + table + ' with filter ' + filter);
+
+		return this.supabaseClient
+			.channel('*')
+			.on(
+				'postgres_changes',
+				{ event: '*', schema: 'public', table: table, filter: filter },
+				(
+					payload: RealtimePostgresChangesPayload<{
+						[key: string]: any;
+					}>
+				) => {
+					callback(self, payload);
+				}
+			)
+			.subscribe((status) => {
+				// We call the load function to update in case our content is stale
+				// when we re-connect to the web socket.
+				self.load();
+				console.debug('Realtime status', status);
+			});
 	}
 }

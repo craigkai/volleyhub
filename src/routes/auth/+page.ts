@@ -1,5 +1,4 @@
 // src/routes/auth/+page.ts
-import { EventSupabaseDatabaseService } from '$lib/database/event';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 

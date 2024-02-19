@@ -3,20 +3,19 @@ import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { writable, type Unsubscriber, type Invalidator, type Subscriber } from 'svelte/store';
 import { Base } from './base';
-import { Event } from './event';
+import type { Brackets } from './brackets';
 
 export class Matches extends Base {
-	private databaseService: MatchesSupabaseDatabaseService;
+	public databaseService: MatchesSupabaseDatabaseService;
 	public subscribe: (
 		run: Subscriber<Matches>,
 		invalidate?: Invalidator<Matches> | undefined
 	) => Unsubscriber;
-	private _set: Function;
-	private _update: Function;
+	public _set: Function;
+	public _update: Function;
 
 	event_id: number;
 	matches?: MatchRow[];
-	bracketMatches?: MatchRow[];
 
 	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
 		super();
@@ -33,7 +32,11 @@ export class Matches extends Base {
 	Load all matches for the current tournament.
 	*/
 	async load() {
-		const res = await this.databaseService.loadMatches(this.event_id);
+		const res = await this.databaseService.load(this.event_id, {
+			column: 'type',
+			operator: 'eq',
+			value: 'pool'
+		});
 
 		if (res) {
 			this._update((that: Matches) => {
@@ -45,53 +48,30 @@ export class Matches extends Base {
 		return this;
 	}
 
-	async loadBracketMatches() {
-		const res = await this.databaseService.loadMatches(this.event_id, {
-			column: 'type',
-			operator: 'eq',
-			value: 'bracket'
-		});
-
-		if (res) {
-			this._update((that: Matches) => {
-				that.bracketMatches = res;
-				return that;
-			});
-		}
-
-		return this;
-	}
-
-	async matchUpdated(
-		self: Matches,
-		payload: RealtimePostgresChangesPayload<MatchRow>
-	): Promise<void> {
-		await this.handleMatchUpdate(self, payload, self.matches, 'matches');
-	}
-
-	async bracketMatchUpdated(
-		self: Matches,
-		payload: RealtimePostgresChangesPayload<MatchRow>
-	): Promise<void> {
-		if ((payload.new as MatchRow)?.type === 'bracket') {
-			await this.handleMatchUpdate(self, payload, self.bracketMatches, 'bracketMatches');
-		}
-	}
-
-	async handleMatchUpdate(
-		self: Matches,
-		payload: RealtimePostgresChangesPayload<MatchRow>,
-		matchesArray: MatchRow[] | undefined,
-		propertyName: 'matches' | 'bracketMatches'
+	async handleUpdate(
+		self: Matches | Brackets,
+		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
 	): Promise<void> {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
 		// If we don't have the matches loaded, load them
-		if (Object.keys(old).length === 0) {
-			propertyName === 'matches' ? await self.load() : await self.loadBracketMatches();
+		if (Object.keys(old).length === 0 || Object.keys(updated).length === 0) {
+			await self.load();
 			return;
 		}
+
+		if (self.constructor.name === 'Brackets') {
+			if (updated.type !== 'bracket') {
+				// Updated match is not a bracket match, so we don't care about it
+				return;
+			} else {
+				// Generate next bracket match
+				(self as Brackets).nextRound(old, updated);
+			}
+		}
+
+		const matchesArray = self.matches;
 
 		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
@@ -105,27 +85,18 @@ export class Matches extends Base {
 			const matches = matchesArray;
 
 			self._update((that: Matches) => {
-				that[propertyName] = matches;
+				that.matches = matches;
 				return that;
 			});
 		} else {
-			self.handleError(400, `Failed to find ${propertyName} to update.`);
+			self.handleError(400, `Failed to find match to update.`);
 		}
 	}
 
-	async subscribeToBracketMatches(): Promise<RealtimeChannel> {
+	async subscribeToMatches(): Promise<RealtimeChannel> {
 		return await this.databaseService.subscribeToChanges(
 			this,
-			this.bracketMatchUpdated,
-			'matches',
-			'event_id=eq.' + this.event_id
-		);
-	}
-
-	async subscribeToPoolMatches(): Promise<RealtimeChannel> {
-		return await this.databaseService.subscribeToChanges(
-			this,
-			this.matchUpdated,
+			this.handleUpdate,
 			'matches',
 			'event_id=eq.' + this.event_id
 		);
@@ -207,7 +178,7 @@ export class Matches extends Base {
 		let teamsAvailable = teams.length;
 		let round = 0;
 		let totalRounds = 0;
-		let userMatches: UserMatch[] = [];
+		const userMatches: UserMatch[] = [];
 		const teamsPerRound: { number: number[] } = { 0: [] };
 
 		matches
@@ -245,7 +216,9 @@ export class Matches extends Base {
 						team2: match.team2 as number,
 						court: match.court,
 						round: match.round,
-						ref: match.ref
+						ref: match.ref,
+						type: match?.type || 'pool',
+						parent_id: match?.parent_id as number
 					});
 				}
 				teamsAvailable = teamsAvailable - 2;
@@ -312,64 +285,6 @@ export class Matches extends Base {
 		// Choose a referee from the remaining available teams
 		return Number(availableTeams[0]);
 	}
-
-	async createBracketMatches(event: Event, teams: TeamRow[]) {
-		if (!((teams.length & (teams.length - 1)) === 0)) {
-			this.handleError(
-				400,
-				'Number of teams must be a power of 2 for a single-elimination bracket.'
-			);
-		}
-
-		let teamScores: TeamScores = {};
-		this?.matches?.forEach((match: MatchRow) => {
-			// We only care about pool play not bracket/playoff matches
-			if (match.team1_score && match.team2_score) {
-				if (!teamScores[match.matches_team1_fkey.name]) {
-					teamScores[match.matches_team1_fkey.name] = 0;
-				}
-
-				if (!teamScores[match.matches_team2_fkey.name]) {
-					teamScores[match.matches_team2_fkey.name] = 0;
-				}
-
-				if (event?.scoring === 'points') {
-					teamScores[match.matches_team1_fkey.name] += match?.team1_score || 0;
-					teamScores[match.matches_team2_fkey.name] += match?.team2_score || 0;
-				} else {
-					teamScores[match.matches_team1_fkey.name] +=
-						match.team1_score > match.team2_score ? 1 : 0;
-					teamScores[match.matches_team2_fkey.name] +=
-						match.team2_score > match.team1_score ? 1 : 0;
-				}
-			}
-		});
-		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
-		const matchups: any[] = [];
-
-		// Generate matchups
-		let court = 0;
-		const numCourts = event.courts;
-		for (let i = 0; i < orderedTeamScores.length; i += 2) {
-			if (court === numCourts) {
-				court = 0;
-			}
-
-			const matchup: Partial<MatchRow> = {
-				team1: teams.find((t) => t.name === orderedTeamScores[i])?.id as number,
-				team2: teams.find((t) => t.name === orderedTeamScores[orderedTeamScores.length - 1 - i])
-					?.id as number,
-				event_id: this.event_id,
-				type: 'bracket',
-				round: 0
-			};
-			court = court + 1;
-			matchups.push(matchup);
-		}
-		this.bracketMatches = await this.databaseService.insertMatches(matchups);
-
-		return this.bracketMatches;
-	}
 }
 
 if (import.meta.vitest) {
@@ -394,7 +309,7 @@ if (import.meta.vitest) {
 			}),
 			deleteMatchesByEvent: vi.fn(),
 			insertMatches: vi.fn((matches: UserMatch[]) => matches),
-			loadMatches: vi.fn()
+			load: vi.fn()
 		};
 		matches = new Matches(1, mockDatabaseService);
 	});

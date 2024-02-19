@@ -2,7 +2,7 @@
 	import type { PageData } from '$types';
 	import { Event as EventInstance } from '$lib/event';
 	import Settings from '$components/Settings.svelte';
-	import Bracket from '$components/Bracket.svelte';
+	import Bracket from '$components/Bracket/Bracket.svelte';
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams as TeamsInstance } from '$lib/teams';
 	import { EventSupabaseDatabaseService } from '$lib/database/event';
@@ -16,6 +16,7 @@
 	import EditMatch from '$components/EditMatch.svelte';
 	import { page } from '$app/stores';
 	import { Modal } from 'flowbite-svelte';
+	import { Brackets } from '$lib/brackets';
 
 	export let data: PageData;
 	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
@@ -27,12 +28,18 @@
 	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(data?.supabase);
 	let teams = new TeamsInstance(data.event_id, teamsSupabaseDatabaseService);
 
+	let bracket = new Brackets(data.event_id, matchesSupabaseDatabaseService);
+
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
 </script>
 
 {#if $page.state.showModal && $page.state.matchId}
 	<Modal size="xs" on:close={() => history.back()} open={true} outsideclose autoclose>
-		<EditMatch matchId={$page.state.matchId} bind:matches />
+		{#if $page.state.type === 'pool'}
+			<EditMatch matchId={$page.state.matchId} bind:matches />
+		{:else}
+			<EditMatch matchId={$page.state.matchId} bind:matches={bracket} />
+		{/if}
 	</Modal>
 {/if}
 
@@ -59,7 +66,7 @@
 						<Standings event={tournament} {matches} {teams} defaultTeam="" />
 					</TabItem>
 					<TabItem title="Bracket">
-						<Bracket {tournament} {matches} {teams} readOnly={false} />
+						<Bracket {tournament} {bracket} {teams} {matches} readOnly={false} />
 					</TabItem>
 				</Tabs>
 			{/if}
