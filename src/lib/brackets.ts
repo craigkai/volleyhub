@@ -1,4 +1,5 @@
 import { Event } from './event';
+import { findStandings } from './helper';
 import { Matches } from './matches';
 
 export class Brackets extends Matches {
@@ -21,22 +22,17 @@ export class Brackets extends Matches {
 	}
 
 	async createBracketMatches(event: Event, teams: TeamRow[], matches: MatchRow[]) {
-		const teamCount = teams.length;
-
-		if (teamCount < 2) {
-			this.handleError(400, 'Number of teams must be at least 2 for a bracket.');
+		if (teams.length < 2) {
+			this.handleError(400, 'Number of teams must be at least 2 for a single-elimination bracket.');
 		}
 
-		let teamScores: TeamScores = {};
-		matches.forEach((match: MatchRow) => {
-			// Existing logic to calculate team scores
-		});
+		const teamScores: TeamScores = await findStandings(matches ?? [], event, teams);
 
 		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
-		const matchups: any[] = [];
+		const matchups: Partial<MatchRow>[] = [];
 
 		// Generate matchups for the initial round of the bracket
-		for (let i = 0; i < teamCount - 1; i += 2) {
+		for (let i = 0; i < orderedTeamScores.length; i += 2) {
 			const matchup: Partial<MatchRow> = {
 				team1: teams.find((t) => t.name === orderedTeamScores[i])?.id as number,
 				team2: teams.find((t) => t.name === orderedTeamScores[i + 1])?.id as number,
@@ -48,27 +44,21 @@ export class Brackets extends Matches {
 			matchups.push(res[0]);
 		}
 
-		// Generate the entire bracket structure for subsequent rounds
-		const numberOfRounds = Math.ceil(Math.log2(teamCount));
+		await this.load();
 
-		for (let round = 1; round < numberOfRounds; round++) {
-			const roundMatches: Partial<MatchRow>[] = [];
-
-			for (let i = 0; i < Math.ceil(teamCount / Math.pow(2, round)); i++) {
-				const matchup: Partial<MatchRow> = {
+		// Generate empty matchups for subsequent rounds
+		const totalRounds = Math.floor(Math.log2(teams.length));
+		for (let currentRound = 1; currentRound <= totalRounds; currentRound++) {
+			for (let i = 0; i < 2 ** (totalRounds - currentRound); i++) {
+				const emptyMatchup: Partial<MatchRow> = {
 					event_id: this.event_id,
-					round,
+					round: currentRound,
 					type: 'bracket'
 				};
-
-				roundMatches.push(matchup);
+				const res = await this.databaseService.insertMatches([emptyMatchup] as UserMatch[]);
+				matchups.push(res[0]);
 			}
-
-			const res = await this.databaseService.insertMatches(roundMatches as UserMatch[]);
-			matchups.push(...res);
 		}
-
-		await this.load();
 
 		return this.matches;
 	}
@@ -76,42 +66,42 @@ export class Brackets extends Matches {
 	async nextRound(oldMatchId: { id: number }, newMatch: MatchRow) {
 		try {
 			if (newMatch && newMatch.team1_score && newMatch.team2_score) {
-				const parentMatches = this.matches?.filter((m) => m.child_id === newMatch.id);
+				const siblingMatch = this.matches?.find((m) => m.sibling_id === newMatch.id);
 
-				// if (siblingMatch && siblingMatch.team1_score && siblingMatch.team2_score) {
-				// 	const childMatch = this.matches?.find((m) => m.parent_id === newMatch.id);
+				if (siblingMatch && siblingMatch.team1_score && siblingMatch.team2_score) {
+					const childMatch = this.matches?.find((m) => m.parent_id === newMatch.id);
 
-				// 	if (childMatch) {
-				// 		const childTeams = [childMatch.team1, childMatch.team2];
-				// 		const correctTeams = [newMatch.team1, newMatch.team2];
+					if (childMatch) {
+						const childTeams = [childMatch.team1, childMatch.team2];
+						const correctTeams = [newMatch.team1, newMatch.team2];
 
-				// 		if (childTeams.includes(correctTeams[0]) && childTeams.includes(correctTeams[1])) {
-				// 			console.debug('Child match already has the correct teams');
-				// 			return;
-				// 		}
+						if (childTeams.includes(correctTeams[0]) && childTeams.includes(correctTeams[1])) {
+							console.debug('Child match already has the correct teams');
+							return;
+						}
 
-				// 		// Delete the incorrect child match
-				// 		await this.databaseService.deleteMatch(childMatch.id);
-				// 	}
+						// Delete the incorrect child match
+						await this.databaseService.deleteMatch(childMatch.id);
+					}
 
-				const newBracketMatch: Partial<MatchRow> = {
-					team1: newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2,
-					team2:
-						siblingMatch.team1_score > siblingMatch.team2_score
-							? siblingMatch.team1
-							: siblingMatch.team2,
-					event_id: this.event_id,
-					round: newMatch.round + 1,
-					type: 'bracket'
-				};
+					const newBracketMatch: Partial<MatchRow> = {
+						team1: newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2,
+						team2:
+							siblingMatch.team1_score > siblingMatch.team2_score
+								? siblingMatch.team1
+								: siblingMatch.team2,
+						event_id: this.event_id,
+						round: newMatch.round + 1,
+						type: 'bracket',
+						sibling_id: null,
+						parent_id: newMatch.id
+					};
 
-				console.log('Inserting new match', newBracketMatch);
+					console.log('Inserting new match', newBracketMatch);
 
-				// Uncomment the following line when you're ready to insert the new bracket match
-				await this.databaseService.insertMatches([newBracketMatch] as UserMatch[]);
-
-				// TOOD: Update parents with child_id of new match
-				// }
+					// Uncomment the following line when you're ready to insert the new bracket match
+					await this.databaseService.insertMatches([newBracketMatch] as UserMatch[]);
+				}
 			} else {
 				console.debug('Sibling match not complete');
 			}

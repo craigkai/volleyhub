@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Event } from '$lib/event';
+	import { findStandings } from '$lib/helper';
 	import { Matches } from '$lib/matches';
 	import { Teams } from '$lib/teams';
 	import {
@@ -16,37 +17,16 @@
 	export let teams: Teams;
 	export let defaultTeam: string;
 
-	let teamScores: TeamScores = {};
-
 	const scoring = event.scoring;
+	let teamScores: TeamScores = {};
+	let orderedTeamScores = {};
 
 	async function generateResults() {
-		teamScores = teams.teams.reduce((acc: TeamScores, team: TeamRow) => {
-			acc[team.name] = 0;
-			return acc;
-		}, {});
-
-		$matches?.matches?.forEach((match: MatchRow) => {
-			// We only care about pool play not bracket/playoff matches
-			if (match.type === 'pool') {
-				if (match.team1_score && match.team2_score) {
-					if (scoring === 'points') {
-						teamScores[match.matches_team1_fkey.name] += match.team1_score || 0;
-						teamScores[match.matches_team2_fkey.name] += match.team2_score || 0;
-					} else {
-						teamScores[match.matches_team1_fkey.name] +=
-							match.team1_score > match.team2_score ? 1 : 0;
-						teamScores[match.matches_team2_fkey.name] +=
-							match.team2_score > match.team1_score ? 1 : 0;
-					}
-				}
-			}
-		});
+		teamScores = await findStandings($matches.matches ?? [], event, teams.teams ?? []);
+		orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 	}
 	generateResults();
 	$: $matches, generateResults();
-
-	const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 </script>
 
 Scoring based on {scoring}
