@@ -36,7 +36,11 @@
 	subscribeToMatches();
 
 	async function handleGenerateBracket() {
-		await bracket.createBracketMatches(tournament, teams.teams, $matches.matches || []);
+		try {
+			await bracket.createBracketMatches(tournament, teams.teams, $matches.matches || []);
+		} catch (err) {
+			error((err as HttpError).toString());
+		}
 	}
 
 	const levels = [
