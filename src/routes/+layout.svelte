@@ -39,6 +39,9 @@
 </script>
 
 <svelte:window on:error={handleError} />
+<svelte:head>
+	<title>Volleyman</title>
+</svelte:head>
 
 <html lang="en">
 	<div class="dark:text-nord-12">

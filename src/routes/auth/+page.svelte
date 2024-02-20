@@ -72,19 +72,24 @@
 <div class="row flex-center flex justify-center">
 	<div class="col-6 form-widget flex flex-col">
 		{#if method == 'magic'}
-			<Label for="email" class="block m-2 text-gray-400">Email Address</Label>
-			<Input name="email" class="m-2 text-gray-400" bind:value={email} />
-			<Button class="m-2 text-gray-400" on:click={handleSignInOtp}>Send a magic link</Button>
+			<Label for="email" class="block m-2 text-gray-400 ">Email Address</Label>
+			<Input name="email" class="m-2 text-gray-400 " bind:value={email} />
+			<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={handleSignInOtp}
+				>Send a magic link</Button
+			>
 		{:else if method == 'password'}
-			<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
+			<Label for="email" class="block mb-2 text-gray-400 bg-gray-200">Email Address</Label>
 			<Input name="email" id="email" bind:value={email} />
 
 			<Label for="password" class="block mb-2">Password</Label>
 			<Input type="password" bind:value={password} id="password" placeholder="•••••••••" required />
 
-			<Button class="m-2 text-gray-400" on:click={handleSignIn}>Sign in</Button>
-			<Button class="m-2 text-gray-400" on:click={() => (method = 'recovery')}
-				>Forgot your password?</Button
+			<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={handleSignIn}
+				>Sign in</Button
+			>
+			<Button
+				class="m-2 text-white bg-blue-500 dark:bg-nord-1"
+				on:click={() => (method = 'recovery')}>Forgot your password?</Button
 			>
 		{:else if method == 'signup'}
 			<form on:submit={handleSignUp}>
@@ -97,21 +102,25 @@
 					placeholder="•••••••••"
 					required
 				/>
-				<Button class="text-gray-400 m-2" on:click={handleSignUp}>Sign up</Button>
+				<Button class="text-white bg-blue-500 dark:bg-nord-1 m-2" on:click={handleSignUp}
+					>Sign up</Button
+				>
 			</form>
 		{:else if method == 'recovery'}
 			<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
 			<Input name="email" bind:value={email} />
 
-			<Button class="m-2 text-gray-400" on:click={handleForgotPassword}
+			<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={handleForgotPassword}
 				>Send reset password instructions</Button
 			>
 		{/if}
 
-		<Button class="m-2 text-gray-400" on:click={() => (method = 'password')}
+		<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={() => (method = 'password')}
 			>Already have an account? Sign in</Button
 		>
-		<Button class="m-2 text-gray-400" on:click={handleSignOut}>Sign out</Button>
+		<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={handleSignOut}
+			>Sign out</Button
+		>
 
 		<div class="text-center">
 			{#if message}
