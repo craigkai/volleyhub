@@ -36,7 +36,7 @@ declare global {
 		event_id: number;
 		team1: number;
 		team2: number;
-		parent_id?: number;
+		child_id?: number;
 	};
 
 	interface Locals {
@@ -83,4 +83,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export { };
+export {};

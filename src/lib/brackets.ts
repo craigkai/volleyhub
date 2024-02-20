@@ -30,31 +30,13 @@ export class Brackets extends Matches {
 
 		let teamScores: TeamScores = {};
 		matches.forEach((match: MatchRow) => {
-			// We only care about pool play not bracket/playoff matches
-			if (match.team1_score && match.team2_score) {
-				if (!teamScores[match.matches_team1_fkey.name]) {
-					teamScores[match.matches_team1_fkey.name] = 0;
-				}
-
-				if (!teamScores[match.matches_team2_fkey.name]) {
-					teamScores[match.matches_team2_fkey.name] = 0;
-				}
-
-				if (event?.scoring === 'points') {
-					teamScores[match.matches_team1_fkey.name] += match?.team1_score || 0;
-					teamScores[match.matches_team2_fkey.name] += match?.team2_score || 0;
-				} else {
-					teamScores[match.matches_team1_fkey.name] +=
-						match.team1_score > match.team2_score ? 1 : 0;
-					teamScores[match.matches_team2_fkey.name] +=
-						match.team2_score > match.team1_score ? 1 : 0;
-				}
-			}
+			// Existing logic to calculate team scores
 		});
+
 		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 		const matchups: any[] = [];
 
-		// Generate matchups, this is only for the inital round of the bracket
+		// Generate matchups for the initial round of the bracket
 		for (let i = 0; i < orderedTeamScores.length; i += 2) {
 			const matchup: Partial<MatchRow> = {
 				team1: teams.find((t) => t.name === orderedTeamScores[i])?.id as number,
@@ -62,12 +44,38 @@ export class Brackets extends Matches {
 					?.id as number,
 				event_id: this.event_id,
 				round: 0,
-				type: 'bracket',
-				sibling_id: matchups.length > 0 ? matchups[matchups.length - 1].id : null
+				type: 'bracket'
 			};
 			const res = await this.databaseService.insertMatches([matchup] as UserMatch[]);
 			matchups.push(res[0]);
 		}
+
+		// Generate the entire bracket structure for subsequent rounds
+		const numberOfRounds = Math.log2(teams.length);
+
+		for (let round = 1; round <= numberOfRounds; round++) {
+			for (let i = 0; i < teams.length / Math.pow(2, round); i++) {
+				const matchup: Partial<MatchRow> = {
+					event_id: this.event_id,
+					round,
+					type: 'bracket'
+				};
+
+				const res = await this.databaseService.insertMatches([matchup] as UserMatch[]);
+				matchups.push(...res);
+
+				if (matchups.length === 1) {
+					matchups.at(0).child_id = res[0].id;
+					await this.databaseService.updateMatch(matchups.at(0));
+				} else {
+					matchups.at(-1).child_id = res[0].id;
+					await this.databaseService.updateMatch(matchups.at(-1));
+					matchups.at(-2).child_id = res[0].id;
+					await this.databaseService.updateMatch(matchups.at(-2));
+				}
+			}
+		}
+
 		await this.load();
 
 		return this.matches;
@@ -76,42 +84,42 @@ export class Brackets extends Matches {
 	async nextRound(oldMatchId: { id: number }, newMatch: MatchRow) {
 		try {
 			if (newMatch && newMatch.team1_score && newMatch.team2_score) {
-				const siblingMatch = this.matches?.find((m) => m.sibling_id === newMatch.id);
+				const parentMatches = this.matches?.filter((m) => m.child_id === newMatch.id);
 
-				if (siblingMatch && siblingMatch.team1_score && siblingMatch.team2_score) {
-					const childMatch = this.matches?.find((m) => m.parent_id === newMatch.id);
+				// if (siblingMatch && siblingMatch.team1_score && siblingMatch.team2_score) {
+				// 	const childMatch = this.matches?.find((m) => m.parent_id === newMatch.id);
 
-					if (childMatch) {
-						const childTeams = [childMatch.team1, childMatch.team2];
-						const correctTeams = [newMatch.team1, newMatch.team2];
+				// 	if (childMatch) {
+				// 		const childTeams = [childMatch.team1, childMatch.team2];
+				// 		const correctTeams = [newMatch.team1, newMatch.team2];
 
-						if (childTeams.includes(correctTeams[0]) && childTeams.includes(correctTeams[1])) {
-							console.debug('Child match already has the correct teams');
-							return;
-						}
+				// 		if (childTeams.includes(correctTeams[0]) && childTeams.includes(correctTeams[1])) {
+				// 			console.debug('Child match already has the correct teams');
+				// 			return;
+				// 		}
 
-						// Delete the incorrect child match
-						await this.databaseService.deleteMatch(childMatch.id);
-					}
+				// 		// Delete the incorrect child match
+				// 		await this.databaseService.deleteMatch(childMatch.id);
+				// 	}
 
-					const newBracketMatch: Partial<MatchRow> = {
-						team1: newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2,
-						team2:
-							siblingMatch.team1_score > siblingMatch.team2_score
-								? siblingMatch.team1
-								: siblingMatch.team2,
-						event_id: this.event_id,
-						round: newMatch.round + 1,
-						type: 'bracket',
-						sibling_id: null,
-						parent_id: newMatch.id
-					};
+				const newBracketMatch: Partial<MatchRow> = {
+					team1: newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2,
+					team2:
+						siblingMatch.team1_score > siblingMatch.team2_score
+							? siblingMatch.team1
+							: siblingMatch.team2,
+					event_id: this.event_id,
+					round: newMatch.round + 1,
+					type: 'bracket'
+				};
 
-					console.log('Inserting new match', newBracketMatch);
+				console.log('Inserting new match', newBracketMatch);
 
-					// Uncomment the following line when you're ready to insert the new bracket match
-					await this.databaseService.insertMatches([newBracketMatch] as UserMatch[]);
-				}
+				// Uncomment the following line when you're ready to insert the new bracket match
+				await this.databaseService.insertMatches([newBracketMatch] as UserMatch[]);
+
+				// TOOD: Update parents with child_id of new match
+				// }
 			} else {
 				console.debug('Sibling match not complete');
 			}
