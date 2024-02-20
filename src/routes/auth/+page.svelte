@@ -77,7 +77,7 @@
 			<Button class="m-2 text-gray-400" on:click={handleSignInOtp}>Send a magic link</Button>
 		{:else if method == 'password'}
 			<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
-			<Input name="email" bind:value={email} />
+			<Input name="email" id="email" bind:value={email} />
 
 			<Label for="password" class="block mb-2">Password</Label>
 			<Input type="password" bind:value={password} id="password" placeholder="•••••••••" required />
@@ -89,7 +89,7 @@
 		{:else if method == 'signup'}
 			<form on:submit={handleSignUp}>
 				<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
-				<Input name="email" bind:value={email} />
+				<Input name="email" id="email" bind:value={email} />
 				<Input
 					type="password"
 					bind:value={password}
