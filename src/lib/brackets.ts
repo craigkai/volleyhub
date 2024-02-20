@@ -21,11 +21,10 @@ export class Brackets extends Matches {
 	}
 
 	async createBracketMatches(event: Event, teams: TeamRow[], matches: MatchRow[]) {
-		if (!((teams.length & (teams.length - 1)) === 0)) {
-			this.handleError(
-				400,
-				'Number of teams must be a power of 2 for a single-elimination bracket.'
-			);
+		const teamCount = teams.length;
+
+		if (teamCount < 2) {
+			this.handleError(400, 'Number of teams must be at least 2 for a bracket.');
 		}
 
 		let teamScores: TeamScores = {};
@@ -37,11 +36,10 @@ export class Brackets extends Matches {
 		const matchups: any[] = [];
 
 		// Generate matchups for the initial round of the bracket
-		for (let i = 0; i < orderedTeamScores.length; i += 2) {
+		for (let i = 0; i < teamCount - 1; i += 2) {
 			const matchup: Partial<MatchRow> = {
 				team1: teams.find((t) => t.name === orderedTeamScores[i])?.id as number,
-				team2: teams.find((t) => t.name === orderedTeamScores[orderedTeamScores.length - 1 - i])
-					?.id as number,
+				team2: teams.find((t) => t.name === orderedTeamScores[i + 1])?.id as number,
 				event_id: this.event_id,
 				round: 0,
 				type: 'bracket'
@@ -51,29 +49,23 @@ export class Brackets extends Matches {
 		}
 
 		// Generate the entire bracket structure for subsequent rounds
-		const numberOfRounds = Math.log2(teams.length);
+		const numberOfRounds = Math.ceil(Math.log2(teamCount));
 
-		for (let round = 1; round <= numberOfRounds; round++) {
-			for (let i = 0; i < teams.length / Math.pow(2, round); i++) {
+		for (let round = 1; round < numberOfRounds; round++) {
+			const roundMatches: Partial<MatchRow>[] = [];
+
+			for (let i = 0; i < Math.ceil(teamCount / Math.pow(2, round)); i++) {
 				const matchup: Partial<MatchRow> = {
 					event_id: this.event_id,
 					round,
 					type: 'bracket'
 				};
 
-				const res = await this.databaseService.insertMatches([matchup] as UserMatch[]);
-				matchups.push(...res);
-
-				if (matchups.length === 1) {
-					matchups.at(0).child_id = res[0].id;
-					await this.databaseService.updateMatch(matchups.at(0));
-				} else {
-					matchups.at(-1).child_id = res[0].id;
-					await this.databaseService.updateMatch(matchups.at(-1));
-					matchups.at(-2).child_id = res[0].id;
-					await this.databaseService.updateMatch(matchups.at(-2));
-				}
+				roundMatches.push(matchup);
 			}
+
+			const res = await this.databaseService.insertMatches(roundMatches as UserMatch[]);
+			matchups.push(...res);
 		}
 
 		await this.load();

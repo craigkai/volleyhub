@@ -15,14 +15,21 @@
 	export let matches: Matches;
 	export let readOnly: boolean = true;
 
+	const levels = [
+		{ value: 0, title: 'quarterfinals' },
+		{ value: 1, title: 'semifinals' },
+		{ value: 2, title: 'bronze' },
+		{ value: 3, title: 'gold' }
+	];
+
 	let rounds: Record<number, Round> = {};
 	const loadingPromise = $bracket.load().then(() => {
-		bracket?.matches?.forEach((match, i) => {
+		bracket?.matches?.forEach((match) => {
 			if (rounds[match.round] === undefined) {
 				rounds[match.round] = {
 					matches: [match],
-					value: levels[i].value,
-					title: levels[i].title ?? ''
+					value: levels[match.round].value,
+					title: levels[match.round].title ?? ''
 				};
 			} else {
 				rounds[match.round].matches.push(match);
@@ -47,13 +54,6 @@
 			error((err as HttpError).toString());
 		}
 	}
-
-	const levels = [
-		{ value: 0, title: 'quarterfinals' },
-		{ value: 1, title: 'semifinals' },
-		{ value: 2, title: 'bronze' },
-		{ value: 3, title: 'gold' }
-	];
 </script>
 
 {#await loadingPromise}

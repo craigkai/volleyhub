@@ -218,7 +218,7 @@ export class Matches extends Base {
 						round: match.round,
 						ref: match.ref,
 						type: match?.type || 'pool',
-						parent_id: match?.parent_id as number
+						child_id: match?.child_id as number
 					});
 				}
 				teamsAvailable = teamsAvailable - 2;
