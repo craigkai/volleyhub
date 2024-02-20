@@ -22,7 +22,6 @@ declare global {
 
 	type Round = {
 		value: number;
-		title: string;
 		matches: MatchRow[];
 	};
 
@@ -83,4 +82,4 @@ interface ImportMeta {
 	readonly env: ImportMetaEnv;
 }
 
-export {};
+export { };

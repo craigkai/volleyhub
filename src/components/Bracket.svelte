@@ -15,27 +15,28 @@
 	export let matches: Matches;
 	export let readOnly: boolean = true;
 
-	const levels = [
-		{ value: 0, title: 'quarterfinals' },
-		{ value: 1, title: 'semifinals' },
-		{ value: 2, title: 'bronze' },
-		{ value: 3, title: 'gold' }
-	];
-
 	let rounds: Record<number, Round> = {};
 	const loadingPromise = $bracket.load().then(() => {
 		bracket?.matches?.forEach((match) => {
 			if (rounds[match.round] === undefined) {
 				rounds[match.round] = {
 					matches: [match],
-					value: levels[match.round].value,
-					title: levels[match.round].title ?? ''
+					value: match.round
 				};
 			} else {
 				rounds[match.round].matches.push(match);
 			}
 		});
 	});
+
+	const determineRoundName = (remainingRounds: number): string => {
+		console.log(remainingRounds);
+		if (remainingRounds === 1) {
+			return 'Championship'; // Custom name for the last round
+		} else {
+			return `Round ${numRounds - remainingRounds + 1}`;
+		}
+	};
 
 	let matchesSubscription: RealtimeChannel | undefined;
 	async function subscribeToMatches() {
@@ -54,6 +55,7 @@
 			error((err as HttpError).toString());
 		}
 	}
+	$: numRounds = Object.keys(rounds).length;
 </script>
 
 {#await loadingPromise}
@@ -68,10 +70,11 @@
 	{:else}
 		<div class="container">
 			<div class="tournament-bracket tournament-bracket--rounded">
-				{#each Object.keys(rounds) as i}
+				{#each Object.keys(rounds) as i, index}
 					{@const roundObj = rounds[Number(i)]}
-					<div class="tournament-bracket__round tournament-bracket__round--{roundObj.title}">
-						<h3 class="tournament-bracket__round-title">{roundObj.title}</h3>
+					{@const roundName = determineRoundName(numRounds - index)}
+					<div class="tournament-bracket__round tournament-bracket__round--{roundName}">
+						<h3 class="tournament-bracket__round-title">{roundName}</h3>
 						<ul class="tournament-bracket__list">
 							{#each roundObj.matches as match, index (index)}
 								{@const team1Win =
