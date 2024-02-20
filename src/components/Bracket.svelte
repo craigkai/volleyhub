@@ -1,58 +1,143 @@
-<!-- MatchItem.svelte -->
 <script lang="ts">
+	import { Event } from '$lib/event';
+	import { Brackets } from '$lib/brackets';
 	import type { Matches } from '$lib/matches';
+	import type { Teams } from '$lib/teams';
+	import type { RealtimeChannel } from '@supabase/supabase-js';
+	import { Button, Spinner } from 'flowbite-svelte';
 	import { updateMatch } from '$lib/helper';
+	import { error } from '$lib/toast';
+	import type { HttpError } from '@sveltejs/kit';
 
-	export let match: MatchRow;
-	export let matchesInstance: Matches;
+	export let tournament: Event;
+	export let bracket: Brackets;
+	export let teams: Teams;
+	export let matches: Matches;
 	export let readOnly: boolean = true;
 
-	readOnly = true;
+	let rounds: Record<number, Round> = {};
+	const loadingPromise = $bracket.load().then(() => {
+		bracket?.matches?.forEach((match, i) => {
+			if (rounds[match.round] === undefined) {
+				rounds[match.round] = {
+					matches: [match],
+					value: levels[i].value,
+					title: levels[i].title ?? ''
+				};
+			} else {
+				rounds[match.round].matches.push(match);
+			}
+		});
+	});
 
-	const team1Win =
-		match.team1_score && match.team2_score ? match.team1_score > match.team2_score : false;
-	const team2Win = !team1Win && match.team1_score && match.team2_score;
+	let matchesSubscription: RealtimeChannel | undefined;
+	async function subscribeToMatches() {
+		matchesSubscription = await bracket.subscribeToMatches();
+	}
+	subscribeToMatches();
 
-	const children = $matchesInstance?.matches?.filter((m) => m.parent_id === match.id);
+	async function handleGenerateBracket() {
+		try {
+			await bracket.createBracketMatches(tournament, teams.teams, $matches.matches || []);
+		} catch (err) {
+			error((err as HttpError).toString());
+		}
+	}
+
+	const levels = [
+		{ value: 0, title: 'quarterfinals' },
+		{ value: 1, title: 'semifinals' },
+		{ value: 2, title: 'bronze' },
+		{ value: 3, title: 'gold' }
+	];
 </script>
 
-<!-- svelte-ignore missing-declaration -->
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<li class="tournament-bracket__item">
-	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-	<div class="tournament-bracket__match">
-		<table class="tournament-bracket__table">
-			<tbody class="tournament-bracket__content">
-				<tr class:tournament-bracket__team--winner={team1Win} class="tournament-bracket__team">
-					<td class="tournament-bracket__country">
-						<abbr class="tournament-bracket__code" title="team1"
-							>{match.matches_team1_fkey.name}</abbr
-						>
-					</td>
-					<td class="tournament-bracket__score">
-						<span class="tournament-bracket__number">{match?.team1_score || 0}</span>
-					</td>
-				</tr>
-
-				<tr class:tournament-bracket__team--winner={team2Win} class="tournament-bracket__team">
-					<td class="tournament-bracket__country">
-						<abbr class="tournament-bracket__code" title="team"
-							>{match.matches_team2_fkey.name}</abbr
-						>
-					</td>
-					<td class="tournament-bracket__score">
-						<span class="tournament-bracket__number">{match?.team2_score || 0}</span>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+{#await loadingPromise}
+	<div class="h-screen flex flex-col items-center place-content-center">
+		<Spinner />
 	</div>
-</li>
+{:then}
+	{#if !readOnly && (!bracket?.matches || bracket.matches.length === 0)}
+		<div class="flex flex-col items-center">
+			<Button color="light" on:click={handleGenerateBracket}>Generate initial bracket</Button>
+		</div>
+	{:else}
+		<div class="container">
+			<div class="tournament-bracket tournament-bracket--rounded">
+				{#each Object.keys(rounds) as i}
+					{@const roundObj = rounds[Number(i)]}
+					<div class="tournament-bracket__round tournament-bracket__round--{roundObj.title}">
+						<h3 class="tournament-bracket__round-title">{roundObj.title}</h3>
+						<ul class="tournament-bracket__list">
+							{#each roundObj.matches as match, index (index)}
+								{@const team1Win =
+									match.team1_score && match.team2_score
+										? match.team1_score > match.team2_score
+										: false}
+								{@const team2Win = !team1Win && match.team1_score && match.team2_score}
+								<li class="tournament-bracket__item">
+									<div class="tournament-bracket__match">
+										<table class="tournament-bracket__table">
+											<tbody class="tournament-bracket__content">
+												<tr
+													class:tournament-bracket__team--winner={team1Win}
+													class="tournament-bracket__team"
+												>
+													<td class="tournament-bracket__country">
+														<abbr class="tournament-bracket__code" title="team1"
+															>{match.matches_team1_fkey.name}</abbr
+														>
+													</td>
+													<td class="tournament-bracket__score">
+														{#if readOnly}
+															<span class="tournament-bracket__number"
+																>{match?.team1_score || 0}</span
+															>
+														{:else}
+															<input
+																class="border-solid border-2 text-center max-w-8"
+																bind:value={match.team1_score}
+																on:blur={() => updateMatch(match, bracket)}
+															/>
+														{/if}
+													</td>
+												</tr>
 
-<!-- {#if children && children.length}
-	<svelte:self matches={children} {matchesInstance} {readOnly} />
-{/if} -->
+												<tr
+													class:tournament-bracket__team--winner={team2Win}
+													class="tournament-bracket__team"
+												>
+													<td class="tournament-bracket__country">
+														<abbr class="tournament-bracket__code" title="team"
+															>{match.matches_team2_fkey.name}</abbr
+														>
+													</td>
+													<td class="tournament-bracket__score">
+														{#if readOnly}
+															<span class="tournament-bracket__number"
+																>{match?.team2_score || 0}</span
+															>
+														{:else}
+															<input
+																class="border-solid border-2 text-center max-w-8"
+																bind:value={match.team2_score}
+																on:blur={() => updateMatch(match, bracket)}
+															/>
+														{/if}
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
+{/await}
 
 <style lang="less">
 	// VARIABLES
