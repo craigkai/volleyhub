@@ -70,6 +70,6 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 
 		this.validateAndHandleErrors(res, matchesRowSchema);
 
-		return res.data;
+		return res.data ?? [];
 	}
 }
