@@ -2,7 +2,7 @@
 	import type { PageData } from '$types';
 	import { Event as EventInstance } from '$lib/event';
 	import Settings from '$components/Settings.svelte';
-	import Bracket from '$components/Bracket/Bracket.svelte';
+	import Bracket from '$components/Bracket.svelte';
 	import { Matches as MatchesInstance } from '$lib/matches';
 	import { Teams as TeamsInstance } from '$lib/teams';
 	import { EventSupabaseDatabaseService } from '$lib/database/event';
