@@ -49,47 +49,47 @@ export type Database = {
 			};
 			matches: {
 				Row: {
+					child_id: number | null;
 					court: number;
 					created_at: string;
 					event_id: number;
 					id: number;
-					parent_id: number | null;
 					ref: number | null;
 					round: number;
-					sibling_id: number | null;
-					team1: number;
+					state: string | null;
+					team1: number | null;
 					team1_score: number | null;
-					team2: number;
+					team2: number | null;
 					team2_score: number | null;
 					type: string;
 				};
 				Insert: {
+					child_id?: number | null;
 					court?: number;
 					created_at?: string;
 					event_id: number;
 					id?: number;
-					parent_id?: number | null;
 					ref?: number | null;
 					round?: number;
-					sibling_id?: number | null;
-					team1: number;
+					state?: string | null;
+					team1?: number | null;
 					team1_score?: number | null;
-					team2: number;
+					team2?: number | null;
 					team2_score?: number | null;
 					type?: string;
 				};
 				Update: {
+					child_id?: number | null;
 					court?: number;
 					created_at?: string;
 					event_id?: number;
 					id?: number;
-					parent_id?: number | null;
 					ref?: number | null;
 					round?: number;
-					sibling_id?: number | null;
-					team1?: number;
+					state?: string | null;
+					team1?: number | null;
 					team1_score?: number | null;
-					team2?: number;
+					team2?: number | null;
 					team2_score?: number | null;
 					type?: string;
 				};
@@ -126,13 +126,6 @@ export type Database = {
 						foreignKeyName: 'public_matches_id_fkey';
 						columns: ['id'];
 						isOneToOne: true;
-						referencedRelation: 'matches';
-						referencedColumns: ['id'];
-					},
-					{
-						foreignKeyName: 'public_matches_parent_id_fkey';
-						columns: ['parent_id'];
-						isOneToOne: false;
 						referencedRelation: 'matches';
 						referencedColumns: ['id'];
 					}

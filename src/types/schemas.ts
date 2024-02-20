@@ -51,49 +51,49 @@ export const eventsUpdateSchema = z.object({
 });
 
 export const matchesRowSchema = z.object({
+	child_id: z.number().nullable(),
 	court: z.number(),
 	created_at: z.string(),
 	event_id: z.number(),
 	id: z.number(),
-	parent_id: z.number().nullable(),
 	ref: z.number().nullable(),
 	round: z.number(),
-	sibling_id: z.number().nullable(),
-	team1: z.number(),
+	state: z.string().nullable(),
+	team1: z.number().nullable(),
 	team1_score: z.number().nullable(),
-	team2: z.number(),
+	team2: z.number().nullable(),
 	team2_score: z.number().nullable(),
 	type: z.string()
 });
 
 export const matchesInsertSchema = z.object({
+	child_id: z.number().optional().nullable(),
 	court: z.number().optional(),
 	created_at: z.string().optional(),
 	event_id: z.number(),
 	id: z.number().optional(),
-	parent_id: z.number().optional().nullable(),
 	ref: z.number().optional().nullable(),
 	round: z.number().optional(),
-	sibling_id: z.number().optional().nullable(),
-	team1: z.number(),
+	state: z.string().optional().nullable(),
+	team1: z.number().optional().nullable(),
 	team1_score: z.number().optional().nullable(),
-	team2: z.number(),
+	team2: z.number().optional().nullable(),
 	team2_score: z.number().optional().nullable(),
 	type: z.string().optional()
 });
 
 export const matchesUpdateSchema = z.object({
+	child_id: z.number().optional().nullable(),
 	court: z.number().optional(),
 	created_at: z.string().optional(),
 	event_id: z.number().optional(),
 	id: z.number().optional(),
-	parent_id: z.number().optional().nullable(),
 	ref: z.number().optional().nullable(),
 	round: z.number().optional(),
-	sibling_id: z.number().optional().nullable(),
-	team1: z.number().optional(),
+	state: z.string().optional().nullable(),
+	team1: z.number().optional().nullable(),
 	team1_score: z.number().optional().nullable(),
-	team2: z.number().optional(),
+	team2: z.number().optional().nullable(),
 	team2_score: z.number().optional().nullable(),
 	type: z.string().optional()
 });

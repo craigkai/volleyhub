@@ -34,11 +34,15 @@
 	async function subscribeToMatches() {
 		matchesSubscription = await bracket.subscribeToMatches();
 	}
-	subscribeToMatches();
+
+	if (bracket.matches) {
+		subscribeToMatches();
+	}
 
 	async function handleGenerateBracket() {
 		try {
 			await bracket.createBracketMatches(tournament, teams.teams, $matches.matches || []);
+			subscribeToMatches();
 		} catch (err) {
 			error((err as HttpError).toString());
 		}
@@ -85,7 +89,7 @@
 												>
 													<td class="tournament-bracket__country">
 														<abbr class="tournament-bracket__code" title="team1"
-															>{match.matches_team1_fkey.name}</abbr
+															>{match.matches_team1_fkey?.name ?? 'tbd'}</abbr
 														>
 													</td>
 													<td class="tournament-bracket__score">
@@ -109,7 +113,7 @@
 												>
 													<td class="tournament-bracket__country">
 														<abbr class="tournament-bracket__code" title="team"
-															>{match.matches_team2_fkey.name}</abbr
+															>{match.matches_team2_fkey?.name ?? 'tbd'}</abbr
 														>
 													</td>
 													<td class="tournament-bracket__score">
