@@ -138,6 +138,14 @@ export class Matches extends Base {
 		}
 	}
 
+	async put(match: MatchRow): Promise<MatchRow | null> {
+		const updatedMatch = await this.databaseService.updateMatch(match);
+		if (updatedMatch === null) {
+			this.handleError(500, 'Failed to update match.');
+		}
+		return updatedMatch;
+	}
+
 	validateInputs(
 		teams: TeamRow[],
 		pools: number | undefined | null,
@@ -190,7 +198,7 @@ export class Matches extends Base {
 					return;
 				}
 
-				if (pools && userMatches.length === pools * (teams.length / 2)) {
+				if (pools && userMatches.length === pools * teams.length) {
 					// Short circuit if we have more matches than pool play games
 					return;
 				}
@@ -250,14 +258,6 @@ export class Matches extends Base {
 				}
 			});
 		});
-	}
-
-	async put(match: MatchRow): Promise<MatchRow | null> {
-		const updatedMatch = await this.databaseService.updateMatch(match);
-		if (updatedMatch === null) {
-			this.handleError(500, 'Failed to update match.');
-		}
-		return updatedMatch;
 	}
 
 	determineReferee(

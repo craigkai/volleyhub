@@ -143,9 +143,15 @@
 					You already have some match content, are you sure you want to wipe that?
 				</p>
 				<div class="flex gap-2">
-					<Button class="text-black" size="xs" on:click={generateMatches}>Yes</Button>
-					<Button class="text-black" size="xs" on:click={() => (showGenerateMatchesAlert = false)}
-						>No</Button
+					<Button
+						class="text-black bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						size="xs"
+						on:click={generateMatches}>Yes</Button
+					>
+					<Button
+						class="text-black bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						size="xs"
+						on:click={() => (showGenerateMatchesAlert = false)}>No</Button
 					>
 				</div>
 			</Alert>

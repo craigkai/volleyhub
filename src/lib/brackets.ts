@@ -93,24 +93,32 @@ export class Brackets extends Matches {
 		const otherParent = this.matches?.find(
 			(m) => m.child_id === newMatch.child_id && m.id !== newMatch.id
 		);
+		const otherParentComplete = this.matches!.length > 3 ? otherParent?.state === 'complete' : true;
 
 		try {
-			if (newMatch.state === 'complete' && otherParent?.state === 'complete' && child) {
+			if (newMatch.state === 'complete' && otherParentComplete && child) {
 				const childTeams = [child.team1, child.team2];
-				// We ignore null as we trust status === 'complete'
-				// @ts-ignore: Object is possibly 'null'.
 				const winnerOfNew =
+					// We ignore null as we trust status === 'complete'
+					// @ts-ignore: Object is possibly 'null'.
 					newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2;
-				// @ts-ignore: Object is possibly 'null'.
-				const winnierOfOtherParent =
-					otherParent.team1_score > otherParent.team2_score ? otherParent.team1 : otherParent.team2;
+				let winnerOfOtherParent;
+				if (otherParent) {
+					// @ts-ignore: Object is possibly 'null'.
+					winnerOfOtherParent =
+						otherParent?.team1_score > otherParent?.team2_score
+							? otherParent!.team1
+							: otherParent!.team2;
+				} else {
+					winnerOfOtherParent = child.team1 || child.team2;
+				}
 
 				if (childTeams.includes(winnerOfNew)) {
 					console.debug('Child match already has the correct teams');
 					return;
 				} else {
 					child.team1 = winnerOfNew;
-					child.team2 = winnierOfOtherParent;
+					child.team2 = winnerOfOtherParent;
 					const newBracketMatch: Partial<MatchRow> = {
 						...child,
 						team1_score: 0,
