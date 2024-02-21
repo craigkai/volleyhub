@@ -102,16 +102,14 @@ export class Brackets extends Matches {
 					// We ignore null as we trust status === 'complete'
 					// @ts-ignore: Object is possibly 'null'.
 					newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2;
-				let winnerOfOtherParent;
-				if (otherParent) {
-					// @ts-ignore: Object is possibly 'null'.
-					winnerOfOtherParent =
-						otherParent?.team1_score > otherParent?.team2_score
-							? otherParent!.team1
-							: otherParent!.team2;
-				} else {
-					winnerOfOtherParent = child.team1 || child.team2;
-				}
+
+				const winnerOfOtherParent =
+					otherParent?.state === 'complete'
+						? // @ts-ignore: Object is possibly 'null'.
+							otherParent.team1_score > otherParent.team2_score
+							? otherParent.team1
+							: otherParent.team2
+						: child.team1 || child.team2;
 
 				if (childTeams.includes(winnerOfNew)) {
 					console.debug('Child match already has the correct teams');

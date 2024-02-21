@@ -123,6 +123,13 @@ export type Database = {
 						referencedColumns: ['id'];
 					},
 					{
+						foreignKeyName: 'public_matches_child_id_fkey';
+						columns: ['child_id'];
+						isOneToOne: false;
+						referencedRelation: 'matches';
+						referencedColumns: ['id'];
+					},
+					{
 						foreignKeyName: 'public_matches_id_fkey';
 						columns: ['id'];
 						isOneToOne: true;
