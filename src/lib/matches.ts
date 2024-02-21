@@ -115,7 +115,7 @@ export class Matches extends Base {
 			courts = courts as number;
 			refs = refs as string;
 
-			const matches = this.generateMatches(pools, teams);
+			const matches = this.generateMatches(pools, teams, courts);
 			await this.databaseService.deleteMatchesByEvent(this.event_id);
 
 			const userMatches = this.prepareUserMatches(matches, courts, teams, pools);
@@ -169,11 +169,24 @@ export class Matches extends Base {
 		}
 	}
 
+	calculateRoundsAndCourts(
+		teams: TeamRow[],
+		courts: number
+	): { rounds: number; courtsPerRound: number } {
+		const numberOfTeams = teams.length;
+		const rounds = numberOfTeams % 2 === 0 ? numberOfTeams - 1 : numberOfTeams;
+		const courtsPerRound = Math.min(courts, numberOfTeams / 2);
+		return { rounds, courtsPerRound };
+	}
+
 	generateMatches(pools: number, teams: TeamRow[]) {
 		let matches: Partial<MatchRow>[] = [];
-		while (matches.length < pools * teams.length) {
+		const totalRounds = pools * (teams.length - 1); // Adjusted the total number of rounds
+
+		for (let round = 0; round < totalRounds; round++) {
 			matches = matches.concat(RoundRobin(teams.map((t) => t.id)));
 		}
+
 		return matches;
 	}
 
@@ -186,9 +199,8 @@ export class Matches extends Base {
 		let courtsAvailable = courts;
 		let teamsAvailable = teams.length;
 		let round = 0;
-		let totalRounds = 0;
 		const userMatches: UserMatch[] = [];
-		const teamsPerRound: { number: number[] } = { 0: [] };
+		const teamsPerRound: { [round: number]: number[] } = {};
 
 		matches
 			.sort((a, b) => a.round - b.round)
@@ -198,21 +210,16 @@ export class Matches extends Base {
 					return;
 				}
 
-				if (pools && userMatches.length === pools * teams.length) {
+				if (pools && userMatches.length >= (pools * teams.length) / 2) {
 					// Short circuit if we have more matches than pool play games
 					return;
 				}
 
-				if (courtsAvailable === 0 || teamsAvailable < 2) {
-					courtsAvailable = courts;
-					teamsAvailable = teams?.length;
-					round = round + 1;
-					totalRounds = totalRounds + 1;
+				if (!teamsPerRound[round]) {
+					teamsPerRound[round] = [];
 				}
 
-				teamsPerRound[round] = teamsPerRound[round]
-					? teamsPerRound[round].concat(match.team1, match.team2)
-					: [match.team1, match.team2];
+				teamsPerRound[round] = teamsPerRound[round].concat(match.team1, match.team2);
 
 				match.court = courts - courtsAvailable;
 				match.round = round;
@@ -231,13 +238,19 @@ export class Matches extends Base {
 					});
 				}
 				teamsAvailable = teamsAvailable - 2;
+
+				if (teamsAvailable < 2 || courtsAvailable === 0) {
+					round = round + 1;
+					courtsAvailable = courts;
+					teamsAvailable = teams.length;
+				}
 			});
 
 		return userMatches;
 	}
 
 	assignReferees(userMatches: UserMatch[], teams: TeamRow[]) {
-		const teamsPerRound: { number: number[] } = { 0: [] };
+		const teamsPerRound: { [key: string]: number[] } = {};
 
 		userMatches.forEach((match: UserMatch) => {
 			const round = match.round.toString();
@@ -246,27 +259,20 @@ export class Matches extends Base {
 				: [match.team1, match.team2];
 		});
 
-		Object.keys(teamsPerRound).forEach((round: string) => {
-			userMatches.forEach((match: UserMatch, i) => {
-				if (match.round === Number(round)) {
-					const ref = this.determineReferee(
-						teamsPerRound[round],
-						teams.map((t) => t.id),
-						userMatches
-					);
-					userMatches[i].ref = ref;
-				}
-			});
+		userMatches.forEach((match: UserMatch, i) => {
+			const round = match.round.toString();
+			const ref = this.determineReferee(
+				teamsPerRound[round],
+				teams.map((t) => t.id),
+				userMatches
+			);
+			userMatches[i].ref = ref;
 		});
 	}
 
-	determineReferee(
-		teamsPerRound: [{ number: number[] }],
-		teams: number[],
-		previousMatches: Partial<MatchRow>[]
-	): number {
+	determineReferee(teamsPerRound: number[], teams: number[], previousMatches: UserMatch[]): number {
 		// Exclude teams playing in the current round from the referee selection
-		const availableTeams = teams.filter((team) => !teamsPerRound.includes(team) && team !== 0);
+		const availableTeams = teams.filter((team) => !teamsPerRound.includes(team));
 
 		// Exclude teams that have already refereed in previous matches
 		const availableTeamsByRefsCount: { [key: number]: number } = previousMatches.reduce(

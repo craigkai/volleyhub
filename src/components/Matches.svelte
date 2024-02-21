@@ -87,34 +87,43 @@
 		</TableHead>
 		<TableBody>
 			<!-- Need to iterate over ROUNDs here and fill each court -->
-			{#each Object.keys(matchesForEachRound) as round}
+			{#each Object.keys(matchesForEachRound) as round, i}
 				{@const matchesForRound = matchesForEachRound[round].sort(
 					(a, b) => a.round - b.round || a.court - b.court
 				)}
 
 				<TableBodyRow>
 					<!-- Can have multiple matches per round if we have multiple courts -->
-					{#each matchesForRound as match}
-						{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
-						{@const teamsForMatch = [match.matches_team1_fkey.name, match.matches_team2_fkey.name]}
-						{@const hasDefaultTeam = teamsForMatch.includes(defaultTeam)}
-						{@const defaultTeamWin =
-							match.matches_team1_fkey.name == defaultTeam
-								? match.team1_score > match.team2_score
-								: match.team2_score > match.team1_score}
-						{@const rowTdClass = defaultTeamWin
-							? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
-							: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
-						<TableBodyCell
-							tdClass={hasDefaultTeam
-								? matchComplete
-									? defaultTdClass + rowTdClass
-									: defaultTdClass +
-										'border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
-								: defaultTdClass}
-						>
-							<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
-						</TableBodyCell>
+					{#each Array(tournament.courts) as _, court}
+						{@const match = matchesForRound[court]}
+
+						{#if match}
+							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
+							{@const teamsForMatch = [
+								match.matches_team1_fkey.name,
+								match.matches_team2_fkey.name
+							]}
+							{@const hasDefaultTeam = teamsForMatch.includes(defaultTeam)}
+							{@const defaultTeamWin =
+								match.matches_team1_fkey.name == defaultTeam
+									? match.team1_score > match.team2_score
+									: match.team2_score > match.team1_score}
+							{@const rowTdClass = defaultTeamWin
+								? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
+								: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
+							<TableBodyCell
+								tdClass={hasDefaultTeam
+									? matchComplete
+										? defaultTdClass + rowTdClass
+										: defaultTdClass +
+											'border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+									: defaultTdClass}
+							>
+								<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
+							</TableBodyCell>
+						{:else}
+							<TableBodyCell></TableBodyCell>
+						{/if}
 					{/each}
 					{#if tournament.refs === 'teams'}
 						<TableBodyCell
