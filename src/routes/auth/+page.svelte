@@ -78,7 +78,7 @@
 				>Send a magic link</Button
 			>
 		{:else if method == 'password'}
-			<Label for="email" class="block mb-2 text-gray-400 bg-gray-200">Email Address</Label>
+			<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
 			<Input name="email" id="email" bind:value={email} />
 
 			<Label for="password" class="block mb-2">Password</Label>
