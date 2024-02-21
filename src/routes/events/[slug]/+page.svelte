@@ -30,7 +30,7 @@
 
 	const bracket = new Brackets(data.event_id, matchesSupabaseDatabaseService);
 
-	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
+	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams, bracket);
 	let defaultTeam = data.default_team;
 
 	let historyReady = false;

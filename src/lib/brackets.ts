@@ -31,83 +31,99 @@ export class Brackets extends Matches {
 		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 		const matchups: Partial<MatchRow>[] = [];
 
+		// Calculate the number of rounds needed
+		const totalRounds = Math.ceil(Math.log2(teams.length));
+
+		let leftOverTeams: number[] = [];
+		let parentMatches: MatchRow[] = [];
+
 		// Generate matchups for the initial round of the bracket
 		for (let i = 0; i < orderedTeamScores.length; i += 2) {
+			const team1 = teams.find((t) => t.name === orderedTeamScores[i])?.id as number;
+			const team2 = teams.find((t) => t.name === orderedTeamScores[i + 1])?.id as number;
+
 			const matchup: Partial<MatchRow> = {
-				team1: teams.find((t) => t.name === orderedTeamScores[i])?.id as number,
-				team2: teams.find((t) => t.name === orderedTeamScores[i + 1])?.id as number,
+				team1,
+				team2,
 				event_id: this.event_id,
 				round: 0,
 				type: 'bracket'
 			};
-			const res = await this.databaseService.insertMatches([matchup] as UserMatch[]);
-			matchups.push(res[0]);
+
+			if (!team1 || !team2) {
+				leftOverTeams.push(team1);
+			} else {
+				const res = await this.databaseService.insertMatch(matchup as UserMatch);
+				matchups.push(res);
+				parentMatches.push(res); // Store the parent match IDs twice
+			}
 		}
 
-		await this.load();
+		const hasBye = teams.length % 2 !== 0;
 
 		// Generate empty matchups for subsequent rounds
-		const totalRounds = Math.floor(Math.log2(teams.length));
-		for (let currentRound = 1; currentRound <= totalRounds; currentRound++) {
-			for (let i = 0; i < 2 ** (totalRounds - currentRound); i++) {
+		for (let currentRound = 1; currentRound < totalRounds; currentRound++) {
+			const numMatches = 2 ** (totalRounds - currentRound - (hasBye ? 1 : 0));
+
+			for (let i = 0; i < numMatches; i += 2) {
 				const emptyMatchup: Partial<MatchRow> = {
 					event_id: this.event_id,
 					round: currentRound,
-					type: 'bracket'
+					type: 'bracket',
+					team1: leftOverTeams.pop()
 				};
-				const res = await this.databaseService.insertMatches([emptyMatchup] as UserMatch[]);
-				matchups.push(res[0]);
+
+				let res = await this.databaseService.insertMatch(emptyMatchup as UserMatch);
+				matchups.push(res);
+
+				[parentMatches.pop(), parentMatches.pop()].forEach((parent) => {
+					if (parent) {
+						parent.child_id = res.id;
+						this.put(parent).catch((e) => console.error(e));
+					}
+				});
 			}
 		}
 
 		return this.matches;
 	}
 
-	async nextRound(oldMatchId: { id: number }, newMatch: MatchRow) {
+	async nextRound(_oldMatchId: { id: number }, newMatch: MatchRow) {
+		const child = this.matches?.find((m) => m.id === newMatch.child_id);
+		const otherParent = this.matches?.find(
+			(m) => m.child_id === newMatch.child_id && m.id !== newMatch.id
+		);
+
 		try {
-			if (newMatch && newMatch.team1_score && newMatch.team2_score) {
-				const siblingMatch = this.matches?.find((m) => m.sibling_id === newMatch.id);
+			if (newMatch.state === 'complete' && otherParent?.state === 'complete' && child) {
+				const childTeams = [child.team1, child.team2];
+				// We ignore null as we trust status === 'complete'
+				// @ts-ignore: Object is possibly 'null'.
+				const winnerOfNew =
+					newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2;
+				// @ts-ignore: Object is possibly 'null'.
+				const winnierOfOtherParent =
+					otherParent.team1_score > otherParent.team2_score ? otherParent.team1 : otherParent.team2;
 
-				if (siblingMatch && siblingMatch.team1_score && siblingMatch.team2_score) {
-					const childMatch = this.matches?.find((m) => m.parent_id === newMatch.id);
-
-					if (childMatch) {
-						const childTeams = [childMatch.team1, childMatch.team2];
-						const correctTeams = [newMatch.team1, newMatch.team2];
-
-						if (childTeams.includes(correctTeams[0]) && childTeams.includes(correctTeams[1])) {
-							console.debug('Child match already has the correct teams');
-							return;
-						}
-
-						// Delete the incorrect child match
-						await this.databaseService.deleteMatch(childMatch.id);
-					}
-
+				if (childTeams.includes(winnerOfNew)) {
+					console.debug('Child match already has the correct teams');
+					return;
+				} else {
 					const newBracketMatch: Partial<MatchRow> = {
-						team1: newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2,
-						team2:
-							siblingMatch.team1_score > siblingMatch.team2_score
-								? siblingMatch.team1
-								: siblingMatch.team2,
-						event_id: this.event_id,
-						round: newMatch.round + 1,
-						type: 'bracket',
-						sibling_id: null,
-						parent_id: newMatch.id
+						...child,
+						team1: winnerOfNew,
+						team2: winnierOfOtherParent,
+						team1_score: 0,
+						team2_score: 0
 					};
 
-					console.log('Inserting new match', newBracketMatch);
-
-					// Uncomment the following line when you're ready to insert the new bracket match
-					await this.databaseService.insertMatches([newBracketMatch] as UserMatch[]);
+					await this.put(newBracketMatch as MatchRow);
 				}
 			} else {
-				console.debug('Sibling match not complete');
+				console.debug('Child matches not complete');
 			}
 		} catch (error) {
 			this.handleError(500, `An error occurred in nextRound ${error}`);
-			// Handle the error appropriately (e.g., log, throw, or return an error response)
 		}
 	}
 }

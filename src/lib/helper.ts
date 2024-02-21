@@ -4,8 +4,14 @@ import { Teams } from './teams';
 import { pushState } from '$app/navigation';
 import type { HttpError } from '@sveltejs/kit';
 import { error, success } from '$lib/toast';
+import type { Brackets } from './brackets';
 
-export async function loadInitialData(event: Event, matches: Matches, teams: Teams): Promise<any> {
+export async function loadInitialData(
+	event: Event,
+	matches: Matches,
+	teams: Teams,
+	bracket: Brackets
+): Promise<any> {
 	if ((event.id as unknown as string) !== 'create') {
 		return await event
 			.load()
@@ -20,6 +26,11 @@ export async function loadInitialData(event: Event, matches: Matches, teams: Tea
 					})
 					.then(async () => {
 						return await teams.load().catch((err: HttpError) => {
+							error(err?.body?.message);
+						});
+					})
+					.then(async () => {
+						return await bracket.load().catch((err: HttpError) => {
 							error(err?.body?.message);
 						});
 					});

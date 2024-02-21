@@ -30,7 +30,7 @@
 
 	let bracket = new Brackets(data.event_id, matchesSupabaseDatabaseService);
 
-	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams);
+	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams, bracket);
 </script>
 
 {#if $page.state.showModal && $page.state.matchId}

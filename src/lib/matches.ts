@@ -67,6 +67,7 @@ export class Matches extends Base {
 				return;
 			} else {
 				// Generate next bracket match
+				await self.load();
 				(self as Brackets).nextRound(old, updated);
 			}
 		}
@@ -251,7 +252,7 @@ export class Matches extends Base {
 		});
 	}
 
-	async put(match: MatchRow): Promise<MatchRow> {
+	async put(match: MatchRow): Promise<MatchRow | null> {
 		const updatedMatch = await this.databaseService.updateMatch(match);
 		if (updatedMatch === null) {
 			this.handleError(500, 'Failed to update match.');

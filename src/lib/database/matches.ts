@@ -47,6 +47,18 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.handleDatabaseError(response);
 	}
 
+	async insertMatch(matches: UserMatch): Promise<MatchRow> {
+		const res = await this.supabaseClient
+			.from('matches')
+			.insert(matches)
+			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
+			.single();
+
+		this.validateAndHandleErrors(res, matchesRowSchema);
+
+		return res.data;
+	}
+
 	async insertMatches(matches: UserMatch[]): Promise<MatchRow[]> {
 		const res = await this.supabaseClient
 			.from('matches')
@@ -70,6 +82,6 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 
 		this.validateAndHandleErrors(res, matchesRowSchema);
 
-		return res.data ?? [];
+		return res.data as MatchRow;
 	}
 }
