@@ -104,9 +104,10 @@
 														>
 													{:else}
 														<input
+															disabled={!match.matches_team1_fkey?.name}
 															class="border-solid border-2 text-center max-w-8"
 															bind:value={match.team1_score}
-															on:blur={() => updateMatch(match, bracket)}
+															on:change={() => updateMatch(match, bracket)}
 														/>
 													{/if}
 												</td>
@@ -127,9 +128,10 @@
 														>
 													{:else}
 														<input
+															disabled={!match.matches_team1_fkey?.name}
 															class="border-solid border-2 text-center max-w-8"
 															bind:value={match.team2_score}
-															on:blur={() => updateMatch(match, bracket)}
+															on:change={() => updateMatch(match, bracket)}
 														/>
 													{/if}
 												</td>
