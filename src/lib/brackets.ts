@@ -1,5 +1,5 @@
 import { Event } from './event';
-import { findStandings } from './helper';
+import { findStandings } from './standings';
 import { Matches } from './matches';
 
 export class Brackets extends Matches {

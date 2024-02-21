@@ -20,7 +20,9 @@
 			.then(async () => {
 				success(`Tournament created`);
 				// Navigate to the page with the [slug] value set to our tournament Id
-				goto(`/protected-routes/events/${tournament.id}`);
+				goto(`/protected-routes/events/${tournament.id}`, {
+					state: { eventCreated: tournament.id }
+				});
 			})
 			.catch((err: HttpError) => {
 				error(err.toString());

@@ -1,13 +1,7 @@
 <script lang="ts">
 	import type { PageData } from '$types';
-	import { Event as EventInstance } from '$lib/event';
 	import Settings from '$components/Settings.svelte';
 	import Bracket from '$components/Bracket.svelte';
-	import { Matches as MatchesInstance } from '$lib/matches';
-	import { Teams as TeamsInstance } from '$lib/teams';
-	import { EventSupabaseDatabaseService } from '$lib/database/event';
-	import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
-	import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 	import Standings from '$components/Standings.svelte';
 	import Matches from '$components/Matches.svelte';
 	import Teams from '$components/Teams.svelte';
@@ -16,19 +10,36 @@
 	import EditMatch from '$components/EditMatch.svelte';
 	import { page } from '$app/stores';
 	import { Modal } from 'flowbite-svelte';
-	import { Brackets } from '$lib/brackets';
+	import { initiateEvent } from '$lib/helper';
 
 	export let data: PageData;
-	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
-	let tournament = new EventInstance(data.event_id, eventSupabaseDatabaseService);
+	let { supabase, event_id } = data;
 
-	const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(data?.supabase);
-	let matches = new MatchesInstance(data.event_id, matchesSupabaseDatabaseService);
+	let { tournament, matches, teams, bracket } = initiateEvent(event_id, supabase);
 
-	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(data?.supabase);
-	let teams = new TeamsInstance(data.event_id, teamsSupabaseDatabaseService);
+	async function reloadEventInstances() {
+		if ($page.state.eventCreated) {
+			// Use const instead of let to declare the variables
+			const {
+				tournament: newTournament,
+				matches: newMatches,
+				teams: newTeams,
+				bracket: newBracket
+			} = initiateEvent($page.state.eventCreated, supabase);
 
-	let bracket = new Brackets(data.event_id, matchesSupabaseDatabaseService);
+			await loadInitialData(newTournament, newMatches, newTeams, newBracket);
+
+			// Update the variables with the new values
+			tournament = newTournament;
+			matches = newMatches;
+			teams = newTeams;
+			bracket = newBracket;
+
+			await loadInitialData(tournament, matches, teams, bracket);
+		}
+	}
+
+	$: $page.state.eventCreated, reloadEventInstances();
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams, bracket);
 </script>

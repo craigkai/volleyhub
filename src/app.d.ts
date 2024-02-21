@@ -67,6 +67,7 @@ declare global {
 			matchId?: number;
 			type?: string;
 			showModal?: boolean;
+			eventCreated?: number;
 		}
 	}
 	type supabaseClient = SupabaseClient<Database>;

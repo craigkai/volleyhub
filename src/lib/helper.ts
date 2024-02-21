@@ -4,7 +4,13 @@ import { Teams } from './teams';
 import { pushState } from '$app/navigation';
 import type { HttpError } from '@sveltejs/kit';
 import { error, success } from '$lib/toast';
-import type { Brackets } from './brackets';
+import { EventSupabaseDatabaseService } from '$lib/database/event';
+import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
+import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
+import { Brackets } from '$lib/brackets';
+import { Event as EventInstance } from '$lib/event';
+import { Matches as MatchesInstance } from '$lib/matches';
+import { Teams as TeamsInstance } from '$lib/teams';
 
 export async function loadInitialData(
 	event: Event,
@@ -65,35 +71,25 @@ export async function updateMatch(match: MatchRow | undefined, matches: Matches)
 	}
 }
 
-export async function findStandings(
-	matches: MatchRow[],
-	event: Event,
-	teams: TeamRow[]
-): Promise<TeamScores> {
-	let teamScores: TeamScores = teams.reduce((acc: TeamScores, team: TeamRow) => {
-		acc[team.name] = 0;
-		return acc;
-	}, {});
+export function initiateEvent(
+	eventId: number,
+	supabase: supabaseClient
+): {
+	tournament: EventInstance;
+	matches: MatchesInstance;
+	teams: TeamsInstance;
+	bracket: Brackets;
+} {
+	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(supabase);
+	let tournament = new EventInstance(eventId, eventSupabaseDatabaseService);
 
-	matches.forEach((match: MatchRow) => {
-		if (match.team1_score && match.team2_score) {
-			if (!teamScores[match.matches_team1_fkey.name]) {
-				teamScores[match.matches_team1_fkey.name] = 0;
-			}
+	const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(supabase);
+	let matches = new MatchesInstance(eventId, matchesSupabaseDatabaseService);
 
-			if (!teamScores[match.matches_team2_fkey.name]) {
-				teamScores[match.matches_team2_fkey.name] = 0;
-			}
+	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(supabase);
+	let teams = new TeamsInstance(eventId, teamsSupabaseDatabaseService);
 
-			if (event?.scoring === 'points') {
-				teamScores[match.matches_team1_fkey.name] += match?.team1_score || 0;
-				teamScores[match.matches_team2_fkey.name] += match?.team2_score || 0;
-			} else {
-				teamScores[match.matches_team1_fkey.name] += match.team1_score > match.team2_score ? 1 : 0;
-				teamScores[match.matches_team2_fkey.name] += match.team2_score > match.team1_score ? 1 : 0;
-			}
-		}
-	});
+	let bracket = new Brackets(eventId, matchesSupabaseDatabaseService);
 
-	return teamScores;
+	return { tournament, matches, teams, bracket };
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Event } from '$lib/event';
-	import { findStandings } from '$lib/helper';
+	import { findStandings } from '$lib/standings';
 	import { Matches } from '$lib/matches';
 	import { Teams } from '$lib/teams';
 	import {
