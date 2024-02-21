@@ -19,11 +19,13 @@
 	let { supabase, session } = data;
 	$: ({ supabase, session } = data);
 
+	let authChange = false;
 	onMount(() => {
 		const {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange(() => {
 			invalidate('supabase:auth');
+			authChange = !authChange;
 		});
 
 		return () => {
@@ -45,7 +47,7 @@
 
 <html lang="en">
 	<div class="dark:text-nord-12">
-		<Header {data} />
+		<Header {data} {authChange} />
 
 		<div class="min-h-screen">
 			<div class="wrap">

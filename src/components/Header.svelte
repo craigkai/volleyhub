@@ -4,14 +4,19 @@
 	import { DarkMode } from 'flowbite-svelte';
 
 	export let data: PageData;
+	export let authChange: boolean;
 	let { supabase } = data;
 
 	let open: boolean = false;
 
+	let currentUser: { data: { user: { aud: string } } };
 	async function getCurrentUser() {
-		return await supabase.auth.getUser();
+		return await supabase.auth.getUser().then((res: { data: { user: { aud: string } } }) => {
+			currentUser = res;
+		});
 	}
-	let currentUserPromise = getCurrentUser();
+	$: authChange, getCurrentUser();
+
 	let btnClass = 'hover:bg-nord-6 dark:hover:bg-nord-1 rounded-lg text-xl p-2';
 </script>
 
@@ -51,42 +56,29 @@
 								>
 							</li>
 
-							{#await currentUserPromise then currentuser}
-								{#if currentuser?.data?.user?.aud === 'authenticated'}
-									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-										<a
-											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
-											href="/protected-routes/dashboard"
-											data-te-nav-link-ref
-											data-te-ripple-init
-											data-te-ripple-color="light"
-											>My Dashboard
-										</a>
-									</li>
-									<!-- <li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-										<a
-											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
-											href="#"
-											data-te-nav-link-ref
-											data-te-ripple-init
-											data-te-ripple-color="light"
-											on:click={handleSignOut}
-											>Sign out
-										</a>
-									</li> -->
-								{:else}
-									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-										<a
-											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
-											href="/auth"
-											data-te-nav-link-ref
-											data-te-ripple-init
-											data-te-ripple-color="light"
-											>Login
-										</a>
-									</li>
-								{/if}
-							{/await}
+							{#if currentUser?.data?.user?.aud === 'authenticated'}
+								<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
+									<a
+										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+										href="/protected-routes/dashboard"
+										data-te-nav-link-ref
+										data-te-ripple-init
+										data-te-ripple-color="light"
+										>My Dashboard
+									</a>
+								</li>
+							{:else}
+								<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
+									<a
+										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+										href="/auth"
+										data-te-nav-link-ref
+										data-te-ripple-init
+										data-te-ripple-color="light"
+										>Login
+									</a>
+								</li>
+							{/if}
 							<li data-te-nav-item-ref>
 								<DarkMode {btnClass} />
 							</li>
