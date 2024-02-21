@@ -109,10 +109,10 @@ export class Brackets extends Matches {
 					console.debug('Child match already has the correct teams');
 					return;
 				} else {
+					child.team1 = winnerOfNew;
+					child.team2 = winnierOfOtherParent;
 					const newBracketMatch: Partial<MatchRow> = {
 						...child,
-						team1: winnerOfNew,
-						team2: winnierOfOtherParent,
 						team1_score: 0,
 						team2_score: 0
 					};
@@ -120,7 +120,7 @@ export class Brackets extends Matches {
 					await this.put(newBracketMatch as MatchRow);
 				}
 			} else {
-				console.debug('Child matches not complete');
+				console.debug('Parent matches not complete');
 			}
 		} catch (error) {
 			this.handleError(500, `An error occurred in nextRound ${error}`);
