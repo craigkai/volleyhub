@@ -1,3 +1,5 @@
+import { Event } from '$lib/event';
+
 export async function findStandings(
 	matches: MatchRow[],
 	event: Event,
