@@ -32,3 +32,11 @@ You can preview the production build with `npm run preview`.
 ```
 
 Should set supabase URL and key to connect to local instance in `.env.development`.
+
+```
+VITE_COMMIT_REF=dev
+VITE_ADMIN_USER=root@localhost
+VITE_ADMIN_USER_PASSWORD=njkdnbkjdbfhjf
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_KEY=<YOUR KEY>
+```
