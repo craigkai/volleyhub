@@ -93,20 +93,20 @@ export class Brackets extends Matches {
 		const otherParent = this.matches?.find(
 			(m) => m.child_id === newMatch.child_id && m.id !== newMatch.id
 		);
-		const otherParentComplete = this.matches!.length > 3 ? otherParent?.state === 'complete' : true;
+		const otherParentComplete = this.matches!.length > 3 ? otherParent?.state === 'COMPLETE' : true;
 
 		try {
-			if (newMatch.state === 'complete' && otherParentComplete && child) {
+			if (newMatch.state === 'COMPLETE' && otherParentComplete && child) {
 				const childTeams = [child.team1, child.team2];
 				const winnerOfNew =
-					// We ignore null as we trust status === 'complete'
+					// We ignore null as we trust status === 'COMPLETE'
 					// @ts-ignore: Object is possibly 'null'.
 					newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2;
 
 				const winnerOfOtherParent =
-					otherParent?.state === 'complete'
+					otherParent?.state === 'COMPLETE'
 						? // @ts-ignore: Object is possibly 'null'.
-							otherParent.team1_score > otherParent.team2_score
+						otherParent.team1_score > otherParent.team2_score
 							? otherParent.team1
 							: otherParent.team2
 						: child.team1 || child.team2;
