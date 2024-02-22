@@ -17,7 +17,7 @@
 			email,
 			password,
 			options: {
-				emailRedirectTo: `${location.origin}/auth/callback`
+				emailRedirectTo: `${data.url}/auth/callback`
 			}
 		});
 		if (err) errorString = err.message;
