@@ -1,7 +1,7 @@
 import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
 import type { PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { eventsRowSchema } from '../../types/schemas';
+import { eventsRowSchema, eventsUpdateSchema } from '../../types/schemas';
 
 const EventsRowSchemaArray = z.array(eventsRowSchema);
 
@@ -69,7 +69,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 */
 	async updateEvent(id: number, input: EventRow): Promise<EventRow | null> {
 		try {
-			const parsedEvent = eventsRowSchema.parse(input);
+			const parsedEvent = eventsUpdateSchema.parse(input);
 
 			// Update the tournament in the 'events' table
 			const res: PostgrestResponse<EventRow> = await this.supabaseClient

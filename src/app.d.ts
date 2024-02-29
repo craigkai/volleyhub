@@ -6,7 +6,8 @@ import type {
 	eventsRowSchema,
 	matchesRowSchema,
 	teamsRowSchema,
-	bracketsRowSchema
+	bracketsRowSchema,
+	matchStateSchema
 } from './types/schemas';
 
 // See https://kit.svelte.dev/docs/types#app
@@ -19,6 +20,8 @@ declare global {
 		matches_team2_fkey: { name: string };
 		matches_ref_fkey: { name: string };
 	};
+
+	type MatchState = z.infer<typeof matchStateSchema>;
 
 	type Round = {
 		value: number;

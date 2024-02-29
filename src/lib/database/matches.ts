@@ -1,7 +1,7 @@
 import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
 import type { PostgrestResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { matchesRowSchema } from '../../types/schemas';
+import { matchesRowSchema, matchesUpdateSchema, matchesInsertSchema } from '../../types/schemas';
 
 const MatchesRowSchemaArray = z.array(matchesRowSchema);
 
@@ -47,10 +47,12 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.handleDatabaseError(response);
 	}
 
-	async insertMatch(matches: UserMatch): Promise<MatchRow> {
+	async insertMatch(match: UserMatch): Promise<MatchRow> {
+		const parsedMatch = matchesInsertSchema.parse(match);
+
 		const res = await this.supabaseClient
 			.from('matches')
-			.insert(matches)
+			.insert(parsedMatch)
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
 			.single();
 
@@ -60,9 +62,11 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	}
 
 	async insertMatches(matches: UserMatch[]): Promise<MatchRow[]> {
+		const parsedMatches = z.array(matchesInsertSchema).parse(matches);
+
 		const res = await this.supabaseClient
 			.from('matches')
-			.insert(matches)
+			.insert(parsedMatches)
 			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)');
 
 		this.validateAndHandleErrors(res, MatchesRowSchemaArray);
@@ -71,7 +75,7 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	}
 
 	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
-		const parsedMatch = matchesRowSchema.parse(match);
+		const parsedMatch = matchesUpdateSchema.parse(match);
 
 		const res = await this.supabaseClient
 			.from('matches')

@@ -25,7 +25,7 @@ export class Matches extends Base {
 		this._update = update;
 
 		this.databaseService = databaseService;
-		this.event_id = event_id;
+		this.event_id = Number(event_id);
 	}
 
 	/*
@@ -227,11 +227,11 @@ export class Matches extends Base {
 				courtsAvailable = courtsAvailable - 1;
 				if (teamsAvailable >= 2) {
 					userMatches.push({
-						event_id: this.event_id,
+						event_id: this.event_id as number,
 						team1: match.team1 as number,
 						team2: match.team2 as number,
-						court: match.court,
-						round: match.round,
+						court: match.court as number,
+						round: match.round as number,
 						ref: match.ref,
 						type: match?.type || 'pool',
 						child_id: match?.child_id as number
