@@ -11,11 +11,10 @@
 		DateFormatter,
 		getLocalTimeZone,
 		today,
-		parseDate,
-		CalendarDate
+		parseDate
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils.js';
-	import { Button, buttonVariants } from '$components/ui/button';
+	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
 	import * as Popover from '$components/ui/popover';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
@@ -29,7 +28,9 @@
 			if (f.valid) {
 				success(`Tournament settings updated`);
 			} else {
-				error(f.errors);
+				for (let [_, value] of Object.entries(f.errors)) {
+					error(value.pop());
+				}
 			}
 		}
 	});
@@ -124,8 +125,7 @@
 					<Calendar
 						value={dateValue}
 						bind:placeholder={datePlaceholder}
-						minValue={new CalendarDate(1900, 1, 1)}
-						maxValue={today(getLocalTimeZone())}
+						minValue={today(getLocalTimeZone())}
 						calendarLabel="Date of birth"
 						initialFocus
 						onValueChange={(v) => {
