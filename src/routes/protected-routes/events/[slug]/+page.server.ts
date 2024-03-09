@@ -1,6 +1,7 @@
 import { superValidate } from 'sveltekit-superforms';
 import { formSchema as settingsSchema } from '$schemas/settingsSchema';
-import { eventsInsertSchema, eventsUpdateSchema } from '$schemas/supabase';
+import { formSchema as teamsSchema } from '$schemas/teamsSchema';
+import { eventsInsertSchema, eventsUpdateSchema, teamsInsertSchema } from '$schemas/supabase';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
@@ -8,6 +9,8 @@ import { Event } from '$lib/event';
 import { EventSupabaseDatabaseService } from '$lib/database/event';
 import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
+import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
+import { Teams } from '$lib/teams';
 
 export const load: PageServerLoad = async ({ params }) => {
 	return {
@@ -17,7 +20,7 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 export const actions: Actions = {
-	settings: async (event) => {
+	updateEvent: async (event) => {
 		const form = await superValidate(event, zod(settingsSchema));
 		if (!form.valid) {
 			return fail(400, {
@@ -52,7 +55,7 @@ export const actions: Actions = {
 		}
 	},
 
-	create: async (event) => {
+	createEvent: async (event) => {
 		const form = await superValidate(event, zod(settingsSchema));
 		if (!form.valid) {
 			return fail(400, {
@@ -85,7 +88,7 @@ export const actions: Actions = {
 		redirect(303, `/protected-routes/events/${newId}`);
 	},
 
-	delete: async (event) => {
+	deleteEvent: async (event) => {
 		const event_id = Number(event.params.slug);
 
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
@@ -95,5 +98,37 @@ export const actions: Actions = {
 		await tournament.delete();
 
 		redirect(303, '/protected-routes/dashboard');
+	},
+
+	createTeam: async (event) => {
+		const form = await superValidate(event, zod(teamsSchema));
+		if (!form.valid) {
+			return fail(400, {
+				form
+			});
+		}
+
+		const event_id = Number(event.params.slug);
+
+		const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(event.locals.supabase);
+		let teams = new Teams(event_id, teamsSupabaseDatabaseService);
+
+		try {
+			const newTeam: Partial<TeamRow> = {
+				name: form.data.name,
+				event_id
+			};
+			await teams.create(newTeam);
+			return { form };
+		} catch (error) {
+			form.valid = false;
+
+			const validationError = fromZodError(error as ZodError<typeof teamsInsertSchema>);
+			form.message = validationError.message;
+
+			return fail(400, {
+				form
+			});
+		}
 	}
 };

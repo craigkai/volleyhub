@@ -18,7 +18,6 @@
 	import { Calendar } from '$components/ui/calendar';
 	import * as Popover from '$components/ui/popover';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
-	import { goto } from '$app/navigation';
 
 	export let data: SuperValidated<Infer<FormSchema>>;
 	export let event_id: number | 'create';
@@ -59,7 +58,7 @@
 		: undefined;
 </script>
 
-<form method="POST" action="?/{event_id === 'create' ? 'create' : 'settings'}" use:enhance>
+<form method="POST" action="?/{event_id === 'create' ? 'createEvent' : 'updateEvent'}" use:enhance>
 	<Form.Field {form} name="name">
 		<Form.Control let:attrs>
 			<Form.Label>Name</Form.Label>
@@ -178,7 +177,7 @@
 	<Form.Button>Submit</Form.Button>
 
 	{#if event_id !== 'create'}
-		<form method="POST" action="?/delete" use:enhance>
+		<form method="POST" action="?/deleteEvent" use:enhance>
 			<Form.Button>Delete</Form.Button>
 		</form>
 	{/if}

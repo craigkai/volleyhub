@@ -1,4 +1,4 @@
-import { string, z } from 'zod';
+import { z } from 'zod';
 
 export const formSchema = z.object({
 	name: z.string().refine((v) => v, { message: 'A event name is required.' }),
