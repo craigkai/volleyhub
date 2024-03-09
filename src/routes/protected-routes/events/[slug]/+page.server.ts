@@ -3,12 +3,11 @@ import { formSchema as settingsSchema } from '$schemas/settingsSchema';
 import { eventsInsertSchema, eventsUpdateSchema } from '$schemas/supabase';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { PageServerLoad, Actions } from './$types';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { Event } from '$lib/event';
 import { EventSupabaseDatabaseService } from '$lib/database/event';
 import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import { goto } from '$app/navigation';
 
 export const load: PageServerLoad = async ({ params }) => {
 	return {
@@ -61,18 +60,18 @@ export const actions: Actions = {
 			});
 		}
 
-		const event_id = Number(event.params.slug);
+		const event_id = event.params.slug;
 
 		if (!event.params.slug) {
 			throw new Error('Slug is undefined');
 		}
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
-		let tournament = new Event(event_id, eventSupabaseDatabaseService);
+		let tournament = new Event(event_id as unknown as number, eventSupabaseDatabaseService);
 
+		let newId: number;
 		try {
-			await tournament.create(form.data);
-
-			goto(`/protected-routes/events/${tournament.id}`);
+			const res = await tournament.create(form.data);
+			newId = res.id;
 		} catch (error) {
 			form.valid = false;
 
@@ -83,6 +82,7 @@ export const actions: Actions = {
 				form
 			});
 		}
+		redirect(303, `/protected-routes/events/${newId}`);
 	},
 
 	delete: async (event) => {
@@ -94,6 +94,6 @@ export const actions: Actions = {
 		// TODO: How do we handle delete failure?
 		await tournament.delete();
 
-		goto(`/protected-routes/dashboard`);
+		redirect(303, '/protected-routes/dashboard');
 	}
 };

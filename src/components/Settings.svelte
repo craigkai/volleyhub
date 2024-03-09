@@ -11,13 +11,14 @@
 		DateFormatter,
 		getLocalTimeZone,
 		today,
-		parseDate
+		parseDateTime
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils.js';
 	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
 	import * as Popover from '$components/ui/popover';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import { goto } from '$app/navigation';
 
 	export let data: SuperValidated<Infer<FormSchema>>;
 	export let event_id: number | 'create';
@@ -47,7 +48,7 @@
 	const df = new DateFormatter('en-US', {
 		dateStyle: 'long'
 	});
-	$: dateValue = $formData.date ? parseDate($formData.date) : undefined;
+	$: dateValue = $formData.date ? parseDateTime($formData.date) : undefined;
 	let datePlaceholder: DateValue = today(getLocalTimeZone());
 
 	$: scoringValue = $formData.scoring
@@ -69,18 +70,18 @@
 	</Form.Field>
 
 	<Form.Field {form} name="courts">
-		<Form.Control>
+		<Form.Control let:attrs>
 			<Form.Label>Number of Courts.</Form.Label>
-			<Input type="number" bind:value={$formData.courts} />
+			<Input {...attrs} type="number" bind:value={$formData.courts} />
 		</Form.Control>
 		<Form.Description>Number of Courts available for pool play</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
 
 	<Form.Field {form} name="pools">
-		<Form.Control>
+		<Form.Control let:attrs>
 			<Form.Label>Number of pool play games</Form.Label>
-			<Input type="number" bind:value={$formData.pools} />
+			<Input {...attrs} type="number" bind:value={$formData.pools} />
 		</Form.Control>
 		<Form.Description
 			>Number of pool play games before the next stage (single/double elim)</Form.Description
@@ -182,5 +183,3 @@
 		</form>
 	{/if}
 </form>
-
-<SuperDebug data={$formData} />

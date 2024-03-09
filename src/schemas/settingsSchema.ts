@@ -7,7 +7,8 @@ export const formSchema = z.object({
 	ref: z.string().refine((v) => v, { message: 'A ref type is required.' }),
 	date: z.string().refine((v) => v, { message: 'A date is required.' }),
 	scoring: z.string().refine((v) => v, { message: 'A scoring type is required.' }),
-	owner: string().optional()
+	owner: z.string().optional(),
+	id: z.coerce.number().optional()
 });
 
 export type FormSchema = typeof formSchema;
