@@ -60,7 +60,7 @@
 			<Spinner />
 		</div>
 	{:then}
-		<Settings bind:tournament {event_id} data={form} />
+		<Settings {event_id} data={form} />
 
 		<div class="m-2">
 			{#if data?.event_id !== 'create' && tournament}

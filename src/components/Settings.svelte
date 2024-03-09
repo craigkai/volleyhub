@@ -49,6 +49,13 @@
 	});
 	$: dateValue = $formData.date ? parseDate($formData.date) : undefined;
 	let datePlaceholder: DateValue = today(getLocalTimeZone());
+
+	$: scoringValue = $formData.scoring
+		? {
+				label: $formData.scoring,
+				value: $formData.scoring
+			}
+		: undefined;
 </script>
 
 <form method="POST" action="?/{event_id === 'create' ? 'create' : 'settings'}" use:enhance>
@@ -103,6 +110,29 @@
 		<Form.Description>
 			Source of refs, either provided by pulling from participants or provided externally.
 		</Form.Description>
+		<Form.FieldErrors />
+	</Form.Field>
+
+	<Form.Field {form} name="scoring">
+		<Form.Control let:attrs>
+			<Form.Label>Scoring Method</Form.Label>
+			<Select.Root
+				selected={scoringValue}
+				onSelectedChange={(v) => {
+					v && ($formData.scoring = v.value);
+				}}
+			>
+				<Select.Trigger {...attrs}>
+					<Select.Value placeholder="Seeding for playoffs based on score of just wins?" />
+				</Select.Trigger>
+				<Select.Content>
+					<Select.Item value="points" label="Points" />
+					<Select.Item value="wins" label="Wins" />
+				</Select.Content>
+			</Select.Root>
+			<input hidden value={$formData.scoring} name={attrs.name} />
+		</Form.Control>
+		<Form.Description>Seeding for playoffs based on score of just wins.</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
 
