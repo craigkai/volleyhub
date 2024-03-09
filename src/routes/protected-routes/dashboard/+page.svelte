@@ -2,7 +2,9 @@
 	import type { PageData } from './$types';
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { Card } from 'flowbite-svelte';
+	import { Button } from '$components/ui/button';
 	import dayjs from 'dayjs';
+	import { goto } from '$app/navigation';
 
 	export let data: PageData;
 	const events = data?.events;
@@ -28,7 +30,6 @@
 	{/if}
 
 	<div class="flex flex-row">
-		Create a new tournament:
-		<a class="ml-2" href="/protected-routes/events/create"><CirclePlusOutline /></a>
+		<Button on:click={() => goto('/protected-routes/events/create')}><CirclePlusOutline /></Button>
 	</div>
 </div>

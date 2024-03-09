@@ -1,5 +1,5 @@
 import type { EventSupabaseDatabaseService } from '$lib/database/event';
-import type { Infer, SuperValidated } from 'sveltekit-superforms';
+import type { Infer } from 'sveltekit-superforms';
 import { Base } from './base';
 import type { FormSchema } from '$schemas/settingsSchema';
 
@@ -42,20 +42,11 @@ export class Event extends Base {
 	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the newly created tournament.
 	 * @throws {Error} - Throws an error if the event data does not have all required values.
 	 */
-	async create(input: Event): Promise<Event> {
-		if (
-			!input.name ||
-			!input.date ||
-			!input.pools ||
-			!input.courts ||
-			!input.scoring ||
-			!input.refs
-		) {
-			this.handleError(400, 'Tournament create call does not have all required values');
-		}
+	async create(input: Infer<FormSchema>): Promise<Event> {
 		if (input.hasOwnProperty('id')) {
 			delete (input as { id?: number }).id;
 		}
+
 		const currentUser = await this.databaseService.getCurrentUser();
 		const ownerId = currentUser ? currentUser.id : null;
 		input.owner = ownerId as string;

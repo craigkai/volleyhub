@@ -1,5 +1,6 @@
 import { superValidate } from 'sveltekit-superforms';
 import { formSchema as settingsSchema } from '$schemas/settingsSchema';
+import { eventsInsertSchema, eventsUpdateSchema } from '$schemas/supabase';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
@@ -7,6 +8,7 @@ import { Event } from '$lib/event';
 import { EventSupabaseDatabaseService } from '$lib/database/event';
 import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
+import { goto } from '$app/navigation';
 
 export const load: PageServerLoad = async ({ params }) => {
 	return {
@@ -24,14 +26,17 @@ export const actions: Actions = {
 			});
 		}
 
-		const event_id = event.params.slug as unknown as number;
+		const event_id = Number(event.params.slug);
 
+		if (!event.params.slug) {
+			throw new Error('Slug is undefined');
+		}
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
 		let tournament = new Event(event_id, eventSupabaseDatabaseService);
-		tournament.id = Number(tournament.id);
 
 		try {
-			await tournament.update(Number(event_id), tournament);
+			await tournament.update(event_id, form.data);
+			form.data.name = tournament.name ?? '';
 
 			return {
 				form
@@ -39,13 +44,56 @@ export const actions: Actions = {
 		} catch (error) {
 			form.valid = false;
 
-			const validationError = fromZodError(error);
-
+			const validationError = fromZodError(error as ZodError<typeof eventsUpdateSchema>);
 			form.message = validationError.message;
 
 			return fail(400, {
 				form
 			});
 		}
+	},
+
+	create: async (event) => {
+		const form = await superValidate(event, zod(settingsSchema));
+		if (!form.valid) {
+			return fail(400, {
+				form
+			});
+		}
+
+		const event_id = Number(event.params.slug);
+
+		if (!event.params.slug) {
+			throw new Error('Slug is undefined');
+		}
+		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
+		let tournament = new Event(event_id, eventSupabaseDatabaseService);
+
+		try {
+			await tournament.create(form.data);
+
+			goto(`/protected-routes/events/${tournament.id}`);
+		} catch (error) {
+			form.valid = false;
+
+			const validationError = fromZodError(error as ZodError<typeof eventsInsertSchema>);
+			form.message = validationError.message;
+
+			return fail(400, {
+				form
+			});
+		}
+	},
+
+	delete: async (event) => {
+		const event_id = Number(event.params.slug);
+
+		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
+		let tournament = new Event(event_id, eventSupabaseDatabaseService);
+
+		// TODO: How do we handle delete failure?
+		await tournament.delete();
+
+		goto(`/protected-routes/dashboard`);
 	}
 };
