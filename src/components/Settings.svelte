@@ -2,14 +2,32 @@
 	import dayjs from 'dayjs';
 	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { goto } from '$app/navigation';
-	import { Input, Label, Button } from 'flowbite-svelte';
 	import { error, success } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
-	import { Select } from 'flowbite-svelte';
 	import { Event } from '$lib/event';
+	import * as Form from '$components/ui/form';
+	import { Input } from '$components/ui/input';
+	import * as Select from '$components/ui/select';
+	import SuperDebug, { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
+	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { formSchema, type FormSchema } from '$schemas/settingsSchema';
 
+	export let data: SuperValidated<Infer<FormSchema>>;
 	export let tournament: Event;
-	export let event_id: number | string;
+	export let event_id: number | 'create';
+
+	const form = superForm(data, {
+		validators: zodClient(formSchema),
+		onUpdated: async ({ form: f }) => {
+			if (f.valid) {
+				success(`Tournament settings updated`);
+			} else {
+				error(f.message);
+			}
+		}
+	});
+
+	const { form: formData, enhance } = form;
 
 	async function createNewEvent(): Promise<void> {
 		tournament.courts = Number(tournament.courts);
@@ -29,22 +47,6 @@
 			});
 	}
 
-	async function updateTournament(): Promise<void> {
-		tournament.courts = Number(tournament.courts);
-		tournament.pools = Number(tournament.pools);
-
-		tournament
-			.update(tournament.id, tournament)
-			.then((res: Event) => {
-				tournament = res;
-				success(`Tournament settings updated`);
-			})
-			.catch((err) => {
-				console.error(err);
-				error(err.body?.message ?? `Something went wrong: ${err}`);
-			});
-	}
-
 	async function deleteEvent(): Promise<void> {
 		tournament
 			.delete()
@@ -60,19 +62,77 @@
 	$: tournament?.date, (tournament.date = dayjs(tournament?.date).format('YYYY-MM-DD'));
 </script>
 
-<div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
+<form method="POST" action="?/settings" use:enhance>
+	<Form.Field {form} name="name">
+		<Form.Control let:attrs>
+			<Form.Label>Name</Form.Label>
+			<Input {...attrs} bind:value={$formData.name} />
+		</Form.Control>
+		<Form.Description>This is your public display name for your event.</Form.Description>
+		<Form.FieldErrors />
+	</Form.Field>
+
+	<!-- <Form.Field {form} name="courts">
+		<Form.Control>
+			<Form.Label>Number of Courts.</Form.Label>
+			<Input type="number" value={$formData.courts} />
+		</Form.Control>
+		<Form.Description>Number of Courts available for pool play</Form.Description>
+		<Form.FieldErrors />
+	</Form.Field>
+
+	<Form.Field {form} name="pools">
+		<Form.Control>
+			<Form.Label>Number of pool play games</Form.Label>
+			<Input type="number" value={$formData.pools} />
+		</Form.Control>
+		<Form.Description
+			>Number of pool play games before the next stage (single/double elim)</Form.Description
+		>
+		<Form.FieldErrors />
+	</Form.Field>
+
+	<Form.Field {form} name="ref">
+		<Form.Control let:attrs>
+			<Form.Label>Ref's</Form.Label>
+			<Select.Root
+				selected={$formData.ref}
+				onSelectedChange={(v) => {
+					v && ($formData.ref = v.value);
+				}}
+			>
+				<Select.Trigger {...attrs}>
+					<Select.Value placeholder="Select who will be ref'ing" />
+				</Select.Trigger>
+				<Select.Content>
+					<Select.Item value="teams" label="Teams" />
+					<Select.Item value="provided" label="Provided" />
+				</Select.Content>
+			</Select.Root>
+			<input hidden value={$formData.ref} name={attrs.name} />
+		</Form.Control>
+		<Form.Description>
+			Source of refs, either provided by pulling from participants or provided externally.
+		</Form.Description>
+		<Form.FieldErrors />
+	</Form.Field> -->
+
+	<Form.Button>Submit</Form.Button>
+</form>
+
+<!-- <div class="dark:bg-nord-2 m-2 shadow-md rounded flex flex-col items-center lg:w-1/2 sm:w-full">
 	<div class="m-2">
-		<Label for="first_name" class="mb-2">Event Name:</Label>
+		<Label for="eventName" class="mb-2">Event Name:</Label>
 		<Input type="text" id="eventName" bind:value={tournament.name} required />
 	</div>
 
 	<div class="m-2">
-		<Label for="first_name" class="mb-2">Number of Courts:</Label>
+		<Label for="eventCourts" class="mb-2">Number of Courts:</Label>
 		<Input type="number" id="eventCourts" bind:value={tournament.courts} required />
 	</div>
 
 	<div class="m-2">
-		<Label for="first_name" class="mb-2">Number of Pool Play Games:</Label>
+		<Label for="eventCourts" class="mb-2">Number of Pool Play Games:</Label>
 		<Input type="number" id="eventCourts" bind:value={tournament.pools} required />
 	</div>
 
@@ -135,4 +195,4 @@
 			on:click={deleteEvent}>Delete event</button
 		>
 	{/if}
-</div>
+</div> -->

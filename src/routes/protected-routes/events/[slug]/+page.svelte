@@ -13,7 +13,7 @@
 	import { initiateEvent } from '$lib/helper';
 
 	export let data: PageData;
-	let { supabase, event_id } = data;
+	let { supabase, event_id, form } = data;
 
 	let { tournament, matches, teams, bracket } = initiateEvent(event_id, supabase);
 
@@ -60,7 +60,7 @@
 			<Spinner />
 		</div>
 	{:then}
-		<Settings bind:tournament event_id={data.event_id} />
+		<Settings bind:tournament {event_id} data={form} />
 
 		<div class="m-2">
 			{#if data?.event_id !== 'create' && tournament}

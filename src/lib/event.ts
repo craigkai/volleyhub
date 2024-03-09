@@ -1,5 +1,7 @@
 import type { EventSupabaseDatabaseService } from '$lib/database/event';
+import type { Infer, SuperValidated } from 'sveltekit-superforms';
 import { Base } from './base';
+import type { FormSchema } from '$schemas/settingsSchema';
 
 /**
  * The Tournament class represents a tournament in the application.
@@ -76,7 +78,7 @@ export class Event extends Base {
 	 * @returns {Promise<Tournament>} - Returns a promise that resolves to the updated tournament.
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
-	async update(id: number, input: Event): Promise<Event> {
+	async update(id: number, input: Infer<FormSchema>): Promise<Event> {
 		const res: EventRow | null = await this.databaseService.updateEvent(id, input);
 
 		if (res !== null) {

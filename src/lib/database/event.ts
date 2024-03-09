@@ -2,6 +2,8 @@ import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
 import type { PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { eventsRowSchema, eventsUpdateSchema } from '../../types/schemas';
+import type { FormSchema } from '$schemas/settingsSchema';
+import type { Infer } from 'sveltekit-superforms';
 
 const EventsRowSchemaArray = z.array(eventsRowSchema);
 
