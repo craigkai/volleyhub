@@ -60,12 +60,14 @@
 			<Spinner />
 		</div>
 	{:then}
-		<Settings {event_id} data={form} />
-
 		<div class="m-2">
 			{#if data?.event_id !== 'create' && tournament}
 				<Tabs>
-					<TabItem open title="teams">
+					<TabItem open title="Settings">
+						<Settings {event_id} data={form} />
+					</TabItem>
+
+					<TabItem title="teams">
 						<Teams bind:teams />
 					</TabItem>
 
