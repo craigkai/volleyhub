@@ -6,8 +6,10 @@
 	import Matches from '$components/Matches.svelte';
 	import Teams from '$components/Teams.svelte';
 	import { loadInitialData } from '$lib/helper';
-	import { Tabs, TabItem, Spinner } from 'flowbite-svelte';
+	import { Spinner } from 'flowbite-svelte';
 	import EditMatch from '$components/EditMatch.svelte';
+	import * as Tabs from '$components/ui/tabs/index.js';
+	import * as Card from '$components/ui/card/index.js';
 	import { page } from '$app/stores';
 	import { Modal } from 'flowbite-svelte';
 	import { initiateEvent } from '$lib/helper';
@@ -62,26 +64,70 @@
 	{:then}
 		<div class="m-2">
 			{#if data?.event_id !== 'create' && tournament}
-				<Tabs>
-					<TabItem open title="Settings">
-						<Settings {event_id} data={form} />
-					</TabItem>
-
-					<TabItem title="teams">
-						<Teams bind:teams />
-					</TabItem>
-
-					<TabItem title="matches">
-						<Matches bind:tournament bind:matches {teams} defaultTeam="" />
-					</TabItem>
-
-					<TabItem title="standings">
-						<Standings event={tournament} {matches} {teams} defaultTeam="" />
-					</TabItem>
-					<TabItem title="Bracket">
-						<Bracket {tournament} {bracket} {teams} {matches} readOnly={false} />
-					</TabItem>
-				</Tabs>
+				<Tabs.Root value="settings" class="w-full">
+					<Tabs.List class="grid w-full grid-cols-5">
+						<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
+						<Tabs.Trigger value="teams">Teams</Tabs.Trigger>
+						<Tabs.Trigger value="matches">Matches</Tabs.Trigger>
+						<Tabs.Trigger value="standings">Standings</Tabs.Trigger>
+						<Tabs.Trigger value="bracket">Bracket</Tabs.Trigger>
+					</Tabs.List>
+					<Tabs.Content value="settings">
+						<Card.Root>
+							<Card.Header>
+								<Card.Title>Account</Card.Title>
+								<Card.Description>Make changes to your event here.</Card.Description>
+							</Card.Header>
+							<Card.Content class="space-y-2">
+								<Settings {event_id} data={form} />
+							</Card.Content>
+						</Card.Root>
+					</Tabs.Content>
+					<Tabs.Content value="teams">
+						<Card.Root>
+							<Card.Header>
+								<Card.Title>Teams</Card.Title>
+								<Card.Description>Add/remove teams</Card.Description>
+							</Card.Header>
+							<Card.Content class="space-y-2">
+								<Teams bind:teams />
+							</Card.Content>
+						</Card.Root>
+					</Tabs.Content>
+					<Tabs.Content value="matches">
+						<Card.Root>
+							<Card.Header>
+								<Card.Title>Matches</Card.Title>
+								<Card.Description>Update pool play match results</Card.Description>
+							</Card.Header>
+							<Card.Content class="space-y-2">
+								<Matches bind:tournament bind:matches {teams} defaultTeam="" />
+							</Card.Content>
+						</Card.Root>
+					</Tabs.Content>
+					<Tabs.Content value="standings">
+						<Card.Root>
+							<Card.Header>
+								<Card.Title>Current Standings</Card.Title>
+								<Card.Description>Current standings based on pool play results</Card.Description>
+							</Card.Header>
+							<Card.Content class="space-y-2">
+								<Standings event={tournament} {matches} {teams} defaultTeam="" />
+							</Card.Content>
+						</Card.Root>
+					</Tabs.Content>
+					<Tabs.Content value="standings">
+						<Card.Root>
+							<Card.Header>
+								<Card.Title>Bracket</Card.Title>
+								<Card.Description>Single/Double elim bracket</Card.Description>
+							</Card.Header>
+							<Card.Content class="space-y-2">
+								<Bracket {tournament} {bracket} {teams} {matches} readOnly={false} />
+							</Card.Content>
+						</Card.Root>
+					</Tabs.Content>
+				</Tabs.Root>
 			{/if}
 		</div>
 	{/await}
