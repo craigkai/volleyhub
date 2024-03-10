@@ -4,7 +4,7 @@
 	import Bracket from '$components/Bracket.svelte';
 	import { initiateEvent, loadInitialData } from '$lib/helper';
 	import Standings from '$components/Standings.svelte';
-	import { Label, Select } from 'flowbite-svelte';
+	import * as Select from '$components/ui/select/index.js';
 	import Loader2 from 'lucide-svelte/icons/loader-2';
 	import * as Tabs from '$components/ui/tabs/index.js';
 	import * as Card from '$components/ui/card/index.js';
@@ -36,6 +36,13 @@
 	}
 
 	$: defaultTeam, updateHistory();
+
+	$: teamsSelect =
+		teams?.teams
+			.map((team) => {
+				return { value: team.name, name: team.name };
+			})
+			.concat([{ value: '', name: 'none' }]) || [];
 </script>
 
 <div class="flex flex-col items-center">
@@ -46,18 +53,20 @@
 	{:then}
 		{tournament?.name}
 
-		<Label class="m-2">
-			Select a team:
-			<Select
-				class="mt-2"
-				items={teams.teams
-					.map((team) => {
-						return { value: team.name, name: team.name };
-					})
-					.concat([{ value: '', name: 'none' }])}
-				bind:value={defaultTeam}
-			/>
-		</Label>
+		<div class="m-2">
+			<Select.Root>
+				<Select.Trigger class="w-[180px]">
+					<Select.Value placeholder="Select a team" />
+				</Select.Trigger>
+				<Select.Content>
+					{#each teamsSelect as team}
+						<Select.Item value={team.value} label={team.name}>{team.name}</Select.Item>
+					{/each}
+				</Select.Content>
+				<Select.Input name="selectedTeam" />
+			</Select.Root>
+		</div>
+
 		<Tabs.Root value="matches" class="md:w-1/2">
 			<Tabs.List class="grid w-full grid-cols-3">
 				<Tabs.Trigger value="matches">Matches</Tabs.Trigger>

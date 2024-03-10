@@ -3,7 +3,7 @@
 	import * as Form from '$components/ui/form';
 	import { Input } from '$components/ui/input';
 	import * as Select from '$components/ui/select';
-	import SuperDebug, { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
+	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { formSchema, type FormSchema } from '$schemas/settingsSchema';
 	import {
