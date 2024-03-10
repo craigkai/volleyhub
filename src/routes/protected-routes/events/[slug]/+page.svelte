@@ -44,6 +44,8 @@
 	$: $page.state.eventCreated, reloadEventInstances();
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams, bracket);
+
+	const isCreate = data?.event_id === 'create';
 </script>
 
 {#if $page.state.showModal && $page.state.matchId}
@@ -63,72 +65,70 @@
 		</div>
 	{:then}
 		<div class="m-2">
-			{#if data?.event_id !== 'create' && tournament}
-				<Tabs.Root value="settings" class="w-full">
-					<Tabs.List class="grid w-full grid-cols-5">
-						<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
-						<Tabs.Trigger value="teams">Teams</Tabs.Trigger>
-						<Tabs.Trigger value="matches">Matches</Tabs.Trigger>
-						<Tabs.Trigger value="standings">Standings</Tabs.Trigger>
-						<Tabs.Trigger value="bracket">Bracket</Tabs.Trigger>
-					</Tabs.List>
-					<Tabs.Content value="settings">
-						<Card.Root>
-							<Card.Header>
-								<Card.Title>Account</Card.Title>
-								<Card.Description>Make changes to your event here.</Card.Description>
-							</Card.Header>
-							<Card.Content class="space-y-2">
-								<Settings {event_id} data={form} />
-							</Card.Content>
-						</Card.Root>
-					</Tabs.Content>
-					<Tabs.Content value="teams">
-						<Card.Root>
-							<Card.Header>
-								<Card.Title>Teams</Card.Title>
-								<Card.Description>Add/remove teams</Card.Description>
-							</Card.Header>
-							<Card.Content class="space-y-2">
-								<Teams bind:teams />
-							</Card.Content>
-						</Card.Root>
-					</Tabs.Content>
-					<Tabs.Content value="matches">
-						<Card.Root>
-							<Card.Header>
-								<Card.Title>Matches</Card.Title>
-								<Card.Description>Update pool play match results</Card.Description>
-							</Card.Header>
-							<Card.Content class="space-y-2">
-								<Matches bind:tournament bind:matches {teams} defaultTeam="" />
-							</Card.Content>
-						</Card.Root>
-					</Tabs.Content>
-					<Tabs.Content value="standings">
-						<Card.Root>
-							<Card.Header>
-								<Card.Title>Current Standings</Card.Title>
-								<Card.Description>Current standings based on pool play results</Card.Description>
-							</Card.Header>
-							<Card.Content class="space-y-2">
-								<Standings event={tournament} {matches} {teams} defaultTeam="" />
-							</Card.Content>
-						</Card.Root>
-					</Tabs.Content>
-					<Tabs.Content value="standings">
-						<Card.Root>
-							<Card.Header>
-								<Card.Title>Bracket</Card.Title>
-								<Card.Description>Single/Double elim bracket</Card.Description>
-							</Card.Header>
-							<Card.Content class="space-y-2">
-								<Bracket {tournament} {bracket} {teams} {matches} readOnly={false} />
-							</Card.Content>
-						</Card.Root>
-					</Tabs.Content>
-				</Tabs.Root>
-			{/if}
+			<Tabs.Root value="settings" class="w-full">
+				<Tabs.List class="grid w-full grid-cols-5">
+					<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
+					<Tabs.Trigger disabled={isCreate} value="teams">Teams</Tabs.Trigger>
+					<Tabs.Trigger disabled={isCreate} value="matches">Matches</Tabs.Trigger>
+					<Tabs.Trigger disabled={isCreate} value="standings">Standings</Tabs.Trigger>
+					<Tabs.Trigger disabled={isCreate} value="bracket">Bracket</Tabs.Trigger>
+				</Tabs.List>
+				<Tabs.Content value="settings">
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Account</Card.Title>
+							<Card.Description>Make changes to your event here.</Card.Description>
+						</Card.Header>
+						<Card.Content class="space-y-2">
+							<Settings {event_id} data={form} />
+						</Card.Content>
+					</Card.Root>
+				</Tabs.Content>
+				<Tabs.Content value="teams">
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Teams</Card.Title>
+							<Card.Description>Add/remove teams</Card.Description>
+						</Card.Header>
+						<Card.Content class="space-y-2">
+							<Teams bind:teams />
+						</Card.Content>
+					</Card.Root>
+				</Tabs.Content>
+				<Tabs.Content value="matches">
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Matches</Card.Title>
+							<Card.Description>Update pool play match results</Card.Description>
+						</Card.Header>
+						<Card.Content class="space-y-2">
+							<Matches bind:tournament bind:matches {teams} defaultTeam="" />
+						</Card.Content>
+					</Card.Root>
+				</Tabs.Content>
+				<Tabs.Content value="standings">
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Current Standings</Card.Title>
+							<Card.Description>Current standings based on pool play results</Card.Description>
+						</Card.Header>
+						<Card.Content class="space-y-2">
+							<Standings event={tournament} {matches} {teams} defaultTeam="" />
+						</Card.Content>
+					</Card.Root>
+				</Tabs.Content>
+				<Tabs.Content value="standings">
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Bracket</Card.Title>
+							<Card.Description>Single/Double elim bracket</Card.Description>
+						</Card.Header>
+						<Card.Content class="space-y-2">
+							<Bracket {tournament} {bracket} {teams} {matches} readOnly={false} />
+						</Card.Content>
+					</Card.Root>
+				</Tabs.Content>
+			</Tabs.Root>
 		</div>
 	{/await}
 </div>

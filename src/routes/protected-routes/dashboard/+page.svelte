@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
-	import { Card } from 'flowbite-svelte';
-	import { Button } from '$components/ui/button';
-	import dayjs from 'dayjs';
+	import { Button } from '$components/ui/button/index.js';
+	import * as Card from '$components/ui/card/index.js';
+	import { parseDateTime } from '@internationalized/date';
+
 	import { goto } from '$app/navigation';
+	import EventsCards from '$components/eventsCards.svelte';
 
 	export let data: PageData;
 	const events = data?.events;
@@ -14,22 +16,11 @@
 	A place to see your tournaments you manage
 	{#if events && events.length > 0}
 		<div class="m-2">
-			{#each events as event}
-				<!-- {#if event.date > dNow.valueOf()} -->
-				<Card class="m-2" href="/protected-routes/events/{event.id}">
-					<h5 class="mb-2 text-2xl font-bold tracking-tight">
-						{event.name}
-					</h5>
-					<h4 class="mb-2 text-xl font-bold tracking-tight">
-						{dayjs(event.date).format('YYYY-MM-DD')}
-					</h4>
-				</Card>
-				<!-- {/if} -->
-			{/each}
+			<EventsCards {events} />
 		</div>
 	{/if}
 
 	<div class="flex flex-row">
-		<Button on:click={() => goto('/protected-routes/events/create')}><CirclePlusOutline /></Button>
+		<Button on:click={() => goto('/protected-routes/events/create')}>Create</Button>
 	</div>
 </div>
