@@ -1,9 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { Button } from '$components/ui/button/index.js';
-	import * as Card from '$components/ui/card/index.js';
-	import { parseDateTime } from '@internationalized/date';
 
 	import { goto } from '$app/navigation';
 	import EventsCards from '$components/eventsCards.svelte';
@@ -16,7 +13,7 @@
 	A place to see your tournaments you manage
 	{#if events && events.length > 0}
 		<div class="m-2">
-			<EventsCards {events} />
+			<EventsCards {events} readOnly={false} />
 		</div>
 	{/if}
 

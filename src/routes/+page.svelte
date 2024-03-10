@@ -16,6 +16,6 @@
 {:then events}
 	<div class="flex flex-col items-center">
 		<div>Upcoming events:</div>
-		<EventsCards {events} />
+		<EventsCards {events} readOnly={true} />
 	</div>
 {/await}

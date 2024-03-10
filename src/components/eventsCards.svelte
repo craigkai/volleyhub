@@ -4,13 +4,14 @@
 	import { parseDateTime } from '@internationalized/date';
 
 	export let events: Event[];
+	export let readOnly: boolean = true;
 </script>
 
 <div class="flex flex-col items-center">
 	{#if events && events.length > 0}
 		<div class="m-2">
 			{#each events as event}
-				<a href="/protected-routes/events/{event.id}">
+				<a href="{readOnly ? '' : '/protected-routes'}/events/{event.id}">
 					<Card.Root class="w-[350px] m-2">
 						<Card.Header>
 							<Card.Title>{event.name}</Card.Title>

@@ -6,7 +6,7 @@
 	import Matches from '$components/Matches.svelte';
 	import Teams from '$components/Teams.svelte';
 	import { loadInitialData } from '$lib/helper';
-	import { Spinner } from 'flowbite-svelte';
+	import Loader2 from 'lucide-svelte/icons/loader-2';
 	import EditMatch from '$components/EditMatch.svelte';
 	import * as Tabs from '$components/ui/tabs/index.js';
 	import * as Card from '$components/ui/card/index.js';
@@ -61,7 +61,7 @@
 <div class="flex flex-col items-center">
 	{#await loadingInitialDataPromise}
 		<div class="h-screen flex flex-col items-center place-content-center">
-			<Spinner />
+			<Loader2 class="animate-spin" />
 		</div>
 	{:then}
 		<div class="m-2">
