@@ -38,7 +38,7 @@ export const actions: Actions = {
 
 		try {
 			await tournament.update(event_id, form.data);
-			form.data.name = tournament.name ?? '';
+			form.data = eventsUpdateSchema.parse(tournament);
 
 			return {
 				form

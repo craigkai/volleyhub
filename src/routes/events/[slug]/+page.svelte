@@ -38,7 +38,7 @@
 	$: defaultTeam, updateHistory();
 
 	$: teamsSelect =
-		teams?.teams
+		teams.teams
 			.map((team) => {
 				return { value: team.name, name: team.name };
 			})
