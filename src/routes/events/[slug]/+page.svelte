@@ -36,13 +36,8 @@
 	}
 
 	$: defaultTeam, updateHistory();
-	console.log(teams);
-	$: teamsSelect =
-		teams.teams
-			.map((team) => {
-				return { value: team.name, name: team.name };
-			})
-			.concat([{ value: '', name: 'none' }]) || [];
+	// Bug, we need this?
+	const teamsSelect = [];
 </script>
 
 <div class="flex flex-col items-center">
@@ -51,10 +46,22 @@
 			<Loader class="animate-spin" />
 		</div>
 	{:then}
+		{@const teamsSelect =
+			teams?.teams
+				?.map((team) => {
+					return { value: team.name, name: team.name };
+				})
+				.concat([{ value: '', name: 'none' }]) || []}
+
 		{tournament?.name}
 
 		<div class="m-2">
-			<Select.Root>
+			<Select.Root
+				selected={defaultTeam}
+				onSelectedChange={(v) => {
+					v && (defaultTeam = v.value);
+				}}
+			>
 				<Select.Trigger class="w-[180px]">
 					<Select.Value placeholder="Select a team" />
 				</Select.Trigger>

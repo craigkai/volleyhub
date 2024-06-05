@@ -16,10 +16,11 @@
 	export let readOnly: boolean = true;
 
 	let rounds: Record<number, Round> = {};
+
 	function determineRounds() {
 		rounds = {};
 		$bracket?.matches?.forEach((match) => {
-			if (rounds[match.round] === undefined) {
+			if (!rounds[match.round]) {
 				rounds[match.round] = {
 					matches: [match],
 					value: match.round
@@ -29,20 +30,19 @@
 			}
 		});
 	}
+
 	$: $bracket.matches, determineRounds();
 
 	const determineRoundName = (remainingRounds: number): string => {
-		if (remainingRounds === 1) {
-			return 'Championship'; // Custom name for the last round
-		} else {
-			return `Round ${numRounds - remainingRounds + 1}`;
-		}
+		return remainingRounds === 1 ? 'Championship' : `Round ${numRounds - remainingRounds + 1}`;
 	};
 
 	let matchesSubscription: RealtimeChannel | undefined;
+
 	async function subscribeToMatches() {
 		matchesSubscription = await bracket.subscribeToMatches();
 	}
+
 	subscribeToMatches();
 
 	async function handleGenerateBracket() {
@@ -54,15 +54,14 @@
 			);
 			if (!res) {
 				error('Failed to create matches');
-			} else {
-				if (!matchesSubscription) {
-					subscribeToMatches();
-				}
+			} else if (!matchesSubscription) {
+				subscribeToMatches();
 			}
 		} catch (err) {
 			error((err as HttpError).toString());
 		}
 	}
+
 	$: numRounds = Object.keys(rounds).length;
 </script>
 
@@ -90,13 +89,13 @@
 									<table class="tournament-bracket__table">
 										<tbody class="tournament-bracket__content">
 											<tr
-												class:tournament-bracket__team--winner={team1Win}
 												class="tournament-bracket__team"
+												class:tournament-bracket__team--winner={team1Win}
 											>
 												<td class="tournament-bracket__country">
-													<abbr class="tournament-bracket__code" title="team1"
-														>{match.matches_team1_fkey?.name ?? 'tbd'}</abbr
-													>
+													<abbr class="tournament-bracket__code" title="team1">
+														{match.matches_team1_fkey?.name ?? 'tbd'}
+													</abbr>
 												</td>
 												<td class="tournament-bracket__score">
 													{#if readOnly}
@@ -114,13 +113,13 @@
 											</tr>
 
 											<tr
-												class:tournament-bracket__team--winner={team2Win}
 												class="tournament-bracket__team"
+												class:tournament-bracket__team--winner={team2Win}
 											>
 												<td class="tournament-bracket__country">
-													<abbr class="tournament-bracket__code" title="team"
-														>{match.matches_team2_fkey?.name ?? 'tbd'}</abbr
-													>
+													<abbr class="tournament-bracket__code" title="team">
+														{match.matches_team2_fkey?.name ?? 'tbd'}
+													</abbr>
 												</td>
 												<td class="tournament-bracket__score">
 													{#if readOnly}
@@ -149,16 +148,11 @@
 {/if}
 
 <style lang="less">
-	// VARIABLES
-	// ---------------------------
 	@breakpoint-xs: 24em;
 	@breakpoint-sm: 38em;
 	@breakpoint-md: 52em;
 	@breakpoint-lg: 72em;
 
-	//
-	// GENERAL RULES
-	// ---------------------------
 	* {
 		&,
 		&::before,
@@ -220,9 +214,6 @@
 		border: 0;
 	}
 
-	//
-	// TOURNAMENT BRACKET
-	// ---------------------------
 	.tournament-bracket {
 		display: flex;
 		flex-direction: column;
@@ -303,356 +294,109 @@
 
 		@media (max-width: @breakpoint-xs) {
 			width: 100%;
-
-			&:nth-child(odd),
-			&:nth-child(even) {
-				margin-left: 0;
-				margin-right: 0;
-			}
+			padding: 5% 0;
 		}
 
 		@media (min-width: @breakpoint-sm) {
-			padding: 0.5em 1em;
-			// flex-grow: 2;
 			width: 100%;
-
-			&:nth-child(odd),
-			&:nth-child(even) {
-				margin: 0;
-			}
+			padding: 2% 0;
 
 			&::after {
-				position: absolute;
-				right: 0;
-				content: '';
-				display: block;
-				width: 1em;
-				height: 45%;
-				border-right: 2px solid #9e9e9e;
-			}
-
-			&:nth-child(odd)::after {
-				top: 50%;
-				border-top: 2px solid #9e9e9e;
-				transform: translateY(-1px);
-
-				.tournament-bracket--rounded & {
-					border-top-right-radius: 0.6em;
-				}
-			}
-
-			&:nth-child(even)::after {
-				bottom: 50%;
-				border-bottom: 2px solid #9e9e9e;
-				transform: translateY(1px);
-
-				.tournament-bracket--rounded & {
-					border-bottom-right-radius: 0.6em;
-				}
-			}
-			.tournament-bracket__round:first-child & {
-				padding-left: 0;
-			}
-			.tournament-bracket__round:last-child & {
-				padding-right: 0;
-
-				&::after {
-					display: none;
-				}
-			}
-
-			.tournament-bracket__round:nth-last-child(2) & {
-				&::after {
-					border-radius: 0;
-					border-right: 0;
-				}
-			}
-		}
-
-		@media (min-width: @breakpoint-lg) {
-			padding: 0.5em 1.5em;
-
-			&::after {
-				width: 1.5em;
+				width: 100%;
 			}
 		}
 	}
 
 	.tournament-bracket__match {
+		position: relative;
 		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding: 0 15%;
 		width: 100%;
-		background-color: #ffffff;
-		padding: 1em;
-		border: 1px solid transparent;
-		border-radius: 0.1em;
-		box-shadow: 0 2px 0 0 #e5e5e5;
-		outline: none;
-		cursor: pointer;
-		transition:
-			padding 0.2s ease-in-out,
-			border 0.2s linear;
-
-		&:focus {
-			border-color: #2196f3;
-		}
-
-		&::before,
-		&::after {
-			transition: all 0.2s linear;
-		}
+		transition: padding 0.2s ease-in-out;
 
 		@media (max-width: @breakpoint-xs) {
-			padding: 0.75em 0.5em;
+			padding: 0 12%;
 		}
 
 		@media (min-width: @breakpoint-sm) {
-			&::before,
-			&::after {
-				position: absolute;
-				left: 0;
-				z-index: 1;
-				content: '';
-				display: block;
-				width: 1em;
-				height: 10%;
-				border-left: 2px solid #9e9e9e;
-			}
+			padding: 0 10%;
+		}
 
-			&::before {
-				bottom: 50%;
-				border-bottom: 2px solid #9e9e9e;
-				transform: translate(0, 1px);
-
-				.tournament-bracket--rounded & {
-					border-bottom-left-radius: 0.6em;
-				}
-			}
-
-			&::after {
-				top: 50%;
-				border-top: 2px solid #9e9e9e;
-				transform: translate(0, -1px);
-
-				.tournament-bracket--rounded & {
-					border-top-left-radius: 0.6em;
-				}
-			}
+		@media (min-width: @breakpoint-md) {
+			padding: 0 15%;
 		}
 
 		@media (min-width: @breakpoint-lg) {
-			&::before,
-			&::after {
-				width: 1.5em;
-			}
-
-			&::before {
-				transform: translate(0, 1px);
-			}
-
-			&::after {
-				transform: translate(0, -1px);
-			}
-		}
-	}
-
-	.tournament-bracket__round:last-child .tournament-bracket__match {
-		&::before,
-		&::after {
-			border-left: 0;
-		}
-
-		&::before {
-			border-bottom-left-radius: 0;
-		}
-
-		&::after {
-			display: none;
-		}
-	}
-
-	.tournament-bracket__round:first-child .tournament-bracket__match {
-		&::before,
-		&::after {
-			display: none;
-		}
-	}
-
-	.tournament-bracket__content {
-		display: flex;
-
-		&::after {
-			content: ':';
-			width: 1em;
-			text-align: center;
-			padding: 0.2em 0.1em;
-
-			@media (min-width: @breakpoint-sm) {
-				order: 1;
-			}
-		}
-
-		& .tournament-bracket__team:first-child {
-			width: 50%;
-			order: 0;
-			text-align: right;
-
-			@media (min-width: @breakpoint-sm) and (max-width: @breakpoint-md) {
-				align-items: flex-end;
-			}
-
-			& .tournament-bracket__country {
-				order: 2;
-				justify-content: flex-end;
-
-				@media (min-width: @breakpoint-xs) {
-					order: 0;
-				}
-
-				@media (min-width: @breakpoint-sm) and (max-width: @breakpoint-md) {
-					flex-direction: column-reverse;
-					align-items: flex-end;
-				}
-			}
-
-			& .tournament-bracket__score {
-				order: 0;
-
-				@media (min-width: @breakpoint-xs) {
-					order: 2;
-				}
-			}
-		}
-
-		& .tournament-bracket__team:last-child {
-			width: 50%;
-			order: 2;
-			text-align: left;
-
-			@media (min-width: @breakpoint-sm) and (max-width: @breakpoint-md) {
-				align-items: flex-start;
-			}
-
-			& .tournament-bracket__country {
-				@media (min-width: @breakpoint-sm) {
-					justify-content: flex-start;
-				}
-
-				@media (min-width: @breakpoint-sm) and (max-width: @breakpoint-md) {
-					align-items: flex-start;
-				}
-			}
-
-			.tournament-bracket__code {
-				order: 1;
-			}
+			padding: 0 20%;
 		}
 	}
 
 	.tournament-bracket__table {
 		width: 100%;
-	}
-
-	.tournament-bracket__caption {
-		font-size: 0.8rem;
-		color: #bdbdbd;
-		font-weight: 300;
-		padding-bottom: 0.75em;
+		margin: 0;
+		padding: 0;
 	}
 
 	.tournament-bracket__team {
 		display: flex;
-		flex-direction: row-reverse;
-		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.25rem;
 
-		@media (min-width: @breakpoint-xs) {
-			flex-direction: column-reverse;
-		}
-
-		@media (min-width: @breakpoint-sm) {
-			flex-direction: column-reverse;
+		&:last-child {
+			margin-bottom: 0;
 		}
 	}
 
 	.tournament-bracket__country {
-		font-size: 0.95rem;
 		display: flex;
-		margin-top: 0.5em;
 		align-items: center;
-
-		@media (max-width: @breakpoint-xs) {
-			margin-top: 0;
-		}
-
-		@media (min-width: @breakpoint-sm) and (max-width: @breakpoint-md) {
-			display: flex;
-			flex-direction: column;
-
-			.tournament-bracket__code {
-				margin-top: 0.2em;
-			}
-		}
+		font-size: 0.9rem;
+		font-weight: 400;
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
 	}
 
 	.tournament-bracket__code {
-		padding: 0 0.5em;
-		color: #212121;
-		font-weight: 600;
-		text-transform: uppercase;
-		border: 0;
+		display: inline-block;
+		font-size: 0.9rem;
+		font-weight: 400;
 		text-decoration: none;
-		cursor: help;
-		transition: padding 0.2s ease-in-out;
-
-		@media (max-width: @breakpoint-xs) {
-			padding: 0 0.25em;
-		}
-
-		@media (min-width: @breakpoint-sm) and (max-width: @breakpoint-md) {
-			padding: 0;
-		}
+		color: inherit;
 	}
 
 	.tournament-bracket__score {
 		display: flex;
 		align-items: center;
+		justify-content: center;
+		width: 3em;
+		height: 1.75em;
+		margin-left: auto;
+		padding: 0.25em 0;
+		border-radius: 0.25rem;
+		background-color: #e5e5e5;
+		color: #333;
+		font-size: 1rem;
+		font-weight: 700;
+		text-align: center;
 
-		.tournament-bracket__team:first-child & {
-			flex-direction: row-reverse;
-			padding-left: 0.75em;
+		@media (max-width: @breakpoint-xs) {
+			width: 2.5em;
+			height: 1.5em;
+			font-size: 0.9rem;
 		}
 
-		.tournament-bracket__team:last-child & {
-			padding-right: 0.75em;
+		@media (min-width: @breakpoint-sm) {
+			width: 2.75em;
+			height: 1.75em;
+			font-size: 1rem;
 		}
 	}
 
-	.tournament-bracket__number {
-		display: inline-block;
-		padding: 0.2em 0.4em 0.2em;
-		border-bottom: 0.075em solid transparent;
-		font-size: 0.95rem;
-		background-color: #f5f5f5;
-		border-color: spin(shade(#f5f5f5, 10%), -10);
-
-		.tournament-bracket__team--winner & {
-			background-color: #fff176;
-			border-color: spin(shade(#fff176, 2%), -10);
-		}
-	}
-
-	.tournament-bracket__medal {
-		padding: 0 0.5em;
-	}
-
-	.tournament-bracket__medal--gold {
-		color: #ffd700;
-	}
-
-	.tournament-bracket__medal--silver {
-		color: #c0c0c0;
-	}
-
-	.tournament-bracket__medal--bronze {
-		color: #cd7f32;
+	.tournament-bracket__team--winner .tournament-bracket__country,
+	.tournament-bracket__team--winner .tournament-bracket__score {
+		background-color: #f9f871;
+		color: #333;
 	}
 </style>

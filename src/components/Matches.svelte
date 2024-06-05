@@ -146,12 +146,12 @@
 				</p>
 				<div class="flex gap-2">
 					<Button
-						class="text-black bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						size="xs"
 						on:click={generateMatches}>Yes</Button
 					>
 					<Button
-						class="text-black bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						size="xs"
 						on:click={() => (showGenerateMatchesAlert = false)}>No</Button
 					>
@@ -160,9 +160,9 @@
 		</div>
 	{/if}
 
-	<div class="m-2">
+	<div class="m-2 flex justify-center">
 		<button
-			class="bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+			class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 			type="button"
 			on:click={checkGenerateMatches}
 		>
