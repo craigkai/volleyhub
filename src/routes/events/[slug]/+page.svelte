@@ -36,7 +36,7 @@
 	}
 
 	$: defaultTeam, updateHistory();
-
+	console.log(teams);
 	$: teamsSelect =
 		teams.teams
 			.map((team) => {
