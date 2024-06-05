@@ -94,7 +94,7 @@
 											>
 												<td class="tournament-bracket__country">
 													<abbr class="tournament-bracket__code" title="team1">
-														{match.matches_team1_fkey?.name ?? 'tbd'}
+														{match.public_matches_team1_fkey?.name ?? 'tbd'}
 													</abbr>
 												</td>
 												<td class="tournament-bracket__score">
@@ -103,7 +103,7 @@
 														>
 													{:else}
 														<input
-															disabled={!match.matches_team1_fkey?.name}
+															disabled={!match.public_matches_team1_fkey?.name}
 															class="border-solid border-2 text-center max-w-8"
 															bind:value={match.team1_score}
 															on:change={() => updateMatch(match, bracket)}
@@ -118,7 +118,7 @@
 											>
 												<td class="tournament-bracket__country">
 													<abbr class="tournament-bracket__code" title="team">
-														{match.matches_team2_fkey?.name ?? 'tbd'}
+														{match.public_matches_team2_fkey?.name ?? 'tbd'}
 													</abbr>
 												</td>
 												<td class="tournament-bracket__score">
@@ -127,7 +127,7 @@
 														>
 													{:else}
 														<input
-															disabled={!match.matches_team1_fkey?.name}
+															disabled={!match.public_matches_team1_fkey?.name}
 															class="border-solid border-2 text-center max-w-8"
 															bind:value={match.team2_score}
 															on:change={() => updateMatch(match, bracket)}
