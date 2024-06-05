@@ -95,7 +95,7 @@
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
-			<Tabs.Content value="standings">
+			<Tabs.Content value="bracket">
 				<Card.Root>
 					<Card.Header>
 						<Card.Title>Bracket</Card.Title>
