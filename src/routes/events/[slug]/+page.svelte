@@ -5,7 +5,7 @@
 	import { initiateEvent, loadInitialData } from '$lib/helper';
 	import Standings from '$components/Standings.svelte';
 	import * as Select from '$components/ui/select/index.js';
-	import Loader2 from 'lucide-svelte/icons/loader-2';
+	import { Loader } from 'lucide-svelte';
 	import * as Tabs from '$components/ui/tabs/index.js';
 	import * as Card from '$components/ui/card/index.js';
 	import { page } from '$app/stores';
@@ -48,7 +48,7 @@
 <div class="flex flex-col items-center">
 	{#await loadingInitialDataPromise}
 		<div class="h-screen flex flex-col items-center place-content-center">
-			<Loader2 class="animate-spin" />
+			<Loader class="animate-spin" />
 		</div>
 	{:then}
 		{tournament?.name}
