@@ -16,9 +16,9 @@ declare global {
 	type TeamRow = z.infer<typeof teamsRowSchema>;
 	type EventRow = z.infer<typeof eventsRowSchema>;
 	type MatchRow = z.infer<typeof matchesRowSchema> & {
-		matches_team1_fkey: { name: string };
-		matches_team2_fkey: { name: string };
-		matches_ref_fkey: { name: string };
+		public_matches_team1_fkey: { name: string };
+		public_matches_team2_fkey: { name: string };
+		public_matches_ref_fkey: { name: string };
 	};
 
 	type MatchState = z.infer<typeof matchStateSchema>;

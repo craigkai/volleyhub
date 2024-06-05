@@ -21,7 +21,9 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	async load(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
 		const query = this.supabaseClient
 			.from('matches')
-			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
+			.select(
+				'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)'
+			)
 			.eq('event_id', event_id);
 
 		if (filter) {
@@ -53,7 +55,9 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		const res = await this.supabaseClient
 			.from('matches')
 			.insert(parsedMatch)
-			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
+			.select(
+				'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)'
+			)
 			.single();
 
 		this.validateAndHandleErrors(res, matchesRowSchema);
@@ -67,7 +71,9 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		const res = await this.supabaseClient
 			.from('matches')
 			.insert(parsedMatches)
-			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)');
+			.select(
+				'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)'
+			);
 
 		this.validateAndHandleErrors(res, MatchesRowSchemaArray);
 
@@ -81,7 +87,9 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 			.from('matches')
 			.update(parsedMatch)
 			.eq('id', match.id)
-			.select('*, matches_team1_fkey(name), matches_team2_fkey(name), matches_ref_fkey(name)')
+			.select(
+				'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)'
+			)
 			.single();
 
 		this.validateAndHandleErrors(res, matchesRowSchema);

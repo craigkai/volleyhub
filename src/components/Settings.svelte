@@ -190,9 +190,7 @@
 						/>
 					</Popover.Content>
 				</Popover.Root>
-				<Form.Description class="form-description"
-					>Your date of birth is used to calculate your age</Form.Description
-				>
+				<Form.Description class="form-description">Date of tournament</Form.Description>
 				<Form.FieldErrors class="form-errors" />
 				<input hidden value={$formData.date} name={attrs.name} />
 			</Form.Control>

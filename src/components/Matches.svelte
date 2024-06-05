@@ -93,12 +93,12 @@
 						{#if match}
 							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
 							{@const teamsForMatch = [
-								match.matches_team1_fkey.name,
-								match.matches_team2_fkey.name
+								match.public_matches_team1_fkey.name,
+								match.public_matches_team2_fkey.name
 							]}
 							{@const hasDefaultTeam = teamsForMatch.includes(defaultTeam)}
 							{@const defaultTeamWin =
-								match.matches_team1_fkey.name == defaultTeam
+								match.public_matches_team1_fkey.name == defaultTeam
 									? match.team1_score > match.team2_score
 									: match.team2_score > match.team1_score}
 							{@const rowTdClass = defaultTeamWin
@@ -120,12 +120,12 @@
 					{/each}
 					{#if tournament.refs === 'teams'}
 						<TableBodyCell
-							tdClass={matchesForRound[0]?.matches_ref_fkey?.name == defaultTeam
+							tdClass={matchesForRound[0]?.public_matches_ref_fkey?.name == defaultTeam
 								? defaultTdClass +
 									' border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
 								: defaultTdClass}
 						>
-							{matchesForRound[0]?.matches_ref_fkey?.name}
+							{matchesForRound[0]?.public_matches_ref_fkey?.name}
 						</TableBodyCell>
 					{/if}
 				</TableBodyRow>

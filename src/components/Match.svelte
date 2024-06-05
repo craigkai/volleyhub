@@ -37,7 +37,7 @@
 			? lossClass
 			: ''}"
 	>
-		{match?.matches_team1_fkey?.name}</span
+		{match?.public_matches_team1_fkey?.name}</span
 	>
 	vs
 	<span
@@ -51,7 +51,7 @@
 		match?.team2_score &&
 		match?.team1_score > match?.team2_score
 			? lossClass
-			: ''}">{match?.matches_team2_fkey?.name}</span
+			: ''}">{match?.public_matches_team2_fkey?.name}</span
 	>
 </div>
 {#if match?.team1_score && match?.team2_score}

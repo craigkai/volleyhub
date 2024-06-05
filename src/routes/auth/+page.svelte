@@ -5,63 +5,83 @@
 
 	export let data: PageData;
 	let { supabase } = data;
-	$: ({ supabase } = data);
 
-	let email: string;
-	let password: string;
-	let errorString = '',
-		message = '';
+	let email = '';
+	let password = '';
+	let errorString = '';
+	let message = '';
+	let method = 'magic';
 
 	const handleSignUp = async () => {
-		const { error: err } = await supabase.auth.signUp({
-			email,
-			password,
-			options: {
-				emailRedirectTo: `${data.url}/auth/callback`
-			}
-		});
-		if (err) errorString = err.message;
-		else message = "We've sent you an email to confirm your account";
+		try {
+			const { error } = await supabase.auth.signUp({
+				email,
+				password,
+				options: {
+					emailRedirectTo: `${data.url}/auth/callback`
+				}
+			});
+			if (error) throw error;
+			message = "We've sent you an email to confirm your account";
+		} catch (err) {
+			errorString = err.message;
+		}
 	};
 
 	const handleSignInOtp = async () => {
 		if (!email) {
-			return (errorString = 'Please enter your email address.');
+			errorString = 'Please enter your email address.';
+			return;
 		}
-		const { error: err } = await supabase.auth.signInWithOtp({
-			email: email,
-			options: {
-				emailRedirectTo: `${data.url}/auth/callback`
-			}
-		});
-		if (err) errorString = err.message;
-		else message = 'Check your email for the magic link.';
+		try {
+			const { error } = await supabase.auth.signInWithOtp({
+				email,
+				options: {
+					emailRedirectTo: `${data.url}/auth/callback`
+				}
+			});
+			if (error) throw error;
+			message = 'Check your email for the magic link.';
+		} catch (err) {
+			errorString = err.message;
+		}
 	};
 
 	const handleForgotPassword = async () => {
-		const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo: `${data.url}/auth/recovery`
-		});
-		if (err) errorString = err.message;
-		else message = 'Check your email for the password reset link.';
+		try {
+			const { error } = await supabase.auth.resetPasswordForEmail(email, {
+				redirectTo: `${data.url}/auth/recovery`
+			});
+			if (error) throw error;
+			message = 'Check your email for the password reset link.';
+		} catch (err) {
+			errorString = err.message;
+		}
 	};
 
 	const handleSignIn = async () => {
-		const { error: err } = await supabase.auth.signInWithPassword({
-			email,
-			password
-		});
-		if (err) errorString = err.message;
-		else goto('/protected-routes/dashboard');
+		try {
+			const { error } = await supabase.auth.signInWithPassword({
+				email,
+				password
+			});
+			if (error) throw error;
+			goto('/protected-routes/dashboard');
+		} catch (err) {
+			errorString = err.message;
+		}
 	};
 
 	const handleSignOut = async () => {
-		const { error: err } = await supabase.auth.signOut();
-		if (err) errorString = err.message;
-		else goto('/');
+		try {
+			const { error } = await supabase.auth.signOut();
+			if (error) throw error;
+			goto('/');
+		} catch (err) {
+			errorString = err.message;
+		}
 	};
 
-	let method = 'magic';
 	$: method, ((errorString = ''), (message = ''));
 </script>
 
@@ -69,75 +89,76 @@
 	<title>User Auth</title>
 </svelte:head>
 
-<div class="row flex-center flex justify-center">
-	<div class="col-6 form-widget flex flex-col">
-		{#if method == 'magic'}
-			<Label for="email" class="block m-2 text-gray-400 ">Email Address</Label>
-			<Input name="email" class="m-2 text-gray-400 " bind:value={email} />
-			<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={handleSignInOtp}
+<div class="flex justify-center items-center min-h-screen">
+	<div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+		{#if method === 'magic'}
+			<Label for="email" class="text-gray-400">Email Address</Label>
+			<Input name="email" class="mb-4 bg-gray-200 border border-2 p-4" bind:value={email} />
+			<Button class="w-full p-3 text-white bg-blue-400 hover:bg-blue-600" on:click={handleSignInOtp}
 				>Send a magic link</Button
 			>
-		{:else if method == 'password'}
-			<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
-			<Input name="email" id="email" bind:value={email} />
-
-			<Label for="password" class="block mb-2">Password</Label>
-			<Input type="password" bind:value={password} id="password" placeholder="•••••••••" required />
-
-			<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={handleSignIn}
+		{:else if method === 'password'}
+			<Label for="email" class="text-gray-400">Email Address</Label>
+			<Input name="email" id="email" class="mb-4 p-4 bg-gray-200" bind:value={email} />
+			<Label for="password" class="text-gray-400">Password</Label>
+			<Input
+				type="password"
+				id="password"
+				class="mb-4"
+				bind:value={password}
+				placeholder="•••••••••"
+				required
+			/>
+			<Button class="w-full text-white bg-blue-400 hover:bg-blue-600 mb-2" on:click={handleSignIn}
 				>Sign in</Button
 			>
 			<Button
-				class="m-2 text-white bg-blue-500 dark:bg-nord-1"
+				class="w-full text-white bg-blue-400 hover:bg-blue-600"
 				on:click={() => (method = 'recovery')}>Forgot your password?</Button
 			>
-		{:else if method == 'signup'}
-			<form on:submit={handleSignUp}>
-				<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
-				<Input name="email" id="email" bind:value={email} />
+		{:else if method === 'signup'}
+			<form on:submit|preventDefault={handleSignUp}>
+				<Label for="email" class="text-gray-400">Email Address</Label>
+				<Input name="email" id="email" class="mb-4" bind:value={email} />
+				<Label for="password" class="text-gray-400">Password</Label>
 				<Input
 					type="password"
-					bind:value={password}
 					id="password"
+					class="mb-4"
+					bind:value={password}
 					placeholder="•••••••••"
 					required
 				/>
-				<Button class="text-white bg-blue-500 dark:bg-nord-1 m-2" on:click={handleSignUp}
+				<Button type="submit" class="w-full text-white bg-blue-400 hover:bg-blue-600"
 					>Sign up</Button
 				>
 			</form>
-		{:else if method == 'recovery'}
-			<Label for="email" class="block mb-2 text-gray-400">Email Address</Label>
-			<Input name="email" bind:value={email} />
-
-			<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={handleForgotPassword}
-				>Send reset password instructions</Button
+		{:else if method === 'recovery'}
+			<Label for="email" class="text-gray-400">Email Address</Label>
+			<Input name="email" class="mb-4" bind:value={email} />
+			<Button
+				class="w-full text-white bg-blue-400 hover:bg-blue-600"
+				on:click={handleForgotPassword}>Send reset password instructions</Button
 			>
 		{/if}
-
-		<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={() => (method = 'password')}
-			>Already have an account? Sign in</Button
+		<Button
+			class="w-full text-white bg-blue-400 hover:bg-blue-600 mt-4"
+			on:click={() => (method = 'password')}>Already have an account? Sign in</Button
 		>
-		<Button class="m-2 text-white bg-blue-500 dark:bg-nord-1" on:click={handleSignOut}
+		<Button class="w-full text-white bg-blue-400 hover:bg-blue-600 mt-4" on:click={handleSignOut}
 			>Sign out</Button
 		>
-
-		<div class="text-center">
-			{#if message}
-				<span>{message}</span>
-			{/if}
-
-			{#if errorString}
-				<span class="danger">
-					{errorString}
-				</span>
-			{/if}
-		</div>
+		{#if message}
+			<div class="text-center text-green-500 mt-4">{message}</div>
+		{/if}
+		{#if errorString}
+			<div class="text-center text-red-500 mt-4">{errorString}</div>
+		{/if}
 	</div>
 </div>
 
 <style>
-	.danger {
-		color: rgba(245, 101, 101);
+	.text-center {
+		text-align: center;
 	}
 </style>

@@ -19,7 +19,7 @@
 
 {#if match}
 	<div class="flex flex-col">
-		<Label for="team1-score-input">Team `{match.matches_team1_fkey.name}`:</Label>
+		<Label for="team1-score-input">Team `{match.public_matches_team1_fkey.name}`:</Label>
 		<Input
 			id="team1-score-input"
 			size="md"
@@ -34,7 +34,7 @@
 			}}
 		/>
 
-		<Label for="team2-score-input">Team `{match.matches_team2_fkey.name}`:</Label>
+		<Label for="team2-score-input">Team `{match.public_matches_team2_fkey.name}`:</Label>
 		<Input
 			id="team2-score-input"
 			size="sm"

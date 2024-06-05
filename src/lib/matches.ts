@@ -77,9 +77,9 @@ export class Matches extends Base {
 		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
 		if (matchIndex !== undefined && matchIndex !== -1) {
 			if (matchesArray) {
-				updated.matches_team1_fkey = matchesArray[matchIndex].matches_team1_fkey;
-				updated.matches_team2_fkey = matchesArray[matchIndex].matches_team2_fkey;
-				updated.matches_ref_fkey = matchesArray[matchIndex].matches_ref_fkey;
+				updated.public_matches_team1_fkey = matchesArray[matchIndex].public_matches_team1_fkey;
+				updated.public_matches_team2_fkey = matchesArray[matchIndex].public_matches_team2_fkey;
+				updated.public_matches_ref_fkey = matchesArray[matchIndex].public_matches_ref_fkey;
 			}
 
 			matchesArray?.splice(matchIndex, 1, updated as MatchRow);
