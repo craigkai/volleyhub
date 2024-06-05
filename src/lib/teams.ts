@@ -3,7 +3,6 @@ import { Base } from './base';
 
 export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
-
 	event_id: number;
 	teams: TeamRow[] = [];
 
@@ -23,32 +22,42 @@ export class Teams extends Base {
 	 * @returns {Promise<TeamRow[] | undefined>} - A promise that resolves to the loaded teams.
 	 */
 	async load(): Promise<TeamRow[] | undefined> {
-		const res = await this.databaseService.loadTeams(this.event_id);
-		if (res === null || res === undefined) {
-			console.warn('Failed to load teams for event', this.event_id);
+		try {
+			const res = await this.databaseService.loadTeams(this.event_id);
+			if (!res) {
+				console.warn('Failed to load teams for event', this.event_id);
+				return undefined;
+			}
+			this.teams = res;
+			return this.teams;
+		} catch (err) {
+			this.handleError(500, `Failed to load teams: ${(err as Error).message}`);
 			return undefined;
 		}
-		this.teams = res;
-		return this.teams;
 	}
 
 	/**
-	 * Inserts a new team into Supabase. If a team with the same name and event ID exists,
+	 * Inserts a new team into the database. If a team with the same name and event ID exists,
 	 * returns that team's ID.
 	 * @param {Partial<TeamRow>} team - The team data to be created.
 	 * @returns {Promise<number | undefined>} - A promise that resolves to the team ID.
 	 */
 	async create(team: Partial<TeamRow>): Promise<number | undefined> {
 		try {
-			const res: TeamRow | null = await this.databaseService.createTeam(team);
-			return res?.id;
+			const res = await this.databaseService.createTeam(team);
+			if (res) {
+				return res.id;
+			}
+			console.warn('Failed to create team', team);
+			return undefined;
 		} catch (err) {
 			this.handleError(500, `Failed to create team: ${(err as Error).message}`);
+			return undefined;
 		}
 	}
 
 	/**
-	 * Deletes a team from Supabase.
+	 * Deletes a team from the database.
 	 * @param {TeamRow} team - The team to be deleted.
 	 * @returns {Promise<void>} - A promise that resolves when the team is successfully deleted.
 	 */
@@ -56,7 +65,7 @@ export class Teams extends Base {
 		try {
 			await this.databaseService.deleteTeam(team);
 		} catch (err) {
-			this.handleError(500, 'Failed to delete team');
+			this.handleError(500, `Failed to delete team: ${(err as Error).message}`);
 		}
 	}
 }

@@ -60,13 +60,9 @@
 	const defaultTdClass = 'px-6 py-4 whitespace-nowrap font-medium';
 </script>
 
-<div class="block text-gray-700 text-sm font-bold">Matches:</div>
+<div class="block text-gray-700 text-sm font-bold mb-4">Matches:</div>
 
 {#if $matches.matches && $matches.matches.length > 0}
-	<!--
-			Reduce our matches into a dict where the key is the round the
-			match is played in.
-		-->
 	{@const matchesForEachRound = $matches.matches.reduce((accumulator, currentValue) => {
 		if (accumulator[currentValue.round]) {
 			accumulator[currentValue.round].push(currentValue);
@@ -86,17 +82,14 @@
 			{/if}
 		</TableHead>
 		<TableBody>
-			<!-- Need to iterate over ROUNDs here and fill each court -->
 			{#each Object.keys(matchesForEachRound) as round, i}
 				{@const matchesForRound = matchesForEachRound[round].sort(
 					(a, b) => a.round - b.round || a.court - b.court
 				)}
 
 				<TableBodyRow>
-					<!-- Can have multiple matches per round if we have multiple courts -->
 					{#each Array(tournament.courts) as _, court}
 						{@const match = matchesForRound[court]}
-
 						{#if match}
 							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
 							{@const teamsForMatch = [
@@ -114,9 +107,9 @@
 							<TableBodyCell
 								tdClass={hasDefaultTeam
 									? matchComplete
-										? defaultTdClass + rowTdClass
+										? defaultTdClass + ' ' + rowTdClass
 										: defaultTdClass +
-											'border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+											' border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
 									: defaultTdClass}
 							>
 								<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
@@ -129,7 +122,7 @@
 						<TableBodyCell
 							tdClass={matchesForRound[0]?.matches_ref_fkey?.name == defaultTeam
 								? defaultTdClass +
-									'border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+									' border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
 								: defaultTdClass}
 						>
 							{matchesForRound[0]?.matches_ref_fkey?.name}
@@ -153,12 +146,12 @@
 				</p>
 				<div class="flex gap-2">
 					<Button
-						class="text-black bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						size="xs"
 						on:click={generateMatches}>Yes</Button
 					>
 					<Button
-						class="text-black bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						size="xs"
 						on:click={() => (showGenerateMatchesAlert = false)}>No</Button
 					>
@@ -167,9 +160,9 @@
 		</div>
 	{/if}
 
-	<div class="m-2">
+	<div class="m-2 flex justify-center">
 		<button
-			class="bg-nord-10 hover:bg-nord-9 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+			class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 			type="button"
 			on:click={checkGenerateMatches}
 		>
