@@ -41,13 +41,6 @@ declare global {
 		child_id?: number;
 	};
 
-	interface Locals {
-		supabase: SupabaseClient;
-		safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
-		session: Session | null;
-		user: User | null;
-	}
-
 	interface PageData {
 		eventName?: string;
 		eventId?: string;
@@ -64,7 +57,9 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			supabase: SupabaseClient;
-			getSession(): Promise<Session | null>;
+			safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
+			session: Session | null;
+			user: User | null;
 		}
 		// interface Platform {}
 
