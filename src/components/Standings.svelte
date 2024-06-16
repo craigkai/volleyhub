@@ -77,10 +77,10 @@
 		class="table-auto border-solid border-2 rounded dark:border-gray-700 dark:bg-gray-800"
 	>
 		<TableHead>
-			{#each Array(tournament.courts) as _, i}
+			{#each Array(tournament?.courts) as _, i}
 				<TableHeadCell class="dark:text-gray-300">Court {i + 1}</TableHeadCell>
 			{/each}
-			{#if tournament.refs === 'teams'}
+			{#if tournament?.refs === 'teams'}
 				<TableHeadCell class="dark:text-gray-300">Ref</TableHeadCell>
 			{/if}
 		</TableHead>
@@ -91,7 +91,7 @@
 				)}
 
 				<TableBodyRow class="dark:border-gray-700">
-					{#each Array(tournament.courts) as _, court}
+					{#each Array(tournament?.courts) as _, court}
 						{@const match = matchesForRound[court]}
 						{#if match}
 							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
@@ -121,7 +121,7 @@
 							<TableBodyCell class="dark:border-gray-700"></TableBodyCell>
 						{/if}
 					{/each}
-					{#if tournament.refs === 'teams'}
+					{#if tournament?.refs === 'teams'}
 						<TableBodyCell
 							tdClass={matchesForRound[0]?.public_matches_ref_fkey?.name == defaultTeam
 								? defaultTdClass +
