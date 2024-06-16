@@ -9,11 +9,17 @@
 	import { error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
 
-	export let tournament: Event;
-	export let bracket: Brackets;
-	export let teams: Teams;
-	export let matches: Matches;
-	export let readOnly: boolean = true;
+	let {
+		matches = $bindable(),
+		bracket = $bindable(),
+		teams = $bindable(),
+		readOnly = false
+	}: {
+		matches: Matches;
+		bracket: Brackets;
+		teams: Teams;
+		readonly: Boolean;
+	} = $props();
 
 	let rounds: Record<number, Round> = {};
 
@@ -31,7 +37,10 @@
 		});
 	}
 
-	$: bracket.matches, determineRounds();
+	$effect(() => {
+		bracket.matches;
+		determineRounds();
+	});
 
 	const determineRoundName = (remainingRounds: number): string => {
 		return remainingRounds === 1 ? 'Championship' : `Round ${numRounds - remainingRounds + 1}`;
@@ -50,7 +59,7 @@
 			const res = await bracket.createBracketMatches(
 				tournament,
 				teams.teams,
-				$matches.matches || []
+				matches.matches || []
 			);
 			if (!res) {
 				error('Failed to create matches');
@@ -62,7 +71,11 @@
 		}
 	}
 
-	$: numRounds = Object.keys(rounds).length;
+	let numRounds = Object.keys(rounds).length;
+
+	$effect(() => {
+		numRounds = Object.keys(rounds).length;
+	});
 </script>
 
 {#if !readOnly && (!bracket?.matches || bracket.matches.length === 0)}

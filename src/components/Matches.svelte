@@ -20,6 +20,12 @@
 		teams = $bindable(),
 		readOnly = false,
 		defaultTeam = $bindable()
+	}: {
+		matches: Matches;
+		tournament: Event;
+		teams: Teams;
+		readonly: Boolean;
+		defaultTeam: { value: string; label: string };
 	} = $props();
 
 	let showGenerateMatchesAlert: boolean = false;
