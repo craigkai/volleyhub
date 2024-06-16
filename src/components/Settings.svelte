@@ -209,19 +209,19 @@
 			</Form.Control>
 		</Form.Field>
 	</div>
-
 	<div class="flex justify-center">
 		<Form.Button class="m-2 dark:bg-gray-700 dark:text-gray-200">Submit</Form.Button>
-
-		{#if event_id !== 'create'}
-			<form method="POST" action="?/deleteEvent" use:enhance>
-				<Form.Button class="m-2 bg-red-500 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-900"
-					>Delete</Form.Button
-				>
-			</form>
-		{/if}
 	</div>
 </form>
+{#if event_id !== 'create'}
+	<form method="POST" action="?/deleteEvent" use:enhance>
+		<div class="flex justify-center">
+			<Form.Button class="m-2 bg-red-500 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-900"
+				>Delete</Form.Button
+			>
+		</div>
+	</form>
+{/if}
 
 <style>
 	.form-container {
