@@ -10,7 +10,7 @@
 	export let authChange: boolean;
 	let { supabase } = data;
 
-	let open: boolean = false;
+	let open: boolean = true;
 
 	let currentUser: { data: { user: { aud: string } } };
 	async function getCurrentUser() {
