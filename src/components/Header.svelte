@@ -80,7 +80,7 @@
 									</a>
 								</li>
 							{/if}
-							<!-- <li data-te-nav-item-ref>
+							<li data-te-nav-item-ref>
 								<Button on:click={toggleMode} variant="outline" size="icon">
 									<Sun
 										class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
@@ -90,7 +90,7 @@
 									/>
 									<span class="sr-only">Toggle theme</span>
 								</Button>
-							</li> -->
+							</li>
 						</ul>
 					</div>
 				</div>
