@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { error } from '$lib/toast';
 	import { Event } from '$lib/event';
+	import { findStandings } from '$lib/standings';
+	import { Matches } from '$lib/matches';
+	import { Teams } from '$lib/teams';
 	import {
 		Table,
 		TableBody,
@@ -9,167 +11,43 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
-	import ViewMatch from './Match.svelte';
-	import { Matches } from '$lib/matches';
-	import type { RealtimeChannel } from '@supabase/supabase-js';
-	import type { Teams } from '$lib/teams';
-	import { Alert, Button } from 'flowbite-svelte';
-	import type { HttpError } from '@sveltejs/kit';
 
+	export let event: Event;
 	export let matches: Matches;
-	export let tournament: Event;
 	export let teams: Teams;
-	export let readOnly: boolean = false;
 	export let defaultTeam: string;
 
-	let showGenerateMatchesAlert: boolean = false;
+	const scoring = event.scoring;
+	let teamScores: TeamScores = {};
+	let orderedTeamScores = {};
 
-	async function checkGenerateMatches() {
-		if (($matches?.matches?.length ?? 0) > 0) {
-			showGenerateMatchesAlert = true;
-		} else {
-			generateMatches();
-		}
+	async function generateResults() {
+		teamScores = await findStandings($matches.matches ?? [], event, teams.teams ?? []);
+		orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 	}
-
-	let matchesSubscription: RealtimeChannel | undefined;
-	async function subscribeToMatches() {
-		matchesSubscription = await matches.subscribeToMatches();
-	}
-
-	async function generateMatches(): Promise<void> {
-		try {
-			const res: Matches | undefined = await $matches.create(tournament, teams.teams);
-			if (!res) {
-				error('Failed to create matches');
-			} else {
-				if (!matchesSubscription) {
-					subscribeToMatches();
-				}
-			}
-		} catch (err) {
-			error((err as HttpError).toString());
-		}
-		showGenerateMatchesAlert = false;
-	}
-
-	if ($matches.matches) {
-		subscribeToMatches();
-	}
-
-	const defaultTdClass = 'px-6 py-4 whitespace-nowrap font-medium';
+	generateResults();
+	$: $matches, generateResults();
 </script>
 
-<div class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-4">Matches:</div>
+Scoring based on {scoring}
 
-{#if $matches.matches && $matches.matches.length > 0}
-	{@const matchesForEachRound = $matches.matches.reduce((accumulator, currentValue) => {
-		if (accumulator[currentValue.round]) {
-			accumulator[currentValue.round].push(currentValue);
-		} else {
-			accumulator[currentValue.round] = [currentValue];
-		}
-		return accumulator;
-	}, {})}
-
-	<Table
-		hoverable={true}
-		class="table-auto border-solid border-2 rounded dark:border-gray-700 dark:bg-gray-800"
-	>
-		<TableHead>
-			{#each Array(tournament?.courts) as _, i}
-				<TableHeadCell class="dark:text-gray-300">Court {i + 1}</TableHeadCell>
-			{/each}
-			{#if tournament?.refs === 'teams'}
-				<TableHeadCell class="dark:text-gray-300">Ref</TableHeadCell>
-			{/if}
-		</TableHead>
-		<TableBody>
-			{#each Object.keys(matchesForEachRound) as round, i}
-				{@const matchesForRound = matchesForEachRound[round].sort(
-					(a, b) => a.round - b.round || a.court - b.court
-				)}
-
-				<TableBodyRow class="dark:border-gray-700">
-					{#each Array(tournament?.courts) as _, court}
-						{@const match = matchesForRound[court]}
-						{#if match}
-							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
-							{@const teamsForMatch = [
-								match.public_matches_team1_fkey.name,
-								match.public_matches_team2_fkey.name
-							]}
-							{@const hasDefaultTeam = teamsForMatch.includes(defaultTeam)}
-							{@const defaultTeamWin =
-								match.public_matches_team1_fkey.name == defaultTeam
-									? match.team1_score > match.team2_score
-									: match.team2_score > match.team1_score}
-							{@const rowTdClass = defaultTeamWin
-								? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
-								: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
-							<TableBodyCell
-								tdClass={hasDefaultTeam
-									? matchComplete
-										? defaultTdClass + ' ' + rowTdClass
-										: defaultTdClass +
-											' border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
-									: defaultTdClass}
-							>
-								<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
-							</TableBodyCell>
-						{:else}
-							<TableBodyCell class="dark:border-gray-700"></TableBodyCell>
-						{/if}
-					{/each}
-					{#if tournament?.refs === 'teams'}
-						<TableBodyCell
-							tdClass={matchesForRound[0]?.public_matches_ref_fkey?.name == defaultTeam
-								? defaultTdClass +
-									' border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
-								: defaultTdClass}
-						>
-							{matchesForRound[0]?.public_matches_ref_fkey?.name}
-						</TableBodyCell>
-					{/if}
-				</TableBodyRow>
-			{/each}
-		</TableBody>
-	</Table>
-{/if}
-
-{#if !readOnly}
-	{#if showGenerateMatchesAlert}
-		<div class="m-2">
-			<Alert color="red">
-				<div class="flex items-center gap-3">
-					<span class="text-lg font-medium">Generate new matches?</span>
-				</div>
-				<p class="mt-2 mb-4 text-sm">
-					You already have some match content, are you sure you want to wipe that?
-				</p>
-				<div class="flex gap-2">
-					<Button
-						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						size="xs"
-						on:click={generateMatches}>Yes</Button
-					>
-					<Button
-						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						size="xs"
-						on:click={() => (showGenerateMatchesAlert = false)}>No</Button
-					>
-				</div>
-			</Alert>
-		</div>
-	{/if}
-
-	<div class="m-2 flex justify-center">
-		<button
-			class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-			type="button"
-			on:click={checkGenerateMatches}
-		>
-			Generate matches</button
-		>
-	</div>
-{/if}
+<Table>
+	<TableHead>
+		<!-- <TableHeadCell>Rank</TableHeadCell> -->
+		<TableHeadCell>Team</TableHeadCell>
+		<TableHeadCell>Score</TableHeadCell>
+	</TableHead>
+	<TableBody>
+		{#each { length: orderedTeamScores.length } as _, i}
+			{@const isDefaultTeam =
+				defaultTeam && defaultTeam === orderedTeamScores[i]
+					? 'bg-yellow-200 border-2 border-solid border-yellow-300'
+					: ''}
+			<TableBodyRow class={isDefaultTeam}>
+				<!-- <TableBodyCell>{i}</TableBodyCell> -->
+				<TableBodyCell>{orderedTeamScores[i]}</TableBodyCell>
+				<TableBodyCell>{teamScores[orderedTeamScores[i]]}</TableBodyCell>
+			</TableBodyRow>
+		{/each}
+	</TableBody>
+</Table>
