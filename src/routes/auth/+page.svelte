@@ -18,7 +18,7 @@
 				email,
 				password,
 				options: {
-					emailRedirectTo: `${data.url}/auth/callback`
+					emailRedirectTo: `${data.url}/auth/confirm`
 				}
 			});
 			if (error) throw error;
@@ -37,7 +37,7 @@
 			const { error } = await supabase.auth.signInWithOtp({
 				email,
 				options: {
-					emailRedirectTo: `${data.url}/auth/callback`
+					emailRedirectTo: `${data.url}/auth/confirm`
 				}
 			});
 			if (error) throw error;
