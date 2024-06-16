@@ -24,8 +24,8 @@ export async function loadInitialData(
 			await matches.load();
 			await teams.load();
 			await bracket.load();
-		} catch (err: HttpError) {
-			error(err?.body?.message);
+		} catch (err) {
+			error((err as HttpError)?.body?.message);
 		}
 	}
 }
@@ -47,7 +47,7 @@ export async function updateMatch(match: MatchRow | undefined, matches: Matches)
 			if (match.team1_score !== undefined && match.team2_score !== undefined) {
 				const updatedMatch = await matches.put(match);
 				success(
-					`Match ${updatedMatch.matches_team1_fkey.name} vs ${updatedMatch.matches_team2_fkey.name} updated`
+					`Match ${updatedMatch?.public_matches_team1_fkey.name} vs ${updatedMatch?.public_matches_team1_fkey.name} updated`
 				);
 			}
 		} catch (err) {
