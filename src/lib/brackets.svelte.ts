@@ -1,8 +1,10 @@
-import { Event } from './event';
-import { findStandings } from './standings';
-import { Matches } from './matches';
+import { Event } from './event.svelte';
+import { findStandings } from './standings.svelte';
+import { Matches } from './matches.svelte';
 
 export class Brackets extends Matches {
+	matches: MatchRow[] = $state([] as MatchRow[]);
+
 	// Overload Matches load method to only load our bracket matches.
 	async load() {
 		const res = await this.databaseService.load(this.event_id, {
@@ -11,12 +13,7 @@ export class Brackets extends Matches {
 			value: 'bracket'
 		});
 
-		if (res) {
-			this._update((that: Brackets) => {
-				that.matches = res;
-				return that;
-			});
-		}
+		if (res) this.matches = res;
 
 		return this;
 	}
@@ -109,7 +106,7 @@ export class Brackets extends Matches {
 				const winnerOfNew =
 					newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2;
 				const winnerOfOtherParent =
-					otherParent?.state === 'COMPLETE'
+					otherParent?.state === 'COMPLETE' && otherParent.team1_score !== null
 						? otherParent.team1_score > otherParent.team2_score
 							? otherParent.team1
 							: otherParent.team2

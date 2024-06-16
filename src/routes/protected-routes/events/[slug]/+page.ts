@@ -1,6 +1,6 @@
 import type { PageLoad } from './$types';
-import { Event } from '$lib/event';
-import { EventSupabaseDatabaseService } from '$lib/database/event';
+import { Event } from '$lib/event.svelte';
+import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 import { superValidate, type Infer, type SuperValidated } from 'sveltekit-superforms';
 import { formSchema as settingsSchema, type FormSchema } from '$schemas/settingsSchema';
 import { zod } from 'sveltekit-superforms/adapters';

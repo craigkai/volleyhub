@@ -18,7 +18,7 @@
 
 	let { tournament, matches, teams, bracket } = initiateEvent(event_id, supabase);
 
-	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams, bracket);
+	const loadingInitialDataPromise = loadInitialData(tournament, matches, teams, bracket);
 	let defaultTeam = { value: data.default_team, label: data.default_team };
 
 	let historyReady = false;
@@ -59,7 +59,7 @@
 			<Select.Root
 				bind:selected={defaultTeam}
 				onSelectedChange={(v) => {
-					v && (defaultTeam = v);
+					v && (defaultTeam = { value: v, label: v });
 				}}
 			>
 				<Select.Trigger class="w-[180px]">

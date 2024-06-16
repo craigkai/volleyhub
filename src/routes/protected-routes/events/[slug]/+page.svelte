@@ -43,7 +43,7 @@
 
 	$: $page.state.eventCreated, reloadEventInstances();
 
-	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams, bracket);
+	const loadingInitialDataPromise = loadInitialData(tournament, matches, teams, bracket);
 
 	const isCreate = data?.event_id === 'create';
 </script>

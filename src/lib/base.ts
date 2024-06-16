@@ -1,4 +1,3 @@
-import { error } from '@sveltejs/kit';
 import type { NumericRange } from '@sveltejs/kit';
 
 export class Base {

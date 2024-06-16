@@ -5,12 +5,12 @@ import { eventsInsertSchema, eventsUpdateSchema, teamsInsertSchema } from '$sche
 import { zod } from 'sveltekit-superforms/adapters';
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { Event } from '$lib/event';
-import { EventSupabaseDatabaseService } from '$lib/database/event';
+import { Event } from '$lib/event.svelte';
+import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
-import { Teams } from '$lib/teams';
+import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
+import { Teams } from '$lib/teams.svelte';
 
 export const load: PageServerLoad = async ({ params }) => {
 	return {

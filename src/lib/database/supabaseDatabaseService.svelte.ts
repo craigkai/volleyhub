@@ -8,8 +8,8 @@ import type {
 } from '@supabase/supabase-js';
 import { error, type NumericRange } from '@sveltejs/kit';
 import type { z } from 'zod';
-import { Brackets } from '$lib/brackets';
-import { Matches } from '$lib/matches';
+import { Brackets } from '$lib/brackets.svelte';
+import { Matches } from '$lib/matches.svelte';
 
 export class SupabaseDatabaseService {
 	// Private property for Supabase client

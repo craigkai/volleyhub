@@ -1,28 +1,16 @@
-import type { MatchesSupabaseDatabaseService } from '$lib/database/matches';
+import type { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
 import { RoundRobin } from './roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { writable, type Unsubscriber, type Invalidator, type Subscriber } from 'svelte/store';
 import { Base } from './base';
-import type { Brackets } from './brackets';
+import type { Brackets } from './brackets.svelte';
 
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
-	public subscribe: (
-		run: Subscriber<Matches>,
-		invalidate?: Invalidator<Matches> | undefined
-	) => Unsubscriber;
-	public _set: Function;
-	public _update: Function;
-
 	event_id: number;
-	matches?: MatchRow[];
+	matches?: MatchRow[] = $state();
 
 	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
 		super();
-		const { subscribe, set, update } = writable(this);
-		this.subscribe = subscribe;
-		this._set = set;
-		this._update = update;
 
 		this.databaseService = databaseService;
 		this.event_id = Number(event_id);
@@ -38,13 +26,7 @@ export class Matches extends Base {
 			value: 'pool'
 		});
 
-		if (res) {
-			this._update((that: Matches) => {
-				that.matches = res;
-				return that;
-			});
-		}
-
+		if (res) this.matches = res;
 		return this;
 	}
 
@@ -85,10 +67,7 @@ export class Matches extends Base {
 			matchesArray?.splice(matchIndex, 1, updated as MatchRow);
 			const matches = matchesArray;
 
-			self._update((that: Matches) => {
-				that.matches = matches;
-				return that;
-			});
+			self.matches = matches;
 		} else {
 			self.handleError(400, `Failed to find match to update.`);
 		}
@@ -125,12 +104,7 @@ export class Matches extends Base {
 			}
 
 			const res = await this.databaseService.insertMatches(userMatches);
-			if (res) {
-				this._update((that: Matches) => {
-					that.matches = res;
-					return that;
-				});
-			}
+			if (res) this.matches = res;
 
 			return this;
 		} catch (err) {

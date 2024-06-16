@@ -1,5 +1,5 @@
 // src/routes/protected-routes/dashboard/+page.ts
-import { EventSupabaseDatabaseService } from '$lib/database/event';
+import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 import { error } from '$lib/toast';
 import type { HttpError } from '@sveltejs/kit';
 import type { PageLoad } from './$types';

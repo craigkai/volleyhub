@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Event } from '$lib/event';
-	import { Brackets } from '$lib/brackets';
-	import type { Matches } from '$lib/matches';
-	import type { Teams } from '$lib/teams';
+	import { Event } from '$lib/event.svelte';
+	import { Brackets } from '$lib/brackets.svelte';
+	import type { Matches } from '$lib/matches.svelte';
+	import type { Teams } from '$lib/teams.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button } from 'flowbite-svelte';
 	import { updateMatch } from '$lib/helper';
@@ -19,7 +19,7 @@
 
 	function determineRounds() {
 		rounds = {};
-		$bracket?.matches?.forEach((match) => {
+		bracket?.matches?.forEach((match) => {
 			if (!rounds[match.round]) {
 				rounds[match.round] = {
 					matches: [match],
@@ -31,7 +31,7 @@
 		});
 	}
 
-	$: $bracket.matches, determineRounds();
+	$: bracket.matches, determineRounds();
 
 	const determineRoundName = (remainingRounds: number): string => {
 		return remainingRounds === 1 ? 'Championship' : `Round ${numRounds - remainingRounds + 1}`;
@@ -65,11 +65,11 @@
 	$: numRounds = Object.keys(rounds).length;
 </script>
 
-{#if !readOnly && (!$bracket?.matches || $bracket.matches.length === 0)}
+{#if !readOnly && (!bracket?.matches || bracket.matches.length === 0)}
 	<div class="flex flex-col items-center">
 		<Button color="light" on:click={handleGenerateBracket}>Generate initial bracket</Button>
 	</div>
-{:else if $bracket.matches && $bracket.matches.length > 0}
+{:else if bracket.matches && bracket.matches.length > 0}
 	<div class="container">
 		<div class="tournament-bracket tournament-bracket--rounded">
 			{#each Object.keys(rounds) as i, index}

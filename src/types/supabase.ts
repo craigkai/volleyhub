@@ -56,7 +56,7 @@ export type Database = {
 					id: number;
 					ref: number | null;
 					round: number;
-					state: Database['public']['Enums']['MatchState'];
+					state: Database['public']['Enums']['matchstate'];
 					team1: number | null;
 					team1_score: number | null;
 					team2: number | null;
@@ -71,7 +71,7 @@ export type Database = {
 					id?: number;
 					ref?: number | null;
 					round?: number;
-					state?: Database['public']['Enums']['MatchState'];
+					state?: Database['public']['Enums']['matchstate'];
 					team1?: number | null;
 					team1_score?: number | null;
 					team2?: number | null;
@@ -86,7 +86,7 @@ export type Database = {
 					id?: number;
 					ref?: number | null;
 					round?: number;
-					state?: Database['public']['Enums']['MatchState'];
+					state?: Database['public']['Enums']['matchstate'];
 					team1?: number | null;
 					team1_score?: number | null;
 					team2?: number | null;
@@ -178,7 +178,7 @@ export type Database = {
 			[_ in never]: never;
 		};
 		Enums: {
-			MatchState: 'COMPLETE' | 'INCOMPLETE';
+			matchstate: 'INCOMPLETE' | 'COMPLETE';
 			StageType: 'ROUND_ROBIN' | 'SINGLE_ELIMINATION' | 'DOUBLE_ELIMINATION';
 		};
 		CompositeTypes: {

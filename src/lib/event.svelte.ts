@@ -1,4 +1,4 @@
-import type { EventSupabaseDatabaseService } from '$lib/database/event';
+import type { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 import type { Infer } from 'sveltekit-superforms';
 import { Base } from './base';
 import type { FormSchema } from '$schemas/settingsSchema';

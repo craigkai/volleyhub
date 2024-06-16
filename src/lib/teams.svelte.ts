@@ -1,4 +1,4 @@
-import type { TeamsSupabaseDatabaseService } from '$lib/database/teams';
+import type { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
 import { Base } from './base';
 
 export class Teams extends Base {

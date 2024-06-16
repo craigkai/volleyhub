@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Teams } from '$lib/teams';
+	import type { Teams } from '$lib/teams.svelte';
 	import { success, error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
 	import { TableBody, TableBodyCell, TableBodyRow, Table } from 'flowbite-svelte';

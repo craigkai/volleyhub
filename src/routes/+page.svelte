@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { EventSupabaseDatabaseService } from '$lib/database/event';
+	import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 	import { Loader } from 'lucide-svelte';
 	import EventsCards from '$components/eventsCards.svelte';
 

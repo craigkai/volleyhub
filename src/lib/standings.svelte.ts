@@ -1,4 +1,4 @@
-import { Event } from '$lib/event';
+import { Event } from '$lib/event.svelte';
 
 export async function findStandings(
 	matches: MatchRow[],

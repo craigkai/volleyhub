@@ -1,16 +1,16 @@
-import { Event } from './event';
-import { Matches } from './matches';
-import { Teams } from './teams';
+import { Event } from './event.svelte';
+import { Matches } from './matches.svelte';
+import { Teams } from './teams.svelte';
 import { pushState } from '$app/navigation';
 import type { HttpError } from '@sveltejs/kit';
 import { error, success } from '$lib/toast';
-import { EventSupabaseDatabaseService } from '$lib/database/event';
-import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
-import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
-import { Brackets } from '$lib/brackets';
-import { Event as EventInstance } from '$lib/event';
-import { Matches as MatchesInstance } from '$lib/matches';
-import { Teams as TeamsInstance } from '$lib/teams';
+import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
+import { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
+import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
+import { Brackets } from '$lib/brackets.svelte';
+import { Event as EventInstance } from '$lib/event.svelte';
+import { Matches as MatchesInstance } from '$lib/matches.svelte';
+import { Teams as TeamsInstance } from '$lib/teams.svelte';
 
 export async function loadInitialData(
 	event: Event,

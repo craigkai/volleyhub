@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Event } from '$lib/event';
+	import { Event } from '$lib/event.svelte';
 	import * as Card from '$components/ui/card/index.js';
 	import { parseDateTime } from '@internationalized/date';
 

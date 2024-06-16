@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { error } from '$lib/toast';
-	import { Event } from '$lib/event';
 	import {
 		Table,
 		TableBody,
@@ -10,22 +9,23 @@
 		TableHeadCell
 	} from 'flowbite-svelte';
 	import ViewMatch from './Match.svelte';
-	import { Matches } from '$lib/matches';
+	import { Matches } from '$lib/matches.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
-	import type { Teams } from '$lib/teams';
 	import { Alert, Button } from 'flowbite-svelte';
 	import type { HttpError } from '@sveltejs/kit';
 
-	export let matches: Matches;
-	export let tournament: Event;
-	export let teams: Teams;
-	export let readOnly: boolean = false;
-	export let defaultTeam: string;
+	let {
+		matches = $bindable(),
+		tournament = $bindable(),
+		teams = $bindable(),
+		readOnly = false,
+		defaultTeam = $bindable()
+	} = $props();
 
 	let showGenerateMatchesAlert: boolean = false;
 
 	async function checkGenerateMatches() {
-		if (($matches?.matches?.length ?? 0) > 0) {
+		if ((matches?.matches?.length ?? 0) > 0) {
 			showGenerateMatchesAlert = true;
 		} else {
 			generateMatches();
@@ -39,7 +39,7 @@
 
 	async function generateMatches(): Promise<void> {
 		try {
-			const res: Matches | undefined = await $matches.create(tournament, teams.teams);
+			const res: Matches | undefined = await matches.create(tournament, teams.teams);
 			if (!res) {
 				error('Failed to create matches');
 			} else {
@@ -53,17 +53,18 @@
 		showGenerateMatchesAlert = false;
 	}
 
-	if ($matches.matches) {
+	if (matches.matches) {
 		subscribeToMatches();
 	}
 
 	const defaultTdClass = 'px-6 py-4 whitespace-nowrap font-medium';
 </script>
 
+<!-- svelte-ignore missing-declaration -->
 <div class="block text-gray-700 text-sm font-bold mb-4">Matches:</div>
 
-{#if $matches.matches && $matches.matches.length > 0}
-	{@const matchesForEachRound = $matches.matches.reduce((accumulator, currentValue) => {
+{#if matches.matches && matches.matches.length > 0}
+	{@const matchesForEachRound = matches.matches.reduce((accumulator, currentValue) => {
 		if (accumulator[currentValue.round]) {
 			accumulator[currentValue.round].push(currentValue);
 		} else {

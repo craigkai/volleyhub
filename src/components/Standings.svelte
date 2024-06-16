@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Event } from '$lib/event';
-	import { findStandings } from '$lib/standings';
-	import { Matches } from '$lib/matches';
-	import { Teams } from '$lib/teams';
+	import { Event } from '$lib/event.svelte';
+	import { findStandings } from '$lib/standings.svelte';
+	import { Matches } from '$lib/matches.svelte';
+	import { Teams } from '$lib/teams.svelte';
 	import {
 		Table,
 		TableBody,
@@ -22,11 +22,11 @@
 	let orderedTeamScores = {};
 
 	async function generateResults() {
-		teamScores = await findStandings($matches.matches ?? [], event, teams.teams ?? []);
+		teamScores = await findStandings(matches.matches ?? [], event, teams.teams ?? []);
 		orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 	}
 	generateResults();
-	$: $matches, generateResults();
+	$: matches, generateResults();
 </script>
 
 Scoring based on {scoring}
