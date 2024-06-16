@@ -41,7 +41,7 @@
 		"flowbite": "^2.3.0",
 		"flowbite-svelte": "^0.46.1",
 		"flowbite-svelte-icons": "^1.6.1",
-		"formsnap": "^1.0.0",
+		"formsnap": "^1.0.1",
 		"jsdom": "^24.1.0",
 		"less": "^4.2.0",
 		"lucide-svelte": "^0.395.0",

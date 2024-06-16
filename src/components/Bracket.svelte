@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Event } from '$lib/event.svelte';
 	import { Brackets } from '$lib/brackets.svelte';
 	import type { Matches } from '$lib/matches.svelte';
 	import type { Teams } from '$lib/teams.svelte';
