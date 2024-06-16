@@ -4,7 +4,7 @@
 	import '../app.postcss';
 	import Header from '$components/Header.svelte';
 	import Footer from '$components/Footer.svelte';
-	import { invalidate } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { ModeWatcher } from 'mode-watcher';
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
@@ -17,21 +17,26 @@
 	inject({ mode: dev ? 'development' : 'production' });
 
 	export let data: LayoutData;
-	let { supabase, session } = data;
-	$: ({ supabase, session } = data);
+	$: ({ session, supabase } = data);
 
 	let authChange = false;
 	onMount(() => {
-		const {
-			data: { subscription }
-		} = supabase.auth.onAuthStateChange(() => {
-			invalidate('supabase:auth');
-			authChange = !authChange;
+		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+			if (!newSession) {
+				/**
+				 * Queue this as a task so the navigation won't prevent the
+				 * triggering function from completing
+				 */
+				setTimeout(() => {
+					goto('/', { invalidateAll: true });
+				});
+			}
+			if (newSession?.expires_at !== session?.expires_at) {
+				invalidate('supabase:auth');
+			}
 		});
 
-		return () => {
-			subscription.unsubscribe();
-		};
+		return () => data.subscription.unsubscribe();
 	});
 
 	const options = {};
