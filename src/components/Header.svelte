@@ -27,20 +27,20 @@
 
 <header class="w-full">
 	<!-- Navigation bar -->
-	<div class="bg-blue-500 dark:bg-nord-1 p-4">
+	<div class="bg-blue-500 dark:bg-gray-900 p-4">
 		<a href="/" class="flex">
 			<img class="h-20 w-20 p-2" src="/vball.svg" alt="volleyman" />
-			<h1 class="flex dark:text-nord-12 justify-center items-center text-5l front-extrabold">
+			<h1 class="flex dark:text-nord-12 justify-center items-center text-5l font-extrabold">
 				Volleyman(ager)<span
-					class="bg-blue-100 text-blue-800 text-2xl front-semibold px-2.5 py-0.5
-				rounded ml-2">Beta</span
+					class="bg-blue-100 text-blue-800 text-2xl font-semibold px-2.5 py-0.5
+				rounded ml-2 dark:bg-gray-700 dark:text-gray-200">Beta</span
 				>
 			</h1>
 		</a>
 
 		<nav
 			class:hidden={!open}
-			class="relative flex w-full items-center justify-between py-2 bg-white rounded text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 dark:bg-nord-9 dark:text-nord-2 md:flex-wrap md:justify-start"
+			class="relative flex w-full items-center justify-between py-2 bg-white rounded text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 dark:bg-gray-800 dark:text-gray-200 md:flex-wrap md:justify-start"
 		>
 			<div class="flex w-full flex-wrap items-center justify-between px-3">
 				<div class="flex-row">

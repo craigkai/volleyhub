@@ -40,25 +40,25 @@
 	let newTeamName = '';
 </script>
 
-<div class="block text-gray-700 text-sm font-bold mb-2">Teams:</div>
+<div class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Teams:</div>
 
-<Table class="min-w-full bg-white">
+<Table class="min-w-full bg-white dark:bg-gray-800">
 	<TableBody>
 		{#each teams?.teams as team}
-			<TableBodyRow class="border-b">
-				<TableBodyCell class="px-4 py-2">{team.name}</TableBodyCell>
+			<TableBodyRow class="border-b dark:border-gray-700">
+				<TableBodyCell class="px-4 py-2 dark:text-gray-300">{team.name}</TableBodyCell>
 				<TableBodyCell class="px-4 py-2 text-right">
 					<button on:click={() => deleteTeam(team)} class="action-button">Delete</button>
 				</TableBodyCell>
 			</TableBodyRow>
 		{/each}
-		<TableBodyRow class="border-t">
+		<TableBodyRow class="border-t dark:border-gray-700">
 			<TableBodyCell class="px-4 py-2">
 				<Input
 					size="sm"
 					type="text"
 					id="newTeam"
-					class="input-field"
+					class="input-field dark:bg-gray-700 dark:text-gray-200"
 					placeholder="Enter new team name"
 					on:keydown={(e) => {
 						if (e?.key === 'Enter') {
@@ -77,10 +77,10 @@
 
 <style>
 	.action-button {
-		@apply font-medium text-blue-600 hover:underline;
+		@apply font-medium text-blue-600 hover:underline dark:text-blue-400;
 	}
 
 	.input-field {
-		@apply w-full border rounded px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500;
+		@apply w-full border rounded px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200 dark:border-gray-600 dark:focus:ring-blue-400;
 	}
 </style>

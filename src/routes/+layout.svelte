@@ -1,5 +1,3 @@
-<!-- src/routes/+layout.svelte -->
-
 <script lang="ts">
 	import '../app.postcss';
 	import Header from '$components/Header.svelte';
@@ -51,18 +49,16 @@
 	<title>Volleyman</title>
 </svelte:head>
 
-<html lang="en">
-	<ModeWatcher />
-	<div class="dark:text-nord-12">
-		<Header {data} {authChange} />
+<div class="dark:bg-gray-900 dark:text-gray-100 text-gray-900 bg-white">
+	<ModeWatcher defaultMode={'light'} />
+	<Header {data} {authChange} />
 
-		<div class="min-h-screen">
-			<div class="wrap">
-				<SvelteToast {options} />
-			</div>
-			<slot {data} />
+	<div class="min-h-screen">
+		<div class="wrap">
+			<SvelteToast {options} />
 		</div>
-
-		<Footer {data} />
+		<slot {data} />
 	</div>
-</html>
+
+	<Footer {data} />
+</div>

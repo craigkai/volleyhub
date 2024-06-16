@@ -15,6 +15,9 @@ const config = {
 		},
 		extend: {
 			colors: {
+				'nord-12': '#d8dee9',
+				'nord-1': '#2e3440',
+				'nord-9': '#4c566a',
 				border: 'hsl(var(--border) / <alpha-value>)',
 				input: 'hsl(var(--input) / <alpha-value>)',
 				ring: 'hsl(var(--ring) / <alpha-value>)',
