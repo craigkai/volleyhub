@@ -19,7 +19,7 @@
 	let { tournament, matches, teams, bracket } = initiateEvent(event_id, supabase);
 
 	const loadingInitialDataPromise = loadInitialData(tournament, $matches, teams, bracket);
-	let defaultTeam = data.default_team;
+	let defaultTeam = { value: data.default_team, label: data.default_team };
 
 	let historyReady = false;
 	onMount(async () => {
@@ -29,7 +29,7 @@
 
 	function updateHistory() {
 		if (browser && historyReady) {
-			$page.url.searchParams.set('team', defaultTeam);
+			$page.url.searchParams.set('team', defaultTeam?.value);
 			const url = $page.url.href;
 			pushState(url, '');
 		}
@@ -57,9 +57,9 @@
 
 		<div class="m-2">
 			<Select.Root
-				selected={defaultTeam}
+				bind:selected={defaultTeam}
 				onSelectedChange={(v) => {
-					v && (defaultTeam = v.value);
+					v && (defaultTeam = v);
 				}}
 			>
 				<Select.Trigger class="w-[180px]">
@@ -87,7 +87,13 @@
 						<Card.Description>Results of pool play (live)</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Matches bind:tournament bind:matches {teams} {defaultTeam} readOnly={true} />
+						<Matches
+							bind:tournament
+							bind:matches
+							{teams}
+							defaultTeam={defaultTeam?.value}
+							readOnly={true}
+						/>
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
@@ -98,7 +104,13 @@
 						<Card.Description>Current standings based on pool play results</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Standings event={tournament} {matches} {teams} {defaultTeam} readOnly={true} />
+						<Standings
+							event={tournament}
+							{matches}
+							{teams}
+							defaultTeam={defaultTeam?.value}
+							readOnly={true}
+						/>
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>

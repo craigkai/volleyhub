@@ -1,4 +1,4 @@
-import { superValidate } from 'sveltekit-superforms';
+import { message, superValidate } from 'sveltekit-superforms';
 import { formSchema as settingsSchema } from '$schemas/settingsSchema';
 import { formSchema as teamsSchema } from '$schemas/teamsSchema';
 import { eventsInsertSchema, eventsUpdateSchema, teamsInsertSchema } from '$schemas/supabase';
@@ -85,6 +85,7 @@ export const actions: Actions = {
 				form
 			});
 		}
+
 		redirect(303, `/protected-routes/events/${newId}`);
 	},
 
