@@ -3,7 +3,7 @@
 	import { Matches } from '$lib/matches.svelte';
 	import { pushState } from '$app/navigation';
 	import type { Brackets } from '$lib/brackets.svelte';
-	import { updateMatch } from '$lib/helper';
+	import { updateMatch } from '$lib/helper.svelte';
 
 	export let matchId: number;
 	export let matches: Matches | Brackets;

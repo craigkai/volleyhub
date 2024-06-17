@@ -4,7 +4,7 @@
 	import type { Teams } from '$lib/teams.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button } from 'flowbite-svelte';
-	import { updateMatch } from '$lib/helper';
+	import { updateMatch } from '$lib/helper.svelte';
 	import { error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
 

@@ -5,7 +5,7 @@
 	import { TableBody, TableBodyCell, TableBodyRow, Table } from 'flowbite-svelte';
 	import { Input } from 'flowbite-svelte';
 
-	export let teams: Teams;
+	let { teams }: { teams: Teams } = $props();
 
 	async function createTeam() {
 		try {
@@ -37,7 +37,7 @@
 
 		teams.teams = res || [];
 	}
-	let newTeamName = '';
+	let newTeamName = $state('');
 </script>
 
 <div class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Teams:</div>
@@ -48,7 +48,7 @@
 			<TableBodyRow class="border-b dark:border-gray-700">
 				<TableBodyCell class="px-4 py-2 dark:text-gray-300">{team.name}</TableBodyCell>
 				<TableBodyCell class="px-4 py-2 text-right">
-					<button on:click={() => deleteTeam(team)} class="action-button">Delete</button>
+					<button onclick={() => deleteTeam(team)} class="action-button">Delete</button>
 				</TableBodyCell>
 			</TableBodyRow>
 		{/each}
@@ -69,7 +69,7 @@
 				/>
 			</TableBodyCell>
 			<TableBodyCell class="px-4 py-2 text-right">
-				<button on:click={createTeam} class="action-button">Add</button>
+				<button onclick={createTeam} class="action-button">Add</button>
 			</TableBodyCell>
 		</TableBodyRow>
 	</TableBody>

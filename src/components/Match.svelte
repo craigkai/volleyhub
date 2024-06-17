@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { showModal } from '$lib/helper';
+	import { showModal } from '$lib/helper.svelte';
 
 	export let match: MatchRow;
 	export let readOnly: boolean = false;
