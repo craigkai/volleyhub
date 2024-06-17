@@ -40,8 +40,9 @@
 		"eslint-plugin-svelte": "^2.39.4",
 		"flowbite": "^2.3.0",
 		"flowbite-svelte": "^0.46.1",
-		"flowbite-svelte-icons": "^1.6.1",
+		"flowbite-svelte-icons": "^2.0.0-next.10",
 		"formsnap": "^1.0.1",
+		"i": "^0.3.7",
 		"jsdom": "^24.1.0",
 		"less": "^4.2.0",
 		"lucide-svelte": "^0.395.0",
@@ -68,5 +69,8 @@
 		"zod": "^3.23.8",
 		"zod-validation-error": "^3.3.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"radix-svelte": "^0.9.0"
+	}
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Tooltip } from 'flowbite-svelte';
+	import * as Tooltip from '$components/ui/tooltip';
 	import { page } from '$app/stores';
 	import { showModal } from '$lib/helper.svelte';
 
@@ -16,44 +16,51 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore missing-declaration -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-	class="flex justify-center place-items-center"
-	on:click={() => {
-		if (!readOnly && !$page.state.showModal) {
-			showModal(match.id, 'pool');
-		}
-	}}
->
-	<span
-		class="p-1 rounded {showWinLoss &&
-		match?.team1_score &&
-		match?.team2_score &&
-		match.team1_score > match.team2_score
-			? winClass
-			: ''} {showWinLoss &&
-		match?.team1_score &&
-		match?.team2_score &&
-		match.team2_score > match.team1_score
-			? lossClass
-			: ''}"
-	>
-		{match?.public_matches_team1_fkey?.name}</span
-	>
-	vs
-	<span
-		class="p-1 rounded {showWinLoss &&
-		match?.team1_score &&
-		match?.team2_score &&
-		match.team2_score > match.team1_score
-			? winClass
-			: ''} {showWinLoss &&
-		match?.team1_score &&
-		match?.team2_score &&
-		match?.team1_score > match?.team2_score
-			? lossClass
-			: ''}">{match?.public_matches_team2_fkey?.name}</span
-	>
-</div>
-{#if match?.team1_score && match?.team2_score}
-	<Tooltip>{match?.team1_score} to {match?.team2_score}</Tooltip>
-{/if}
+<Tooltip.Root>
+	<Tooltip.Trigger>
+		<div
+			class="flex justify-center place-items-center"
+			onclick={() => {
+				if (!readOnly && !$page.state.showModal) {
+					showModal(match.id, 'pool');
+				}
+			}}
+		>
+			<span
+				class="p-1 rounded {showWinLoss &&
+				match?.team1_score &&
+				match?.team2_score &&
+				match.team1_score > match.team2_score
+					? winClass
+					: ''} {showWinLoss &&
+				match?.team1_score &&
+				match?.team2_score &&
+				match.team2_score > match.team1_score
+					? lossClass
+					: ''}"
+			>
+				{match?.public_matches_team1_fkey?.name}</span
+			>
+			vs
+			<span
+				class="p-1 rounded {showWinLoss &&
+				match?.team1_score &&
+				match?.team2_score &&
+				match.team2_score > match.team1_score
+					? winClass
+					: ''} {showWinLoss &&
+				match?.team1_score &&
+				match?.team2_score &&
+				match?.team1_score > match?.team2_score
+					? lossClass
+					: ''}">{match?.public_matches_team2_fkey?.name}</span
+			>
+		</div>
+	</Tooltip.Trigger>
+
+	<Tooltip.Content>
+		{#if match?.team1_score && match?.team2_score}
+			<p>{match?.team1_score} to {match?.team2_score}</p>
+		{/if}
+	</Tooltip.Content>
+</Tooltip.Root>

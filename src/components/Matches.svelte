@@ -1,17 +1,10 @@
 <script lang="ts">
 	import { error } from '$lib/toast';
-	import {
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell
-	} from 'flowbite-svelte';
+	import * as Table from '$components/ui/table';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
-	import { Alert, Button } from 'flowbite-svelte';
+	import * as Alert from '$components/ui/alert/index.js';
 	import type { HttpError } from '@sveltejs/kit';
 	import type { Teams } from '$lib/teams.svelte';
 
@@ -29,7 +22,7 @@
 		defaultTeam: { value: string; label: string };
 	} = $props();
 
-	let showGenerateMatchesAlert: boolean = false;
+	let showGenerateMatchesAlert = $state(false);
 
 	async function checkGenerateMatches() {
 		if ((matches?.matches?.length ?? 0) > 0) {
@@ -42,6 +35,10 @@
 	let matchesSubscription: RealtimeChannel | undefined;
 	async function subscribeToMatches() {
 		matchesSubscription = await matches.subscribeToMatches();
+	}
+
+	if (matches.matches) {
+		subscribeToMatches();
 	}
 
 	async function generateMatches(): Promise<void> {
@@ -59,43 +56,42 @@
 		}
 		showGenerateMatchesAlert = false;
 	}
-
-	if (matches.matches) {
-		subscribeToMatches();
-	}
-
-	const defaultTdClass = 'px-6 py-4 whitespace-nowrap font-medium';
 </script>
 
-<!-- svelte-ignore missing-declaration -->
 <div class="block text-gray-700 text-sm font-bold mb-4">Matches:</div>
 
 {#if matches.matches && matches.matches.length > 0}
 	{@const matchesForEachRound = matches.matches.reduce((accumulator, currentValue) => {
+		// @ts-ignore
 		if (accumulator[currentValue.round]) {
+			// @ts-ignore
 			accumulator[currentValue.round].push(currentValue);
 		} else {
+			// @ts-ignore
 			accumulator[currentValue.round] = [currentValue];
 		}
 		return accumulator;
 	}, {})}
 
-	<Table hoverable={true} class="table-auto border-solid border-2 rounded">
-		<TableHead>
-			{#each Array(tournament.courts) as _, i}
-				<TableHeadCell>Court {i + 1}</TableHeadCell>
-			{/each}
-			{#if tournament.refs === 'teams'}
-				<TableHeadCell>Ref</TableHeadCell>
-			{/if}
-		</TableHead>
-		<TableBody>
+	<Table.Root class="table-auto border-solid border-2 rounded">
+		<Table.Header>
+			<Table.Row>
+				{#each Array(tournament.courts) as _, i}
+					<Table.Head>Court {i + 1}</Table.Head>
+				{/each}
+				{#if tournament.refs === 'teams'}
+					<Table.Head>Ref</Table.Head>
+				{/if}
+			</Table.Row>
+		</Table.Header>
+
+		<Table.Body>
 			{#each Object.keys(matchesForEachRound) as round, i}
 				{@const matchesForRound = matchesForEachRound[round].sort(
 					(a, b) => a.round - b.round || a.court - b.court
 				)}
 
-				<TableBodyRow>
+				<Table.Row>
 					{#each Array(tournament.courts) as _, court}
 						{@const match = matchesForRound[court]}
 						{#if match}
@@ -112,59 +108,53 @@
 							{@const rowTdClass = defaultTeamWin
 								? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
 								: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
-							<TableBodyCell
-								tdClass={hasDefaultTeam
+							<Table.Cell
+								class={hasDefaultTeam
 									? matchComplete
-										? defaultTdClass + ' ' + rowTdClass
-										: defaultTdClass +
-											' border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
-									: defaultTdClass}
+										? 'p-2 ' + rowTdClass
+										: 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+									: 'p-2'}
 							>
 								<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
-							</TableBodyCell>
+							</Table.Cell>
 						{:else}
-							<TableBodyCell></TableBodyCell>
+							<Table.Cell class="p-2"></Table.Cell>
 						{/if}
 					{/each}
 					{#if tournament.refs === 'teams'}
-						<TableBodyCell
-							tdClass={matchesForRound[0]?.public_matches_ref_fkey?.name == defaultTeam
-								? defaultTdClass +
-									' border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
-								: defaultTdClass}
+						<Table.Cell
+							class={matchesForRound[0]?.public_matches_ref_fkey?.name == defaultTeam
+								? 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+								: 'p-2'}
 						>
 							{matchesForRound[0]?.public_matches_ref_fkey?.name}
-						</TableBodyCell>
+						</Table.Cell>
 					{/if}
-				</TableBodyRow>
+				</Table.Row>
 			{/each}
-		</TableBody>
-	</Table>
+		</Table.Body>
+	</Table.Root>
 {/if}
 
 {#if !readOnly}
 	{#if showGenerateMatchesAlert}
 		<div class="m-2">
-			<Alert color="red">
-				<div class="flex items-center gap-3">
-					<span class="text-lg font-medium">Generate new matches?</span>
-				</div>
-				<p class="mt-2 mb-4 text-sm">
-					You already have some match content, are you sure you want to wipe that?
-				</p>
+			<Alert.Root>
+				<Alert.Title>Generate new matches?</Alert.Title>
+				<Alert.Description
+					>You already have some match content, are you sure you want to wipe that?</Alert.Description
+				>
 				<div class="flex gap-2">
-					<Button
+					<button
 						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						size="xs"
-						on:click={generateMatches}>Yes</Button
+						onclick={generateMatches}>Yes</button
 					>
-					<Button
+					<button
 						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						size="xs"
-						on:click={() => (showGenerateMatchesAlert = false)}>No</Button
+						onclick={() => (showGenerateMatchesAlert = false)}>No</button
 					>
 				</div>
-			</Alert>
+			</Alert.Root>
 		</div>
 	{/if}
 
@@ -172,7 +162,7 @@
 		<button
 			class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 			type="button"
-			on:click={checkGenerateMatches}
+			onclick={checkGenerateMatches}
 		>
 			Generate matches</button
 		>

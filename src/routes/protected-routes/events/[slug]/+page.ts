@@ -15,7 +15,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	if (params.slug === 'create') {
 		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
 
-		return { event_id: 'params.slug', form, tournament, matches, teams, bracket, dog: 'woo2f' };
+		return { event_id: params.slug, form, tournament, matches, teams, bracket };
 	}
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(

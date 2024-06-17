@@ -3,7 +3,7 @@
 	import type { Matches } from '$lib/matches.svelte';
 	import type { Teams } from '$lib/teams.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
-	import { Button } from 'flowbite-svelte';
+	import { Button } from '$components/ui/button/index.js';
 	import { updateMatch } from '$lib/helper.svelte';
 	import { error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
@@ -20,7 +20,7 @@
 		readonly: Boolean;
 	} = $props();
 
-	let rounds: Record<number, Round> = {};
+	let rounds: Record<number, Round> = $state({});
 
 	function determineRounds() {
 		rounds = {};
@@ -51,7 +51,9 @@
 		matchesSubscription = await bracket.subscribeToMatches();
 	}
 
-	subscribeToMatches();
+	if (bracket.matches) {
+		subscribeToMatches();
+	}
 
 	async function handleGenerateBracket() {
 		try {
@@ -70,16 +72,16 @@
 		}
 	}
 
-	let numRounds = Object.keys(rounds).length;
-
-	$effect(() => {
-		numRounds = Object.keys(rounds).length;
+	let numRounds = $state({
+		get a() {
+			return Object.keys(rounds).length;
+		}
 	});
 </script>
 
 {#if !readOnly && (!bracket?.matches || bracket.matches.length === 0)}
 	<div class="flex flex-col items-center">
-		<Button color="light" on:click={handleGenerateBracket}>Generate initial bracket</Button>
+		<Button variant="outline" onclick={handleGenerateBracket}>Generate initial bracket</Button>
 	</div>
 {:else if bracket.matches && bracket.matches.length > 0}
 	<div class="container">
@@ -118,7 +120,7 @@
 															disabled={!match.public_matches_team1_fkey?.name}
 															class="border-solid border-2 text-center max-w-8"
 															bind:value={match.team1_score}
-															on:change={() => updateMatch(match, bracket)}
+															onchange={() => updateMatch(match, bracket)}
 														/>
 													{/if}
 												</td>
@@ -142,7 +144,7 @@
 															disabled={!match.public_matches_team1_fkey?.name}
 															class="border-solid border-2 text-center max-w-8"
 															bind:value={match.team2_score}
-															on:change={() => updateMatch(match, bracket)}
+															onchange={() => updateMatch(match, bracket)}
 														/>
 													{/if}
 												</td>
@@ -173,46 +175,10 @@
 		}
 	}
 
-	html {
-		font-size: 15px;
-
-		@media (min-width: @breakpoint-sm) {
-			font-size: 14px;
-		}
-		@media (min-width: @breakpoint-md) {
-			font-size: 15px;
-		}
-		@media (min-width: @breakpoint-lg) {
-			font-size: 16px;
-		}
-	}
-
-	body {
-		background-color: #f1f1f1;
-		font-family: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
-	}
-
 	.container {
 		width: 90%;
 		min-width: 18em;
 		margin: 20px auto;
-	}
-
-	h1,
-	h2 {
-		text-align: center;
-	}
-
-	h1 {
-		font-size: 2rem;
-		font-weight: 700;
-		margin-bottom: 0.5em;
-	}
-
-	h2 {
-		font-size: 1.4rem;
-		font-weight: 600;
-		margin-bottom: 2em;
 	}
 
 	.sr-only {

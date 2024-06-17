@@ -2,10 +2,9 @@
 	import type { Teams } from '$lib/teams.svelte';
 	import { success, error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
-	import { TableBody, TableBodyCell, TableBodyRow, Table } from 'flowbite-svelte';
-	import { Input } from 'flowbite-svelte';
+	import * as Table from '$components/ui/table';
 
-	let { teams }: { teams: Teams } = $props();
+	let { teams = $bindable() }: { teams: Teams } = $props();
 
 	async function createTeam() {
 		try {
@@ -33,47 +32,48 @@
 	}
 
 	async function loadEventTeams() {
-		const res = await teams.load().catch((err: HttpError) => error(err.body.message));
-
-		teams.teams = res || [];
+		teams
+			.load()
+			.catch((err: HttpError) => error(err.body.message))
+			.then(() => (teams = teams))
+			.catch((err: HttpError) => error(err.body.message));
 	}
 	let newTeamName = $state('');
 </script>
 
 <div class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Teams:</div>
 
-<Table class="min-w-full bg-white dark:bg-gray-800">
-	<TableBody>
+<Table.Root class="min-w-full bg-white dark:bg-gray-800">
+	<Table.Caption>A list of your recent invoices.</Table.Caption>
+	<Table.Body>
 		{#each teams?.teams as team}
-			<TableBodyRow class="border-b dark:border-gray-700">
-				<TableBodyCell class="px-4 py-2 dark:text-gray-300">{team.name}</TableBodyCell>
-				<TableBodyCell class="px-4 py-2 text-right">
-					<button onclick={() => deleteTeam(team)} class="action-button">Delete</button>
-				</TableBodyCell>
-			</TableBodyRow>
+			<Table.Row>
+				<Table.Cell>{team.name}</Table.Cell>
+				<Table.Cell
+					><button onclick={() => deleteTeam(team)} class="action-button">Delete</button
+					></Table.Cell
+				>
+			</Table.Row>
 		{/each}
-		<TableBodyRow class="border-t dark:border-gray-700">
-			<TableBodyCell class="px-4 py-2">
-				<Input
-					size="sm"
+		<Table.Row>
+			<Table.Cell
+				><input
 					type="text"
 					id="newTeam"
 					class="input-field dark:bg-gray-700 dark:text-gray-200"
 					placeholder="Enter new team name"
-					on:keydown={(e) => {
+					onkeydown={(e) => {
 						if (e?.key === 'Enter') {
 							createTeam();
 						}
 					}}
 					bind:value={newTeamName}
 				/>
-			</TableBodyCell>
-			<TableBodyCell class="px-4 py-2 text-right">
-				<button onclick={createTeam} class="action-button">Add</button>
-			</TableBodyCell>
-		</TableBodyRow>
-	</TableBody>
-</Table>
+			</Table.Cell>
+			<Table.Cell><button onclick={createTeam} class="action-button">Add</button></Table.Cell>
+		</Table.Row>
+	</Table.Body>
+</Table.Root>
 
 <style>
 	.action-button {

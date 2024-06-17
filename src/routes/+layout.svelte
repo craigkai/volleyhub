@@ -13,7 +13,7 @@
 
 	inject({ mode: dev ? 'development' : 'production' });
 
-	let { data, authChange } = $props();
+	let { data, authChange, children } = $props();
 	let { session, supabase } = data;
 
 	onMount(() => {
@@ -58,7 +58,7 @@
 		<div class="wrap">
 			<SvelteToast {options} />
 		</div>
-		<slot {data} />
+		{@render children()}
 	</div>
 
 	<Footer />

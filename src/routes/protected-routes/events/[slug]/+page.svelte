@@ -9,7 +9,8 @@
 	import * as Tabs from '$components/ui/tabs/index.js';
 	import * as Card from '$components/ui/card/index.js';
 	import { page } from '$app/stores';
-	import { Modal } from 'flowbite-svelte';
+	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
+	import { pushState } from '$app/navigation';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 	let { tournament, bracket, teams, matches, defaultTeam } = $state(data);
@@ -19,15 +20,22 @@
 	const isCreate = data?.event_id === 'create';
 </script>
 
-{#if $page.state.showModal && $page.state.matchId}
-	<Modal size="xs" on:close={() => history.back()} open={true} outsideclose autoclose>
+<AlertDialog.Root
+	bind:open={$page.state.showModal}
+	onOpenChange={() => pushState('', { showModal: false })}
+>
+	<AlertDialog.Content>
 		{#if $page.state.type === 'pool'}
 			<EditMatch matchId={$page.state.matchId} bind:matches />
 		{:else}
 			<EditMatch matchId={$page.state.matchId} bind:matches={bracket} />
 		{/if}
-	</Modal>
-{/if}
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action>Continue</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <div class="flex flex-col items-center">
 	<div class="m-2">
@@ -57,7 +65,7 @@
 						<Card.Description>Add/remove teams</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Teams bind:teams />
+						<Teams bind:teams={data.teams} />
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
@@ -79,7 +87,7 @@
 						<Card.Description>Current standings based on pool play results</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Standings event={tournament} {matches} {teams} {defaultTeam} />
+						<Standings event={data} {matches} {teams} {defaultTeam} />
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
