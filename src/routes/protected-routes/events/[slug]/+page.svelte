@@ -15,25 +15,30 @@
 	let { data = $bindable() }: { data: PageData } = $props();
 	let { tournament, bracket, teams, matches, defaultTeam } = $state(data);
 
-	let open = $derived($page.state.showModal);
+	let open = $state($page.state.showModal);
+
+	$effect(() => {
+		open = $page.state.showModal ?? false;
+	});
 
 	let { event_id, form } = data;
 
 	const isCreate = data?.event_id === 'create';
 </script>
 
-{#if open && $page.state.matchId}
-	<AlertDialog.Root on:openChange={closeModal}>
+{#if $page.state.showModal && $page.state.matchId}
+	<AlertDialog.Root
+		bind:open
+		onOpenChange={closeModal}
+		closeOnOutsideClick={true}
+		closeOnEscape={true}
+	>
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
 				<EditMatch matchId={$page.state.matchId as number} bind:matches />
 			{:else}
 				<EditMatch matchId={$page.state.matchId as number} bind:matches={bracket} />
 			{/if}
-			<AlertDialog.Footer>
-				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-				<AlertDialog.Action>Continue</AlertDialog.Action>
-			</AlertDialog.Footer>
 		</AlertDialog.Content>
 	</AlertDialog.Root>
 {/if}

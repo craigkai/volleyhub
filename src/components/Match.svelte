@@ -3,27 +3,25 @@
 	import { page } from '$app/stores';
 	import { showModal } from '$lib/helper.svelte';
 
-	export let match: MatchRow;
-
-	export let readOnly: boolean = false;
-
-	export let showWinLoss: boolean = true;
+	let {
+		match,
+		readOnly = false,
+		showWinLoss = true
+	}: { match: MatchRow; readOnly: boolean; showWinLoss: boolean } = $props();
 
 	const winClass = 'bg-green-300 dark:bg-green-700';
 	const lossClass = 'bg-red-300 dark:bg-red-700';
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore missing-declaration -->
-<!-- svelte-ignore a11y-click-events-have-key-events -->
 <Tooltip.Root>
 	<Tooltip.Trigger>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="flex justify-center place-items-center"
 			onclick={() => {
 				if (!readOnly && !$page.state.showModal) {
-					showModal(match.id, 'pool');
+					showModal(match?.id, 'pool');
 				}
 			}}
 		>
