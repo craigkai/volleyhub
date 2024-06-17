@@ -13,6 +13,7 @@
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Alert, Button } from 'flowbite-svelte';
 	import type { HttpError } from '@sveltejs/kit';
+	import type { Teams } from '$lib/teams.svelte';
 
 	let {
 		matches = $bindable(),

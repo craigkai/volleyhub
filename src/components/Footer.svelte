@@ -1,7 +1,4 @@
 <script lang="ts">
-	import type { LayoutServerData } from '$types';
-
-	export const data: LayoutServerData = undefined;
 </script>
 
 <footer

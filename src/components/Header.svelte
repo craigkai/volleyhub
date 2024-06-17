@@ -1,24 +1,26 @@
 <script lang="ts">
-	import type { PageData } from '$types';
 	import { Hamburger } from 'svelte-hamburgers';
 	import { Button } from '$components/ui/button';
 	import Sun from 'lucide-svelte/icons/sun';
 	import Moon from 'lucide-svelte/icons/moon';
 	import { toggleMode } from 'mode-watcher';
 
-	export let data: PageData;
-	export let authChange: boolean;
-	let { supabase } = data;
+	let { supabase, authChange = $bindable() }: { supabase: any; authChange: Boolean } = $props();
 
 	let open: boolean = true;
 
-	let currentUser: { data: { user: { aud: string } } };
+	let currentUser: { data: { user: { aud: string } } } | undefined = $state();
+
 	async function getCurrentUser() {
 		return await supabase.auth.getUser().then((res: { data: { user: { aud: string } } }) => {
 			currentUser = res;
 		});
 	}
-	$: authChange, getCurrentUser();
+
+	$effect(() => {
+		authChange;
+		getCurrentUser();
+	});
 </script>
 
 <div class="absolute end-0">

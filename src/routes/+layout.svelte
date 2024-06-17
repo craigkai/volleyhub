@@ -5,7 +5,6 @@
 	import { goto, invalidate } from '$app/navigation';
 	import { ModeWatcher } from 'mode-watcher';
 	import { onMount } from 'svelte';
-	import type { LayoutData } from './$types';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
 	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { dev } from '$app/environment';
@@ -14,12 +13,13 @@
 
 	inject({ mode: dev ? 'development' : 'production' });
 
-	export let data: LayoutData;
-	$: ({ session, supabase } = data);
+	let { data, authChange } = $props();
+	let { session, supabase } = data;
 
-	let authChange = false;
 	onMount(() => {
-		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+		const { data } = supabase.auth.onAuthStateChange((_: any, newSession: { expires_at: any }) => {
+			authChange = !authChange;
+
 			if (!newSession) {
 				/**
 				 * Queue this as a task so the navigation won't prevent the
@@ -51,7 +51,8 @@
 
 <div class="dark:bg-gray-900 dark:text-gray-100 text-gray-900 bg-white">
 	<ModeWatcher defaultMode={'light'} />
-	<Header {data} {authChange} />
+
+	<Header {supabase} bind:authChange />
 
 	<div class="min-h-screen">
 		<div class="wrap">
@@ -60,5 +61,5 @@
 		<slot {data} />
 	</div>
 
-	<Footer {data} />
+	<Footer />
 </div>

@@ -14,7 +14,7 @@
 	import { Modal } from 'flowbite-svelte';
 	import { initiateEvent } from '$lib/helper';
 
-	export let data: PageData;
+	let { data } = $props();
 	let { supabase, event_id, form } = data;
 
 	let { tournament, matches, teams, bracket } = initiateEvent(event_id, supabase);
@@ -41,7 +41,10 @@
 		}
 	}
 
-	$: $page.state.eventCreated, reloadEventInstances();
+	$effect(() => {
+		$page.state.eventCreated;
+		reloadEventInstances();
+	});
 
 	const loadingInitialDataPromise = loadInitialData(tournament, matches, teams, bracket);
 
