@@ -18,6 +18,12 @@ export function showModal(matchId: number, type: string): void {
 	});
 }
 
+export function closeModal() {
+	pushState('', {
+		showModal: false
+	});
+}
+
 export async function updateMatch(match: MatchRow | undefined, matches: Matches): Promise<void> {
 	if (match) {
 		try {

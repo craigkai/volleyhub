@@ -10,32 +10,33 @@
 	import * as Card from '$components/ui/card/index.js';
 	import { page } from '$app/stores';
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
-	import { pushState } from '$app/navigation';
+	import { closeModal } from '$lib/helper.svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 	let { tournament, bracket, teams, matches, defaultTeam } = $state(data);
+
+	let open = $derived($page.state.showModal);
 
 	let { event_id, form } = data;
 
 	const isCreate = data?.event_id === 'create';
 </script>
 
-<AlertDialog.Root
-	bind:open={$page.state.showModal}
-	onOpenChange={() => pushState('', { showModal: false })}
->
-	<AlertDialog.Content>
-		{#if $page.state.type === 'pool'}
-			<EditMatch matchId={$page.state.matchId} bind:matches />
-		{:else}
-			<EditMatch matchId={$page.state.matchId} bind:matches={bracket} />
-		{/if}
-		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-			<AlertDialog.Action>Continue</AlertDialog.Action>
-		</AlertDialog.Footer>
-	</AlertDialog.Content>
-</AlertDialog.Root>
+{#if open && $page.state.matchId}
+	<AlertDialog.Root on:openChange={closeModal}>
+		<AlertDialog.Content>
+			{#if $page.state.type === 'pool'}
+				<EditMatch matchId={$page.state.matchId as number} bind:matches />
+			{:else}
+				<EditMatch matchId={$page.state.matchId as number} bind:matches={bracket} />
+			{/if}
+			<AlertDialog.Footer>
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action>Continue</AlertDialog.Action>
+			</AlertDialog.Footer>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
+{/if}
 
 <div class="flex flex-col items-center">
 	<div class="m-2">
@@ -76,7 +77,7 @@
 						<Card.Description>Update pool play match results</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Matches bind:tournament bind:matches {teams} {defaultTeam} />
+						<Matches bind:tournament bind:matches {teams} {defaultTeam} readonly={false} />
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>

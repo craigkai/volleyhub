@@ -4,6 +4,7 @@
 	import { showModal } from '$lib/helper.svelte';
 
 	export let match: MatchRow;
+
 	export let readOnly: boolean = false;
 
 	export let showWinLoss: boolean = true;

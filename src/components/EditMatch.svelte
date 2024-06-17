@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Label, Input } from 'flowbite-svelte';
 	import { Matches } from '$lib/matches.svelte';
-	import { pushState } from '$app/navigation';
+	import { closeModal } from '$lib/helper.svelte';
 	import type { Brackets } from '$lib/brackets.svelte';
 	import { updateMatch } from '$lib/helper.svelte';
 
@@ -9,12 +9,6 @@
 	export let matches: Matches | Brackets;
 
 	let match = matches?.matches?.find((m) => m.id === matchId);
-
-	function closeModal() {
-		pushState('', {
-			showModal: false
-		});
-	}
 </script>
 
 {#if match}
