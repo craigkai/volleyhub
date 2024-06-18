@@ -9,16 +9,14 @@
 	import { browser } from '$app/environment';
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
+	import { writable, derived } from 'svelte/store';
+	import type { PageData } from '$types';
 
-	let {
-		data,
-		tournament = $bindable(),
-		matches = $bindable(),
-		teams = $bindable(),
-		bracket = $bindable()
-	} = $props();
+	let { data = $bindable() }: { data: PageData } = $props();
+	let { tournament, bracket, teams, matches, defaultTeam } = $state(data);
 
-	let defaultTeam = $state({ value: data.default_team, label: data.default_team });
+	// Convert teams to a writable store
+	const teamsStore = writable(teams);
 
 	let historyReady = false;
 	onMount(async () => {
@@ -27,21 +25,26 @@
 	});
 
 	$effect(() => {
-		defaultTeam;
-
 		if (browser && historyReady) {
-			$page.url.searchParams.set('team', defaultTeam?.value);
-			const url = $page.url.href;
-			pushState(url, '');
+			const url = new URL($page.url);
+			if (defaultTeam?.value) {
+				url.searchParams.set('team', defaultTeam.value);
+			} else {
+				url.searchParams.delete('team');
+			}
+			pushState(url.href, '');
 		}
 	});
 
-	const teamsSelect =
-		teams?.teams
-			?.map((team: { name: any }) => {
-				return { value: team.name, name: team.name };
-			})
-			.concat([{ value: '', name: 'none' }]) || [];
+	const teamsSelect = derived(
+		teamsStore,
+		($teams) =>
+			$teams?.teams
+				?.map((team: { name: string }) => {
+					return { value: team.name, name: team.name };
+				})
+				.concat([{ value: '', name: 'none' }]) || []
+	);
 </script>
 
 <div class="flex flex-col items-center">
@@ -51,14 +54,14 @@
 		<Select.Root
 			bind:selected={defaultTeam}
 			onSelectedChange={(v) => {
-				v && (defaultTeam = { value: v, label: v });
+				if (v) defaultTeam = { value: v, label: v };
 			}}
 		>
 			<Select.Trigger class="w-[180px]">
 				<Select.Value placeholder="Select a team" />
 			</Select.Trigger>
 			<Select.Content>
-				{#each teamsSelect as team}
+				{#each $teamsSelect as team}
 					<Select.Item value={team.value} label={team.name}>{team.name}</Select.Item>
 				{/each}
 			</Select.Content>

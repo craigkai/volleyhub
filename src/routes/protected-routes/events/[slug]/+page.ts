@@ -4,7 +4,7 @@ import { formSchema as settingsSchema, type FormSchema } from '$schemas/settings
 import { zod } from 'sveltekit-superforms/adapters';
 import { initiateEvent } from '$lib/helper.svelte';
 
-export const load: PageLoad = async ({ params, parent }) => {
+export const load: PageLoad = async ({ params, parent, url }) => {
 	const { supabase } = await parent();
 
 	let { tournament, matches, teams, bracket } = await initiateEvent(
@@ -15,7 +15,15 @@ export const load: PageLoad = async ({ params, parent }) => {
 	if (params.slug === 'create') {
 		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
 
-		return { event_id: params.slug, form, tournament, matches, teams, bracket };
+		return {
+			event_id: params.slug,
+			form,
+			tournament,
+			matches,
+			teams,
+			bracket,
+			default_team: url.searchParams.get('team')
+		};
 	}
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
@@ -30,5 +38,13 @@ export const load: PageLoad = async ({ params, parent }) => {
 		zod(settingsSchema)
 	);
 
-	return { event_id: params.slug, form, tournament, matches, teams, bracket };
+	return {
+		event_id: params.slug,
+		form,
+		tournament,
+		matches,
+		teams,
+		bracket,
+		default_team: url.searchParams.get('team')
+	};
 };
