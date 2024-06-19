@@ -12,9 +12,7 @@
 	let currentUser: { data: { user: { aud: string } } } | undefined = $state();
 
 	async function getCurrentUser() {
-		return await supabase.auth.getUser().then((res: { data: { user: { aud: string } } }) => {
-			currentUser = res;
-		});
+		currentUser = await supabase.auth.getUser();
 	}
 
 	$effect(() => {

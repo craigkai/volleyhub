@@ -17,7 +17,7 @@
 				error(err.message);
 			});
 	}
-	const whoAmI = data?.session?.user?.email;
+	const whoAmI = data?.user?.email;
 </script>
 
 <div class="row flex-center flex justify-center">

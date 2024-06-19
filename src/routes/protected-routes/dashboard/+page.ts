@@ -11,7 +11,7 @@ export const load: PageLoad = async ({ parent }) => {
 	const eventsDatabaseService = new EventSupabaseDatabaseService(supabase);
 
 	const events = await eventsDatabaseService
-		.loadEvents(user?.user?.id as string)
+		.loadEvents(user?.id as string)
 		.catch((err: HttpError) => {
 			error(err.body.message);
 		});
