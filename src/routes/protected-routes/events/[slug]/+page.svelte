@@ -23,7 +23,7 @@
 
 	let { event_id, form } = data;
 
-	const isCreate = data?.event_id === 'create';
+	const isCreate = $derived(data?.event_id === 'create');
 </script>
 
 {#if $page.state.showModal && $page.state.matchId}

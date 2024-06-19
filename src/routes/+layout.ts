@@ -2,10 +2,7 @@ import { createBrowserClient, createServerClient, isBrowser, parse } from '@supa
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import type { LayoutLoad } from './$types';
 
-export const load: LayoutLoad = async ({ data, depends, fetch }) => {
-	// Declare a dependency so the layout can be invalidated, for example, on session refresh.
-	depends('supabase:auth');
-
+export const load: LayoutLoad = async ({ data, fetch }) => {
 	const supabase = isBrowser()
 		? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 				global: {
@@ -30,14 +27,17 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 			});
 
 	// Fetch the session and authenticated user
-	const { data: sessionData } = await supabase.auth.getSession();
-	const session = sessionData.session;
+	const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+	if (sessionError) {
+		console.error('Error fetching session:', sessionError);
+	}
+	const session = sessionData?.session;
 
 	const { data: userData, error: userError } = await supabase.auth.getUser();
 	if (userError) {
 		console.error('Error fetching authenticated user:', userError);
 	}
-	const user = userData.user;
+	const user = userData?.user;
 
 	return { session, supabase, user };
 };

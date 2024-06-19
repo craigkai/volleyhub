@@ -1,9 +1,20 @@
 <script lang="ts">
 	import { error, success } from '$lib/toast';
-	import * as Form from '$components/ui/form';
 	import { Input } from '$components/ui/input';
-	import * as Select from '$components/ui/select';
-	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
+	import { Field, Label, Control, Description, FieldErrors, Button } from '$components/ui/form';
+	import {
+		Value,
+		Root as SelectRoot,
+		Trigger as SelectTrigger,
+		Content as SelectContent,
+		Item as SelectItem
+	} from '$components/ui/select';
+	import {
+		Root as PopoverRoot,
+		Trigger as PopoverTrigger,
+		Content as PopoverContent
+	} from '$components/ui/popover';
+	import { superForm, type SuperValidated, type Infer } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { formSchema, type FormSchema } from '$schemas/settingsSchema';
 	import {
@@ -13,14 +24,13 @@
 		today,
 		parseDateTime
 	} from '@internationalized/date';
-	import { cn } from '$lib/utils.js';
+	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
-	import * as Popover from '$components/ui/popover';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 
-	export let data: SuperValidated<Infer<FormSchema>>;
-	export let event_id: number | 'create';
+	let { data, event_id }: { data: SuperValidated<Infer<FormSchema>>; event_id: number | 'create' } =
+		$props();
 
 	const form = superForm(data, {
 		validators: zodClient(formSchema),
@@ -37,25 +47,30 @@
 
 	let { form: formData, enhance } = form;
 
-	$: selectedRefValue = $formData.ref
-		? {
-				label: $formData.ref,
-				value: $formData.ref
-			}
-		: undefined;
+	const selectedRefValue = $derived(
+		$formData.ref
+			? {
+					label: $formData.ref,
+					value: $formData.ref
+				}
+			: undefined
+	);
 
 	const df = new DateFormatter('en-US', {
 		dateStyle: 'long'
 	});
-	$: dateValue = $formData.date ? parseDateTime($formData.date) : undefined;
-	let datePlaceholder: DateValue = today(getLocalTimeZone());
 
-	$: scoringValue = $formData.scoring
-		? {
-				label: $formData.scoring,
-				value: $formData.scoring
-			}
-		: undefined;
+	const dateValue = $derived($formData.date ? parseDateTime($formData.date) : undefined);
+	let datePlaceholder: DateValue = $state(today(getLocalTimeZone()));
+
+	const scoringValue = $derived(
+		$formData.scoring
+			? {
+					label: $formData.scoring,
+					value: $formData.scoring
+				}
+			: undefined
+	);
 </script>
 
 <form
@@ -65,114 +80,114 @@
 	use:enhance
 >
 	<div class="form-field">
-		<Form.Field {form} name="name">
-			<Form.Control let:attrs>
-				<Form.Label class="form-label dark:text-gray-300">Name</Form.Label>
+		<Field {form} name="name">
+			<Control let:attrs>
+				<Label class="form-label dark:text-gray-300">Name</Label>
 				<Input {...attrs} bind:value={$formData.name} class="dark:bg-gray-700 dark:text-gray-200" />
-			</Form.Control>
-			<Form.Description class="form-description dark:text-gray-400">
+			</Control>
+			<Description class="form-description dark:text-gray-400">
 				This is your public display name for your event.
-			</Form.Description>
-			<Form.FieldErrors class="form-errors dark:text-red-400" />
-		</Form.Field>
+			</Description>
+			<FieldErrors class="form-errors dark:text-red-400" />
+		</Field>
 	</div>
 
 	<div class="form-field">
-		<Form.Field {form} name="courts">
-			<Form.Control let:attrs>
-				<Form.Label class="form-label dark:text-gray-300">Number of Courts</Form.Label>
+		<Field {form} name="courts">
+			<Control let:attrs>
+				<Label class="form-label dark:text-gray-300">Number of Courts</Label>
 				<Input
 					{...attrs}
 					type="number"
 					bind:value={$formData.courts}
 					class="dark:bg-gray-700 dark:text-gray-200"
 				/>
-			</Form.Control>
-			<Form.Description class="form-description dark:text-gray-400">
+			</Control>
+			<Description class="form-description dark:text-gray-400">
 				Number of Courts available for pool play
-			</Form.Description>
-			<Form.FieldErrors class="form-errors dark:text-red-400" />
-		</Form.Field>
+			</Description>
+			<FieldErrors class="form-errors dark:text-red-400" />
+		</Field>
 	</div>
 
 	<div class="form-field">
-		<Form.Field {form} name="pools">
-			<Form.Control let:attrs>
-				<Form.Label class="form-label dark:text-gray-300">Number of pool play games</Form.Label>
+		<Field {form} name="pools">
+			<Control let:attrs>
+				<Label class="form-label dark:text-gray-300">Number of pool play games</Label>
 				<Input
 					{...attrs}
 					type="number"
 					bind:value={$formData.pools}
 					class="dark:bg-gray-700 dark:text-gray-200"
 				/>
-			</Form.Control>
-			<Form.Description class="form-description dark:text-gray-400">
+			</Control>
+			<Description class="form-description dark:text-gray-400">
 				Number of pool play games before the next stage (single/double elim)
-			</Form.Description>
-			<Form.FieldErrors class="form-errors dark:text-red-400" />
-		</Form.Field>
+			</Description>
+			<FieldErrors class="form-errors dark:text-red-400" />
+		</Field>
 	</div>
 
 	<div class="form-field">
-		<Form.Field {form} name="ref">
-			<Form.Control let:attrs>
-				<Form.Label class="form-label dark:text-gray-300">Ref's</Form.Label>
-				<Select.Root
+		<Field {form} name="ref">
+			<Control let:attrs>
+				<Label class="form-label dark:text-gray-300">Ref's</Label>
+				<SelectRoot
 					selected={selectedRefValue}
 					onSelectedChange={(v) => {
 						v && ($formData.ref = v.value);
 					}}
 				>
-					<Select.Trigger {...attrs} class="dark:bg-gray-700 dark:text-gray-200">
-						<Select.Value placeholder="Select who will be ref'ing" />
-					</Select.Trigger>
-					<Select.Content>
-						<Select.Item value="teams" label="Teams" />
-						<Select.Item value="provided" label="Provided" />
-					</Select.Content>
-				</Select.Root>
+					<SelectTrigger {...attrs} class="dark:bg-gray-700 dark:text-gray-200">
+						<Value placeholder="Select who will be ref'ing" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="teams" label="Teams" />
+						<SelectItem value="provided" label="Provided" />
+					</SelectContent>
+				</SelectRoot>
 				<input hidden value={$formData.ref} name={attrs.name} />
-			</Form.Control>
-			<Form.Description class="form-description dark:text-gray-400">
+			</Control>
+			<Description class="form-description dark:text-gray-400">
 				Source of refs, either provided by pulling from participants or provided externally.
-			</Form.Description>
-			<Form.FieldErrors class="form-errors dark:text-red-400" />
-		</Form.Field>
+			</Description>
+			<FieldErrors class="form-errors dark:text-red-400" />
+		</Field>
 	</div>
 
 	<div class="form-field">
-		<Form.Field {form} name="scoring">
-			<Form.Control let:attrs>
-				<Form.Label class="form-label dark:text-gray-300">Scoring Method</Form.Label>
-				<Select.Root
+		<Field {form} name="scoring">
+			<Control let:attrs>
+				<Label class="form-label dark:text-gray-300">Scoring Method</Label>
+				<SelectRoot
 					selected={scoringValue}
 					onSelectedChange={(v) => {
 						v && ($formData.scoring = v.value);
 					}}
 				>
-					<Select.Trigger {...attrs} class="dark:bg-gray-700 dark:text-gray-200">
-						<Select.Value placeholder="Seeding for playoffs based on score of just wins?" />
-					</Select.Trigger>
-					<Select.Content>
-						<Select.Item value="points" label="Points" />
-						<Select.Item value="wins" label="Wins" />
-					</Select.Content>
-				</Select.Root>
+					<SelectTrigger {...attrs} class="dark:bg-gray-700 dark:text-gray-200">
+						<Value placeholder="Seeding for playoffs based on score of just wins?" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="points" label="Points" />
+						<SelectItem value="wins" label="Wins" />
+					</SelectContent>
+				</SelectRoot>
 				<input hidden value={$formData.scoring} name={attrs.name} />
-			</Form.Control>
-			<Form.Description class="form-description dark:text-gray-400">
+			</Control>
+			<Description class="form-description dark:text-gray-400">
 				Seeding for playoffs based on score of just wins.
-			</Form.Description>
-			<Form.FieldErrors class="form-errors dark:text-red-400" />
-		</Form.Field>
+			</Description>
+			<FieldErrors class="form-errors dark:text-red-400" />
+		</Field>
 	</div>
 
 	<div class="form-field flex flex-col">
-		<Form.Field {form} name="date">
-			<Form.Control let:attrs>
-				<Form.Label class="form-label dark:text-gray-300">Date</Form.Label>
-				<Popover.Root>
-					<Popover.Trigger
+		<Field {form} name="date">
+			<Control let:attrs>
+				<Label class="form-label dark:text-gray-300">Date</Label>
+				<PopoverRoot>
+					<PopoverTrigger
 						{...attrs}
 						class={cn(
 							buttonVariants({ variant: 'outline' }),
@@ -183,8 +198,8 @@
 					>
 						{dateValue ? df.format(dateValue.toDate(getLocalTimeZone())) : 'Pick a date'}
 						<CalendarIcon class="ml-auto h-4 w-4 opacity-50" />
-					</Popover.Trigger>
-					<Popover.Content class="w-auto p-0" side="top">
+					</PopoverTrigger>
+					<PopoverContent class="w-auto p-0" side="top">
 						<Calendar
 							value={dateValue}
 							bind:placeholder={datePlaceholder}
@@ -199,25 +214,24 @@
 								}
 							}}
 						/>
-					</Popover.Content>
-				</Popover.Root>
-				<Form.Description class="form-description dark:text-gray-400"
-					>Date of tournament</Form.Description
-				>
-				<Form.FieldErrors class="form-errors dark:text-red-400" />
+					</PopoverContent>
+				</PopoverRoot>
+				<Description class="form-description dark:text-gray-400">Date of tournament</Description>
+				<FieldErrors class="form-errors dark:text-red-400" />
 				<input hidden value={$formData.date} name={attrs.name} />
-			</Form.Control>
-		</Form.Field>
+			</Control>
+		</Field>
 	</div>
 	<div class="flex justify-center">
-		<Form.Button class="m-2 dark:bg-gray-700 dark:text-gray-200">Submit</Form.Button>
+		<Button class="m-2 dark:bg-gray-700 dark:text-gray-200">Submit</Button>
 	</div>
 </form>
+
 {#if event_id !== 'create'}
 	<form method="POST" action="?/deleteEvent" use:enhance>
 		<div class="flex justify-center">
-			<Form.Button class="m-2 bg-red-500 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-900"
-				>Delete</Form.Button
+			<Button class="m-2 bg-red-500 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-900"
+				>Delete</Button
 			>
 		</div>
 	</form>

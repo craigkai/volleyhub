@@ -11,14 +11,13 @@ export class Matches extends Base {
 
 	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
 		super();
-
 		this.databaseService = databaseService;
 		this.event_id = Number(event_id);
 	}
 
 	/*
-	Load all matches for the current tournament.
-	*/
+    Load all matches for the current tournament.
+    */
 	async load() {
 		const res = await this.databaseService.load(this.event_id, {
 			column: 'type',
@@ -36,6 +35,7 @@ export class Matches extends Base {
 	): Promise<void> {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
+		console.log(payload);
 
 		// If we don't have the matches loaded, load them
 		if (Object.keys(old).length === 0 || Object.keys(updated).length === 0) {
@@ -55,19 +55,12 @@ export class Matches extends Base {
 		}
 
 		const matchesArray = self.matches;
-
 		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
-		if (matchIndex !== undefined && matchIndex !== -1) {
-			if (matchesArray) {
-				updated.public_matches_team1_fkey = matchesArray[matchIndex].public_matches_team1_fkey;
-				updated.public_matches_team2_fkey = matchesArray[matchIndex].public_matches_team2_fkey;
-				updated.public_matches_ref_fkey = matchesArray[matchIndex].public_matches_ref_fkey;
-			}
 
-			matchesArray?.splice(matchIndex, 1, updated as MatchRow);
-			const matches = matchesArray;
-
-			self.matches = matches;
+		if (matchIndex !== undefined && matchIndex !== -1 && matchesArray) {
+			const updatedMatch = { ...matchesArray[matchIndex], ...updated };
+			matchesArray.splice(matchIndex, 1, updatedMatch as MatchRow);
+			self.matches = matchesArray;
 		} else {
 			self.handleError(400, `Failed to find match to update.`);
 		}
@@ -78,7 +71,7 @@ export class Matches extends Base {
 			this,
 			this.handleUpdate,
 			'matches',
-			'event_id=eq.' + this.event_id
+			`event_id=eq.${this.event_id}`
 		);
 	}
 
@@ -149,7 +142,7 @@ export class Matches extends Base {
 	): { rounds: number; courtsPerRound: number } {
 		const numberOfTeams = teams.length;
 		const rounds = numberOfTeams % 2 === 0 ? numberOfTeams - 1 : numberOfTeams;
-		const courtsPerRound = Math.min(courts, numberOfTeams / 2);
+		const courtsPerRound = Math.min(courts, Math.floor(numberOfTeams / 2));
 		return { rounds, courtsPerRound };
 	}
 
@@ -167,7 +160,7 @@ export class Matches extends Base {
 	prepareUserMatches(
 		matches: Partial<MatchRow>[],
 		courts: number,
-		teams: string | any[],
+		teams: TeamRow[],
 		pools: number
 	) {
 		let courtsAvailable = courts;
@@ -198,7 +191,7 @@ export class Matches extends Base {
 				match.court = courts - courtsAvailable;
 				match.round = round;
 
-				courtsAvailable = courtsAvailable - 1;
+				courtsAvailable -= 1;
 				if (teamsAvailable >= 2) {
 					userMatches.push({
 						event_id: this.event_id as number,
@@ -211,10 +204,10 @@ export class Matches extends Base {
 						child_id: match?.child_id as number
 					});
 				}
-				teamsAvailable = teamsAvailable - 2;
+				teamsAvailable -= 2;
 
 				if (teamsAvailable < 2 || courtsAvailable === 0) {
-					round = round + 1;
+					round += 1;
 					courtsAvailable = courts;
 					teamsAvailable = teams.length;
 				}
@@ -279,9 +272,7 @@ if (import.meta.vitest) {
 			updateTournament: vi.fn(() => console.log('mockDatabaseService.updateTournament called')),
 			getCurrentUser: vi.fn(() => {
 				console.log('mockDatabaseService.getCurrentUser called');
-				return {
-					id: 1
-				};
+				return { id: 1 };
 			}),
 			createEvent: vi.fn((input: any) => {
 				console.log('mockDatabaseService.createEvent called');
@@ -305,16 +296,15 @@ if (import.meta.vitest) {
 			refs: 'provided'
 		};
 
-		const teams = Array.from({ length: 2 }, (_x, i) => {
-			return {
-				id: `team${i}`,
-				event_id: '1',
-				created_at: null, // Add the created_at property with a value of null
-				name: '', // Add the name property with an empty string value
-				state: null // Add the state property with a value of null
-			};
-		});
-		await matches.load(); // Ensure matches are loaded before creating new ones
+		const teams = Array.from({ length: 2 }, (_x, i) => ({
+			id: `team${i}`,
+			event_id: '1',
+			created_at: null,
+			name: '',
+			state: null
+		}));
+
+		await matches.load();
 		await matches.create(input, teams);
 
 		expect(matches.matches?.length).toEqual(1);
@@ -339,16 +329,15 @@ if (import.meta.vitest) {
 			refs: 'teams'
 		};
 
-		const teams = Array.from({ length: 4 }, (_x, i) => {
-			return {
-				id: `team${i}`,
-				event_id: '1',
-				created_at: '',
-				name: `team${i}`,
-				state: 'active'
-			};
-		});
-		await matches.load(); // Ensure matches are loaded before creating new ones
+		const teams = Array.from({ length: 4 }, (_x, i) => ({
+			id: `team${i}`,
+			event_id: '1',
+			created_at: '',
+			name: `team${i}`,
+			state: 'active'
+		}));
+
+		await matches.load();
 		await matches.create(input, teams);
 
 		// Teams / 2 * pool play
@@ -374,16 +363,15 @@ if (import.meta.vitest) {
 			refs: 'teams'
 		};
 
-		const teams = Array.from({ length: 7 }, (_x, i) => {
-			return {
-				id: `${i + 1}`,
-				event_id: '1',
-				created_at: '',
-				name: `team${i}`,
-				state: 'active'
-			};
-		});
-		await matches.load(); // Ensure matches are loaded before creating new ones
+		const teams = Array.from({ length: 7 }, (_x, i) => ({
+			id: `${i + 1}`,
+			event_id: '1',
+			created_at: '',
+			name: `team${i}`,
+			state: 'active'
+		}));
+
+		await matches.load();
 		await matches.create(input, teams);
 
 		const refGamesPerTeam: any = {};
