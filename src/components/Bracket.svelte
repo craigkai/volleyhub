@@ -24,23 +24,25 @@
 	} = $props();
 
 	let rounds: Record<number, Round> = $state({});
+	let numRounds = 0;
 
 	function determineRounds() {
-		rounds = {};
+		const newRounds: Record<number, Round> = {};
 		bracket?.matches?.forEach((match) => {
-			if (!rounds[match.round]) {
-				rounds[match.round] = {
+			if (!newRounds[match.round]) {
+				newRounds[match.round] = {
 					matches: [match],
 					value: match.round
 				};
 			} else {
-				rounds[match.round].matches.push(match);
+				newRounds[match.round].matches.push(match);
 			}
 		});
+		rounds = newRounds;
+		numRounds = Object.keys(newRounds).length;
 	}
 
 	$effect(() => {
-		bracket.matches;
 		determineRounds();
 	});
 
@@ -51,7 +53,9 @@
 	let matchesSubscription: RealtimeChannel | undefined;
 
 	async function subscribeToMatches() {
-		matchesSubscription = await bracket.subscribeToMatches();
+		if (!matchesSubscription) {
+			matchesSubscription = await bracket.subscribeToMatches();
+		}
 	}
 
 	if (bracket.matches) {
@@ -67,19 +71,13 @@
 			);
 			if (!res) {
 				error('Failed to create matches');
-			} else if (!matchesSubscription) {
+			} else {
 				subscribeToMatches();
 			}
 		} catch (err) {
 			error((err as HttpError).toString());
 		}
 	}
-
-	let numRounds = $state({
-		get a() {
-			return Object.keys(rounds).length;
-		}
-	});
 </script>
 
 {#if !readOnly && (!bracket?.matches || bracket.matches.length === 0)}
