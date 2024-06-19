@@ -7,13 +7,16 @@
 	import { updateMatch } from '$lib/helper.svelte';
 	import { error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
+	import { Event } from '$lib/event.svelte';
 
 	let {
 		matches = $bindable(),
 		bracket = $bindable(),
 		teams = $bindable(),
+		tournament = $bindable(),
 		readOnly = false
 	}: {
+		tournament: Event;
 		matches: Matches;
 		bracket: Brackets;
 		teams: Teams;
