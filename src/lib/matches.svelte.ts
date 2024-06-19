@@ -35,34 +35,28 @@ export class Matches extends Base {
 	): Promise<void> {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
-		console.log(payload);
 
-		// If we don't have the matches loaded, load them
-		if (Object.keys(old).length === 0 || Object.keys(updated).length === 0) {
+		// If matches are not loaded, load them
+		if (!self.matches) {
 			await self.load();
 			return;
 		}
 
-		if (self.constructor.name === 'Brackets') {
-			if (updated.type !== 'bracket') {
-				// Updated match is not a bracket match, so we don't care about it
-				return;
-			} else {
-				// Generate next bracket match
-				await self.load();
-				(self as Brackets).nextRound(old, updated);
-			}
+		// Find the index of the match to be updated in the matches array
+		const matchIndex = self.matches.findIndex((m: MatchRow) => m.id === old.id);
+
+		if (matchIndex !== -1) {
+			// Update the match at matchIndex with updated data
+			const updatedMatch = { ...self.matches[matchIndex], ...updated };
+			self.matches.splice(matchIndex, 1, updatedMatch);
+		} else {
+			// If matchIndex is -1, match with old.id was not found
+			self.handleError(400, `Failed to find match to update.`);
 		}
 
-		const matchesArray = self.matches;
-		const matchIndex = matchesArray?.findIndex((m: MatchRow) => m.id === old.id);
-
-		if (matchIndex !== undefined && matchIndex !== -1 && matchesArray) {
-			const updatedMatch = { ...matchesArray[matchIndex], ...updated };
-			matchesArray.splice(matchIndex, 1, updatedMatch as MatchRow);
-			self.matches = matchesArray;
-		} else {
-			self.handleError(400, `Failed to find match to update.`);
+		// If handling brackets and the match type is 'bracket', perform additional logic
+		if (self.constructor.name === 'Brackets' && updated.type === 'bracket') {
+			(self as Brackets).nextRound(old, updated);
 		}
 	}
 
