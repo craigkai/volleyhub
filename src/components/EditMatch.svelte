@@ -5,8 +5,8 @@
 	import type { Brackets } from '$lib/brackets.svelte';
 	import { updateMatch } from '$lib/helper.svelte';
 
-	export let matchId: number;
-	export let matches: Matches | Brackets;
+	let { matchId, matches = $bindable() }: { matchId: number; matches: Matches | Brackets } =
+		$props();
 
 	let match = matches?.matches?.find((m) => m.id === matchId);
 </script>
