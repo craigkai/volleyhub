@@ -7,6 +7,11 @@
 	let { teams = $bindable() }: { teams: Teams } = $props();
 
 	async function createTeam() {
+		if (teams.teams.findIndex((team) => team.name === newTeamName) !== -1) {
+			error('Team already exists');
+			return;
+		}
+
 		try {
 			const newTeam: Partial<TeamRow> = {
 				name: newTeamName,
@@ -44,7 +49,7 @@
 <div class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Teams:</div>
 
 <Table.Root class="min-w-full bg-white dark:bg-gray-800">
-	<Table.Caption>A list of your recent invoices.</Table.Caption>
+	<Table.Caption>A list of your teams.</Table.Caption>
 	<Table.Body>
 		{#each teams?.teams as team}
 			<Table.Row>

@@ -20,11 +20,11 @@
 		matches: Matches;
 		bracket: Brackets;
 		teams: Teams;
-		readonly: Boolean;
+		readOnly: Boolean;
 	} = $props();
 
 	let rounds: Record<number, Round> = $state({});
-	let numRounds = 0;
+	let numRounds = $state(0);
 
 	function determineRounds() {
 		const newRounds: Record<number, Round> = {};
@@ -73,6 +73,7 @@
 				error('Failed to create matches');
 			} else {
 				subscribeToMatches();
+				await bracket.load();
 			}
 		} catch (err) {
 			error((err as HttpError).toString());

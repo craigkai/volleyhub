@@ -13,7 +13,6 @@
 	import { closeModal } from '$lib/helper.svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
-	let { tournament, bracket, teams, matches, defaultTeam } = $state(data);
 
 	let open = $state($page.state.showModal);
 
@@ -35,9 +34,9 @@
 	>
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
-				<EditMatch matchId={$page.state.matchId as number} bind:matches />
+				<EditMatch matchId={$page.state.matchId as number} bind:matches={data.matches} />
 			{:else}
-				<EditMatch matchId={$page.state.matchId as number} bind:matches={bracket} />
+				<EditMatch matchId={$page.state.matchId as number} bind:matches={data.bracket} />
 			{/if}
 		</AlertDialog.Content>
 	</AlertDialog.Root>
@@ -82,7 +81,13 @@
 						<Card.Description>Update pool play match results</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Matches bind:tournament bind:matches {teams} {defaultTeam} readonly={false} />
+						<Matches
+							bind:tournament={data.tournament}
+							bind:matches={data.matches}
+							teams={data.teams}
+							defaultTeam={data.defaultTeam}
+							readonly={false}
+						/>
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
@@ -93,7 +98,12 @@
 						<Card.Description>Current standings based on pool play results</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Standings event={data} {matches} {teams} {defaultTeam} />
+						<Standings
+							event={data}
+							bind:matches={data.matches}
+							teams={data.teams}
+							defaultTeam={data.defaultTeam}
+						/>
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
@@ -104,7 +114,13 @@
 						<Card.Description>Single/Double elim bracket</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Bracket {tournament} {bracket} {teams} {matches} readOnly={false} />
+						<Bracket
+							tournament={data.tournament}
+							bind:bracket={data.bracket}
+							bind:matches={data.matches}
+							teams={data.teams}
+							readOnly={false}
+						/>
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
