@@ -36,6 +36,17 @@ export class Matches extends Base {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
+		if (self.constructor.name === 'Brackets') {
+			if (updated.type !== 'bracket') {
+				// Updated match is not a bracket match, so we don't care about it
+				return;
+			} else {
+				// Generate next bracket match
+				await self.load();
+				(self as Brackets).nextRound(old, updated);
+			}
+		}
+
 		// If matches are not loaded, load them
 		if (!self.matches) {
 			await self.load();
@@ -52,11 +63,6 @@ export class Matches extends Base {
 		} else {
 			// If matchIndex is -1, match with old.id was not found
 			self.handleError(400, `Failed to find match to update.`);
-		}
-
-		// If handling brackets and the match type is 'bracket', perform additional logic
-		if (self.constructor.name === 'Brackets' && updated.type === 'bracket') {
-			(self as Brackets).nextRound(old, updated);
 		}
 	}
 

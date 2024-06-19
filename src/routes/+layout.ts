@@ -33,11 +33,10 @@ export const load: LayoutLoad = async ({ data, fetch }) => {
 	}
 	const session = sessionData?.session;
 
-	const { data: userData, error: userError } = await supabase.auth.getUser();
+	const { data: user, error: userError } = await supabase.auth.getUser();
 	if (userError) {
 		console.error('Error fetching authenticated user:', userError);
 	}
-	const user = userData?.user;
 
 	return { session, supabase, user };
 };

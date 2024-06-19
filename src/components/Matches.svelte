@@ -18,7 +18,7 @@
 		matches: Matches;
 		tournament: Event;
 		teams: Teams;
-		readonly: Boolean;
+		readOnly: Boolean;
 		defaultTeam: { value: string; label: string };
 	} = $props();
 

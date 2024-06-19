@@ -7,7 +7,7 @@
 
 	let { supabase, authChange = $bindable() }: { supabase: any; authChange: Boolean } = $props();
 
-	let open: boolean = true;
+	let open: boolean = $state(true);
 
 	let currentUser: { data: { user: { aud: string } } } | undefined = $state();
 
