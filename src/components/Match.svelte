@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as Tooltip from '$components/ui/tooltip';
+	import * as Popover from '$components/ui/popover';
 	import { page } from '$app/stores';
 	import { showModal } from '$lib/helper.svelte';
 
@@ -13,8 +13,8 @@
 	const lossClass = 'bg-red-300 dark:bg-red-700';
 </script>
 
-<Tooltip.Root>
-	<Tooltip.Trigger>
+<Popover.Root>
+	<Popover.Trigger>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
@@ -55,11 +55,11 @@
 					: ''}">{match?.public_matches_team2_fkey?.name}</span
 			>
 		</div>
-	</Tooltip.Trigger>
+	</Popover.Trigger>
 
-	<Tooltip.Content>
+	<Popover.Content>
 		{#if match?.team1_score && match?.team2_score}
 			<p>{match?.team1_score} to {match?.team2_score}</p>
 		{/if}
-	</Tooltip.Content>
-</Tooltip.Root>
+	</Popover.Content>
+</Popover.Root>
