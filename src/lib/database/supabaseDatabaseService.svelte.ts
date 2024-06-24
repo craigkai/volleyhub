@@ -83,10 +83,17 @@ export class SupabaseDatabaseService {
 		table: string,
 		filter?: string
 	): Promise<RealtimeChannel> {
-		console.debug('Subscribing to changes for table ' + table + ' with filter ' + filter);
+		console.debug(
+			'Subscribing to changes for table ' +
+				table +
+				' with filter ' +
+				filter +
+				' constructor ' +
+				self.constructor.name
+		);
 
 		return this.supabaseClient
-			.channel('*')
+			.channel(self.constructor.name)
 			.on(
 				'postgres_changes',
 				{ event: '*', schema: 'public', table: table, filter: filter },

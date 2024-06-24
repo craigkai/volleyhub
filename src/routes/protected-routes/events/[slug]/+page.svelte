@@ -86,7 +86,7 @@
 							bind:matches={data.matches}
 							teams={data.teams}
 							defaultTeam={data.defaultTeam}
-							readonly={false}
+							readOnly={false}
 						/>
 					</Card.Content>
 				</Card.Root>
