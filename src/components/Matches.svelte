@@ -7,6 +7,7 @@
 	import * as Alert from '$components/ui/alert/index.js';
 	import type { HttpError } from '@sveltejs/kit';
 	import type { Teams } from '$lib/teams.svelte';
+	import { onMount } from 'svelte';
 
 	let {
 		matches = $bindable(),
@@ -37,9 +38,9 @@
 		matchesSubscription = await matches.subscribeToMatches();
 	}
 
-	if (matches.matches) {
-		subscribeToMatches();
-	}
+	onMount(() => {
+		if (matches.matches) subscribeToMatches();
+	});
 
 	async function generateMatches(): Promise<void> {
 		try {

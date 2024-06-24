@@ -8,6 +8,7 @@
 	import { error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
 	import { Event } from '$lib/event.svelte';
+	import { onMount } from 'svelte';
 
 	let {
 		matches = $bindable(),
@@ -58,9 +59,9 @@
 		}
 	}
 
-	if (bracket.matches) {
-		subscribeToMatches();
-	}
+	onMount(() => {
+		if (bracket.matches) subscribeToMatches();
+	});
 
 	async function handleGenerateBracket() {
 		try {
