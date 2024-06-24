@@ -13,13 +13,11 @@
 
 	inject({ mode: dev ? 'development' : 'production' });
 
-	let { data, authChange, children } = $props();
+	let { data, children, authChange } = $props();
 	let { session, supabase } = data;
 
 	onMount(() => {
-		const { data } = supabase.auth.onAuthStateChange((_: any, newSession: { expires_at: any }) => {
-			authChange = !authChange;
-
+		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
 			if (!newSession) {
 				/**
 				 * Queue this as a task so the navigation won't prevent the

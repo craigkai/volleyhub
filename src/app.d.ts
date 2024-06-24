@@ -44,8 +44,9 @@ declare global {
 	interface PageData {
 		eventName?: string;
 		eventId?: string;
+		safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
 		supabase: SupabaseClient<Database>;
-		session: import('@supabase/auth-helpers-sveltekit').SupabaseSession;
+		session: Session;
 	}
 
 	namespace App {
