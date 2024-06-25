@@ -48,10 +48,10 @@
 	let { form: formData, enhance } = form;
 
 	const selectedRefValue = $derived(
-		$formData.ref
+		$formData.refs
 			? {
-					label: $formData.ref,
-					value: $formData.ref
+					label: $formData.refs,
+					value: $formData.refs
 				}
 			: undefined
 	);
@@ -129,13 +129,13 @@
 	</div>
 
 	<div class="form-field">
-		<Field {form} name="ref">
+		<Field {form} name="refs">
 			<Control let:attrs>
 				<Label class="form-label dark:text-gray-300">Ref's</Label>
 				<SelectRoot
 					selected={selectedRefValue}
 					onSelectedChange={(v) => {
-						v && ($formData.ref = v.value);
+						v && ($formData.refs = v.value);
 					}}
 				>
 					<SelectTrigger {...attrs} class="dark:bg-gray-700 dark:text-gray-200">
@@ -146,7 +146,7 @@
 						<SelectItem value="provided" label="Provided" />
 					</SelectContent>
 				</SelectRoot>
-				<input hidden value={$formData.ref} name={attrs.name} />
+				<input hidden value={$formData.refs} name={attrs.name} />
 			</Control>
 			<Description class="form-description dark:text-gray-400">
 				Source of refs, either provided by pulling from participants or provided externally.

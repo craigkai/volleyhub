@@ -38,6 +38,7 @@ export const actions: Actions = {
 		let tournament = new Event(event_id, eventSupabaseDatabaseService);
 
 		try {
+			console.log(form.data);
 			await tournament.update(event_id, form.data);
 			form.data = eventsUpdateSchema.parse(tournament);
 

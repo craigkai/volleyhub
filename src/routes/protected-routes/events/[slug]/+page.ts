@@ -31,7 +31,7 @@ export const load: PageLoad = async ({ params, parent, url }) => {
 			name: tournament.name,
 			courts: tournament.courts,
 			pools: tournament.pools,
-			ref: tournament.refs,
+			refs: tournament.refs,
 			date: tournament.date,
 			scoring: tournament.scoring
 		},
