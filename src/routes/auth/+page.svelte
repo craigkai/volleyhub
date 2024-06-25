@@ -14,22 +14,6 @@
 	let message = '';
 	let method = 'magic';
 
-	const handleSignUp = async () => {
-		try {
-			const { error } = await supabase.auth.signUp({
-				email,
-				password,
-				options: {
-					emailRedirectTo: `${data.url}/auth/confirm`
-				}
-			});
-			if (error) throw error;
-			message = "We've sent you an email to confirm your account";
-		} catch (err) {
-			errorString = err.message;
-		}
-	};
-
 	const handleSignInOtp = async () => {
 		if (!email) {
 			errorString = 'Please enter your email address.';
@@ -69,16 +53,6 @@
 			});
 			if (error) throw error;
 			goto('/protected-routes/dashboard');
-		} catch (err) {
-			errorString = err.message;
-		}
-	};
-
-	const handleSignOut = async () => {
-		try {
-			const { error } = await supabase.auth.signOut();
-			if (error) throw error;
-			goto('/');
 		} catch (err) {
 			errorString = err.message;
 		}
@@ -177,11 +151,7 @@
 		<div class="space-y-4">
 			<Button
 				class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-				on:click={() => (method = 'password')}>Already have an account? Sign In</Button
-			>
-			<Button
-				class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-				on:click={handleSignOut}>Sign Out</Button
+				on:click={() => (method = 'password')}>Already have an account? Sign In With Email</Button
 			>
 		</div>
 		{#if message}
