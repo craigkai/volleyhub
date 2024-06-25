@@ -13,53 +13,60 @@
 	const lossClass = 'bg-red-300 dark:bg-red-700';
 </script>
 
-<Popover.Root>
-	<Popover.Trigger>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="flex justify-center place-items-center"
-			onclick={() => {
-				if (!readOnly && !$page.state.showModal) {
-					showModal(match?.id, 'pool');
-				}
-			}}
+{#snippet matchView()}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="flex justify-center place-items-center"
+		onclick={() => {
+			if (!readOnly && !$page.state.showModal) {
+				showModal(match?.id, 'pool');
+			}
+		}}
+	>
+		<span
+			class="p-1 rounded {showWinLoss &&
+			match?.team1_score &&
+			match?.team2_score &&
+			match.team1_score > match.team2_score
+				? winClass
+				: ''} {showWinLoss &&
+			match?.team1_score &&
+			match?.team2_score &&
+			match.team2_score > match.team1_score
+				? lossClass
+				: ''}"
 		>
-			<span
-				class="p-1 rounded {showWinLoss &&
-				match?.team1_score &&
-				match?.team2_score &&
-				match.team1_score > match.team2_score
-					? winClass
-					: ''} {showWinLoss &&
-				match?.team1_score &&
-				match?.team2_score &&
-				match.team2_score > match.team1_score
-					? lossClass
-					: ''}"
-			>
-				{match?.public_matches_team1_fkey?.name}</span
-			>
-			vs
-			<span
-				class="p-1 rounded {showWinLoss &&
-				match?.team1_score &&
-				match?.team2_score &&
-				match.team2_score > match.team1_score
-					? winClass
-					: ''} {showWinLoss &&
-				match?.team1_score &&
-				match?.team2_score &&
-				match?.team1_score > match?.team2_score
-					? lossClass
-					: ''}">{match?.public_matches_team2_fkey?.name}</span
-			>
-		</div>
-	</Popover.Trigger>
+			{match?.public_matches_team1_fkey?.name}</span
+		>
+		vs
+		<span
+			class="p-1 rounded {showWinLoss &&
+			match?.team1_score &&
+			match?.team2_score &&
+			match.team2_score > match.team1_score
+				? winClass
+				: ''} {showWinLoss &&
+			match?.team1_score &&
+			match?.team2_score &&
+			match?.team1_score > match?.team2_score
+				? lossClass
+				: ''}">{match?.public_matches_team2_fkey?.name}</span
+		>
+	</div>
+{/snippet}
+{#if readOnly}
+	<Popover.Root>
+		<Popover.Trigger>
+			{@render matchView()}
+		</Popover.Trigger>
 
-	<Popover.Content>
-		{#if match?.team1_score && match?.team2_score}
-			<p>{match?.team1_score} to {match?.team2_score}</p>
-		{/if}
-	</Popover.Content>
-</Popover.Root>
+		<Popover.Content>
+			{#if match?.team1_score && match?.team2_score}
+				<p>{match?.team1_score} to {match?.team2_score}</p>
+			{/if}
+		</Popover.Content>
+	</Popover.Root>
+{:else}
+	{@render matchView()}
+{/if}
