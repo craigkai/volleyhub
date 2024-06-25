@@ -2,22 +2,23 @@
 	import '../app.postcss';
 	import Header from '$components/Header.svelte';
 	import Footer from '$components/Footer.svelte';
-	import { goto, invalidate } from '$app/navigation';
 	import { ModeWatcher } from 'mode-watcher';
-	import { onMount } from 'svelte';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
 	import type { SvelteToastOptions } from '@zerodevx/svelte-toast/stores';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
 	import { error } from '$lib/toast';
+	import { goto, invalidate } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	inject({ mode: dev ? 'development' : 'production' });
 
-	let { data, children, authChange } = $props();
+	let { data = $bindable(), children } = $props();
 	let { session, supabase, isMobile } = data;
 
 	onMount(() => {
 		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+			console.log('newSession', newSession);
 			if (!newSession) {
 				/**
 				 * Queue this as a task so the navigation won't prevent the
@@ -40,6 +41,10 @@
 	function handleError(err: string | SvelteToastOptions) {
 		error(err);
 	}
+
+	function setTimeout(arg0: () => void) {
+		throw new Error('Function not implemented.');
+	}
 </script>
 
 <svelte:window on:error={handleError} />
@@ -50,7 +55,7 @@
 <div class="dark:bg-gray-900 dark:text-gray-100 text-gray-900 bg-white">
 	<ModeWatcher defaultMode={'light'} />
 
-	<Header {supabase} {isMobile} bind:authChange />
+	<Header {supabase} {isMobile} />
 
 	<div class="min-h-screen">
 		<div class="wrap">

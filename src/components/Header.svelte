@@ -5,11 +5,7 @@
 	import Moon from 'lucide-svelte/icons/moon';
 	import { toggleMode } from 'mode-watcher';
 
-	let {
-		supabase,
-		authChange = $bindable(),
-		isMobile
-	}: { supabase: any; authChange: Boolean; isMobile: boolean } = $props();
+	let { supabase, isMobile }: { supabase: any; isMobile: boolean } = $props();
 
 	let open: boolean = $state(!isMobile);
 
@@ -19,8 +15,7 @@
 		currentUser = await supabase.auth.getUser();
 	}
 
-	$effect(() => {
-		authChange;
+	supabase.auth.onAuthStateChange(() => {
 		getCurrentUser();
 	});
 </script>
