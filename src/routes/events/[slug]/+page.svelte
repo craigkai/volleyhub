@@ -15,7 +15,6 @@
 	let { data = $bindable() }: { data: PageData } = $props();
 	let { tournament, bracket, teams, matches, defaultTeam } = $state(data);
 
-	// Convert teams to a writable store
 	const teamsStore = writable(teams);
 
 	let historyReady = false;
@@ -47,10 +46,10 @@
 	);
 </script>
 
-<div class="flex flex-col items-center">
-	{tournament?.name}
+<div class="page-container flex flex-col items-center">
+	<div class="header">{tournament?.name}</div>
 
-	<div class="m-2">
+	<div class="select-container">
 		<Select.Root
 			bind:selected={defaultTeam}
 			onSelectedChange={(v) => {
@@ -69,13 +68,13 @@
 		</Select.Root>
 	</div>
 
-	<Tabs.Root value="matches" class="md:w-1/2">
-		<Tabs.List class="grid w-full grid-cols-3">
-			<Tabs.Trigger value="matches">Matches</Tabs.Trigger>
-			<Tabs.Trigger value="standings">Standings</Tabs.Trigger>
-			<Tabs.Trigger value="bracket">Bracket</Tabs.Trigger>
+	<Tabs.Root value="matches" class="tabs-container">
+		<Tabs.List class="grid w-full grid-cols-3 gap-2 mb-4">
+			<Tabs.Trigger value="matches" class="tab-trigger">Matches</Tabs.Trigger>
+			<Tabs.Trigger value="standings" class="tab-trigger">Standings</Tabs.Trigger>
+			<Tabs.Trigger value="bracket" class="tab-trigger">Bracket</Tabs.Trigger>
 		</Tabs.List>
-		<Tabs.Content value="matches">
+		<Tabs.Content value="matches" class="card-container">
 			<Card.Root>
 				<Card.Header>
 					<Card.Title>Matches</Card.Title>
@@ -92,7 +91,7 @@
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
-		<Tabs.Content value="standings">
+		<Tabs.Content value="standings" class="card-container">
 			<Card.Root>
 				<Card.Header>
 					<Card.Title>Current Standings</Card.Title>
@@ -109,7 +108,7 @@
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
-		<Tabs.Content value="bracket">
+		<Tabs.Content value="bracket" class="card-container">
 			<Card.Root>
 				<Card.Header>
 					<Card.Title>Bracket</Card.Title>
@@ -122,3 +121,37 @@
 		</Tabs.Content>
 	</Tabs.Root>
 </div>
+
+<style>
+	.page-container {
+		padding: 2rem;
+		max-width: 1200px;
+		margin: auto;
+	}
+
+	.header {
+		font-size: 2rem;
+		font-weight: 700;
+		color: #1f2937;
+		margin-bottom: 1rem;
+		text-align: center;
+	}
+
+	.select-container {
+		margin-bottom: 1.5rem;
+	}
+
+	.tabs-container {
+		width: 100%;
+		max-width: 800px;
+		margin: auto;
+	}
+
+	.card-container {
+		background-color: #ffffff;
+		border-radius: 8px;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		padding: 1.5rem;
+		margin-bottom: 1.5rem;
+	}
+</style>
