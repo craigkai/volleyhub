@@ -60,7 +60,7 @@
 	}
 
 	onMount(() => {
-		if (bracket.matches) subscribeToMatches();
+		if ((bracket?.matches?.length ?? 0) > 0) subscribeToMatches();
 	});
 
 	async function handleGenerateBracket() {

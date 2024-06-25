@@ -39,7 +39,7 @@
 	}
 
 	onMount(() => {
-		if (matches.matches) subscribeToMatches();
+		if ((matches?.matches?.length ?? 0) > 0) subscribeToMatches();
 	});
 
 	async function generateMatches(): Promise<void> {
