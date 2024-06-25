@@ -98,13 +98,7 @@
 					<Card.Description>Current standings based on pool play results</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					<Standings
-						event={tournament}
-						{matches}
-						{teams}
-						defaultTeam={defaultTeam?.value}
-						readOnly={true}
-					/>
+					<Standings event={tournament} {matches} {teams} defaultTeam={defaultTeam?.value} />
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>

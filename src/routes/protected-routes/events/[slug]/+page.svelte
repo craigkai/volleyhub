@@ -100,7 +100,7 @@
 					<Card.Content class="space-y-2">
 						<Standings
 							event={data}
-							bind:matches={data.matches}
+							matches={data.matches}
 							teams={data.teams}
 							defaultTeam={data.defaultTeam}
 						/>

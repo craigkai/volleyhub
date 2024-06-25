@@ -5,21 +5,26 @@
 	import { Teams } from '$lib/teams.svelte';
 	import * as Table from '$components/ui/table/index.js';
 
-	export let event: Event;
-	export let matches: Matches;
-	export let teams: Teams;
-	export let defaultTeam: string;
+	let {
+		event,
+		matches,
+		teams,
+		defaultTeam
+	}: { event: Event; matches: Matches; teams: Teams; defaultTeam: string } = $props();
 
 	const scoring = event.scoring;
-	let teamScores: TeamScores = {};
-	let orderedTeamScores = {};
+	let teamScores: TeamScores = $state({});
+	let orderedTeamScores = $state({});
 
 	async function generateResults() {
 		teamScores = await findStandings(matches.matches ?? [], event, teams.teams ?? []);
 		orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
 	}
 	generateResults();
-	$: matches, generateResults();
+	$effect(() => {
+		matches;
+		generateResults();
+	});
 </script>
 
 Scoring based on {scoring}
