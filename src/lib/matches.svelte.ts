@@ -15,9 +15,6 @@ export class Matches extends Base {
 		this.event_id = Number(event_id);
 	}
 
-	/*
-    Load all matches for the current tournament.
-    */
 	async load() {
 		const res = await this.databaseService.load(this.event_id, {
 			column: 'type',
@@ -36,32 +33,22 @@ export class Matches extends Base {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
-		if (self.constructor.name === 'Brackets') {
-			if (updated.type !== 'bracket') {
-				// Updated match is not a bracket match, so we don't care about it
-				return;
-			} else {
-				// Generate next bracket match
-				await self.load();
-				(self as Brackets).nextRound(old, updated);
-			}
+		if (self.constructor.name === 'Brackets' && updated.type === 'bracket') {
+			await self.load();
+			(self as Brackets).nextRound(old, updated);
+			return;
 		}
 
-		// If matches are not loaded, load them
 		if (!self.matches) {
 			await self.load();
 			return;
 		}
 
-		// Find the index of the match to be updated in the matches array
 		const matchIndex = self.matches.findIndex((m: MatchRow) => m.id === old.id);
-
 		if (matchIndex !== -1) {
-			// Update the match at matchIndex with updated data
 			const updatedMatch = { ...self.matches[matchIndex], ...updated };
 			self.matches.splice(matchIndex, 1, updatedMatch);
 		} else {
-			// If matchIndex is -1, match with old.id was not found
 			self.handleError(400, `Failed to find match to update.`);
 		}
 	}
@@ -82,16 +69,10 @@ export class Matches extends Base {
 		try {
 			this.validateInputs(teams, pools, courts, refs);
 
-			// We have validated our inputs, so we can safely cast them to their expected types
-			pools = pools as number;
-			courts = courts as number;
-			refs = refs as string;
-
-			const matches = this.generateMatches(pools, teams, courts);
+			const matches = this.generateMatches(pools!, teams);
 			await this.databaseService.deleteMatchesByEvent(this.event_id);
 
-			const userMatches = this.prepareUserMatches(matches, courts, teams, pools);
-
+			const userMatches = this.prepareUserMatches(matches, courts!, teams, pools!);
 			if (refs === 'teams') {
 				this.assignReferees(userMatches, teams);
 			}
@@ -107,7 +88,7 @@ export class Matches extends Base {
 
 	async put(match: MatchRow): Promise<MatchRow | null> {
 		const updatedMatch = await this.databaseService.updateMatch(match);
-		if (updatedMatch === null) {
+		if (!updatedMatch) {
 			this.handleError(500, 'Failed to update match.');
 		}
 		return updatedMatch;
@@ -131,7 +112,7 @@ export class Matches extends Base {
 			this.handleError(400, "Can't generate matches without courts");
 		}
 
-		if (teams.length <= 2 && refs && refs === 'teams') {
+		if (teams.length <= 2 && refs === 'teams') {
 			this.handleError(400, 'Cannot have refs with less than 3 teams');
 		}
 	}
@@ -146,9 +127,9 @@ export class Matches extends Base {
 		return { rounds, courtsPerRound };
 	}
 
-	generateMatches(pools: number, teams: TeamRow[]) {
+	generateMatches(pools: number, teams: TeamRow[]): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
-		const totalRounds = pools * (teams.length - 1); // Adjusted the total number of rounds
+		const totalRounds = pools * (teams.length - 1);
 
 		for (let round = 0; round < totalRounds; round++) {
 			matches = matches.concat(RoundRobin(teams.map((t) => t.id)));
@@ -162,7 +143,7 @@ export class Matches extends Base {
 		courts: number,
 		teams: TeamRow[],
 		pools: number
-	) {
+	): UserMatch[] {
 		let courtsAvailable = courts;
 		let teamsAvailable = teams.length;
 		let round = 0;
@@ -171,14 +152,12 @@ export class Matches extends Base {
 
 		matches
 			.sort((a, b) => a.round - b.round)
-			.forEach((match: Partial<MatchRow>) => {
+			.forEach((match: Partial<MatchRow>, index) => {
 				if (match.team1 === 0 || match.team2 === 0) {
-					// bye
 					return;
 				}
 
 				if (pools && userMatches.length >= (pools * teams.length) / 2) {
-					// Short circuit if we have more matches than pool play games
 					return;
 				}
 
@@ -194,14 +173,14 @@ export class Matches extends Base {
 				courtsAvailable -= 1;
 				if (teamsAvailable >= 2) {
 					userMatches.push({
-						event_id: this.event_id as number,
-						team1: match.team1 as number,
-						team2: match.team2 as number,
-						court: match.court as number,
-						round: match.round as number,
+						event_id: this.event_id,
+						team1: match.team1!,
+						team2: match.team2!,
+						court: match.court!,
+						round: match.round!,
 						ref: match.ref,
-						type: match?.type || 'pool',
-						child_id: match?.child_id as number
+						type: match.type || 'pool',
+						child_id: match.child_id
 					});
 				}
 				teamsAvailable -= 2;
@@ -226,37 +205,32 @@ export class Matches extends Base {
 				: [match.team1, match.team2];
 		});
 
+		const refereeCounts: { [teamId: number]: number } = {};
+		teams.forEach((team) => (refereeCounts[team.id] = 0));
+
 		userMatches.forEach((match: UserMatch, i) => {
 			const round = match.round.toString();
 			const ref = this.determineReferee(
 				teamsPerRound[round],
 				teams.map((t) => t.id),
-				userMatches
+				userMatches,
+				refereeCounts
 			);
 			userMatches[i].ref = ref;
+			refereeCounts[ref]++;
 		});
 	}
 
-	determineReferee(teamsPerRound: number[], teams: number[], previousMatches: UserMatch[]): number {
-		// Exclude teams playing in the current round from the referee selection
+	determineReferee(
+		teamsPerRound: number[],
+		teams: number[],
+		previousMatches: UserMatch[],
+		refereeCounts: { [teamId: number]: number }
+	): number {
 		const availableTeams = teams.filter((team) => !teamsPerRound.includes(team));
 
-		// Exclude teams that have already refereed in previous matches
-		const availableTeamsByRefsCount: { [key: number]: number } = previousMatches.reduce(
-			(acc, match) => {
-				if (match.ref) {
-					acc[match.ref] = acc[match.ref] ? acc[match.ref] + 1 : 1;
-				}
-				return acc;
-			},
-			{}
-		);
+		availableTeams.sort((a, b) => (refereeCounts[a] ?? 0) - (refereeCounts[b] ?? 0));
 
-		availableTeams.sort(
-			(a, b) => (availableTeamsByRefsCount[a] ?? 0) - (availableTeamsByRefsCount[b] ?? 0)
-		);
-
-		// Choose a referee from the remaining available teams
 		return Number(availableTeams[0]);
 	}
 }
@@ -281,7 +255,8 @@ if (import.meta.vitest) {
 			}),
 			deleteMatchesByEvent: vi.fn(),
 			insertMatches: vi.fn((matches: UserMatch[]) => matches),
-			load: vi.fn()
+			load: vi.fn(() => []), // Return an empty array or the matches as expected
+			updateMatch: vi.fn((match: MatchRow) => match)
 		};
 		matches = new Matches(1, mockDatabaseService);
 	});
@@ -340,7 +315,6 @@ if (import.meta.vitest) {
 		await matches.load();
 		await matches.create(input, teams);
 
-		// Teams / 2 * pool play
 		expect(matches?.matches?.length).toEqual(3 * (4 / 2));
 
 		const gamesPerTeam: any = { team0: 0, team1: 0, team2: 0, team3: 0 };
@@ -386,7 +360,6 @@ if (import.meta.vitest) {
 		const max = Math.max(...Object.values(refGamesPerTeam).map((value) => Number(value)));
 		const min = Math.min(...Object.values(refGamesPerTeam).map((value) => Number(value)));
 
-		// Even number of games and teams means ever team should ref the same amount of games
 		expect(min).toEqual(max);
 	});
 }

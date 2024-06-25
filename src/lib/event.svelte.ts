@@ -115,7 +115,18 @@ if (import.meta.vitest) {
 	beforeEach(() => {
 		mockDatabaseService = {
 			updateEvent: vi.fn(() => console.log('mockDatabaseService.updateEvent called')),
-			deleteTournament: vi.fn(() => console.log('mockDatabaseService.deleteTournament called')),
+			deleteEvent: vi.fn(() => console.log('mockDatabaseService.deleteEvent called')),
+			loadEvent: vi.fn(() => ({
+				id: 1,
+				name: 'Test Event',
+				date: '2023-01-01',
+				pools: 2,
+				courts: 4,
+				owner: 'test',
+				created_at: '2023-01-01',
+				scoring: 'standard',
+				refs: 'assigned'
+			})),
 			getCurrentUser: vi.fn(() => {
 				return {
 					id: 1

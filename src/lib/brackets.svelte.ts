@@ -3,7 +3,7 @@ import { findStandings } from './standings.svelte';
 import { Matches } from './matches.svelte';
 
 export class Brackets extends Matches {
-	matches: MatchRow[] = $state([]);
+	matches?: MatchRow[] = $state();
 
 	// Overload Matches load method to only load our bracket matches.
 	async load() {
