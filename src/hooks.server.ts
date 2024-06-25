@@ -6,7 +6,8 @@ import { UAParser } from 'ua-parser-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
 export const supabase: Handle = async ({ event, resolve }) => {
-	const parser = new UAParser(event.request.headers.get('user-agent'));
+	const userAgent = event.request.headers.get('user-agent') || '';
+	const parser = new UAParser(userAgent);
 	event.locals.isMobile = parser.getDevice().type === 'mobile';
 
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
