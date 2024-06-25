@@ -1,10 +1,14 @@
 import { createServerClient } from '@supabase/ssr';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
+import { UAParser } from 'ua-parser-js';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
 export const supabase: Handle = async ({ event, resolve }) => {
+	const parser = new UAParser(event.request.headers.get('user-agent'));
+	event.locals.isMobile = parser.getDevice().type === 'mobile' || 'dog';
+
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		cookies: {
 			getAll() {

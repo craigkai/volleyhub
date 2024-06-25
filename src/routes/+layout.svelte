@@ -14,7 +14,7 @@
 	inject({ mode: dev ? 'development' : 'production' });
 
 	let { data, children, authChange } = $props();
-	let { session, supabase } = data;
+	let { session, supabase, isMobile } = data;
 
 	onMount(() => {
 		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
@@ -50,7 +50,7 @@
 <div class="dark:bg-gray-900 dark:text-gray-100 text-gray-900 bg-white">
 	<ModeWatcher defaultMode={'light'} />
 
-	<Header {supabase} bind:authChange />
+	<Header {supabase} {isMobile} bind:authChange />
 
 	<div class="min-h-screen">
 		<div class="wrap">
