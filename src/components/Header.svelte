@@ -28,9 +28,9 @@
 	<!-- Navigation bar -->
 	<div class="bg-blue-500 dark:bg-gray-900 p-4">
 		<a href="/" class="flex">
-			<img class="h-20 w-20 p-2" src="/vball.svg" alt="volleyman" />
+			<img class="h-20 w-20 p-2" src="/vball.svg" alt="VolleyHub" />
 			<h1 class="flex text-white justify-center items-center text-5l font-extrabold">
-				Volleyman(ager)<span
+				VolleyHub<span
 					class="bg-blue-100 text-blue-800 text-2xl font-semibold px-2.5 py-0.5
 				rounded ml-2 dark:bg-gray-700 dark:text-gray-200">Beta</span
 				>

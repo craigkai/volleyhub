@@ -40,15 +40,11 @@
 	function handleError(err: string | SvelteToastOptions) {
 		error(err);
 	}
-
-	function setTimeout(arg0: () => void) {
-		throw new Error('Function not implemented.');
-	}
 </script>
 
 <svelte:window on:error={handleError} />
 <svelte:head>
-	<title>Volleyman</title>
+	<title>VolleyHub</title>
 </svelte:head>
 
 <div class="dark:bg-gray-900 dark:text-gray-100 text-gray-900 bg-white">
