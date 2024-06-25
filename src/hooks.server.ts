@@ -7,7 +7,7 @@ import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/publi
 
 export const supabase: Handle = async ({ event, resolve }) => {
 	const parser = new UAParser(event.request.headers.get('user-agent'));
-	event.locals.isMobile = parser.getDevice().type === 'mobile' || 'dog';
+	event.locals.isMobile = parser.getDevice().type === 'mobile';
 
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		cookies: {

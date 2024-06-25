@@ -11,7 +11,7 @@
 		isMobile
 	}: { supabase: any; authChange: Boolean; isMobile: boolean } = $props();
 
-	let open: boolean = $state(isMobile);
+	let open: boolean = $state(!isMobile);
 
 	let currentUser: { data: { user: { aud: string } } } | undefined = $state();
 
