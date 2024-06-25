@@ -3,14 +3,7 @@
 	import { findStandings } from '$lib/standings.svelte';
 	import { Matches } from '$lib/matches.svelte';
 	import { Teams } from '$lib/teams.svelte';
-	import {
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell
-	} from 'flowbite-svelte';
+	import * as Table from '$components/ui/table/index.js';
 
 	export let event: Event;
 	export let matches: Matches;
@@ -31,23 +24,23 @@
 
 Scoring based on {scoring}
 
-<Table>
-	<TableHead>
-		<!-- <TableHeadCell>Rank</TableHeadCell> -->
-		<TableHeadCell>Team</TableHeadCell>
-		<TableHeadCell>Score</TableHeadCell>
-	</TableHead>
-	<TableBody>
+<Table.Root>
+	<Table.Header>
+		<Table.Row>
+			<Table.Head>Team</Table.Head>
+			<Table.Head>Score</Table.Head>
+		</Table.Row>
+	</Table.Header>
+	<Table.Body>
 		{#each { length: orderedTeamScores.length } as _, i}
 			{@const isDefaultTeam =
 				defaultTeam && defaultTeam === orderedTeamScores[i]
 					? 'bg-yellow-200 border-2 border-solid border-yellow-300'
 					: ''}
-			<TableBodyRow class={isDefaultTeam}>
-				<!-- <TableBodyCell>{i}</TableBodyCell> -->
-				<TableBodyCell>{orderedTeamScores[i]}</TableBodyCell>
-				<TableBodyCell>{teamScores[orderedTeamScores[i]]}</TableBodyCell>
-			</TableBodyRow>
+			<Table.Row class={isDefaultTeam}>
+				<Table.Cell>{orderedTeamScores[i]}</Table.Cell>
+				<Table.Cell>{teamScores[orderedTeamScores[i]]}</Table.Cell>
+			</Table.Row>
 		{/each}
-	</TableBody>
-</Table>
+	</Table.Body>
+</Table.Root>
