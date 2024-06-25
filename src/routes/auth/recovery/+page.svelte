@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { success, error } from '$lib/toast';
-	import { Label, Input, Button } from 'flowbite-svelte';
+	import { Label } from '$components/ui/label/index.js';
+	import { Input } from '$components/ui/input/index.js';
+	import { Button } from '$components/ui/button/index.js';
 
 	export let data: PageData;
 

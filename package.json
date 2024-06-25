@@ -38,9 +38,6 @@
 		"eslint": "^9.5.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.41.0",
-		"flowbite": "^2.3.0",
-		"flowbite-svelte": "^0.46.5",
-		"flowbite-svelte-icons": "^2.0.0-next.10",
 		"formsnap": "^1.0.1",
 		"i": "^0.3.7",
 		"jsdom": "^24.1.0",
@@ -67,11 +64,10 @@
 		"vite": "^5.3.1",
 		"vitest": "^1.6.0",
 		"zod": "^3.23.8",
-		"zod-validation-error": "^3.3.0"
-	},
-	"type": "module",
-	"dependencies": {
+		"zod-validation-error": "^3.3.0",
 		"radix-svelte": "^0.9.0",
 		"ua-parser-js": "^1.0.38"
-	}
+	},
+	"type": "module",
+	"dependencies": {}
 }

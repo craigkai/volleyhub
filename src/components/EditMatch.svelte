@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Label, Input } from 'flowbite-svelte';
+	import { Label } from '$components/ui/label/index.js';
+	import { Input } from '$components/ui/input/index.js';
 	import { Matches } from '$lib/matches.svelte';
 	import { closeModal } from '$lib/helper.svelte';
 	import type { Brackets } from '$lib/brackets.svelte';
@@ -13,11 +14,12 @@
 
 {#if match}
 	<div class="flex flex-col">
-		<Label for="team1-score-input">Team `{match.public_matches_team1_fkey.name}`:</Label>
+		<Label class="mb-2" for="team1-score-input"
+			>Team `{match.public_matches_team1_fkey.name}`:</Label
+		>
 		<Input
-			class="shadow appearance-none border border-blue-500 rounded w-full py-2 px-3 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+			class=" border border-blue-500 rounded w-full py-2 px-3 mb-3 leading-tight"
 			id="team1-score-input"
-			size="md"
 			type="number"
 			bind:value={match.team1_score}
 			on:keydown={(e) => {
@@ -29,11 +31,12 @@
 			}}
 		/>
 
-		<Label for="team2-score-input">Team `{match.public_matches_team2_fkey.name}`:</Label>
+		<Label class="mb-2" for="team2-score-input"
+			>Team `{match.public_matches_team2_fkey.name}`:</Label
+		>
 		<Input
-			class="shadow appearance-none border border-blue-500 rounded w-full py-2 px-3 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+			class="border border-blue-500 rounded w-full py-2 px-3 mb-3 leading-tight"
 			id="team2-score-input"
-			size="sm"
 			type="number"
 			bind:value={match.team2_score}
 			on:keydown={(e) => {
