@@ -15,7 +15,6 @@
 					<Card.Root class="w-[350px] m-2 dark:bg-slate-700">
 						<Card.Header>
 							<Card.Title>{event.name}</Card.Title>
-							<Card.Description>Description coming soon...</Card.Description>
 						</Card.Header>
 						<Card.Content>
 							<form>
