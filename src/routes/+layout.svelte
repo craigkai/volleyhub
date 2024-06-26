@@ -47,8 +47,8 @@
 	<title>VolleyHub</title>
 </svelte:head>
 
-<div class="dark:bg-gray-900 dark:text-gray-100 text-gray-900 bg-white">
-	<ModeWatcher defaultMode={'light'} />
+<div class="dark:bg-slate-800 dark:text-white text-gray-900 bg-white">
+	<ModeWatcher />
 
 	<Header {supabase} {isMobile} />
 

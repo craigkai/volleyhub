@@ -10,37 +10,14 @@
 </script>
 
 {#await eventsPromise}
-	<div class="loader-container">
+	<div class="h-screen flex items-center justify-center">
 		<Loader class="animate-spin" />
 	</div>
 {:then events}
-	<div class="events-container">
-		<div class="header">Upcoming Events</div>
+	<div class="p-8 bg-gray-100 dark:bg-gray-600 rounded-lg shadow-lg max-w-3xl mx-auto my-8">
+		<div class="text-center text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+			Upcoming Events
+		</div>
 		<EventsCards {events} readOnly={true} />
 	</div>
 {/await}
-
-<style>
-	.loader-container {
-		height: 100vh;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.events-container {
-		padding: 2rem;
-		background-color: #f9fafb;
-		border-radius: 8px;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-		max-width: 800px;
-		margin: 2rem auto;
-	}
-
-	.header {
-		font-size: 1.5rem;
-		font-weight: 600;
-		margin-bottom: 1rem;
-		color: #1f2937;
-	}
-</style>

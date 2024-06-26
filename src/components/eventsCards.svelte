@@ -12,7 +12,7 @@
 		<div class="m-2">
 			{#each events as event}
 				<a href="{readOnly ? '' : '/protected-routes'}/events/{event.id}">
-					<Card.Root class="w-[350px] m-2">
+					<Card.Root class="w-[350px] m-2 dark:bg-slate-700">
 						<Card.Header>
 							<Card.Title>{event.name}</Card.Title>
 							<Card.Description>Description coming soon...</Card.Description>

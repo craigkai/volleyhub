@@ -77,7 +77,7 @@
 </script>
 
 <form
-	class="form-container dark:bg-gray-800 dark:text-gray-200"
+	class="form-container dark:bg-gray-800 dark:text-gray-200 p-2 rounded"
 	method="POST"
 	action="?/{event_id === 'create' ? 'createEvent' : 'updateEvent'}"
 	use:enhance
@@ -239,52 +239,3 @@
 		</div>
 	</form>
 {/if}
-
-<style>
-	.form-container {
-		max-width: 600px;
-		margin: 0 auto;
-		padding: 1rem;
-		background: #f9f9f9;
-		border-radius: 8px;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	}
-
-	.form-field {
-		margin-bottom: 1.5rem;
-	}
-
-	.form-label {
-		font-weight: 600;
-		margin-bottom: 0.5rem;
-	}
-
-	.form-description {
-		margin-top: 0.5rem;
-		font-size: 0.875rem;
-		color: #6b7280;
-	}
-
-	.form-errors {
-		color: #dc2626;
-		font-size: 0.875rem;
-		margin-top: 0.5rem;
-	}
-
-	/* Dark mode styles */
-	.dark .form-container {
-		background: #1f2937;
-	}
-
-	.dark .form-label {
-		color: #d1d5db;
-	}
-
-	.dark .form-description {
-		color: #9ca3af;
-	}
-
-	.dark .form-errors {
-		color: #f87171;
-	}
-</style>
