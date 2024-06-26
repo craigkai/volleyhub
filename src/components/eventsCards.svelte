@@ -3,7 +3,7 @@
 	import * as Card from '$components/ui/card/index.js';
 	import { parseDateTime } from '@internationalized/date';
 
-	export let events: Event[];
+	export let events: EventRow[];
 	export let readOnly: boolean = true;
 </script>
 

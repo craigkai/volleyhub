@@ -14,10 +14,15 @@
 		<Loader class="animate-spin" />
 	</div>
 {:then events}
-	<div class="p-8 bg-gray-100 dark:bg-gray-600 rounded-lg shadow-lg max-w-3xl mx-auto my-8">
-		<div class="text-center text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-			Upcoming Events
+	{#if events !== null}
+		<div class="p-8 bg-gray-100 dark:bg-gray-600 rounded-lg shadow-lg max-w-3xl mx-auto my-8">
+			<div class="text-center text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+				Upcoming Events
+			</div>
+			<EventsCards {events} readOnly={true} />
 		</div>
-		<EventsCards {events} readOnly={true} />
-	</div>
+	{:else}
+		<!-- Handle the case when events is null -->
+		<div>No events available.</div>
+	{/if}
 {/await}

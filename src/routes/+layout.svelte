@@ -17,8 +17,8 @@
 	let { session, supabase, isMobile } = data;
 
 	onMount(() => {
-		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
-			if (!newSession) {
+		const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
+			if (!newSession && event !== 'INITIAL_SESSION') {
 				/**
 				 * Queue this as a task so the navigation won't prevent the
 				 * triggering function from completing

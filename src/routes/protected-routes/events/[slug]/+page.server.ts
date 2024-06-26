@@ -11,7 +11,6 @@ import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
 import { Teams } from '$lib/teams.svelte';
-import { invalidate } from '$app/navigation';
 
 export const load: PageServerLoad = async ({ params }) => {
 	return {
