@@ -47,30 +47,33 @@
 
 	let { form: formData, enhance } = form;
 
-	const selectedRefValue = $derived(
-		$formData.refs
-			? {
-					label: $formData.refs,
-					value: $formData.refs
-				}
-			: undefined
-	);
-
 	const df = new DateFormatter('en-US', {
 		dateStyle: 'long'
 	});
 
-	const dateValue = $derived($formData.date ? parseDateTime($formData.date) : undefined);
-	let datePlaceholder: DateValue = $state(today(getLocalTimeZone()));
+	let dateValue = $state($formData.date ? parseDateTime($formData.date) : undefined);
+	$effect(() => {
+		$formData.date = dateValue?.toString() ?? '';
+	});
+	const datePlaceholder: DateValue = today(getLocalTimeZone());
 
-	const scoringValue = $derived(
-		$formData.scoring
-			? {
-					label: $formData.scoring,
-					value: $formData.scoring
-				}
-			: undefined
-	);
+	let selectedRefValue = $state({
+		label: $formData.refs,
+		value: $formData.refs
+	});
+
+	$effect(() => {
+		$formData.refs = selectedRefValue.value;
+	});
+
+	let scoringValue = $state({
+		label: $formData.scoring,
+		value: $formData.scoring
+	});
+
+	$effect(() => {
+		$formData.scoring = scoringValue.value;
+	});
 </script>
 
 <form
@@ -133,7 +136,7 @@
 			<Control let:attrs>
 				<Label class="form-label dark:text-gray-300">Ref's</Label>
 				<SelectRoot
-					selected={selectedRefValue}
+					bind:selected={selectedRefValue}
 					onSelectedChange={(v) => {
 						v && ($formData.refs = v.value);
 					}}
@@ -160,7 +163,7 @@
 			<Control let:attrs>
 				<Label class="form-label dark:text-gray-300">Scoring Method</Label>
 				<SelectRoot
-					selected={scoringValue}
+					bind:selected={scoringValue}
 					onSelectedChange={(v) => {
 						v && ($formData.scoring = v.value);
 					}}
@@ -201,8 +204,8 @@
 					</PopoverTrigger>
 					<PopoverContent class="w-auto p-0" side="top">
 						<Calendar
-							value={dateValue}
-							bind:placeholder={datePlaceholder}
+							bind:value={dateValue}
+							placeholder={datePlaceholder}
 							minValue={today(getLocalTimeZone())}
 							calendarLabel="Date of birth"
 							initialFocus
