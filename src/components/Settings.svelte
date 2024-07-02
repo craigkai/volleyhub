@@ -2,6 +2,7 @@
 	import { error, success } from '$lib/toast';
 	import { Input } from '$components/ui/input';
 	import { Field, Label, Control, Description, FieldErrors, Button } from '$components/ui/form';
+	import { Textarea } from '$components/ui/textarea/index.js';
 	import {
 		Value,
 		Root as SelectRoot,
@@ -91,6 +92,21 @@
 			<Description class="form-description dark:text-gray-400">
 				This is your public display name for your event.
 			</Description>
+			<FieldErrors class="form-errors dark:text-red-400" />
+		</Field>
+	</div>
+
+	<div class="form-field">
+		<Field {form} name="description">
+			<Control let:attrs>
+				<Label class="form-label dark:text-gray-300">Description</Label>
+				<Textarea
+					{...attrs}
+					bind:value={$formData.description}
+					class="dark:bg-gray-700 dark:text-gray-200"
+				/>
+			</Control>
+			<Description class="form-description dark:text-gray-400">Describe your event!</Description>
 			<FieldErrors class="form-errors dark:text-red-400" />
 		</Field>
 	</div>

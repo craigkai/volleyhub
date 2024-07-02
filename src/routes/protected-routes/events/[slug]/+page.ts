@@ -27,14 +27,7 @@ export const load: PageLoad = async ({ params, parent, url }) => {
 	}
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
-		{
-			name: tournament.name,
-			courts: tournament.courts,
-			pools: tournament.pools,
-			refs: tournament.refs,
-			date: tournament.date,
-			scoring: tournament.scoring
-		},
+		tournament,
 		zod(settingsSchema)
 	);
 

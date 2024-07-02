@@ -71,6 +71,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	async updateEvent(id: number, input: Infer<FormSchema>): Promise<EventRow | null> {
 		try {
 			const parsedEvent = eventsUpdateSchema.parse(input);
+			console.log('Parsed', parsedEvent);
 
 			// Update the tournament in the 'events' table
 			const res: PostgrestResponse<EventRow> = await this.supabaseClient

@@ -21,6 +21,7 @@ export class Event extends Base {
 	created_at?: string;
 	scoring?: string;
 	refs?: string;
+	description?: string;
 
 	/**
 	 * The constructor for the Event class.

@@ -14,7 +14,7 @@
 		<Loader class="animate-spin" />
 	</div>
 {:then events}
-	{#if events !== null}
+	{#if events && events.length > 0}
 		<div class="p-8 bg-gray-100 dark:bg-gray-600 rounded-lg shadow-lg max-w-3xl mx-auto my-8">
 			<div class="text-center text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
 				Upcoming Events
@@ -22,7 +22,12 @@
 			<EventsCards {events} readOnly={true} />
 		</div>
 	{:else}
-		<!-- Handle the case when events is null -->
-		<div>No events available.</div>
+		<div class="h-screen flex justify-center">
+			<p>No events available.</p>
+		</div>
 	{/if}
+{:catch error}
+	<div class="h-screen flex justify-center">
+		<p>Error loading events: {error.message}</p>
+	</div>
 {/await}

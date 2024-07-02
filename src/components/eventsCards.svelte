@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { Event } from '$lib/event.svelte';
 	import * as Card from '$components/ui/card/index.js';
 	import { parseDateTime } from '@internationalized/date';
 
-	export let events: EventRow[];
+	export let events: Event;
 	export let readOnly: boolean = true;
 </script>
 
@@ -15,6 +14,7 @@
 					<Card.Root class="w-[350px] m-2 dark:bg-slate-700">
 						<Card.Header>
 							<Card.Title>{event.name}</Card.Title>
+							<Card.Description>{event.description}</Card.Description>
 						</Card.Header>
 						<Card.Content>
 							<form>

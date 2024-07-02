@@ -8,6 +8,7 @@ export const formSchema = z.object({
 	date: z.string().refine((v) => v, { message: 'A date is required.' }),
 	scoring: z.string().refine((v) => v, { message: 'A scoring type is required.' }),
 	owner: z.string().optional(),
+	description: z.string().optional(),
 	id: z.coerce.number().optional()
 });
 
