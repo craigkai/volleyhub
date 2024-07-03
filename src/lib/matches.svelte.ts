@@ -1,8 +1,8 @@
 import type { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
-import { RoundRobin } from './roundRobin';
+import { RoundRobin } from './brackets/roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { Base } from './base';
-import type { Brackets } from './brackets.svelte';
+import type { Brackets } from './brackets/brackets.svelte';
 
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Brackets } from '$lib/brackets.svelte';
+	import { Brackets } from '$lib/brackets/brackets.svelte';
 	import type { Matches } from '$lib/matches.svelte';
 	import type { Teams } from '$lib/teams.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -377,7 +377,7 @@
 
 	.tournament-bracket__team--winner .tournament-bracket__country,
 	.tournament-bracket__team--winner .tournament-bracket__score {
-		background-color: #f9f871;
+		background-color: #55ea75;
 		color: #333;
 	}
 </style>

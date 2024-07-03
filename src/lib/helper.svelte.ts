@@ -5,7 +5,7 @@ import { error, success } from '$lib/toast';
 import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 import { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
 import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
-import { Brackets } from '$lib/brackets.svelte';
+import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Event as EventInstance } from '$lib/event.svelte';
 import { Matches as MatchesInstance } from '$lib/matches.svelte';
 import { Teams as TeamsInstance } from '$lib/teams.svelte';

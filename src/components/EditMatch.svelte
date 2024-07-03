@@ -3,7 +3,7 @@
 	import { Input } from '$components/ui/input/index.js';
 	import { Matches } from '$lib/matches.svelte';
 	import { closeModal } from '$lib/helper.svelte';
-	import type { Brackets } from '$lib/brackets.svelte';
+	import type { Brackets } from '$lib/brackets/brackets.svelte';
 	import { updateMatch } from '$lib/helper.svelte';
 
 	let { matchId, matches = $bindable() }: { matchId: number; matches: Matches | Brackets } =

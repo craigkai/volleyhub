@@ -1,6 +1,6 @@
-import { Event } from './event.svelte';
-import { findStandings } from './standings.svelte';
-import { Matches } from './matches.svelte';
+import { Event } from '../event.svelte';
+import { findStandings } from '../standings.svelte';
+import { Matches } from '../matches.svelte';
 
 export class Brackets extends Matches {
 	matches?: MatchRow[] = $state();
