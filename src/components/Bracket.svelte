@@ -9,6 +9,7 @@
 	import type { HttpError } from '@sveltejs/kit';
 	import { Event } from '$lib/event.svelte';
 	import { onMount } from 'svelte';
+	import * as Alert from '$components/ui/alert/index.js';
 
 	let {
 		matches = $bindable(),
@@ -26,6 +27,7 @@
 
 	let rounds: Record<number, Round> = $state({});
 	let numRounds = $state(0);
+	let showGenerateBracketAlert = $state(false);
 
 	function determineRounds() {
 		const newRounds: Record<number, Round> = {};
@@ -53,18 +55,23 @@
 
 	let matchesSubscription: RealtimeChannel | undefined;
 
-	async function subscribeToMatches() {
-		if (!matchesSubscription) {
+	onMount(async () => {
+		if ((bracket?.matches?.length ?? 0) > 0)
 			matchesSubscription = await bracket.subscribeToMatches();
+	});
+
+	async function checkGenerateBracket() {
+		if ((matches?.matches?.length ?? 0) > 0) {
+			showGenerateBracketAlert = true;
+		} else {
+			generateBracket();
 		}
 	}
 
-	onMount(() => {
-		if ((bracket?.matches?.length ?? 0) > 0) subscribeToMatches();
-	});
-
-	async function handleGenerateBracket() {
+	async function generateBracket() {
 		try {
+			if (matchesSubscription) await matchesSubscription.unsubscribe();
+
 			const res = await bracket.createBracketMatches(
 				tournament,
 				teams.teams,
@@ -73,20 +80,17 @@
 			if (!res) {
 				error('Failed to create matches');
 			} else {
-				subscribeToMatches();
+				matchesSubscription = await bracket.subscribeToMatches();
 				await bracket.load();
 			}
 		} catch (err) {
 			error((err as HttpError).toString());
 		}
+		showGenerateBracketAlert = false;
 	}
 </script>
 
-{#if !readOnly && (!bracket?.matches || bracket.matches.length === 0)}
-	<div class="flex flex-col items-center">
-		<Button variant="outline" onclick={handleGenerateBracket}>Generate initial bracket</Button>
-	</div>
-{:else if bracket.matches && bracket.matches.length > 0}
+{#if bracket.matches && bracket.matches.length > 0}
 	<div class="container">
 		<div class="tournament-bracket tournament-bracket--rounded">
 			{#each Object.keys(rounds) as i, index}
@@ -161,6 +165,45 @@
 				</div>
 			{/each}
 		</div>
+	</div>
+{/if}
+
+{#if !readOnly}
+	<div class="flex flex-col items-center justify-center">
+		{#if showGenerateBracketAlert}
+			<div class="m-2">
+				<Alert.Root>
+					<Alert.Title>Generate new bracket?</Alert.Title>
+					<Alert.Description
+						>You already have a bracket, are you sure you want to wipe that?</Alert.Description
+					>
+					<div class="flex gap-2">
+						<button
+							class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+							onclick={generateBracket}>Yes</button
+						>
+						<button
+							class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+							onclick={() => (showGenerateBracketAlert = false)}>No</button
+						>
+					</div>
+				</Alert.Root>
+			</div>
+		{/if}
+
+		{#if !bracket?.matches || bracket.matches.length === 0}
+			<Button
+				variant="outline"
+				class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+				onclick={checkGenerateBracket}>Generate initial bracket</Button
+			>
+		{:else}
+			<Button
+				variant="outline"
+				class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+				onclick={checkGenerateBracket}>Regenerate bracket</Button
+			>
+		{/if}
 	</div>
 {/if}
 

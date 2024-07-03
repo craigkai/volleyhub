@@ -19,6 +19,10 @@ export class Brackets extends Matches {
 	}
 
 	async createBracketMatches(event: Event, teams: TeamRow[], matches: MatchRow[]) {
+		if (this.matches && this.matches.length > 0) {
+			await this.databaseService.deleteMatchesByIds(this.matches.map((m) => m.id));
+		}
+
 		if (teams.length < 2) {
 			return this.handleError(
 				400,
@@ -27,25 +31,21 @@ export class Brackets extends Matches {
 		}
 
 		const teamScores: TeamScores = await findStandings(matches ?? [], event, teams);
-
 		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
+
 		const matchups: Partial<MatchRow>[] = [];
-
-		// Calculate the number of rounds needed
-		const totalRounds = Math.ceil(Math.log2(teams.length));
-		const hasBye = teams.length % 2 !== 0;
-
 		const leftOverTeams: number[] = [];
-		const parentMatches: MatchRow[] = [];
 
 		// Generate matchups for the initial round of the bracket
 		for (let i = 0; i < orderedTeamScores.length; i += 2) {
 			const team1 = teams.find((t) => t.name === orderedTeamScores[i])?.id;
 			const team2 = teams.find((t) => t.name === orderedTeamScores[i + 1])?.id;
 
-			if (team1 === undefined) leftOverTeams.push(team2);
-			else if (team2 === undefined) leftOverTeams.push(team1);
-			else {
+			if (team1 === undefined) {
+				leftOverTeams.push(team2!);
+			} else if (team2 === undefined) {
+				leftOverTeams.push(team1);
+			} else {
 				const matchup: Partial<MatchRow> = {
 					team1,
 					team2,
@@ -56,26 +56,29 @@ export class Brackets extends Matches {
 
 				const res = await this.databaseService.insertMatch(matchup as UserMatch);
 				matchups.push(res);
-				parentMatches.push(res); // Store the parent match IDs
 			}
 		}
 
 		// Handle byes for the initial round
-		if (hasBye && leftOverTeams.length > 0) {
-			const teamWithBye = leftOverTeams.pop();
-			const byeMatchup: Partial<MatchRow> = {
-				team1: teamWithBye,
-				team2: null,
-				event_id: this.event_id,
-				round: 0,
-				type: 'bracket'
-			};
-			const res = await this.databaseService.insertMatch(byeMatchup as UserMatch);
-			matchups.push(res);
-			parentMatches.push(res); // Store the parent match IDs
+		if (leftOverTeams.length > 0) {
+			for (const teamWithBye of leftOverTeams) {
+				const byeMatchup: Partial<MatchRow> = {
+					team1: teamWithBye,
+					team2: null,
+					event_id: this.event_id,
+					round: 0,
+					type: 'bracket'
+				};
+				const res = await this.databaseService.insertMatch(byeMatchup as UserMatch);
+				matchups.push(res);
+			}
 		}
 
+		// Calculate the number of rounds needed
+		const totalRounds = Math.ceil(Math.log2(teams.length));
+
 		// Generate empty matchups for subsequent rounds
+		const parentMatches = [...matchups];
 		for (let currentRound = 1; currentRound < totalRounds; currentRound++) {
 			const numMatches = 2 ** (totalRounds - currentRound - 1);
 
@@ -94,11 +97,9 @@ export class Brackets extends Matches {
 				if (parent1) parent1.child_id = res.id;
 				if (parent2) parent2.child_id = res.id;
 
-				[parent1, parent2].forEach((parent) => {
-					if (parent) {
-						this.put(parent).catch((e) => console.error(e));
-					}
-				});
+				await Promise.all(
+					[parent1, parent2].map((parent) => (parent ? this.put(parent) : Promise.resolve()))
+				);
 			}
 		}
 

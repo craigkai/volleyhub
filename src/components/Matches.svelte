@@ -34,23 +34,21 @@
 	}
 
 	let matchesSubscription: RealtimeChannel | undefined;
-	async function subscribeToMatches() {
-		matchesSubscription = await matches.subscribeToMatches();
-	}
 
-	onMount(() => {
-		if ((matches?.matches?.length ?? 0) > 0) subscribeToMatches();
+	onMount(async () => {
+		if ((matches?.matches?.length ?? 0) > 0)
+			matchesSubscription = await matches.subscribeToMatches();
 	});
 
 	async function generateMatches(): Promise<void> {
 		try {
+			if (matchesSubscription) await matchesSubscription.unsubscribe();
+
 			const res: Matches | undefined = await matches.create(tournament, teams.teams);
 			if (!res) {
 				error('Failed to create matches');
 			} else {
-				if (!matchesSubscription) {
-					subscribeToMatches();
-				}
+				matchesSubscription = await matches.subscribeToMatches();
 			}
 		} catch (err) {
 			error((err as HttpError).toString());

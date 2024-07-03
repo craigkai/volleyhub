@@ -15,10 +15,10 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
 	 * Load all matches associated with a specific event from the database.
 	 * @param {string} event_id - The ID of the event whose matches to load.
-	 * @returns {Promise<MatchRow[]>} - Returns a promise that resolves to an array of the loaded matches.
+	 * @returns {Promise<MatchRow[][]>} - Returns a promise that resolves to an array of the loaded matches.
 	 * @throws {Error} - Throws an error if there's an issue loading the matches.
 	 */
-	async load(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
+	async load(event_id: number, filter?: Filter): Promise<MatchRow[][] | null> {
 		const query = this.supabaseClient
 			.from('matches')
 			.select(
@@ -41,6 +41,11 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 
 	async deleteMatchesByEvent(event_id: number): Promise<void> {
 		const response = await this.supabaseClient.from('matches').delete().eq('event_id', event_id);
+		this.handleDatabaseError(response);
+	}
+
+	async deleteMatchesByIds(ids: number[]): Promise<void> {
+		const response = await this.supabaseClient.from('matches').delete().in('id', ids);
 		this.handleDatabaseError(response);
 	}
 
