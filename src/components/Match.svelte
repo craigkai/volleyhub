@@ -64,6 +64,8 @@
 		<Popover.Content>
 			{#if match?.team1_score && match?.team2_score}
 				<p>{match?.team1_score} to {match?.team2_score}</p>
+			{:else}
+				<p>Not played yet</p>
 			{/if}
 		</Popover.Content>
 	</Popover.Root>

@@ -51,7 +51,7 @@
 <div
 	class="dark:bg-slate-800 dark:text-white text-gray-900 bg-white flex flex-col min-h-screen overflow-x-hidden"
 >
-	<div class="flex-grow">
+	<div class="flex-grow mb-8">
 		<ModeWatcher />
 		<Header {supabase} {isMobile} />
 		<div class="max-w-7xl mx-auto p-4">
@@ -59,5 +59,6 @@
 		</div>
 		{@render children()}
 	</div>
+
 	<Footer />
 </div>
