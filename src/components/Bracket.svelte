@@ -137,7 +137,7 @@
 												class="tournament-bracket__team"
 												class:tournament-bracket__team--winner={team2Win}
 											>
-												<td class="tournament-bracket__country">
+												<td class="tournament-bracket__country rounded p-1 m-1">
 													<abbr class="tournament-bracket__code" title="team">
 														{match.public_matches_team2_fkey?.name ?? 'tbd'}
 													</abbr>
