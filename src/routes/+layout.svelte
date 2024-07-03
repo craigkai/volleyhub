@@ -43,21 +43,23 @@
 </script>
 
 <svelte:window on:error={handleError} />
+
 <svelte:head>
 	<title>VolleyHub</title>
 </svelte:head>
 
-<div class="dark:bg-slate-800 dark:text-white text-gray-900 bg-white">
+<div
+	class="dark:bg-slate-800 dark:text-white text-gray-900 bg-white min-h-screen flex flex-col mx-auto"
+>
 	<ModeWatcher />
 
 	<Header {supabase} {isMobile} />
 
-	<div class="min-h-screen">
-		<div class="wrap">
-			<SvelteToast {options} />
-		</div>
-		{@render children()}
+	<div class="wrap">
+		<SvelteToast {options} />
 	</div>
+
+	{@render children()}
 
 	<Footer />
 </div>

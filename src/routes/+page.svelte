@@ -10,7 +10,7 @@
 </script>
 
 {#await eventsPromise}
-	<div class="h-screen flex items-center justify-center">
+	<div class="flex items-center justify-center">
 		<Loader class="animate-spin" />
 	</div>
 {:then events}
@@ -22,12 +22,12 @@
 			<EventsCards {events} readOnly={true} />
 		</div>
 	{:else}
-		<div class="h-screen flex justify-center">
+		<div class="flex justify-center">
 			<p>No events available.</p>
 		</div>
 	{/if}
 {:catch error}
-	<div class="h-screen flex justify-center">
+	<div class="flex justify-center">
 		<p>Error loading events: {error.message}</p>
 	</div>
 {/await}

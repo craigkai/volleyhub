@@ -65,7 +65,7 @@
 	<title>User Auth</title>
 </svelte:head>
 
-<div class="flex justify-center items-center min-h-screen bg-gray-100">
+<div class="flex justify-center items-center bg-gray-100">
 	<div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
 		<h2 class="text-2xl font-bold text-center text-gray-700 dark:text-gray-200">
 			User Authentication
