@@ -33,10 +33,12 @@ export class Matches extends Base {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
+		// If we are updating for another type of match, ignore it
+		if (!self.constructor.name.toLowerCase().includes(updated.type)) return;
+
 		if (self.constructor.name === 'Brackets' && updated.type === 'bracket') {
 			await self.load();
-			(self as Brackets).nextRound(old, updated);
-			return;
+			(self as Brackets).nextRound(updated);
 		}
 
 		if (!self.matches) {

@@ -105,43 +105,73 @@ export class Brackets extends Matches {
 		return this.matches;
 	}
 
-	async nextRound(oldMatch: { id: number }, newMatch: MatchRow) {
-		const child = this.matches?.find((m) => m.id === newMatch.child_id);
-		const otherParent = this.matches?.find(
-			(m) => m.child_id === newMatch.child_id && m.id !== newMatch.id
-		);
-		const otherParentComplete = this.matches!.length > 3 ? otherParent?.state === 'COMPLETE' : true;
-
+	async nextRound(newMatch: MatchRow) {
 		try {
-			if (newMatch.state === 'COMPLETE' && otherParentComplete && child) {
-				const winnerOfNew =
-					newMatch.team1_score > newMatch.team2_score ? newMatch.team1 : newMatch.team2;
-				const winnerOfOtherParent =
-					otherParent?.state === 'COMPLETE' && otherParent.team1_score !== null
-						? otherParent.team1_score > otherParent.team2_score
-							? otherParent.team1
-							: otherParent.team2
-						: child.team1 || child.team2;
+			const child = this.matches?.find((m) => m.id === newMatch.child_id);
+			const otherParent = this.matches?.find(
+				(m) => m.child_id === newMatch.child_id && m.id !== newMatch.id
+			);
+			const otherParentComplete = this.isOtherParentComplete(otherParent);
 
-				if (child.team1 === winnerOfNew || child.team2 === winnerOfNew) {
+			if (this.canProceedToNextRound(newMatch, otherParentComplete, child)) {
+				const winnerOfNew = this.getMatchWinner(newMatch);
+				const winnerOfOtherParent = this.getWinnerOfOtherParent(otherParent, child);
+
+				if (this.childHasCorrectTeams(child, winnerOfNew)) {
 					console.debug('Child match already has the correct teams');
 					return;
-				} else {
-					child.team1 = winnerOfNew;
-					child.team2 = winnerOfOtherParent;
-					const newBracketMatch: Partial<MatchRow> = {
-						...child,
-						team1_score: 0,
-						team2_score: 0
-					};
-
-					await this.put(newBracketMatch as MatchRow);
 				}
+
+				await this.updateChildMatch(child, winnerOfNew, winnerOfOtherParent);
 			} else {
 				console.debug('Parent matches not complete');
 			}
 		} catch (error) {
 			this.handleError(500, `An error occurred in nextRound: ${error}`);
 		}
+	}
+
+	isOtherParentComplete(otherParent?: MatchRow): boolean {
+		return this.matches!.length > 3 ? otherParent?.state === 'COMPLETE' : true;
+	}
+
+	canProceedToNextRound(
+		newMatch: MatchRow,
+		otherParentComplete: boolean,
+		child?: MatchRow
+	): boolean {
+		return newMatch.state === 'COMPLETE' && otherParentComplete && !!child;
+	}
+
+	getMatchWinner(match: MatchRow): string | null {
+		return match.team1_score! > match.team2_score! ? match.team1 : match.team2;
+	}
+
+	getWinnerOfOtherParent(otherParent?: MatchRow, child?: MatchRow): string | null {
+		if (otherParent?.state === 'COMPLETE' && otherParent.team1_score !== null) {
+			return otherParent.team1_score > otherParent.team2_score
+				? otherParent.team1
+				: otherParent.team2;
+		}
+		return child?.team1 || child?.team2;
+	}
+
+	childHasCorrectTeams(child: MatchRow, winnerOfNew: string | null): boolean {
+		return child.team1 === winnerOfNew || child.team2 === winnerOfNew;
+	}
+
+	async updateChildMatch(
+		child: MatchRow,
+		winnerOfNew: string | null,
+		winnerOfOtherParent: string | null
+	): Promise<void> {
+		child.team1 = winnerOfNew;
+		child.team2 = winnerOfOtherParent;
+		const newBracketMatch: Partial<MatchRow> = {
+			...child,
+			team1_score: 0,
+			team2_score: 0
+		};
+		await this.put(newBracketMatch as MatchRow);
 	}
 }

@@ -7,7 +7,7 @@ import { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
 import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
 import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Event as EventInstance } from '$lib/event.svelte';
-import { Matches as MatchesInstance } from '$lib/matches.svelte';
+import { Pool } from '$lib/pool/pool.svelte';
 import { Teams as TeamsInstance } from '$lib/teams.svelte';
 
 export function showModal(matchId: number, type: string): void {
@@ -47,7 +47,7 @@ export async function initiateEvent(
 	supabase: supabaseClient
 ): Promise<{
 	tournament: EventInstance;
-	matches: MatchesInstance;
+	matches: Pool;
 	teams: TeamsInstance;
 	bracket: Brackets;
 }> {
@@ -55,7 +55,7 @@ export async function initiateEvent(
 	const tournament = $state(new EventInstance(eventId, eventSupabaseDatabaseService));
 
 	const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(supabase);
-	const matches = $state(new MatchesInstance(eventId, matchesSupabaseDatabaseService));
+	const matches = $state(new Pool(eventId, matchesSupabaseDatabaseService));
 
 	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(supabase);
 	const teams = $state(new TeamsInstance(eventId, teamsSupabaseDatabaseService));
