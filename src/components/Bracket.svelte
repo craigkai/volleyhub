@@ -118,7 +118,7 @@
 														{match.public_matches_team1_fkey?.name ?? 'tbd'}
 													</abbr>
 												</td>
-												<td class="tournament-bracket__score">
+												<td class="tournament-bracket__score rounded p-1 m-1">
 													{#if readOnly}
 														<span class="tournament-bracket__number">{match?.team1_score || 0}</span
 														>
@@ -142,7 +142,7 @@
 														{match.public_matches_team2_fkey?.name ?? 'tbd'}
 													</abbr>
 												</td>
-												<td class="tournament-bracket__score">
+												<td class="tournament-bracket__score rounded p-1 m-1">
 													{#if readOnly}
 														<span class="tournament-bracket__number">{match?.team2_score || 0}</span
 														>
