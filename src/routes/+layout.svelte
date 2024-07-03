@@ -49,17 +49,15 @@
 </svelte:head>
 
 <div
-	class="dark:bg-slate-800 dark:text-white text-gray-900 bg-white min-h-screen flex flex-col mx-auto"
+	class="dark:bg-slate-800 dark:text-white text-gray-900 bg-white flex flex-col min-h-screen overflow-x-hidden"
 >
-	<ModeWatcher />
-
-	<Header {supabase} {isMobile} />
-
-	<div class="wrap">
-		<SvelteToast {options} />
+	<div class="flex-grow">
+		<ModeWatcher />
+		<Header {supabase} {isMobile} />
+		<div class="max-w-7xl mx-auto p-4">
+			<SvelteToast {options} />
+		</div>
+		{@render children()}
 	</div>
-
-	{@render children()}
-
 	<Footer />
 </div>
