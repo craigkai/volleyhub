@@ -146,15 +146,24 @@ export class Matches extends Base {
 		teams: TeamRow[],
 		pools: number
 	): UserMatch[] {
-		let courtsAvailable = courts;
-		let teamsAvailable = teams.length;
 		let round = 0;
 		const userMatches: UserMatch[] = [];
-		const teamsPerRound: { [round: number]: number[] } = {};
+		const teamsPerRound: { [round: number]: Set<number> } = {};
+
+		// Initialize team availability per round
+		const teamAvailability: { [round: number]: Set<number> } = {};
+		for (let i = 0; i < teams.length; i++) {
+			for (let r = 0; r < teams.length - 1; r++) {
+				if (!teamAvailability[r]) {
+					teamAvailability[r] = new Set();
+				}
+				teamAvailability[r].add(teams[i].id);
+			}
+		}
 
 		matches
 			.sort((a, b) => a.round - b.round)
-			.forEach((match: Partial<MatchRow>, index) => {
+			.forEach((match: Partial<MatchRow>) => {
 				if (match.team1 === 0 || match.team2 === 0) {
 					return;
 				}
@@ -164,34 +173,40 @@ export class Matches extends Base {
 				}
 
 				if (!teamsPerRound[round]) {
-					teamsPerRound[round] = [];
+					teamsPerRound[round] = new Set();
 				}
 
-				teamsPerRound[round] = teamsPerRound[round].concat(match.team1, match.team2);
+				// Check if teams are available for this round
+				if (
+					!teamAvailability[round].has(match.team1) ||
+					!teamAvailability[round].has(match.team2)
+				) {
+					round++;
+					if (!teamAvailability[round]) {
+						teamAvailability[round] = new Set();
+					}
+				}
 
-				match.court = courts - courtsAvailable;
+				teamsPerRound[round].add(match.team1!);
+				teamsPerRound[round].add(match.team2!);
+
+				// Remove teams from availability for this round
+				teamAvailability[round].delete(match.team1!);
+				teamAvailability[round].delete(match.team2!);
+
+				match.court = Math.floor(userMatches.length % courts);
 				match.round = round;
 
-				courtsAvailable -= 1;
-				if (teamsAvailable >= 2) {
-					userMatches.push({
-						event_id: this.event_id,
-						team1: match.team1!,
-						team2: match.team2!,
-						court: match.court!,
-						round: match.round!,
-						ref: match.ref,
-						type: match.type || 'pool',
-						child_id: match.child_id
-					});
-				}
-				teamsAvailable -= 2;
-
-				if (teamsAvailable < 2 || courtsAvailable === 0) {
-					round += 1;
-					courtsAvailable = courts;
-					teamsAvailable = teams.length;
-				}
+				userMatches.push({
+					event_id: this.event_id,
+					team1: match.team1!,
+					team2: match.team2!,
+					court: match.court!,
+					round: match.round!,
+					ref: match.ref,
+					type: match.type || 'pool',
+					child_id: match.child_id
+				});
 			});
 
 		return userMatches;
