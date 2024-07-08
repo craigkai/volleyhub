@@ -10,6 +10,7 @@ import { error, type NumericRange } from '@sveltejs/kit';
 import type { z } from 'zod';
 import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Matches } from '$lib/matches.svelte';
+import { v4 as uuidv4 } from 'uuid';
 
 export class SupabaseDatabaseService {
 	// Private property for Supabase client
@@ -93,7 +94,7 @@ export class SupabaseDatabaseService {
 		);
 
 		return this.supabaseClient
-			.channel(self.constructor.name)
+			.channel(`${self.constructor.name}-${uuidv4()}`)
 			.on(
 				'postgres_changes',
 				{ event: '*', schema: 'public', table: table, filter: filter },

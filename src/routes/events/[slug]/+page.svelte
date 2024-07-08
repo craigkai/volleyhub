@@ -9,13 +9,10 @@
 	import { browser } from '$app/environment';
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
-	import { writable, derived } from 'svelte/store';
 	import type { PageData } from '$types';
 
 	let { data = $bindable() }: { data: PageData } = $props();
 	let { tournament, bracket, teams, matches, defaultTeam } = $state(data);
-
-	const teamsStore = writable(teams);
 
 	let historyReady = false;
 	onMount(async () => {
@@ -35,10 +32,9 @@
 		}
 	});
 
-	const teamsSelect = derived(
-		teamsStore,
-		($teams) =>
-			$teams?.teams
+	const teamsSelect = $derived(
+		() =>
+			teams.teams
 				?.map((team: { name: string }) => {
 					return { value: team.name, name: team.name };
 				})
