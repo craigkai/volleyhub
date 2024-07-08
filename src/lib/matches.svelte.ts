@@ -34,14 +34,6 @@ export class Matches extends Base {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
-		// bail if we are not subscribed to this type of match yet
-		const subscription = self.databaseService.supabaseClient
-			.getChannels()
-			.filter((c) => c.topic === `realtime:${self.constructor.name}`);
-		if (subscription.length === 0 || subscription[0].state !== 'joined') {
-			return;
-		}
-
 		// If we are updating for another type of match, ignore it
 		if (!self.constructor.name.toLowerCase().includes(updated.type)) return;
 
