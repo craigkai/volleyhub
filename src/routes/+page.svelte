@@ -6,7 +6,7 @@
 	export let data: PageData;
 
 	const eventsDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
-	const eventsPromise = eventsDatabaseService.getEvents();
+	const eventsPromise = eventsDatabaseService.getUpcomingEvents();
 </script>
 
 {#await eventsPromise}
