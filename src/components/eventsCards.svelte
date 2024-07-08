@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Card from '$components/ui/card/index.js';
-	import { parseDateTime } from '@internationalized/date';
+	import { getLocalTimeZone, parseDateTime } from '@internationalized/date';
 
 	export let events: Event;
 	export let readOnly: boolean = true;
@@ -22,7 +22,7 @@
 									<div class="flex flex-col space-y-1.5">
 										<span
 											>{parseDateTime(event.date ?? '')
-												.toDate()
+												.toDate(getLocalTimeZone())
 												.toDateString()}</span
 										>
 									</div>

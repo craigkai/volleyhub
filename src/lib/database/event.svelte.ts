@@ -134,11 +134,12 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 		// Get the current date and set the time to the beginning of the day
 		const today = new Date();
 		today.setHours(0, 0, 0, 0); // Set time to 00:00:00.000
+		today.setDate(today.getDate() - 1);
 
 		const res = await this.supabaseClient
 			.from('events')
 			.select('*')
-			.gte('date', today.getDate().toString());
+			.gte('date', today.toISOString());
 
 		this.validateAndHandleErrors(res, EventsRowSchemaArray);
 
