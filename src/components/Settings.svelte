@@ -30,8 +30,10 @@
 	import { Calendar } from '$components/ui/calendar';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 
-	let { data, event_id }: { data: SuperValidated<Infer<FormSchema>>; event_id: number | 'create' } =
-		$props();
+	let {
+		data = $bindable(),
+		event_id
+	}: { data: SuperValidated<Infer<FormSchema>>; event_id: number | 'create' } = $props();
 
 	const form = superForm(data, {
 		validators: zodClient(formSchema),
@@ -161,8 +163,8 @@
 						<Value placeholder="Select who will be ref'ing" />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="teams" label="Teams" />
-						<SelectItem value="provided" label="Provided" />
+						<SelectItem value="teams" label="teams" />
+						<SelectItem value="provided" label="provided" />
 					</SelectContent>
 				</SelectRoot>
 				<input hidden value={$formData.refs} name={attrs.name} />
@@ -188,8 +190,8 @@
 						<Value placeholder="Seeding for playoffs based on score of just wins?" />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="points" label="Points" />
-						<SelectItem value="wins" label="Wins" />
+						<SelectItem value="points" label="points" />
+						<SelectItem value="wins" label="wins" />
 					</SelectContent>
 				</SelectRoot>
 				<input hidden value={$formData.scoring} name={attrs.name} />

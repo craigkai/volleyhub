@@ -20,8 +20,6 @@
 		open = $page.state.showModal ?? false;
 	});
 
-	let { event_id, form } = data;
-
 	const isCreate = $derived(data?.event_id === 'create');
 </script>
 
@@ -59,7 +57,7 @@
 						<Card.Description>Make changes to your event here.</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Settings {event_id} data={form} />
+						<Settings event_id={data.event_id} bind:data={data.form} />
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
