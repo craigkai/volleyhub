@@ -7,6 +7,9 @@
 	import * as Alert from '$components/ui/alert/index.js';
 	import type { HttpError } from '@sveltejs/kit';
 	import type { Teams } from '$lib/teams.svelte';
+	import Zap from 'lucide-svelte/icons/zap';
+	import Zapoff from 'lucide-svelte/icons/zap-off';
+
 	import { onMount } from 'svelte';
 
 	let {
@@ -24,6 +27,7 @@
 	} = $props();
 
 	let showGenerateMatchesAlert = $state(false);
+	let matchesSubscription: RealtimeChannel | undefined = $state(undefined);
 
 	async function checkGenerateMatches() {
 		if ((matches?.matches?.length ?? 0) > 0) {
@@ -33,24 +37,35 @@
 		}
 	}
 
-	let matchesSubscription: RealtimeChannel | undefined;
-
 	onMount(async () => {
-		if ((matches?.matches?.length ?? 0) > 0)
-			matchesSubscription = await matches.subscribeToMatches();
+		if ((matches?.matches?.length ?? 0) > 0) {
+			await subscribeToMatches();
+		}
 	});
+
+	async function subscribeToMatches() {
+		try {
+			matchesSubscription = await matches.subscribeToMatches();
+		} catch (err) {
+			error(`Failed to subscribe to matches: ${err as HttpError}`);
+			console.error('Subscription error:', err);
+		}
+	}
 
 	async function generateMatches(): Promise<void> {
 		try {
-			if (matchesSubscription) await matchesSubscription.unsubscribe();
+			if (matchesSubscription) {
+				await matchesSubscription.unsubscribe();
+				matchesSubscription = undefined;
+			}
 
 			const res: Matches | undefined = await matches.create(tournament, teams.teams);
 			if (!res) {
 				error('Failed to create matches');
 			} else {
-				// We need to wait to resub to the matches channel
+				// Ensure there's a delay to resubscribe
 				await new Promise((r) => setTimeout(r, 1000));
-				matchesSubscription = await matches.subscribeToMatches();
+				await subscribeToMatches();
 			}
 		} catch (err) {
 			error((err as HttpError).toString());
@@ -59,7 +74,13 @@
 	}
 </script>
 
-<div class="block text-gray-700 text-sm font-bold mb-4">Matches:</div>
+<div class="block text-gray-700 text-sm font-bold mb-4 flex">
+	Matches {#if matchesSubscription && matchesSubscription?.state === 'joined'}
+		<Zap class="text-green-500 fill-green-200" />
+	{:else}
+		<Zapoff class="text-red-500 fill-red-200" />
+	{/if}:
+</div>
 
 {#if matches.matches && matches.matches.length > 0}
 	{@const matchesForEachRound = matches.matches.reduce((accumulator, currentValue) => {
