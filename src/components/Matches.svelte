@@ -30,6 +30,11 @@
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let subscriptionStatus: CHANNEL_STATES | undefined = $state(matches?.subscriptionStatus);
 
+	$effect(() => {
+		matches;
+		subscriptionStatus = matches?.subscriptionStatus;
+	});
+
 	async function checkGenerateMatches() {
 		if ((matches?.matches?.length ?? 0) > 0) {
 			showGenerateMatchesAlert = true;
