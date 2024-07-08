@@ -109,6 +109,7 @@ export class SupabaseDatabaseService {
 				// We call the load function to update in case our content is stale
 				// when we re-connect to the web socket.
 				self.load();
+				self.subscriptionStatus = status;
 				console.debug('Realtime status', status);
 			});
 	}

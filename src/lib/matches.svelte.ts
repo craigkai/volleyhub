@@ -8,6 +8,7 @@ export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
 	event_id: number;
 	matches?: MatchRow[] = $state();
+	subscriptionStatus?: string;
 
 	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
 		super();

@@ -3,7 +3,7 @@
 	import * as Table from '$components/ui/table';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches.svelte';
-	import type { RealtimeChannel } from '@supabase/supabase-js';
+	import type { RealtimeChannel, CHANNEL_STATES } from '@supabase/supabase-js';
 	import * as Alert from '$components/ui/alert/index.js';
 	import type { HttpError } from '@sveltejs/kit';
 	import type { Teams } from '$lib/teams.svelte';
@@ -27,7 +27,8 @@
 	} = $props();
 
 	let showGenerateMatchesAlert = $state(false);
-	let matchesSubscription: RealtimeChannel | undefined = $state(undefined);
+	let matchesSubscription: RealtimeChannel | undefined = $state();
+	let subscriptionStatus: CHANNEL_STATES | undefined = $state(matches?.subscriptionStatus);
 
 	async function checkGenerateMatches() {
 		if ((matches?.matches?.length ?? 0) > 0) {
@@ -38,9 +39,7 @@
 	}
 
 	onMount(async () => {
-		if ((matches?.matches?.length ?? 0) > 0) {
-			await subscribeToMatches();
-		}
+		if ((matches?.matches?.length ?? 0) > 0) await subscribeToMatches();
 	});
 
 	async function subscribeToMatches() {
@@ -75,7 +74,7 @@
 </script>
 
 <div class="block text-gray-700 text-sm font-bold mb-4 flex">
-	Matches {#if matchesSubscription && matchesSubscription?.state === 'joined'}
+	Matches {#if subscriptionStatus && subscriptionStatus === 'SUBSCRIBED'}
 		<Zap class="text-green-500 fill-green-200" />
 	{:else}
 		<Zapoff class="text-red-500 fill-red-200" />
