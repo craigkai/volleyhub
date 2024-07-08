@@ -80,6 +80,9 @@
 			if (!res) {
 				error('Failed to create matches');
 			} else {
+				// We need to wait to resub to the matches channel
+				await new Promise((r) => setTimeout(r, 1000));
+
 				matchesSubscription = await bracket.subscribeToMatches();
 				await bracket.load();
 			}

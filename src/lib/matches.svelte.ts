@@ -32,6 +32,7 @@ export class Matches extends Base {
 	): Promise<void> {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
+		console.log('I AM HERE`');
 
 		// If we are updating for another type of match, ignore it
 		if (!self.constructor.name.toLowerCase().includes(updated.type)) return;
@@ -47,7 +48,9 @@ export class Matches extends Base {
 		}
 
 		const matchIndex = self.matches.findIndex((m: MatchRow) => m.id === old.id);
+
 		if (matchIndex !== -1) {
+			// Existing match, update it
 			const updatedMatch = { ...self.matches[matchIndex], ...updated };
 			self.matches.splice(matchIndex, 1, updatedMatch);
 		} else {
@@ -131,7 +134,7 @@ export class Matches extends Base {
 
 	generateMatches(pools: number, teams: TeamRow[]): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
-		const totalRounds = pools * (teams.length - 1);
+		const totalRounds = pools * teams.length;
 
 		for (let round = 0; round < totalRounds; round++) {
 			matches = matches.concat(RoundRobin(teams.map((t) => t.id)));
@@ -182,6 +185,9 @@ export class Matches extends Base {
 					!teamAvailability[round].has(match.team2)
 				) {
 					round++;
+					if (!teamsPerRound[round]) {
+						teamsPerRound[round] = new Set();
+					}
 					if (!teamAvailability[round]) {
 						teamAvailability[round] = new Set();
 					}
