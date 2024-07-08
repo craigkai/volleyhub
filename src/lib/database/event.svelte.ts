@@ -138,7 +138,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 		const res = await this.supabaseClient
 			.from('events')
 			.select('*')
-			.gte('date', today.toISOString());
+			.gte('date', today.getDate().toString());
 
 		this.validateAndHandleErrors(res, EventsRowSchemaArray);
 

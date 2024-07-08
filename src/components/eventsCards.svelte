@@ -20,7 +20,11 @@
 							<form>
 								<div class="grid w-full items-center gap-4">
 									<div class="flex flex-col space-y-1.5">
-										<span>{parseDateTime(event.date ?? '')}</span>
+										<span
+											>{parseDateTime(event.date ?? '')
+												.toDate()
+												.toDateString()}</span
+										>
 									</div>
 								</div>
 							</form>

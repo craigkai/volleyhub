@@ -225,7 +225,7 @@
 							bind:value={dateValue}
 							placeholder={datePlaceholder}
 							minValue={today(getLocalTimeZone())}
-							calendarLabel="Date of birth"
+							calendarLabel="Date of event"
 							initialFocus
 							onValueChange={(v) => {
 								if (v) {
