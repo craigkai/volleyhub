@@ -31,6 +31,8 @@ export class Matches extends Base {
 		self: Matches | Brackets,
 		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
 	): Promise<void> {
+		console.debug('Handling update for matches ', self.constructor.name);
+
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
