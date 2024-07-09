@@ -33,12 +33,11 @@
 	});
 
 	const teamsSelect = $derived(
-		() =>
-			teams.teams
-				?.map((team: { name: string }) => {
-					return { value: team.name, name: team.name };
-				})
-				.concat([{ value: '', name: 'none' }]) || []
+		teams.teams
+			?.map((team: { name: string }) => {
+				return { value: team.name, name: team.name };
+			})
+			.concat([{ value: '', name: 'none' }]) || []
 	);
 </script>
 
@@ -56,7 +55,7 @@
 				<Select.Value placeholder="Select a team" />
 			</Select.Trigger>
 			<Select.Content>
-				{#each $teamsSelect as team}
+				{#each teamsSelect as team}
 					<Select.Item value={team.value} label={team.name}>{team.name}</Select.Item>
 				{/each}
 			</Select.Content>
