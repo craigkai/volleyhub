@@ -7,7 +7,7 @@ import type { Brackets } from './brackets/brackets.svelte';
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
 	event_id: number;
-	matches?: MatchRow[] = $state();
+	matches?: MatchRow[] = $state<MatchRow[]>();
 	subscriptionStatus? = $state();
 
 	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
@@ -165,7 +165,7 @@ export class Matches extends Base {
 		}
 
 		matches
-			.sort((a, b) => a.round - b.round)
+			.sort((a, b) => (a.round ?? 0) - (b.round ?? 0))
 			.forEach((match: Partial<MatchRow>) => {
 				if (match.team1 === 0 || match.team2 === 0) {
 					return;
@@ -211,7 +211,7 @@ export class Matches extends Base {
 					round: match.round!,
 					ref: match.ref,
 					type: match.type || 'pool',
-					child_id: match.child_id
+					child_id: match.child_id ?? undefined
 				});
 			});
 
