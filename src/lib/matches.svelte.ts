@@ -9,6 +9,7 @@ export class Matches extends Base {
 	event_id: number;
 	matches?: MatchRow[] = $state<MatchRow[]>();
 	subscriptionStatus? = $state();
+	type = 'pool';
 
 	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
 		super();
@@ -31,13 +32,11 @@ export class Matches extends Base {
 		self: Matches | Brackets,
 		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
 	): Promise<void> {
-		console.debug('Handling update for matches ', self.constructor.name);
-
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
 		// If we are updating for another type of match, ignore it
-		if (!self.constructor.name.toLowerCase().includes(updated.type)) return;
+		if (self.type !== updated.type) return;
 
 		if (self.constructor.name === 'Brackets' && updated.type === 'bracket') {
 			await self.load();

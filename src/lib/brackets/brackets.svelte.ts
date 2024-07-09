@@ -4,6 +4,7 @@ import { Matches } from '../matches.svelte';
 
 export class Brackets extends Matches {
 	matches?: MatchRow[] = $state();
+	type = 'bracket';
 
 	// Overload Matches load method to only load our bracket matches.
 	async load() {
