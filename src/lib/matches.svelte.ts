@@ -77,15 +77,15 @@ export class Matches extends Base {
 		try {
 			this.validateInputs(teams, pools, courts, refs);
 
-			const matches = this.generateMatches(pools!, teams);
 			await this.databaseService.deleteMatchesByEvent(this.event_id);
 
-			const userMatches = this.prepareUserMatches(matches, courts!, teams, pools!);
+			const matches = this.generateMatches(pools!, teams, courts!);
+
 			if (refs === 'teams') {
-				this.assignReferees(userMatches, teams);
+				this.assignReferees(matches, teams);
 			}
-			console.log(userMatches);
-			const res = await this.databaseService.insertMatches(userMatches);
+
+			const res = await this.databaseService.insertMatches(matches);
 			if (res) this.matches = res;
 
 			return this;
@@ -135,129 +135,89 @@ export class Matches extends Base {
 		return { rounds, courtsPerRound };
 	}
 
-	generateMatches(pools: number, teams: TeamRow[]): Partial<MatchRow>[] {
+	generateMatches(pools: number, teams: TeamRow[], courts: number): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
-		const totalRounds = pools * (teams.length - 1);
+		const totalMatches = (teams.length * pools) / 2; // Calculate the total number of matches needed
 
-		for (let round = 0; round < totalRounds; round++) {
-			matches = matches.concat(RoundRobin(teams.map((t) => t.id)));
-		}
-
-		return matches;
-	}
-
-	prepareUserMatches(
-		matches: Partial<MatchRow>[],
-		courts: number,
-		teams: TeamRow[],
-		pools: number
-	): UserMatch[] {
-		let round = 0;
-		const userMatches: UserMatch[] = [];
+		let currentRound = 1;
 		const teamsPerRound: { [round: number]: Set<number> } = {};
 
-		// Initialize team availability per round
-		const teamAvailability: { [round: number]: Set<number> } = {};
-		for (let i = 0; i < teams.length; i++) {
-			for (let r = 0; r < teams.length - 1; r++) {
-				if (!teamAvailability[r]) {
-					teamAvailability[r] = new Set();
+		// Generate matches using RoundRobin
+		for (let i = 0; i < totalMatches; i += courts) {
+			const roundMatches = RoundRobin(
+				teams.map((t) => t.id),
+				currentRound,
+				courts
+			);
+
+			// Assign matches to rounds and distribute them based on courts
+			for (const match of roundMatches) {
+				if (!teamsPerRound[currentRound]) {
+					teamsPerRound[currentRound] = new Set();
 				}
-				teamAvailability[r].add(teams[i].id);
+
+				if (teamsPerRound[currentRound].size >= courts * 2) {
+					currentRound++;
+					teamsPerRound[currentRound] = new Set();
+				}
+
+				match.round = currentRound;
+				teamsPerRound[currentRound].add(match.team1!);
+				teamsPerRound[currentRound].add(match.team2!);
 			}
+
+			matches = matches.concat(roundMatches);
 		}
 
-		matches
-			.sort((a, b) => a.round - b.round)
-			.forEach((match: Partial<MatchRow>) => {
-				if (match.team1 === 0 || match.team2 === 0) {
-					return;
-				}
+		// Add event_id to each match
+		matches = matches.map((match) => ({ ...match, event_id: this.event_id }));
 
-				if (pools && userMatches.length >= (pools * teams.length) / 2) {
-					return;
-				}
-
-				if (!teamsPerRound[round]) {
-					teamsPerRound[round] = new Set();
-				}
-
-				// Check if teams are available for this round
-				if (
-					!teamAvailability[round].has(match.team1) ||
-					!teamAvailability[round].has(match.team2)
-				) {
-					round++;
-					if (!teamsPerRound[round]) {
-						teamsPerRound[round] = new Set();
-					}
-					if (!teamAvailability[round]) {
-						teamAvailability[round] = new Set();
-					}
-				}
-
-				teamsPerRound[round].add(match.team1!);
-				teamsPerRound[round].add(match.team2!);
-
-				// Remove teams from availability for this round
-				teamAvailability[round].delete(match.team1!);
-				teamAvailability[round].delete(match.team2!);
-
-				match.court = Math.floor(userMatches.length % courts);
-				match.round = round;
-
-				userMatches.push({
-					event_id: this.event_id,
-					team1: match.team1!,
-					team2: match.team2!,
-					court: match.court!,
-					round: match.round!,
-					ref: 0, // Initialize ref with 0, will be updated later if necessary
-					type: match.type || 'pool',
-					child_id: match.child_id
-				});
-			});
-
-		return userMatches;
+		return matches.slice(0, totalMatches); // Limit to the required number of matches
 	}
 
 	assignReferees(userMatches: UserMatch[], teams: TeamRow[]) {
-		const teamsPerRound: { [key: string]: number[] } = {};
+		const teamsPerRound: { [round: number]: Set<number> } = {};
 
 		userMatches.forEach((match: UserMatch) => {
-			const round = match.round.toString();
-			teamsPerRound[round] = teamsPerRound[round]
-				? teamsPerRound[round].concat(match.team1, match.team2)
-				: [match.team1, match.team2];
+			const round = match.round;
+			if (!teamsPerRound[round]) {
+				teamsPerRound[round] = new Set();
+			}
+			teamsPerRound[round].add(match.team1);
+			teamsPerRound[round].add(match.team2);
 		});
 
 		const refereeCounts: { [teamId: number]: number } = {};
 		teams.forEach((team) => (refereeCounts[team.id] = 0));
 
-		userMatches.forEach((match: UserMatch, i) => {
-			const round = match.round.toString();
+		userMatches.forEach((match: UserMatch) => {
+			const round = match.round;
 			const ref = this.determineReferee(
-				teamsPerRound[round],
+				Array.from(teamsPerRound[round]),
 				teams.map((t) => t.id),
-				userMatches,
 				refereeCounts
 			);
-			userMatches[i].ref = ref;
-			refereeCounts[ref]++;
+			match.ref = ref;
+			if (ref !== -1) {
+				refereeCounts[ref]++;
+			}
 		});
 	}
 
 	determineReferee(
-		teamsPerRound: number[],
-		teams: number[],
-		previousMatches: UserMatch[],
+		teamsPlayingThisRound: number[],
+		allTeams: number[],
 		refereeCounts: { [teamId: number]: number }
 	): number {
-		const availableTeams = teams.filter((team) => !teamsPerRound.includes(team));
+		const availableTeams = allTeams.filter((team) => !teamsPlayingThisRound.includes(team));
 
-		availableTeams.sort((a, b) => (refereeCounts[a] ?? 0) - (refereeCounts[b] ?? 0));
+		if (availableTeams.length === 0) {
+			throw new Error('No available teams to assign as referees.');
+		}
 
-		return Number(availableTeams[0]);
+		availableTeams.sort((a, b) => refereeCounts[a] - refereeCounts[b]);
+
+		return availableTeams[0];
 	}
 }
 
