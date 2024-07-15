@@ -34,9 +34,6 @@
 	$effect(() => {
 		matches;
 		subscriptionStatus = matches?.subscriptionStatus;
-		subscriptionStatus.on('CHANNEL_ERROR', () => {
-			console.log('FOUND AN ERROR');
-		});
 	});
 
 	async function checkGenerateMatches() {
