@@ -54,7 +54,7 @@ export class Event extends Base {
 		const currentUser = await this.databaseService.getCurrentUser();
 		input.owner = currentUser?.id as string;
 
-		const res: EventRow | null = await this.databaseService.createEvent(input);
+		const res: EventRow | null = await this.databaseService.create(input);
 
 		if (res !== null) {
 			Object.assign(this, res);
@@ -71,7 +71,7 @@ export class Event extends Base {
 	 * @throws {Error} - Throws an error if there's an issue updating the event.
 	 */
 	async update(id: number, input: Infer<FormSchema>): Promise<Event> {
-		const res: EventRow | null = await this.databaseService.updateEvent(id, input);
+		const res: EventRow | null = await this.databaseService.put(id, input);
 
 		if (res !== null) {
 			Object.assign(this, res);
@@ -84,7 +84,7 @@ export class Event extends Base {
 	 * @returns {Promise<Event>} - Returns a promise that resolves to the loaded event.
 	 */
 	async load(): Promise<Event> {
-		const eventResponse: EventRow | null = await this.databaseService.loadEvent(this.id);
+		const eventResponse: EventRow | null = await this.databaseService.load(this.id);
 
 		if (eventResponse !== null) {
 			Object.assign(this, eventResponse);
@@ -99,7 +99,7 @@ export class Event extends Base {
 	 */
 	async delete(): Promise<void> {
 		try {
-			await this.databaseService.deleteEvent(this.id);
+			await this.databaseService.delete(this.id);
 		} catch (err) {
 			this.handleError(500, `Failed to delete event: ${(err as Error).message}`);
 		}
@@ -115,9 +115,9 @@ if (import.meta.vitest) {
 
 	beforeEach(() => {
 		mockDatabaseService = {
-			updateEvent: vi.fn(() => console.log('mockDatabaseService.updateEvent called')),
-			deleteEvent: vi.fn(() => console.log('mockDatabaseService.deleteEvent called')),
-			loadEvent: vi.fn(() => ({
+			update: vi.fn(() => console.log('mockDatabaseService.update called')),
+			delete: vi.fn(() => console.log('mockDatabaseService.delete called')),
+			load: vi.fn(() => ({
 				id: 1,
 				name: 'Test Event',
 				date: '2023-01-01',

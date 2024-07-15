@@ -14,7 +14,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the newly created event.
 	 * @throws {Error} - Throws an error if there's an issue creating the event.
 	 */
-	async createEvent(input: Infer<FormSchema>): Promise<EventRow | null> {
+	async create(input: Infer<FormSchema>): Promise<EventRow | null> {
 		try {
 			const parsedEvent = eventsRowSchema.partial().parse(input);
 
@@ -42,7 +42,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the loaded event.
 	 * @throws {Error} - Throws an error if there's an issue loading the event.
 	 */
-	async loadEvent(event_id: number): Promise<EventRow | null> {
+	async load(event_id: number): Promise<EventRow | null> {
 		try {
 			// Load the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
@@ -68,7 +68,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @returns {Promise<EventRow>} - Returns a promise that resolves to the updated tournament.
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
-	async updateEvent(id: number, input: Infer<FormSchema>): Promise<EventRow | null> {
+	async put(id: number, input: Infer<FormSchema>): Promise<EventRow | null> {
 		try {
 			const parsedEvent = eventsUpdateSchema.parse(input);
 
@@ -83,7 +83,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 			this.validateAndHandleErrors(res, eventsRowSchema);
 
 			// Return the updated tournament
-			return res.data;
+			return res.data as unknown as EventRow;
 		} catch (error) {
 			// If an error occurs while updating the tournament, log it and rethrow it
 			console.error('An error occurred while updating the tournament:', error);
@@ -97,7 +97,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @returns {Promise<void>} - Returns a promise that resolves when the event has been deleted.
 	 * @throws {Error} - Throws an error if there's an issue deleting the event.
 	 */
-	async deleteEvent(event_id: number): Promise<void> {
+	async delete(event_id: number): Promise<void> {
 		try {
 			// Delete the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient

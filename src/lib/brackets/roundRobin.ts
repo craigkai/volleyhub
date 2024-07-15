@@ -26,10 +26,16 @@ export function RoundRobin(
 		const round: Partial<MatchRow>[] = [];
 
 		for (let i = 0; i < teamArray.length / 2; i++) {
+			const team1 = teamArray[i];
+			const team2 = teamArray[teamArray.length - i - 1];
+
+			// Exclude matches involving the dummy team (team ID 0)
+			if (team1 === 0 || team2 === 0) continue;
+
 			const match: Partial<MatchRow> = {
 				round: roundNumber,
-				team1: teamArray[i],
-				team2: teamArray[teamArray.length - i - 1]
+				team1,
+				team2
 			};
 
 			round.push(match);

@@ -136,19 +136,20 @@ export class Matches extends Base {
 		return { rounds, courtsPerRound };
 	}
 
-	generateMatches(pools: number, teams: Partial<TeamRow>[], courts: number): Partial<MatchRow>[] {
+	generateMatches(pools: number, teams: TeamRow[], courts: number): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
 		const totalMatches = (teams.length * pools) / 2; // Calculate the total number of matches needed
 
 		let currentRound = 1;
 		const teamsPerRound: { [round: number]: Set<number> } = {};
 
-		// We do not accept teams with undefined ids
-		const teamIds = teams.map((t) => t.id).filter((id) => id !== undefined) as number[];
-
 		// Generate matches using RoundRobin
 		for (let i = 0; i < totalMatches; i += courts) {
-			const roundMatches = RoundRobin(teamIds, currentRound, courts);
+			const roundMatches = RoundRobin(
+				teams.map((t) => t.id),
+				currentRound,
+				courts
+			);
 
 			// Assign matches to rounds and distribute them based on courts
 			for (const match of roundMatches) {
