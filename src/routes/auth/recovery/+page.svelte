@@ -4,6 +4,7 @@
 	import { Label } from '$components/ui/label/index.js';
 	import { Input } from '$components/ui/input/index.js';
 	import { Button } from '$components/ui/button/index.js';
+	import type { PageData } from '$types';
 
 	export let data: PageData;
 

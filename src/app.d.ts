@@ -6,7 +6,6 @@ import type {
 	eventsRowSchema,
 	matchesRowSchema,
 	teamsRowSchema,
-	bracketsRowSchema,
 	matchStateSchema
 } from '$schemas/supabase';
 

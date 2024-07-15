@@ -37,7 +37,7 @@ export class Event extends Base {
 		this.databaseService = databaseService;
 		this.id = event_id;
 
-		if (this.id !== 'create') this.load();
+		if ((this.id as unknown as string) !== 'create') this.load();
 	}
 
 	/**

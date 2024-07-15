@@ -80,7 +80,7 @@ export class SupabaseDatabaseService {
 			payload: RealtimePostgresChangesPayload<{
 				[key: string]: any;
 			}>
-		) => {},
+		) => object,
 		table: string,
 		filter?: string
 	): Promise<RealtimeChannel> {

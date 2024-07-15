@@ -5,7 +5,7 @@ export async function findStandings(
 	event: Event,
 	teams: TeamRow[]
 ): Promise<TeamScores> {
-	let teamScores: TeamScores = teams.reduce((acc: TeamScores, team: TeamRow) => {
+	const teamScores: TeamScores = teams.reduce((acc: TeamScores, team: TeamRow) => {
 		acc[team.name] = 0;
 		return acc;
 	}, {});

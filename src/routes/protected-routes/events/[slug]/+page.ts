@@ -7,7 +7,7 @@ import { initiateEvent } from '$lib/helper.svelte';
 export const load: PageLoad = async ({ params, parent, url }) => {
 	const { supabase } = await parent();
 
-	let { tournament, matches, teams, bracket } = await initiateEvent(
+	const { tournament, matches, teams, bracket } = await initiateEvent(
 		params.slug as unknown as number,
 		supabase
 	);

@@ -22,7 +22,7 @@
 		matches: Matches;
 		bracket: Brackets;
 		teams: Teams;
-		readOnly: Boolean;
+		readOnly: boolean;
 	} = $props();
 
 	let rounds: Record<number, Round> = $state({});

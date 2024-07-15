@@ -9,6 +9,7 @@
 	import type { Teams } from '$lib/teams.svelte';
 	import Zap from 'lucide-svelte/icons/zap';
 	import Zapoff from 'lucide-svelte/icons/zap-off';
+	import { Event } from '$lib/event.svelte';
 
 	import { onMount } from 'svelte';
 
@@ -22,7 +23,7 @@
 		matches: Matches;
 		tournament: Event;
 		teams: Teams;
-		readOnly: Boolean;
+		readOnly: boolean;
 		defaultTeam: { value: string; label: string };
 	} = $props();
 
@@ -33,6 +34,9 @@
 	$effect(() => {
 		matches;
 		subscriptionStatus = matches?.subscriptionStatus;
+		subscriptionStatus.on('CHANNEL_ERROR', () => {
+			console.log('FOUND AN ERROR');
+		});
 	});
 
 	async function checkGenerateMatches() {
@@ -88,12 +92,12 @@
 
 {#if matches.matches && matches.matches.length > 0}
 	{@const matchesForEachRound = matches.matches.reduce((accumulator, currentValue) => {
-		// @ts-ignore
+		// @ts-expect-error just not happy with types
 		if (accumulator[currentValue.round]) {
-			// @ts-ignore
+			// @ts-expect-error just not happy with types
 			accumulator[currentValue.round].push(currentValue);
 		} else {
-			// @ts-ignore
+			// @ts-expect-error just not happy with types
 			accumulator[currentValue.round] = [currentValue];
 		}
 		return accumulator;
@@ -112,7 +116,7 @@
 		</Table.Header>
 
 		<Table.Body>
-			{#each Object.keys(matchesForEachRound) as round, i}
+			{#each Object.keys(matchesForEachRound) as round}
 				{@const matchesForRound = matchesForEachRound[round].sort(
 					(a, b) => a.round - b.round || a.court - b.court
 				)}

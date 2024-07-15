@@ -34,7 +34,7 @@ export const actions: Actions = {
 			throw new Error('Slug is undefined');
 		}
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
-		let tournament = new Event(event_id, eventSupabaseDatabaseService);
+		const tournament = new Event(event_id, eventSupabaseDatabaseService);
 
 		try {
 			await tournament.update(event_id, form.data);
@@ -69,7 +69,7 @@ export const actions: Actions = {
 			throw new Error('Slug is undefined');
 		}
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
-		let tournament = new Event(event_id as unknown as number, eventSupabaseDatabaseService);
+		const tournament = new Event(event_id as unknown as number, eventSupabaseDatabaseService);
 
 		let newId: number;
 		try {
@@ -93,7 +93,7 @@ export const actions: Actions = {
 		const event_id = Number(event.params.slug);
 
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
-		let tournament = new Event(event_id, eventSupabaseDatabaseService);
+		const tournament = new Event(event_id, eventSupabaseDatabaseService);
 
 		// TODO: How do we handle delete failure?
 		await tournament.delete();
@@ -112,7 +112,7 @@ export const actions: Actions = {
 		const event_id = Number(event.params.slug);
 
 		const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(event.locals.supabase);
-		let teams = new Teams(event_id, teamsSupabaseDatabaseService);
+		const teams = new Teams(event_id, teamsSupabaseDatabaseService);
 
 		try {
 			const newTeam: Partial<TeamRow> = {

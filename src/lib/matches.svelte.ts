@@ -3,6 +3,7 @@ import { RoundRobin } from './brackets/roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { Base } from './base';
 import type { Brackets } from './brackets/brackets.svelte';
+import { Event } from '$lib/event.svelte';
 
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
@@ -71,8 +72,8 @@ export class Matches extends Base {
 	}
 
 	async create(
-		{ pools, courts, refs = 'provided' }: Partial<EventRow>,
-		teams: TeamRow[]
+		{ pools, courts, refs = 'provided' }: Event | Partial<EventRow>,
+		teams: TeamRow[] | Partial<TeamRow>[]
 	): Promise<Matches | undefined> {
 		try {
 			this.validateInputs(teams, pools, courts, refs);
@@ -103,7 +104,7 @@ export class Matches extends Base {
 	}
 
 	validateInputs(
-		teams: TeamRow[],
+		teams: TeamRow[] | Partial<TeamRow>[],
 		pools: number | undefined | null,
 		courts: number | undefined | null,
 		refs: string | undefined | null
@@ -135,20 +136,19 @@ export class Matches extends Base {
 		return { rounds, courtsPerRound };
 	}
 
-	generateMatches(pools: number, teams: TeamRow[], courts: number): Partial<MatchRow>[] {
+	generateMatches(pools: number, teams: Partial<TeamRow>[], courts: number): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
 		const totalMatches = (teams.length * pools) / 2; // Calculate the total number of matches needed
 
 		let currentRound = 1;
 		const teamsPerRound: { [round: number]: Set<number> } = {};
 
+		// We do not accept teams with undefined ids
+		const teamIds = teams.map((t) => t.id).filter((id) => id !== undefined) as number[];
+
 		// Generate matches using RoundRobin
 		for (let i = 0; i < totalMatches; i += courts) {
-			const roundMatches = RoundRobin(
-				teams.map((t) => t.id),
-				currentRound,
-				courts
-			);
+			const roundMatches = RoundRobin(teamIds, currentRound, courts);
 
 			// Assign matches to rounds and distribute them based on courts
 			for (const match of roundMatches) {
@@ -175,7 +175,7 @@ export class Matches extends Base {
 		return matches.slice(0, totalMatches); // Limit to the required number of matches
 	}
 
-	assignReferees(matches: Partial<MatchRow>[], teams: TeamRow[]) {
+	assignReferees(matches: Partial<MatchRow>[], teams: Partial<TeamRow>[]) {
 		const teamsPerRound: { [round: number]: Set<number> } = {};
 
 		matches.forEach((match) => {
@@ -188,13 +188,17 @@ export class Matches extends Base {
 		});
 
 		const refereeCounts: { [teamId: number]: number } = {};
-		teams.forEach((team) => (refereeCounts[team.id] = 0));
+		teams.forEach((team) => {
+			if (team.id !== undefined) {
+				refereeCounts[team.id] = 0;
+			}
+		});
 
 		matches.forEach((match) => {
 			const round = match.round!;
 			const ref = this.determineReferee(
 				Array.from(teamsPerRound[round]),
-				teams.map((t) => t.id),
+				teams.map((t) => t.id).filter((id) => id !== undefined) as number[],
 				refereeCounts
 			);
 			match.ref = ref;
@@ -265,7 +269,7 @@ if (import.meta.vitest) {
 			created_at: null,
 			name: '',
 			state: null
-		}));
+		})) as unknown as Partial<TeamRow>[];
 
 		await matches.load();
 		await matches.create(input, teams);
@@ -274,8 +278,10 @@ if (import.meta.vitest) {
 
 		const gamesPerTeam: any = { team0: 0, team1: 0 };
 		matches?.matches?.forEach((match: MatchRow) => {
-			gamesPerTeam[match.team1]++;
-			gamesPerTeam[match.team2]++;
+			if (match.team1 && match.team2) {
+				gamesPerTeam[match.team1]++;
+				gamesPerTeam[match.team2]++;
+			}
 		});
 		Object.keys(gamesPerTeam).forEach((team: string) => {
 			expect(gamesPerTeam[team]).toEqual(1);
@@ -298,7 +304,7 @@ if (import.meta.vitest) {
 			created_at: '',
 			name: `team${i}`,
 			state: 'active'
-		}));
+		})) as unknown as Partial<TeamRow>[];
 
 		await matches.load();
 		await matches.create(input, teams);
@@ -307,8 +313,10 @@ if (import.meta.vitest) {
 
 		const gamesPerTeam: any = { team0: 0, team1: 0, team2: 0, team3: 0 };
 		matches?.matches?.forEach((match: MatchRow) => {
-			gamesPerTeam[match.team1]++;
-			gamesPerTeam[match.team2]++;
+			if (match.team1 && match.team2) {
+				gamesPerTeam[match.team1]++;
+				gamesPerTeam[match.team2]++;
+			}
 		});
 		Object.keys(gamesPerTeam).forEach((team: string) => {
 			expect(gamesPerTeam[team]).toEqual(3);
@@ -331,7 +339,7 @@ if (import.meta.vitest) {
 			created_at: '',
 			name: `team${i}`,
 			state: 'active'
-		}));
+		})) as unknown as Partial<TeamRow>[];
 
 		await matches.load();
 		await matches.create(input, teams);

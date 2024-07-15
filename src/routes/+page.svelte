@@ -2,6 +2,7 @@
 	import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 	import { Loader } from 'lucide-svelte';
 	import EventsCards from '$components/eventsCards.svelte';
+	import type { PageData } from '$types';
 
 	export let data: PageData;
 

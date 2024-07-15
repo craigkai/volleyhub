@@ -5,7 +5,7 @@ import type { PageLoad } from './$types';
 export const load: PageLoad = async ({ params, url, parent }) => {
 	const { supabase } = await parent();
 
-	let { tournament, matches, teams, bracket } = await initiateEvent(
+	const { tournament, matches, teams, bracket } = await initiateEvent(
 		params.slug as unknown as number,
 		supabase
 	);

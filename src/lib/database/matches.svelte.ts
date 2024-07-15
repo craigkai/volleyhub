@@ -18,7 +18,7 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @returns {Promise<MatchRow[][]>} - Returns a promise that resolves to an array of the loaded matches.
 	 * @throws {Error} - Throws an error if there's an issue loading the matches.
 	 */
-	async load(event_id: number, filter?: Filter): Promise<MatchRow[][] | null> {
+	async load(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
 		const query = this.supabaseClient
 			.from('matches')
 			.select(
@@ -36,7 +36,7 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.validateAndHandleErrors(res, MatchesRowSchemaArray);
 
 		// Return the loaded matches
-		return res.data;
+		return res.data as unknown as MatchRow[];
 	}
 
 	async deleteMatchesByEvent(event_id: number): Promise<void> {
@@ -70,7 +70,7 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		return res.data;
 	}
 
-	async insertMatches(matches: UserMatch[]): Promise<MatchRow[]> {
+	async insertMatches(matches: Partial<MatchRow>[]): Promise<MatchRow[]> {
 		const parsedMatches = z.array(matchesInsertSchema).parse(matches);
 
 		const res = await this.supabaseClient

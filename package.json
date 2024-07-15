@@ -10,10 +10,12 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
-		"lint": "prettier --plugin-search-dir . --check . && eslint .",
-		"format": "prettier --plugin-search-dir . --write ."
+		"lint": "prettier  --check . && eslint .",
+		"format": "prettier --write ."
 	},
 	"devDependencies": {
+		"@eslint/eslintrc": "^3.1.0",
+		"@eslint/js": "^9.7.0",
 		"@internationalized/date": "^3.5.4",
 		"@jest/globals": "^29.7.0",
 		"@playwright/test": "^1.45.1",
@@ -41,6 +43,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.42.0",
 		"formsnap": "^1.0.1",
+		"globals": "^15.8.0",
 		"i": "^0.3.7",
 		"jsdom": "^24.1.0",
 		"less": "^4.2.0",
