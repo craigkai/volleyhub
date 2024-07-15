@@ -2,7 +2,7 @@
 	import * as Card from '$components/ui/card/index.js';
 	import { getLocalTimeZone, parseDateTime } from '@internationalized/date';
 
-	export let events: Event;
+	export let events: Partial<EventRow>[];
 	export let readOnly: boolean = true;
 </script>
 
