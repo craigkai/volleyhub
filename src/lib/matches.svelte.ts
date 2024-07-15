@@ -175,23 +175,23 @@ export class Matches extends Base {
 		return matches.slice(0, totalMatches); // Limit to the required number of matches
 	}
 
-	assignReferees(userMatches: UserMatch[], teams: TeamRow[]) {
+	assignReferees(matches: Partial<MatchRow>[], teams: TeamRow[]) {
 		const teamsPerRound: { [round: number]: Set<number> } = {};
 
-		userMatches.forEach((match: UserMatch) => {
-			const round = match.round;
+		matches.forEach((match) => {
+			const round = match.round!;
 			if (!teamsPerRound[round]) {
 				teamsPerRound[round] = new Set();
 			}
-			teamsPerRound[round].add(match.team1);
-			teamsPerRound[round].add(match.team2);
+			teamsPerRound[round].add(match.team1!);
+			teamsPerRound[round].add(match.team2!);
 		});
 
 		const refereeCounts: { [teamId: number]: number } = {};
 		teams.forEach((team) => (refereeCounts[team.id] = 0));
 
-		userMatches.forEach((match: UserMatch) => {
-			const round = match.round;
+		matches.forEach((match) => {
+			const round = match.round!;
 			const ref = this.determineReferee(
 				Array.from(teamsPerRound[round]),
 				teams.map((t) => t.id),
@@ -209,12 +209,14 @@ export class Matches extends Base {
 		allTeams: number[],
 		refereeCounts: { [teamId: number]: number }
 	): number {
+		// Filter out teams already playing in the current round
 		const availableTeams = allTeams.filter((team) => !teamsPlayingThisRound.includes(team));
 
 		if (availableTeams.length === 0) {
 			throw new Error('No available teams to assign as referees.');
 		}
 
+		// Sort available teams by the number of times they have refereed, ascending
 		availableTeams.sort((a, b) => refereeCounts[a] - refereeCounts[b]);
 
 		return availableTeams[0];

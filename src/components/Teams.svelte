@@ -3,6 +3,7 @@
 	import { success, error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
 	import * as Table from '$components/ui/table';
+	import { Input } from '$components/ui/input/index.js';
 
 	let { teams = $bindable() }: { teams: Teams } = $props();
 
@@ -53,7 +54,30 @@
 	<Table.Body>
 		{#each teams?.teams as team}
 			<Table.Row>
-				<Table.Cell>{team.name}</Table.Cell>
+				<Table.Cell>
+					<Input
+						class="border border-blue-500 rounded w-full py-2 px-3 mb-3 leading-tight"
+						id="team2-score-input"
+						type="text"
+						value={team.name}
+						on:keypress={async (e) => {
+							// if we hit enter
+							if (e?.key === 'Enter') {
+								if (e?.target?.value) {
+									team.name = e.target.value;
+									try {
+										const res = await teams.update(team);
+										if (res) {
+											success(`Team ${team.name} updated`);
+										}
+									} catch (err: any) {
+										error((err as HttpError).toString());
+									}
+								}
+							}
+						}}
+					/></Table.Cell
+				>
 				<Table.Cell
 					><button onclick={() => deleteTeam(team)} class="action-button">Delete</button
 					></Table.Cell

@@ -35,7 +35,7 @@ export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @returns {Promise<TeamRow[]>} - Returns a promise that resolves to an array of the loaded teams.
 	 * @throws {Error} - Throws an error if there's an issue loading the teams.
 	 */
-	async loadTeams(event_id: number): Promise<TeamRow[] | null> {
+	async load(event_id: number): Promise<TeamRow[] | null> {
 		try {
 			// Load the teams from the 'teams' table
 			const res: PostgrestResponse<TeamRow> = await this.supabaseClient
@@ -52,5 +52,24 @@ export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 			console.error('An error occurred while loading the teams:', error);
 			throw error;
 		}
+	}
+
+	/**
+	 * Update an existing team in the database.
+	 * @param {TeamRow} team - The team to update.
+	 * @returns {Promise<TeamRow>} - Returns a promise that resolves to the updated team.
+	 * @throws {Error} - Throws an error if there's an issue updating the team.
+	 */
+	async put(team: TeamRow): Promise<TeamRow | null> {
+		const res = await this.supabaseClient
+			.from('teams')
+			.update({ ...team })
+			.eq('id', team.id)
+			.select();
+
+		this.validateAndHandleErrors(res, TeamsRowSchemaArray);
+
+		// Return the updated team
+		return res.data as unknown as TeamRow;
 	}
 }

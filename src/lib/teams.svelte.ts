@@ -23,7 +23,7 @@ export class Teams extends Base {
 	 */
 	async load(): Promise<TeamRow[] | undefined> {
 		try {
-			const res = await this.databaseService.loadTeams(this.event_id);
+			const res = await this.databaseService.load(this.event_id);
 			if (!res) {
 				console.warn('Failed to load teams for event', this.event_id);
 				return undefined;
@@ -66,6 +66,25 @@ export class Teams extends Base {
 			await this.databaseService.deleteTeam(team);
 		} catch (err) {
 			this.handleError(500, `Failed to delete team: ${(err as Error).message}`);
+		}
+	}
+
+	/**
+	 * Updates a team in the database.
+	 * @param {TeamRow} team - The team to be updated.
+	 * @returns {Promise<TeamRow | undefined>} - A promise that resolves to the updated team.
+	 */
+	async update(team: TeamRow): Promise<TeamRow | undefined> {
+		try {
+			const res = await this.databaseService.put(team);
+			if (res) {
+				return res;
+			}
+			console.warn('Failed to update team', team);
+			this.handleError(500, 'Failed to update team');
+		} catch (err) {
+			this.handleError(500, `Failed to update team: ${(err as Error).message}`);
+			return undefined;
 		}
 	}
 }
