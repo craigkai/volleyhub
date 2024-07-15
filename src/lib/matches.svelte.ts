@@ -21,7 +21,7 @@ export class Matches extends Base {
 		const res = await this.databaseService.load(this.event_id, {
 			column: 'type',
 			operator: 'eq',
-			value: 'pool'
+			value: this.type
 		});
 
 		if (res) this.matches = res;
@@ -38,7 +38,7 @@ export class Matches extends Base {
 		// If we are updating for another type of match, ignore it
 		if (self.type !== updated.type) return;
 
-		if (self.constructor.name === 'Brackets' && updated.type === 'bracket') {
+		if (self.type === 'bracket') {
 			await self.load();
 			(self as Brackets).nextRound(updated);
 		}
@@ -60,12 +60,14 @@ export class Matches extends Base {
 	}
 
 	async subscribeToMatches(): Promise<RealtimeChannel> {
-		return await this.databaseService.subscribeToChanges(
+		const channel = await this.databaseService.subscribeToChanges(
 			this,
 			this.handleUpdate,
 			'matches',
 			`event_id=eq.${this.event_id}`
 		);
+		this.subscriptionStatus = channel.state;
+		return channel;
 	}
 
 	async create(
@@ -82,7 +84,7 @@ export class Matches extends Base {
 			if (refs === 'teams') {
 				this.assignReferees(userMatches, teams);
 			}
-
+			console.log(userMatches);
 			const res = await this.databaseService.insertMatches(userMatches);
 			if (res) this.matches = res;
 
@@ -135,7 +137,7 @@ export class Matches extends Base {
 
 	generateMatches(pools: number, teams: TeamRow[]): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
-		const totalRounds = pools * teams.length;
+		const totalRounds = pools * (teams.length - 1);
 
 		for (let round = 0; round < totalRounds; round++) {
 			matches = matches.concat(RoundRobin(teams.map((t) => t.id)));
@@ -166,7 +168,7 @@ export class Matches extends Base {
 		}
 
 		matches
-			.sort((a, b) => (a.round ?? 0) - (b.round ?? 0))
+			.sort((a, b) => a.round - b.round)
 			.forEach((match: Partial<MatchRow>) => {
 				if (match.team1 === 0 || match.team2 === 0) {
 					return;
@@ -210,9 +212,9 @@ export class Matches extends Base {
 					team2: match.team2!,
 					court: match.court!,
 					round: match.round!,
-					ref: match.ref,
+					ref: 0, // Initialize ref with 0, will be updated later if necessary
 					type: match.type || 'pool',
-					child_id: match.child_id ?? undefined
+					child_id: match.child_id
 				});
 			});
 
