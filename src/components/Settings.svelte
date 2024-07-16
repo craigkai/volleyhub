@@ -15,9 +15,9 @@
 		Trigger as PopoverTrigger,
 		Content as PopoverContent
 	} from '$components/ui/popover';
-	import { superForm, type SuperValidated, type Infer } from 'sveltekit-superforms';
+	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { formSchema, type FormSchema } from '$schemas/settingsSchema';
+	import { formSchema } from '$schemas/settingsSchema';
 	import {
 		type DateValue,
 		DateFormatter,
@@ -29,26 +29,44 @@
 	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import type { PageData } from '$types';
 
-	let {
-		data = $bindable(),
-		event_id
-	}: { data: SuperValidated<Infer<FormSchema>>; event_id: number | 'create' } = $props();
+	let { data, event_id }: { data: PageData; event_id: number | 'create' } = $props();
 
-	const form = superForm(data, {
-		validators: zodClient(formSchema),
-		onUpdated: async ({ form: f }) => {
-			if (f.valid) {
-				success(`Tournament settings updated`);
-			} else {
-				for (let [_, value] of Object.entries(f.errors)) {
-					error(value.pop());
+	let form = $state(
+		superForm(data.form, {
+			validators: zodClient(formSchema),
+			onUpdated: async ({ form: f }) => {
+				if (f.valid) {
+					success(`Tournament settings updated`);
+				} else {
+					for (let [_, value] of Object.entries(f.errors)) {
+						error(value.pop());
+					}
 				}
 			}
-		}
+		})
+	);
+
+	$effect(() => {
+		form = superForm(data.form, {
+			validators: zodClient(formSchema),
+			onUpdated: async ({ form: f }) => {
+				if (f.valid) {
+					success(`Tournament settings updated`);
+				} else {
+					for (let [_, value] of Object.entries(f.errors)) {
+						error(value.pop());
+					}
+				}
+			}
+		});
 	});
 
 	let { form: formData, enhance } = form;
+	$effect(() => {
+		formData = form.form;
+	});
 
 	const df = new DateFormatter('en-US', {
 		dateStyle: 'long'

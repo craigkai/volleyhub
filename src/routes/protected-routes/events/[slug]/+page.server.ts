@@ -39,6 +39,7 @@ export const actions: Actions = {
 		try {
 			await tournament.update(event_id, form.data);
 			form.data = eventsUpdateSchema.parse(tournament);
+			console.log(form.data);
 
 			return {
 				form

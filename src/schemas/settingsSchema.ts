@@ -1,14 +1,13 @@
 import { z } from 'zod';
 
 export const formSchema = z.object({
-	name: z.string().refine((v) => v, { message: 'A event name is required.' }),
-	courts: z.coerce.number().refine((v) => v, { message: 'A number of courts is required.' }),
-	pools: z.coerce.number().refine((v) => v, { message: 'A number of pools is required.' }),
-	refs: z.string().refine((v) => v, { message: 'A refs type is required.' }),
-	date: z.string().refine((v) => v, { message: 'A date is required.' }),
-	scoring: z.string().refine((v) => v, { message: 'A scoring type is required.' }),
-	owner: z.string().optional(),
-	description: z.string().optional(),
+	name: z.string().min(1, 'Name is required'),
+	description: z.string().min(1, 'Description is required'),
+	courts: z.coerce.number().min(1, 'Number of courts must be at least 1'),
+	pools: z.coerce.number().min(1, 'Number of pool play games must be at least 1'),
+	refs: z.string().min(1, 'Referee option is required'),
+	scoring: z.string().min(1, 'Scoring method is required'),
+	date: z.string().optional(),
 	id: z.coerce.number().optional()
 });
 

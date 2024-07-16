@@ -57,7 +57,7 @@
 						<Card.Description>Make changes to your event here.</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Settings event_id={data.event_id} bind:data={data.form} />
+						<Settings event_id={data.event_id} {data} />
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
