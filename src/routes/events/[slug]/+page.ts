@@ -28,7 +28,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 			matches,
 			teams,
 			bracket,
-			default_team: url.searchParams.get('team')
+			defaultTeam: url.searchParams.get('team')
 		};
 	}
 
@@ -45,6 +45,6 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		matches,
 		teams,
 		bracket,
-		default_team: url.searchParams.get('team')
+		defaultTeam: url.searchParams.get('team')
 	};
 };

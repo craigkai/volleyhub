@@ -10,7 +10,7 @@
 		matches,
 		teams,
 		defaultTeam
-	}: { event: Event; matches: Matches; teams: Teams; defaultTeam: string } = $props();
+	}: { event: Event; matches: Matches; teams: Teams; defaultTeam: string | null } = $props();
 
 	const scoring = event.scoring;
 	let teamScores: TeamScores = $state({});

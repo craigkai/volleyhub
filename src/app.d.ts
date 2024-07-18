@@ -40,14 +40,6 @@ declare global {
 		child_id?: number;
 	};
 
-	interface PageData {
-		eventName?: string;
-		eventId?: string;
-		safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
-		supabase: SupabaseClient<Database>;
-		session: Session;
-	}
-
 	namespace App {
 		interface Supabase {
 			Database: import('./DatabaseDefinitions').Database;

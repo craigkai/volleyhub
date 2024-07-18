@@ -9,32 +9,19 @@
 	import { browser } from '$app/environment';
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
-	import type { PageData } from '$types';
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
 	import { closeModal } from '$lib/helper.svelte';
 	import EditMatch from '$components/EditMatch.svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
 
-	let { data = $bindable() }: { data: PageData } = $props();
+	let { data = $bindable() } = $props();
 	let { tournament, bracket, teams, matches, defaultTeam, readOnly } = $state(data);
 
 	let historyReady = false;
 	onMount(async () => {
 		await tick();
 		historyReady = true;
-	});
-
-	$effect(() => {
-		if (browser && historyReady) {
-			const url = new URL($page.url);
-			if (defaultTeam?.value) {
-				url.searchParams.set('team', defaultTeam.value);
-			} else {
-				url.searchParams.delete('team');
-			}
-			pushState(url.href, '');
-		}
 	});
 
 	const teamsSelect = $derived(
@@ -52,6 +39,8 @@
 	});
 
 	const isCreate = $derived(data?.event_id === 'create');
+
+	const tabsWidth = $derived(readOnly ? 'grid-cols-3' : 'grid-cols-5');
 </script>
 
 {#if $page.state.showModal && $page.state.matchId}
@@ -77,9 +66,19 @@
 	{#if readOnly}
 		<div class="select-container">
 			<Select.Root
-				bind:selected={defaultTeam}
+				selected={{ value: defaultTeam, label: defaultTeam as unknown as string }}
 				onSelectedChange={(v) => {
-					if (v) defaultTeam = { value: v, label: v };
+					if (v) defaultTeam = v?.value?.toString() ?? '';
+
+					if (browser && historyReady) {
+						const url = new URL($page.url);
+						if (defaultTeam) {
+							url.searchParams.set('team', defaultTeam);
+						} else {
+							url.searchParams.delete('team');
+						}
+						pushState(url.href, {});
+					}
 				}}
 			>
 				<Select.Trigger class="w-[180px]">
@@ -96,7 +95,7 @@
 	{/if}
 
 	<Tabs.Root value={readOnly ? 'matches' : 'settings'} class="tabs-container">
-		<Tabs.List class="grid w-full grid-cols-{readOnly ? 3 : 5} gap-2 mb-4">
+		<Tabs.List class="grid w-full gap-2 mb-4 {tabsWidth}">
 			{#if !readOnly}
 				<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
 				<Tabs.Trigger disabled={isCreate} value="teams">Teams</Tabs.Trigger>
@@ -114,7 +113,7 @@
 						<Card.Description>Make changes to your event here.</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Settings event_id={data.event_id} {data} />
+						<Settings event_id={data.event_id as number | 'create'} {data} />
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
@@ -139,13 +138,7 @@
 					<Card.Description>Results of pool play (live)</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					<Matches
-						bind:tournament
-						bind:matches
-						{teams}
-						defaultTeam={defaultTeam?.value}
-						{readOnly}
-					/>
+					<Matches bind:tournament bind:matches {teams} {defaultTeam} {readOnly} />
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
@@ -157,7 +150,7 @@
 					<Card.Description>Current standings based on pool play results</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					<Standings event={tournament} {matches} {teams} defaultTeam={defaultTeam?.value} />
+					<Standings event={tournament} {matches} {teams} {defaultTeam} />
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>

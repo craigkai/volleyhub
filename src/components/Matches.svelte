@@ -24,7 +24,7 @@
 		tournament: Event;
 		teams: Teams;
 		readOnly: boolean;
-		defaultTeam: { value: string; label: string };
+		defaultTeam: string | null;
 	} = $props();
 
 	let showGenerateMatchesAlert = $state(false);
