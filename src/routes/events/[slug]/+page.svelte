@@ -96,8 +96,8 @@
 	{/if}
 
 	<Tabs.Root value="matches" class="tabs-container">
-		<Tabs.List class="grid w-full grid-cols-{readOnly ? 5 : 3} gap-2 mb-4">
-			{#if readOnly}
+		<Tabs.List class="grid w-full grid-cols-{readOnly ? 3 : 5} gap-2 mb-4">
+			{#if !readOnly}
 				<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
 				<Tabs.Trigger disabled={isCreate} value="teams">Teams</Tabs.Trigger>
 			{/if}

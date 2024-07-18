@@ -12,7 +12,9 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		supabase
 	);
 
-	const readOnly = !data.user?.id || data.user?.id !== tournament?.owner;
+	const isAdmin = data.user?.id && data.user?.id === tournament?.owner;
+
+	const readOnly = !isAdmin;
 
 	if (params.slug === 'create') {
 		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
