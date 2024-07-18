@@ -12,15 +12,16 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		supabase
 	);
 
-	const isAdmin = data.user?.id && data.user?.id === tournament?.owner;
+	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
 
-	const readOnly = !isAdmin;
+	const readOnly = !isOwner;
 
 	if (params.slug === 'create') {
 		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
 
 		return {
-			readOnly,
+			// Only logged in users can create events
+			readOnly: !data.user?.id,
 			event_id: params.slug,
 			form,
 			tournament,
