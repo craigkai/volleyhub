@@ -13,17 +13,9 @@ import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
 import { Teams } from '$lib/teams.svelte';
 import { Event as EventInstance } from '$lib/event.svelte';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
-	// If we are creating a new event,
-	// we don't need to fetch the event from the database
-	if (params.slug === 'create') return { event_id: params.slug };
-
-	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(locals.supabase);
-	const event = new EventInstance(params.slug as unknown as number, eventSupabaseDatabaseService);
-
+export const load: PageServerLoad = async ({ locals }) => {
 	return {
-		event_id: params.slug,
-		readOnly: locals.user?.id !== event?.owner
+		user: locals.user
 	};
 };
 

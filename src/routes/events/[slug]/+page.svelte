@@ -105,6 +105,7 @@
 			<Tabs.Trigger disabled={isCreate} value="standings">Standings</Tabs.Trigger>
 			<Tabs.Trigger disabled={isCreate} value="bracket">Bracket</Tabs.Trigger>
 		</Tabs.List>
+
 		<Tabs.Content value="settings">
 			<Card.Root>
 				<Card.Header>

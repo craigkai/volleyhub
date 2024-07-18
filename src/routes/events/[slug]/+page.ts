@@ -12,11 +12,13 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		supabase
 	);
 
+	const readOnly = !data.user?.id || data.user?.id !== tournament?.owner;
+
 	if (params.slug === 'create') {
 		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
 
 		return {
-			...data,
+			readOnly,
 			event_id: params.slug,
 			form,
 			tournament,
@@ -33,7 +35,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 	);
 
 	return {
-		...data,
+		readOnly,
 		event_id: params.slug,
 		form,
 		tournament,
