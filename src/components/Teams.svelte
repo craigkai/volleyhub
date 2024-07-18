@@ -56,7 +56,7 @@
 			<Table.Row>
 				<Table.Cell>
 					<Input
-						class="border border-blue-500 rounded w-full py-2 px-3 mb-3 leading-tight"
+						class="input-field"
 						id="team2-score-input"
 						type="text"
 						value={team.name}
@@ -85,8 +85,8 @@
 			</Table.Row>
 		{/each}
 		<Table.Row>
-			<Table.Cell
-				><input
+			<Table.Cell>
+				<Input
 					type="text"
 					id="newTeam"
 					class="input-field dark:bg-gray-700 dark:text-gray-200"
@@ -97,7 +97,7 @@
 						}
 					}}
 					bind:value={newTeamName}
-				/>
+				></Input>
 			</Table.Cell>
 			<Table.Cell><button onclick={createTeam} class="action-button">Add</button></Table.Cell>
 		</Table.Row>

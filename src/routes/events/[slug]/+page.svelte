@@ -123,7 +123,7 @@
 				<Card.Root>
 					<Card.Header>
 						<Card.Title>Teams</Card.Title>
-						<Card.Description>Add/remove teams</Card.Description>
+						<Card.Description>add/edit/remove teams</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
 						<Teams bind:teams={data.teams} />
