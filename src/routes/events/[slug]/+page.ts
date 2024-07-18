@@ -1,8 +1,10 @@
-import { initiateEvent } from '$lib/helper.svelte';
 import type { PageLoad } from './$types';
+import { superValidate, type Infer, type SuperValidated } from 'sveltekit-superforms';
+import { formSchema as settingsSchema, type FormSchema } from '$schemas/settingsSchema';
+import { zod } from 'sveltekit-superforms/adapters';
+import { initiateEvent } from '$lib/helper.svelte';
 
-// src/routes/events/+page.server.ts
-export const load: PageLoad = async ({ params, url, parent }) => {
+export const load: PageLoad = async ({ params, parent, url, data }) => {
 	const { supabase } = await parent();
 
 	const { tournament, matches, teams, bracket } = await initiateEvent(
@@ -10,8 +12,30 @@ export const load: PageLoad = async ({ params, url, parent }) => {
 		supabase
 	);
 
+	if (params.slug === 'create') {
+		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
+
+		return {
+			...data,
+			event_id: params.slug,
+			form,
+			tournament,
+			matches,
+			teams,
+			bracket,
+			default_team: url.searchParams.get('team')
+		};
+	}
+
+	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
+		tournament,
+		zod(settingsSchema)
+	);
+
 	return {
+		...data,
 		event_id: params.slug,
+		form,
 		tournament,
 		matches,
 		teams,

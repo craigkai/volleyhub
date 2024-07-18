@@ -13,11 +13,11 @@
 
 	{#if events && events.length > 0}
 		<div class="cards-container">
-			<EventsCards {events} readOnly={false} />
+			<EventsCards {events} />
 		</div>
 	{/if}
 
 	<div class="button-container">
-		<Button on:click={() => goto('/protected-routes/events/create')}>Create</Button>
+		<Button on:click={() => goto('/events/create')}>Create</Button>
 	</div>
 </div>

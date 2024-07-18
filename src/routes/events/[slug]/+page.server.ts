@@ -11,11 +11,19 @@ import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
 import { Teams } from '$lib/teams.svelte';
+import { Event as EventInstance } from '$lib/event.svelte';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ locals, params }) => {
+	// If we are creating a new event,
+	// we don't need to fetch the event from the database
+	if (params.slug === 'create') return { event_id: params.slug };
+
+	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(locals.supabase);
+	const event = new EventInstance(params.slug as unknown as number, eventSupabaseDatabaseService);
+
 	return {
 		event_id: params.slug,
-		form: await superValidate(zod(settingsSchema))
+		readOnly: locals.user?.id !== event?.owner
 	};
 };
 
@@ -39,7 +47,6 @@ export const actions: Actions = {
 		try {
 			await tournament.update(event_id, form.data);
 			form.data = eventsUpdateSchema.parse(tournament);
-			console.log(form.data);
 
 			return {
 				form
@@ -87,7 +94,7 @@ export const actions: Actions = {
 			});
 		}
 
-		redirect(303, `/protected-routes/events/${newId}`);
+		redirect(303, `/events/${newId}`);
 	},
 
 	deleteEvent: async (event) => {

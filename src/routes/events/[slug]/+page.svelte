@@ -10,9 +10,14 @@
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
 	import type { PageData } from '$types';
+	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
+	import { closeModal } from '$lib/helper.svelte';
+	import EditMatch from '$components/EditMatch.svelte';
+	import Settings from '$components/Settings.svelte';
+	import Teams from '$components/Teams.svelte';
 
 	let { data = $bindable() }: { data: PageData } = $props();
-	let { tournament, bracket, teams, matches, defaultTeam } = $state(data);
+	let { tournament, bracket, teams, matches, defaultTeam, readOnly } = $state(data);
 
 	let historyReady = false;
 	onMount(async () => {
@@ -39,36 +44,91 @@
 			})
 			.concat([{ value: '', name: 'none' }]) || []
 	);
+
+	let open = $state($page.state.showModal);
+
+	$effect(() => {
+		open = $page.state.showModal ?? false;
+	});
+
+	const isCreate = $derived(data?.event_id === 'create');
 </script>
+
+{#if $page.state.showModal && $page.state.matchId}
+	<AlertDialog.Root
+		bind:open
+		onOpenChange={closeModal}
+		closeOnOutsideClick={true}
+		closeOnEscape={true}
+	>
+		<AlertDialog.Content>
+			{#if $page.state.type === 'pool'}
+				<EditMatch matchId={$page.state.matchId as number} bind:matches={data.matches} />
+			{:else}
+				<EditMatch matchId={$page.state.matchId as number} bind:matches={data.bracket} />
+			{/if}
+		</AlertDialog.Content>
+	</AlertDialog.Root>
+{/if}
 
 <div class="page-container flex flex-col items-center">
 	<div class="header">{tournament?.name}</div>
 
-	<div class="select-container">
-		<Select.Root
-			bind:selected={defaultTeam}
-			onSelectedChange={(v) => {
-				if (v) defaultTeam = { value: v, label: v };
-			}}
-		>
-			<Select.Trigger class="w-[180px]">
-				<Select.Value placeholder="Select a team" />
-			</Select.Trigger>
-			<Select.Content>
-				{#each teamsSelect as team}
-					<Select.Item value={team.value} label={team.name}>{team.name}</Select.Item>
-				{/each}
-			</Select.Content>
-			<Select.Input name="selectedTeam" />
-		</Select.Root>
-	</div>
+	{#if !readOnly}
+		<div class="select-container">
+			<Select.Root
+				bind:selected={defaultTeam}
+				onSelectedChange={(v) => {
+					if (v) defaultTeam = { value: v, label: v };
+				}}
+			>
+				<Select.Trigger class="w-[180px]">
+					<Select.Value placeholder="Select a team" />
+				</Select.Trigger>
+				<Select.Content>
+					{#each teamsSelect as team}
+						<Select.Item value={team.value} label={team.name}>{team.name}</Select.Item>
+					{/each}
+				</Select.Content>
+				<Select.Input name="selectedTeam" />
+			</Select.Root>
+		</div>
+	{/if}
 
 	<Tabs.Root value="matches" class="tabs-container">
-		<Tabs.List class="grid w-full grid-cols-3 gap-2 mb-4">
-			<Tabs.Trigger value="matches" class="tab-trigger">Matches</Tabs.Trigger>
-			<Tabs.Trigger value="standings" class="tab-trigger">Standings</Tabs.Trigger>
-			<Tabs.Trigger value="bracket" class="tab-trigger">Bracket</Tabs.Trigger>
+		<Tabs.List class="grid w-full grid-cols-{readOnly ? 5 : 3} gap-2 mb-4">
+			{#if readOnly}
+				<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
+				<Tabs.Trigger disabled={isCreate} value="teams">Teams</Tabs.Trigger>
+			{/if}
+			<Tabs.Trigger disabled={isCreate} value="matches">Matches</Tabs.Trigger>
+			<Tabs.Trigger disabled={isCreate} value="standings">Standings</Tabs.Trigger>
+			<Tabs.Trigger disabled={isCreate} value="bracket">Bracket</Tabs.Trigger>
 		</Tabs.List>
+		<Tabs.Content value="settings">
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Account</Card.Title>
+					<Card.Description>Make changes to your event here.</Card.Description>
+				</Card.Header>
+				<Card.Content class="space-y-2">
+					<Settings event_id={data.event_id} {data} />
+				</Card.Content>
+			</Card.Root>
+		</Tabs.Content>
+
+		<Tabs.Content value="teams">
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Teams</Card.Title>
+					<Card.Description>Add/remove teams</Card.Description>
+				</Card.Header>
+				<Card.Content class="space-y-2">
+					<Teams bind:teams={data.teams} />
+				</Card.Content>
+			</Card.Root>
+		</Tabs.Content>
+
 		<Tabs.Content value="matches" class="card-container">
 			<Card.Root>
 				<Card.Header>
@@ -81,11 +141,12 @@
 						bind:matches
 						{teams}
 						defaultTeam={defaultTeam?.value}
-						readOnly={true}
+						{readOnly}
 					/>
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
+
 		<Tabs.Content value="standings" class="card-container">
 			<Card.Root>
 				<Card.Header>
@@ -97,6 +158,7 @@
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
+
 		<Tabs.Content value="bracket" class="card-container">
 			<Card.Root>
 				<Card.Header>
@@ -104,7 +166,7 @@
 					<Card.Description>Single/Double elim bracket</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					<Bracket {tournament} {bracket} {teams} {matches} readOnly={true} />
+					<Bracket {tournament} {bracket} {teams} {matches} {readOnly} />
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
