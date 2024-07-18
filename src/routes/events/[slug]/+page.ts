@@ -3,34 +3,46 @@ import { superValidate, type Infer, type SuperValidated } from 'sveltekit-superf
 import { formSchema as settingsSchema, type FormSchema } from '$schemas/settingsSchema';
 import { zod } from 'sveltekit-superforms/adapters';
 import { initiateEvent } from '$lib/helper.svelte';
+import { error } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ params, parent, url, data }) => {
 	const { supabase } = await parent();
 
-	const { tournament, matches, teams, bracket } = await initiateEvent(
-		params.slug as unknown as number,
-		supabase
-	);
+	const eventId = params.slug === 'create' ? 'create' : parseInt(params.slug, 10);
 
-	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
+	// Validate eventId
+	if (eventId !== 'create' && (isNaN(eventId) || eventId <= 0)) {
+		throw error(400, 'Invalid eventId: must be a positive integer or "create".');
+	}
 
-	const readOnly = !isOwner;
-
-	if (params.slug === 'create') {
+	if (eventId === 'create') {
 		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
-
 		return {
 			// Only logged in users can create events
 			readOnly: !data.user?.id,
 			event_id: params.slug,
 			form,
-			tournament,
-			matches,
-			teams,
-			bracket,
 			defaultTeam: url.searchParams.get('team')
 		};
 	}
+
+	let res;
+	try {
+		res = await initiateEvent(eventId, supabase);
+	} catch (err) {
+		console.error('Error initiating event:', err);
+		throw error(500, 'Failed to load event');
+	}
+
+	if (!res) {
+		throw error(404, 'Event not found');
+	}
+
+	const { tournament, matches, teams, bracket } = res;
+
+	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
+
+	const readOnly = !isOwner;
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
 		tournament,

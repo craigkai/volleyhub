@@ -25,7 +25,7 @@
 	});
 
 	const teamsSelect = $derived(
-		teams.teams
+		teams?.teams
 			?.map((team: { name: string }) => {
 				return { value: team.name, name: team.name };
 			})

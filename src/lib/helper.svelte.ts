@@ -62,15 +62,13 @@ export async function initiateEvent(
 
 	const bracket = $state(new Brackets(eventId, matchesSupabaseDatabaseService));
 
-	if ((eventId as unknown as string) !== 'create') {
-		try {
-			await tournament.load();
-			await matches.load();
-			await teams.load();
-			await bracket.load();
-		} catch (err) {
-			error((err as HttpError)?.body?.message);
-		}
+	try {
+		await Promise.all([tournament.load(), matches.load(), teams.load(), bracket.load()]);
+	} catch (err) {
+		console.error('Error loading event data:', err);
+		throw new Error(
+			(err as HttpError)?.body?.message || 'An error occurred while loading the event data.'
+		);
 	}
 
 	return { tournament, matches, teams, bracket };

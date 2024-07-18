@@ -37,6 +37,7 @@ export const actions: Actions = {
 
 		try {
 			await tournament.update(event_id, form.data);
+			// @ts-ignore
 			form.data = eventsUpdateSchema.parse(tournament);
 
 			return {

@@ -36,8 +36,6 @@ export class Event extends Base {
 
 		this.databaseService = databaseService;
 		this.id = event_id;
-
-		if ((this.id as unknown as string) !== 'create') this.load();
 	}
 
 	/**
@@ -84,12 +82,15 @@ export class Event extends Base {
 	 * @returns {Promise<Event>} - Returns a promise that resolves to the loaded event.
 	 */
 	async load(): Promise<Event> {
-		const eventResponse: EventRow | null = await this.databaseService.load(this.id);
+		try {
+			const eventResponse: EventRow | null = await this.databaseService.load(this.id);
 
-		if (eventResponse !== null) {
-			Object.assign(this, eventResponse);
+			if (eventResponse !== null) {
+				Object.assign(this, eventResponse);
+			}
+		} catch (err) {
+			this.handleError(500, `Failed to load event: ${(err as Error).message}`);
 		}
-
 		return this;
 	}
 

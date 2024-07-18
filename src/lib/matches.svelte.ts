@@ -19,13 +19,17 @@ export class Matches extends Base {
 	}
 
 	async load() {
-		const res = await this.databaseService.load(this.event_id, {
-			column: 'type',
-			operator: 'eq',
-			value: this.type
-		});
+		try {
+			const res = await this.databaseService.load(this.event_id, {
+				column: 'type',
+				operator: 'eq',
+				value: this.type
+			});
 
-		if (res) this.matches = res;
+			if (res) this.matches = res;
+		} catch (err) {
+			this.handleError(500, `Failed to load matches: ${(err as Error).message}`);
+		}
 		return this;
 	}
 
