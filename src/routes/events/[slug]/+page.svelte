@@ -74,7 +74,7 @@
 <div class="page-container flex flex-col items-center">
 	<div class="header">{tournament?.name}</div>
 
-	{#if !readOnly}
+	{#if readOnly}
 		<div class="select-container">
 			<Select.Root
 				bind:selected={defaultTeam}
@@ -95,7 +95,7 @@
 		</div>
 	{/if}
 
-	<Tabs.Root value="matches" class="tabs-container">
+	<Tabs.Root value={readOnly ? 'matches' : 'settings'} class="tabs-container">
 		<Tabs.List class="grid w-full grid-cols-{readOnly ? 3 : 5} gap-2 mb-4">
 			{#if !readOnly}
 				<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
@@ -106,29 +106,31 @@
 			<Tabs.Trigger disabled={isCreate} value="bracket">Bracket</Tabs.Trigger>
 		</Tabs.List>
 
-		<Tabs.Content value="settings">
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Account</Card.Title>
-					<Card.Description>Make changes to your event here.</Card.Description>
-				</Card.Header>
-				<Card.Content class="space-y-2">
-					<Settings event_id={data.event_id} {data} />
-				</Card.Content>
-			</Card.Root>
-		</Tabs.Content>
+		{#if !readOnly}
+			<Tabs.Content value="settings">
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Account</Card.Title>
+						<Card.Description>Make changes to your event here.</Card.Description>
+					</Card.Header>
+					<Card.Content class="space-y-2">
+						<Settings event_id={data.event_id} {data} />
+					</Card.Content>
+				</Card.Root>
+			</Tabs.Content>
 
-		<Tabs.Content value="teams">
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Teams</Card.Title>
-					<Card.Description>Add/remove teams</Card.Description>
-				</Card.Header>
-				<Card.Content class="space-y-2">
-					<Teams bind:teams={data.teams} />
-				</Card.Content>
-			</Card.Root>
-		</Tabs.Content>
+			<Tabs.Content value="teams">
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Teams</Card.Title>
+						<Card.Description>Add/remove teams</Card.Description>
+					</Card.Header>
+					<Card.Content class="space-y-2">
+						<Teams bind:teams={data.teams} />
+					</Card.Content>
+				</Card.Root>
+			</Tabs.Content>
+		{/if}
 
 		<Tabs.Content value="matches" class="card-container">
 			<Card.Root>
