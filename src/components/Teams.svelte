@@ -63,8 +63,9 @@
 						on:keypress={async (e) => {
 							// if we hit enter
 							if (e?.key === 'Enter') {
-								if (e?.target?.value) {
-									team.name = e.target.value;
+								const target = e.target as HTMLInputElement;
+								if (target.value) {
+									team.name = target.value;
 									try {
 										const res = await teams.update(team);
 										if (res) {
