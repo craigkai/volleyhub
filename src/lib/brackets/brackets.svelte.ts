@@ -105,7 +105,9 @@ export class Brackets extends Matches {
 				if (parent2) parent2.child_id = res.id;
 
 				await Promise.all(
-					[parent1, parent2].map((parent) => (parent ? this.put(parent) : Promise.resolve()))
+					[parent1, parent2].map((parent) =>
+						parent ? this.updateMatch(parent as MatchRow) : Promise.resolve()
+					)
 				);
 			}
 		}
@@ -184,7 +186,7 @@ export class Brackets extends Matches {
 			child.team2 = winnerOfOtherParent;
 			child.team1_score = 0;
 			child.team2_score = 0;
-			await this.put(child);
+			await this.updateMatch(child);
 		}
 	}
 }
