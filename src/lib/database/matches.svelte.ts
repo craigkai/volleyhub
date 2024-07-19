@@ -55,6 +55,20 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.handleDatabaseError(response);
 	}
 
+	async insertMatch(match: Partial<MatchRow>): Promise<MatchRow> {
+		try {
+			const matches = await this.insertMatches([match]);
+
+			if (matches.length === 0) {
+				throw new Error('Failed to insert match');
+			}
+
+			return matches[0];
+		} catch (err) {
+			throw new Error(`Failed to insert match: ${(err as Error).message}`);
+		}
+	}
+
 	async insertMatches(matches: Partial<MatchRow>[]): Promise<MatchRow[]> {
 		const parsedMatches = z.array(matchesInsertSchema).parse(matches);
 
