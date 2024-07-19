@@ -31,7 +31,7 @@ export async function updateMatch(match: MatchRow | undefined, matches: Matches)
 			match.team2_score = Number(match.team2_score);
 
 			if (match.team1_score !== undefined && match.team2_score !== undefined) {
-				const updatedMatch = await matches.put(match);
+				const updatedMatch = await matches.updateMatch(match);
 				success(
 					`Match ${updatedMatch?.public_matches_team1_fkey.name} vs ${updatedMatch?.public_matches_team1_fkey.name} updated`
 				);

@@ -5,6 +5,9 @@ import { matchesRowSchema, matchesUpdateSchema, matchesInsertSchema } from '$sch
 
 const MatchesRowSchemaArray = z.array(matchesRowSchema);
 
+const MATCHES_SELECT_QUERY =
+	'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)';
+
 type Filter = {
 	column: string;
 	operator: string;
@@ -21,9 +24,7 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	async load(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
 		const query = this.supabaseClient
 			.from('matches')
-			.select(
-				'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)'
-			)
+			.select(MATCHES_SELECT_QUERY)
 			.eq('event_id', event_id);
 
 		if (filter) {
@@ -49,25 +50,9 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.handleDatabaseError(response);
 	}
 
-	async deleteMatch(id: number): Promise<void> {
+	async delete(id: number): Promise<void> {
 		const response = await this.supabaseClient.from('matches').delete().eq('id', id);
 		this.handleDatabaseError(response);
-	}
-
-	async insertMatch(match: UserMatch): Promise<MatchRow> {
-		const parsedMatch = matchesInsertSchema.parse(match);
-
-		const res = await this.supabaseClient
-			.from('matches')
-			.insert(parsedMatch)
-			.select(
-				'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)'
-			)
-			.single();
-
-		this.validateAndHandleErrors(res, matchesRowSchema);
-
-		return res.data;
 	}
 
 	async insertMatches(matches: Partial<MatchRow>[]): Promise<MatchRow[]> {
@@ -76,25 +61,21 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		const res = await this.supabaseClient
 			.from('matches')
 			.insert(parsedMatches)
-			.select(
-				'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)'
-			);
+			.select(MATCHES_SELECT_QUERY);
 
 		this.validateAndHandleErrors(res, MatchesRowSchemaArray);
 
 		return res.data ?? [];
 	}
 
-	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
+	async put(match: MatchRow): Promise<MatchRow | null> {
 		const parsedMatch = matchesUpdateSchema.parse(match);
 
 		const res = await this.supabaseClient
 			.from('matches')
 			.update(parsedMatch)
 			.eq('id', match.id)
-			.select(
-				'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)'
-			)
+			.select(MATCHES_SELECT_QUERY)
 			.single();
 
 		this.validateAndHandleErrors(res, matchesRowSchema);

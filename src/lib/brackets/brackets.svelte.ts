@@ -8,60 +8,61 @@ export class Brackets extends Matches {
 
 	// Overload Matches load method to only load our bracket matches.
 	async load() {
-		const res = await this.databaseService.load(this.event_id, {
-			column: 'type',
-			operator: 'eq',
-			value: 'bracket'
-		});
-
-		if (res) this.matches = res;
-
+		try {
+			const res = await this.databaseService.load(this.event_id, {
+				column: 'type',
+				operator: 'eq',
+				value: 'bracket'
+			});
+			if (res) this.matches = res;
+		} catch (error) {
+			this.handleError(500, `Failed to load bracket matches: ${(error as Error).message}`);
+		}
 		return this;
 	}
 
 	async createBracketMatches(event: Event, teams: TeamRow[], matches: MatchRow[]) {
-		if (this.matches && this.matches.length > 0) {
-			await this.databaseService.deleteMatchesByIds(this.matches.map((m) => m.id));
-		}
-
-		if (teams.length < 2) {
-			return this.handleError(
-				400,
-				'Number of teams must be at least 2 for a single-elimination bracket.'
-			);
-		}
-
-		const teamScores: TeamScores = await findStandings(matches ?? [], event, teams);
-		const orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
-
-		const matchups: Partial<MatchRow>[] = [];
-		const leftOverTeams: number[] = [];
-
-		// Generate matchups for the initial round of the bracket
-		for (let i = 0; i < orderedTeamScores.length; i += 2) {
-			const team1 = teams.find((t) => t.name === orderedTeamScores[i])?.id;
-			const team2 = teams.find((t) => t.name === orderedTeamScores[i + 1])?.id;
-
-			if (team1 === undefined) {
-				leftOverTeams.push(team2!);
-			} else if (team2 === undefined) {
-				leftOverTeams.push(team1);
-			} else {
-				const matchup: Partial<MatchRow> = {
-					team1,
-					team2,
-					event_id: this.event_id,
-					round: 0,
-					type: 'bracket'
-				};
-
-				const res = await this.databaseService.insertMatch(matchup as UserMatch);
-				matchups.push(res);
+		try {
+			if (this.matches && this.matches.length > 0) {
+				await this.databaseService.deleteMatchesByIds(this.matches.map((m) => m.id));
 			}
-		}
 
-		// Handle byes for the initial round
-		if (leftOverTeams.length > 0) {
+			if (teams.length < 2) {
+				return this.handleError(
+					400,
+					'Number of teams must be at least 2 for a single-elimination bracket.'
+				);
+			}
+
+			const teamScores: TeamScores = await findStandings(matches ?? [], event, teams);
+			const orderedTeamScores = Object.keys(teamScores).sort(
+				(a, b) => teamScores[b] - teamScores[a]
+			);
+
+			const matchups: Partial<MatchRow>[] = [];
+			const leftOverTeams: number[] = [];
+
+			// Generate matchups for the initial round of the bracket
+			for (let i = 0; i < orderedTeamScores.length; i += 2) {
+				const team1 = teams.find((t) => t.name === orderedTeamScores[i])?.id;
+				const team2 = teams.find((t) => t.name === orderedTeamScores[i + 1])?.id;
+
+				if (team1 === undefined || team2 === undefined) {
+					leftOverTeams.push(team1 ?? team2!);
+				} else {
+					const matchup: Partial<MatchRow> = {
+						team1,
+						team2,
+						event_id: this.event_id,
+						round: 0,
+						type: 'bracket'
+					};
+					const res = await this.databaseService.insertMatch(matchup as UserMatch);
+					matchups.push(res);
+				}
+			}
+
+			// Handle byes for the initial round
 			for (const teamWithBye of leftOverTeams) {
 				const byeMatchup: Partial<MatchRow> = {
 					team1: teamWithBye,
@@ -73,13 +74,18 @@ export class Brackets extends Matches {
 				const res = await this.databaseService.insertMatch(byeMatchup as UserMatch);
 				matchups.push(res);
 			}
+
+			await this.generateSubsequentRounds(matchups, teams.length);
+			return this.matches;
+		} catch (error) {
+			this.handleError(500, `Failed to create bracket matches: ${(error as Error).message}`);
 		}
+	}
 
-		// Calculate the number of rounds needed
-		const totalRounds = Math.ceil(Math.log2(teams.length));
+	async generateSubsequentRounds(parentMatches: Partial<MatchRow>[], totalTeams: number) {
+		const totalRounds = Math.ceil(Math.log2(totalTeams));
+		const matchups: Partial<MatchRow>[] = [...parentMatches];
 
-		// Generate empty matchups for subsequent rounds
-		const parentMatches = [...matchups];
 		for (let currentRound = 1; currentRound < totalRounds; currentRound++) {
 			const numMatches = 2 ** (totalRounds - currentRound - 1);
 
@@ -103,8 +109,6 @@ export class Brackets extends Matches {
 				);
 			}
 		}
-
-		return this.matches;
 	}
 
 	async nextRound(newMatch: MatchRow) {
@@ -114,12 +118,13 @@ export class Brackets extends Matches {
 				(m) => m.child_id === newMatch.child_id && m.id !== newMatch.id
 			);
 			const otherParentComplete = this.isOtherParentComplete(otherParent);
+			console.log(otherParent);
 
 			if (this.canProceedToNextRound(newMatch, otherParentComplete, child)) {
 				const winnerOfNew = this.getMatchWinner(newMatch);
-				const winnerOfOtherParent = this.getWinnerOfOtherParent(otherParent, child);
+				const winnerOfOtherParent = this.getWinnerOfOtherParent(otherParent);
 
-				if (this.childHasCorrectTeams(child, winnerOfNew)) {
+				if (this.childHasCorrectTeams(child, winnerOfNew, winnerOfOtherParent)) {
 					console.debug('Child match already has the correct teams');
 					return;
 				}
@@ -129,12 +134,12 @@ export class Brackets extends Matches {
 				console.debug('Parent matches not complete');
 			}
 		} catch (error) {
-			this.handleError(500, `An error occurred in nextRound: ${error}`);
+			this.handleError(500, `An error occurred in nextRound: ${(error as Error).message}`);
 		}
 	}
 
 	isOtherParentComplete(otherParent?: MatchRow): boolean {
-		return this.matches!.length > 3 ? otherParent?.state === 'COMPLETE' : true;
+		return otherParent ? otherParent.state === 'COMPLETE' : false;
 	}
 
 	canProceedToNextRound(
@@ -149,17 +154,24 @@ export class Brackets extends Matches {
 		return match.team1_score! > match.team2_score! ? match.team1 : match.team2;
 	}
 
-	getWinnerOfOtherParent(otherParent?: MatchRow, child?: MatchRow): string | null {
+	getWinnerOfOtherParent(otherParent?: MatchRow): string | null {
 		if (otherParent?.state === 'COMPLETE' && otherParent.team1_score !== null) {
 			return otherParent.team1_score > otherParent.team2_score
 				? otherParent.team1
 				: otherParent.team2;
 		}
-		return child?.team1 || child?.team2;
+		return null;
 	}
 
-	childHasCorrectTeams(child: MatchRow, winnerOfNew: string | null): boolean {
-		return child.team1 === winnerOfNew || child.team2 === winnerOfNew;
+	childHasCorrectTeams(
+		child: MatchRow,
+		winnerOfNew: string | null,
+		winnerOfOtherParent: string | null
+	): boolean {
+		return (
+			(child.team1 === winnerOfNew && child.team2 === winnerOfOtherParent) ||
+			(child.team1 === winnerOfOtherParent && child.team2 === winnerOfNew)
+		);
 	}
 
 	async updateChildMatch(
@@ -167,13 +179,12 @@ export class Brackets extends Matches {
 		winnerOfNew: string | null,
 		winnerOfOtherParent: string | null
 	): Promise<void> {
-		child.team1 = winnerOfNew;
-		child.team2 = winnerOfOtherParent;
-		const newBracketMatch: Partial<MatchRow> = {
-			...child,
-			team1_score: 0,
-			team2_score: 0
-		};
-		await this.put(newBracketMatch as MatchRow);
+		if (child) {
+			child.team1 = winnerOfNew;
+			child.team2 = winnerOfOtherParent;
+			child.team1_score = 0;
+			child.team2_score = 0;
+			await this.put(child);
+		}
 	}
 }

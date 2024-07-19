@@ -99,8 +99,8 @@ export class Matches extends Base {
 		}
 	}
 
-	async put(match: MatchRow): Promise<MatchRow | null> {
-		const updatedMatch = await this.databaseService.updateMatch(match);
+	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
+		const updatedMatch = await this.databaseService.put(match);
 		if (!updatedMatch) {
 			this.handleError(500, 'Failed to update match.');
 		}
