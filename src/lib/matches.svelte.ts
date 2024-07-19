@@ -140,7 +140,7 @@ export class Matches extends Base {
 		return { rounds, courtsPerRound };
 	}
 
-	generateMatches(pools: number, teams: TeamRow[], courts: number): Partial<MatchRow>[] {
+	generateMatches(pools: number, teams: Partial<TeamRow>[], courts: number): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
 		const totalMatches = (teams.length * pools) / 2; // Calculate the total number of matches needed
 
@@ -150,7 +150,7 @@ export class Matches extends Base {
 		// Generate matches using RoundRobin
 		for (let i = 0; i < totalMatches; i += courts) {
 			const roundMatches = RoundRobin(
-				teams.map((t) => t.id),
+				teams.map((t) => t.id).filter((id) => id !== undefined) as number[],
 				currentRound,
 				courts
 			);
