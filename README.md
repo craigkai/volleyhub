@@ -37,6 +37,6 @@ Should set supabase URL and key to connect to local instance in `.env.developmen
 PUBLIC_COMMIT_REF=dev
 PUBLIC_ADMIN_USER=root@localhost
 PUBLIC_ADMIN_USER_PASSWORD=njkdnbkjdbfhjf
-VITE_SUPABASE_URL=http://127.0.0.1:54321
+PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 PUBLIC_SUPABASE_ANON_KEY=<YOUR KEY>
 ```
