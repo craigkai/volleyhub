@@ -138,7 +138,9 @@
 					<Card.Description>Results of pool play (live)</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					<Matches bind:tournament bind:matches {teams} {defaultTeam} {readOnly} />
+					{#if tournament && matches && teams}
+						<Matches bind:tournament bind:matches {teams} {defaultTeam} {readOnly} />
+					{/if}
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
@@ -150,7 +152,9 @@
 					<Card.Description>Current standings based on pool play results</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					<Standings event={tournament} {matches} {teams} {defaultTeam} />
+					{#if tournament && matches && teams}
+						<Standings event={tournament} {matches} {teams} {defaultTeam} />
+					{/if}
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
@@ -162,7 +166,9 @@
 					<Card.Description>Single/Double elim bracket</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					<Bracket {tournament} {bracket} {teams} {matches} {readOnly} />
+					{#if tournament && matches && teams && bracket}
+						<Bracket {tournament} {bracket} {teams} {matches} {readOnly} />
+					{/if}
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>

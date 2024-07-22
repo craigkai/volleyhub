@@ -87,7 +87,7 @@
 	{/if}:
 </div>
 
-{#if matches.matches && matches.matches.length > 0}
+{#if matches?.matches && matches?.matches?.length > 0}
 	{@const matchesForEachRound = matches.matches.reduce((accumulator, currentValue) => {
 		// @ts-expect-error just not happy with types
 		if (accumulator[currentValue.round]) {

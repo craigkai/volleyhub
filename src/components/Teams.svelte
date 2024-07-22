@@ -52,7 +52,7 @@
 <Table.Root class="min-w-full bg-white dark:bg-gray-800">
 	<Table.Caption>A list of your teams.</Table.Caption>
 	<Table.Body>
-		{#each teams?.teams as team}
+		{#each teams?.teams ?? [] as team}
 			<Table.Row>
 				<Table.Cell>
 					<Input

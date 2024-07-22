@@ -29,72 +29,45 @@
 	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
-	import type { PageData } from '$types';
 
-	let { data, event_id }: { data: PageData; event_id: number | 'create' } = $props();
+	export let data;
+	export let event_id;
 
-	let form = $state(
-		superForm(data.form, {
-			validators: zodClient(formSchema),
-			onUpdated: async ({ form: f }) => {
-				if (f.valid) {
-					success(`Tournament settings updated`);
-				} else {
-					for (let [_, value] of Object.entries(f.errors)) {
-						error(value.pop());
-					}
+	let form = superForm(data.form, {
+		validators: zodClient(formSchema),
+		onUpdated: async ({ form: f }) => {
+			if (f.valid) {
+				success(`Tournament settings updated`);
+			} else {
+				for (let [_, value] of Object.entries(f.errors)) {
+					error(value.pop());
 				}
 			}
-		})
-	);
-
-	$effect(() => {
-		form = superForm(data.form, {
-			validators: zodClient(formSchema),
-			onUpdated: async ({ form: f }) => {
-				if (f.valid) {
-					success(`Tournament settings updated`);
-				} else {
-					for (let [_, value] of Object.entries(f.errors)) {
-						error(value.pop());
-					}
-				}
-			}
-		});
+		}
 	});
 
 	let { form: formData, enhance } = form;
-	$effect(() => {
-		formData = form.form;
-	});
 
 	const df = new DateFormatter('en-US', {
 		dateStyle: 'long'
 	});
 
-	let dateValue = $state($formData.date ? parseDateTime($formData.date) : undefined);
-	$effect(() => {
-		$formData.date = dateValue?.toString() ?? '';
-	});
-	const datePlaceholder: DateValue = today(getLocalTimeZone());
+	let dateValue = $formData.date ? parseDateTime($formData.date) : undefined;
+	$: $formData.date = dateValue?.toString() ?? '';
 
-	let selectedRefValue = $state({
+	let selectedRefValue = {
 		label: $formData.refs,
 		value: $formData.refs
-	});
+	};
+	$: $formData.refs = selectedRefValue.value;
 
-	$effect(() => {
-		$formData.refs = selectedRefValue.value;
-	});
-
-	let scoringValue = $state({
+	let scoringValue = {
 		label: $formData.scoring,
 		value: $formData.scoring
-	});
+	};
+	$: $formData.scoring = scoringValue.value;
 
-	$effect(() => {
-		$formData.scoring = scoringValue.value;
-	});
+	const datePlaceholder: DateValue = today(getLocalTimeZone());
 </script>
 
 <form
@@ -248,8 +221,10 @@
 							onValueChange={(v) => {
 								if (v) {
 									$formData.date = v.toString();
+									dateValue = v; // Ensure dateValue is updated
 								} else {
-									$formData.date = '';
+									formData.date = '';
+									dateValue = undefined;
 								}
 							}}
 						/>
