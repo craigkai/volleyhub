@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { superValidate, type Infer, type SuperValidated } from 'sveltekit-superforms';
+import { setMessage, superValidate, type Infer, type SuperValidated } from 'sveltekit-superforms';
 import { formSchema as settingsSchema, type FormSchema } from '$schemas/settingsSchema';
 import { zod } from 'sveltekit-superforms/adapters';
 import { initiateEvent } from '$lib/helper.svelte';
@@ -17,6 +17,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 
 	if (eventId === 'create') {
 		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
+
 		return {
 			// Only logged in users can create events
 			readOnly: !data.user?.id,

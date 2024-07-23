@@ -21,22 +21,24 @@
 
 	$effect(() => {
 		(async () => {
-			let res;
-			try {
-				res = await initiateEvent(data.event_id as unknown as number, data.supabase);
-			} catch (err) {
-				console.error('Error initiating event:', err);
-				error(500, 'Failed to load event');
-			}
+			if (data.event_id !== 'create') {
+				let res;
+				try {
+					res = await initiateEvent(data.event_id as unknown as number, data.supabase);
+				} catch (err) {
+					console.error('Error initiating event:', err);
+					error(500, 'Failed to load event');
+				}
 
-			if (!res) {
-				error(404, 'Event not found');
-			}
+				if (!res) {
+					error(404, 'Event not found');
+				}
 
-			tournament = res.tournament;
-			bracket = res.bracket;
-			teams = res.teams;
-			matches = res.matches;
+				tournament = res.tournament;
+				bracket = res.bracket;
+				teams = res.teams;
+				matches = res.matches;
+			}
 		})();
 	});
 

@@ -1,4 +1,4 @@
-import { superValidate } from 'sveltekit-superforms';
+import { setMessage, superValidate } from 'sveltekit-superforms';
 import { formSchema as settingsSchema } from '$schemas/settingsSchema';
 import { formSchema as teamsSchema } from '$schemas/teamsSchema';
 import { eventsInsertSchema, eventsUpdateSchema, teamsInsertSchema } from '$schemas/supabase';

@@ -35,11 +35,11 @@
 
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
-		onUpdated: async ({ form: f }) => {
-			if (f.valid) {
+		onUpdated({ form }) {
+			if (form.valid) {
 				success(`Tournament settings updated`);
 			} else {
-				for (let [_, value] of Object.entries(f.errors)) {
+				for (let [_, value] of Object.entries(form.errors)) {
 					error(value.pop());
 				}
 			}
