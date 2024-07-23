@@ -68,6 +68,7 @@ export const actions: Actions = {
 		if (!event.params.slug) {
 			throw new Error('Slug is undefined');
 		}
+
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
 		const tournament = new Event(event_id as unknown as number, eventSupabaseDatabaseService);
 

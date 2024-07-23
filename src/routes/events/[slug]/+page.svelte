@@ -10,13 +10,35 @@
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
-	import { closeModal } from '$lib/helper.svelte';
+	import { closeModal, initiateEvent } from '$lib/helper.svelte';
 	import EditMatch from '$components/EditMatch.svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
+	import { error } from '@sveltejs/kit';
 
 	let { data = $bindable() } = $props();
 	let { tournament, bracket, teams, matches, defaultTeam, readOnly } = $state(data);
+
+	$effect(() => {
+		(async () => {
+			let res;
+			try {
+				res = await initiateEvent(data.event_id as unknown as number, data.supabase);
+			} catch (err) {
+				console.error('Error initiating event:', err);
+				error(500, 'Failed to load event');
+			}
+
+			if (!res) {
+				error(404, 'Event not found');
+			}
+
+			tournament = res.tournament;
+			bracket = res.bracket;
+			teams = res.teams;
+			matches = res.matches;
+		})();
+	});
 
 	let historyReady = false;
 	onMount(async () => {
