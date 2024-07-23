@@ -21,6 +21,7 @@ export function RoundRobin(
 
 	const totalRounds = teamArray.length - 1;
 	let roundNumber = startingRound;
+	let courtNumber = 0; // Start from 0
 
 	for (let r = 0; r < totalRounds; r++) {
 		const round: Partial<MatchRow>[] = [];
@@ -35,18 +36,18 @@ export function RoundRobin(
 			const match: Partial<MatchRow> = {
 				round: roundNumber,
 				team1,
-				team2
+				team2,
+				court: courtNumber
 			};
 
 			round.push(match);
-			if (round.length === courts) {
-				matches = matches.concat(round);
-				roundNumber++;
-				round.length = 0; // Clear the round array for the next set of matches
-			}
+
+			// Increment the court number and reset if it exceeds the available courts
+			courtNumber = (courtNumber + 1) % courts;
 		}
 
-		matches = matches.concat(round); // Add remaining matches if any
+		matches = matches.concat(round); // Add the round matches to the overall matches array
+		roundNumber++;
 
 		// Rotate the teams in the array, excluding the first team
 		teamArray = [teamArray[0], ...teamArray.slice(2), teamArray[1]];

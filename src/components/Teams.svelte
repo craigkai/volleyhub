@@ -5,10 +5,10 @@
 	import * as Table from '$components/ui/table';
 	import { Input } from '$components/ui/input/index.js';
 
-	let { teams = $bindable() }: { teams: Teams } = $props();
+	let { teams = $bindable() }: { teams: Teams | undefined } = $props();
 
 	async function createTeam() {
-		if (teams.teams.findIndex((team) => team.name === newTeamName) !== -1) {
+		if (teams?.teams.findIndex((team) => team.name === newTeamName) !== -1) {
 			error('Team already exists');
 			return;
 		}
@@ -29,7 +29,7 @@
 
 	async function deleteTeam(team: TeamRow) {
 		try {
-			await teams.delete(team);
+			await teams?.delete(team);
 			await loadEventTeams();
 			success(`Team ${team.name} deleted`);
 		} catch (err: any) {
@@ -39,7 +39,7 @@
 
 	async function loadEventTeams() {
 		teams
-			.load()
+			?.load()
 			.catch((err: HttpError) => error(err.body.message))
 			.then(() => (teams = teams))
 			.catch((err: HttpError) => error(err.body.message));

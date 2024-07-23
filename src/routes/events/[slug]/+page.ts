@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { setMessage, superValidate, type Infer, type SuperValidated } from 'sveltekit-superforms';
+import { superValidate, type Infer, type SuperValidated } from 'sveltekit-superforms';
 import { formSchema as settingsSchema, type FormSchema } from '$schemas/settingsSchema';
 import { zod } from 'sveltekit-superforms/adapters';
 import { initiateEvent } from '$lib/helper.svelte';
@@ -36,7 +36,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 	}
 
 	if (!res) {
-		throw error(404, 'Event not found');
+		throw error(404, 'Event not found: ');
 	}
 
 	const { tournament, matches, teams, bracket } = res;

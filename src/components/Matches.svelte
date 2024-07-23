@@ -113,13 +113,11 @@
 
 		<Table.Body>
 			{#each Object.keys(matchesForEachRound) as round}
-				{@const matchesForRound = matchesForEachRound[round].sort(
-					(a, b) => a.round - b.round || a.court - b.court
-				)}
+				{@const matchesForRound = matchesForEachRound[round].sort((a, b) => a.court - b.court)}
 
 				<Table.Row>
 					{#each Array(tournament.courts) as _, court}
-						{@const match = matchesForRound[court]}
+						{@const match = matchesForRound.find((m) => m.court === court)}
 						{#if match}
 							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
 							{@const teamsForMatch = [
@@ -167,18 +165,22 @@
 		<div class="m-2">
 			<Alert.Root>
 				<Alert.Title>Generate new matches?</Alert.Title>
-				<Alert.Description
-					>You already have some match content, are you sure you want to wipe that?</Alert.Description
-				>
+				<Alert.Description>
+					You already have some match content, are you sure you want to wipe that?
+				</Alert.Description>
 				<div class="flex gap-2">
 					<button
 						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						onclick={generateMatches}>Yes</button
+						onclick={generateMatches}
 					>
+						Yes
+					</button>
 					<button
 						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						onclick={() => (showGenerateMatchesAlert = false)}>No</button
+						onclick={() => (showGenerateMatchesAlert = false)}
 					>
+						No
+					</button>
 				</div>
 			</Alert.Root>
 		</div>
@@ -190,7 +192,7 @@
 			type="button"
 			onclick={checkGenerateMatches}
 		>
-			Generate matches</button
-		>
+			Generate matches
+		</button>
 	</div>
 {/if}

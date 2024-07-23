@@ -10,7 +10,7 @@
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
-	import { closeModal, initiateEvent } from '$lib/helper.svelte';
+	import { closeModal } from '$lib/helper.svelte';
 	import EditMatch from '$components/EditMatch.svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
@@ -29,16 +29,11 @@
 	$effect(() => {
 		(async () => {
 			if (data.event_id !== 'create') {
-				let res;
 				try {
 					await Promise.all([tournament?.load(), matches?.load(), teams?.load(), bracket?.load()]);
 				} catch (err) {
 					console.error('Error initiating event:', err);
 					error(500, 'Failed to load event');
-				}
-
-				if (!res) {
-					error(404, 'Event not found');
 				}
 			}
 		})();
