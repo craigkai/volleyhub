@@ -3,14 +3,13 @@
 	import * as Table from '$components/ui/table';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches.svelte';
-	import type { RealtimeChannel, CHANNEL_STATES } from '@supabase/supabase-js';
+	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import * as Alert from '$components/ui/alert/index.js';
 	import type { HttpError } from '@sveltejs/kit';
 	import type { Teams } from '$lib/teams.svelte';
 	import Zap from 'lucide-svelte/icons/zap';
 	import Zapoff from 'lucide-svelte/icons/zap-off';
 	import { Event } from '$lib/event.svelte';
-
 	import { onMount } from 'svelte';
 
 	let {
@@ -29,7 +28,7 @@
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
-	let subscriptionStatus: CHANNEL_STATES | undefined = $state(matches?.subscriptionStatus);
+	let subscriptionStatus: any | undefined = $state(matches?.subscriptionStatus);
 
 	$effect(() => {
 		matches;
