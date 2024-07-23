@@ -12,7 +12,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 
 	// Validate eventId
 	if (eventId !== 'create' && (isNaN(eventId) || eventId <= 0)) {
-		throw error(400, 'Invalid eventId: must be a positive integer or "create".');
+		error(400, 'Invalid eventId: must be a positive integer or "create".');
 	}
 
 	if (eventId === 'create') {
@@ -32,11 +32,11 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		res = await initiateEvent(eventId, supabase);
 	} catch (err) {
 		console.error('Error initiating event:', err);
-		throw error(500, 'Failed to load event');
+		error(500, 'Failed to load event');
 	}
 
 	if (!res) {
-		throw error(404, 'Event not found');
+		error(404, 'Event not found');
 	}
 
 	const { tournament, matches, teams, bracket } = res;
