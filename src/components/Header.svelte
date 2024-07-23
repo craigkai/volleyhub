@@ -19,11 +19,9 @@
 	supabase.auth.onAuthStateChange(() => {
 		getCurrentUser();
 	});
-	
 </script>
 
 <header class="w-full">
-	
 	<!-- Navigation bar -->
 	<div class="bg-blue-500 dark:bg-slate-900 p-4">
 		<a href="/" class="flex">
