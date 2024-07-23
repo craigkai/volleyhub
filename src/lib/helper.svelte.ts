@@ -47,7 +47,7 @@ export async function initiateEvent(
 	supabase: supabaseClient
 ): Promise<{
 	tournament: EventInstance;
-	matches: Pool;
+	matches: Matches;
 	teams: TeamsInstance;
 	bracket: Brackets;
 }> {

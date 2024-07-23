@@ -17,14 +17,21 @@
 	import { error } from '@sveltejs/kit';
 
 	let { data = $bindable() } = $props();
-	let { tournament, bracket, teams, matches, defaultTeam, readOnly } = $state(data);
+
+	// State
+	let tournament = $state(data.tournament);
+	let bracket = $state(data.bracket);
+	let teams = $state(data.teams);
+	let matches = $state(data.matches);
+	let defaultTeam = $state(data.defaultTeam);
+	let readOnly = $state(data.readOnly);
 
 	$effect(() => {
 		(async () => {
 			if (data.event_id !== 'create') {
 				let res;
 				try {
-					res = await initiateEvent(data.event_id as unknown as number, data.supabase);
+					await Promise.all([tournament?.load(), matches?.load(), teams?.load(), bracket?.load()]);
 				} catch (err) {
 					console.error('Error initiating event:', err);
 					error(500, 'Failed to load event');
@@ -33,11 +40,6 @@
 				if (!res) {
 					error(404, 'Event not found');
 				}
-
-				tournament = res.tournament;
-				bracket = res.bracket;
-				teams = res.teams;
-				matches = res.matches;
 			}
 		})();
 	});
@@ -76,8 +78,10 @@
 	>
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
-				<EditMatch matchId={$page.state.matchId as number} bind:matches />
-			{:else}
+				{#if matches}
+					<EditMatch matchId={$page.state.matchId as number} bind:matches />
+				{/if}
+			{:else if bracket}
 				<EditMatch matchId={$page.state.matchId as number} bind:matches={bracket} />
 			{/if}
 		</AlertDialog.Content>
