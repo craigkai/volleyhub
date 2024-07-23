@@ -76,9 +76,9 @@
 	>
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
-				<EditMatch matchId={$page.state.matchId as number} bind:matches={data.matches} />
+				<EditMatch matchId={$page.state.matchId as number} bind:matches />
 			{:else}
-				<EditMatch matchId={$page.state.matchId as number} bind:matches={data.bracket} />
+				<EditMatch matchId={$page.state.matchId as number} bind:matches={bracket} />
 			{/if}
 		</AlertDialog.Content>
 	</AlertDialog.Root>
@@ -149,7 +149,7 @@
 						<Card.Description>add/edit/remove teams</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Teams bind:teams={data.teams} />
+						<Teams bind:teams />
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
