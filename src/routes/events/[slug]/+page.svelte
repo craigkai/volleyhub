@@ -19,18 +19,20 @@
 	let { data = $bindable() } = $props();
 
 	// State
-	let tournament = $state(data.tournament);
-	let bracket = $state(data.bracket);
-	let teams = $state(data.teams);
-	let matches = $state(data.matches);
 	let defaultTeam = $state(data.defaultTeam);
 	let readOnly = $state(data.readOnly);
 
 	$effect(() => {
 		(async () => {
 			if (data.event_id !== 'create') {
+				console.debug('Loading event data ... (should I be?)');
 				try {
-					await Promise.all([tournament?.load(), matches?.load(), teams?.load(), bracket?.load()]);
+					await Promise.all([
+						data?.tournament?.load(),
+						data?.matches?.load(),
+						data?.teams?.load(),
+						data?.bracket?.load()
+					]);
 				} catch (err) {
 					console.error('Error initiating event:', err);
 					error(500, 'Failed to load event');
@@ -46,7 +48,7 @@
 	});
 
 	const teamsSelect = $derived(
-		teams?.teams
+		data?.teams?.teams
 			?.map((team: { name: string }) => {
 				return { value: team.name, name: team.name };
 			})
@@ -73,18 +75,18 @@
 	>
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
-				{#if matches}
-					<EditMatch matchId={$page.state.matchId as number} bind:matches />
+				{#if data?.matches}
+					<EditMatch matchId={$page.state.matchId as number} bind:matches={data.matches} />
 				{/if}
-			{:else if bracket}
-				<EditMatch matchId={$page.state.matchId as number} bind:matches={bracket} />
+			{:else if data?.bracket}
+				<EditMatch matchId={$page.state.matchId as number} bind:matches={data.bracket} />
 			{/if}
 		</AlertDialog.Content>
 	</AlertDialog.Root>
 {/if}
 
 <div class="page-container flex flex-col items-center">
-	<div class="header">{tournament?.name}</div>
+	<div class="header">{data?.tournament?.name}</div>
 
 	{#if readOnly}
 		<div class="select-container">
@@ -148,7 +150,7 @@
 						<Card.Description>add/edit/remove teams</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						{#if data.teams}
+						{#if data?.teams}
 							<Teams bind:teams={data.teams} />
 						{/if}
 					</Card.Content>
@@ -163,8 +165,14 @@
 					<Card.Description>Results of pool play (live)</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams}
-						<Matches bind:tournament bind:matches {teams} {defaultTeam} {readOnly} />
+					{#if data?.tournament && data?.matches && data?.teams}
+						<Matches
+							bind:tournament={data.tournament}
+							bind:matches={data.matches}
+							bind:teams={data.teams}
+							{defaultTeam}
+							{readOnly}
+						/>
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -177,8 +185,13 @@
 					<Card.Description>Current standings based on pool play results</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams}
-						<Standings event={tournament} {matches} {teams} {defaultTeam} />
+					{#if data?.tournament && data?.matches && data?.teams}
+						<Standings
+							event={data.tournament}
+							matches={data.matches}
+							teams={data.teams}
+							{defaultTeam}
+						/>
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -191,8 +204,14 @@
 					<Card.Description>Single/Double elim bracket</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams && bracket}
-						<Bracket {tournament} {bracket} {teams} {matches} {readOnly} />
+					{#if data?.tournament && data?.matches && data?.teams && data?.bracket}
+						<Bracket
+							tournament={data.tournament}
+							matches={data.matches}
+							teams={data.teams}
+							bracket={data.bracket}
+							{readOnly}
+						/>
 					{/if}
 				</Card.Content>
 			</Card.Root>

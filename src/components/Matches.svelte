@@ -16,8 +16,8 @@
 		matches = $bindable(),
 		tournament = $bindable(),
 		teams = $bindable(),
-		readOnly = false,
-		defaultTeam = $bindable()
+		readOnly = $bindable(false),
+		defaultTeam
 	}: {
 		matches: Matches;
 		tournament: Event;
