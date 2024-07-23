@@ -35,13 +35,12 @@
 
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
+		onError({ result }) {
+			error(result.error.message || 'Unknown error');
+		},
 		onUpdated({ form }) {
 			if (form.valid) {
 				success(`Tournament settings updated`);
-			} else {
-				for (let [_, value] of Object.entries(form.errors)) {
-					error(value.pop());
-				}
 			}
 		}
 	});
