@@ -148,7 +148,9 @@
 						<Card.Description>add/edit/remove teams</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Teams bind:teams />
+						{#if data.teams}
+							<Teams bind:teams={data.teams} />
+						{/if}
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>

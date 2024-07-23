@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { Teams } from '$lib/teams.svelte';
 	import { success, error } from '$lib/toast';
-	import type { HttpError } from '@sveltejs/kit';
+	import { isHttpError, type HttpError } from '@sveltejs/kit';
 	import * as Table from '$components/ui/table';
 	import { Input } from '$components/ui/input/index.js';
 
-	let { teams = $bindable() }: { teams: Teams | undefined } = $props();
+	let { teams = $bindable() }: { teams: Teams } = $props();
 
 	async function createTeam() {
-		if (teams?.teams.findIndex((team) => team.name === newTeamName) !== -1) {
+		if (teams.teams.findIndex((team) => team.name === newTeamName) !== -1) {
 			error('Team already exists');
 			return;
 		}
@@ -18,8 +18,10 @@
 				name: newTeamName,
 				event_id: teams.event_id
 			};
+
 			await teams.create(newTeam);
 			await loadEventTeams();
+
 			success(`Team ${newTeamName} created`);
 			newTeamName = '';
 		} catch (err: any) {
@@ -29,7 +31,7 @@
 
 	async function deleteTeam(team: TeamRow) {
 		try {
-			await teams?.delete(team);
+			await teams.delete(team);
 			await loadEventTeams();
 			success(`Team ${team.name} deleted`);
 		} catch (err: any) {
@@ -38,13 +40,20 @@
 	}
 
 	async function loadEventTeams() {
-		teams
-			?.load()
-			.catch((err: HttpError) => error(err.body.message))
-			.then(() => (teams = teams))
-			.catch((err: HttpError) => error(err.body.message));
+		try {
+			const res = await teams.load();
+			// @ts-ignore
+			currentTeams = res;
+		} catch (err) {
+			if (isHttpError(err)) {
+				error(err.body.message);
+			}
+			error('Something has gone very wrong');
+		}
 	}
 	let newTeamName = $state('');
+
+	let currentTeams = $state(teams.teams ?? []);
 </script>
 
 <div class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Teams:</div>
@@ -52,7 +61,7 @@
 <Table.Root class="min-w-full bg-white dark:bg-gray-800">
 	<Table.Caption>A list of your teams.</Table.Caption>
 	<Table.Body>
-		{#each teams?.teams ?? [] as team}
+		{#each currentTeams ?? [] as team}
 			<Table.Row>
 				<Table.Cell>
 					<Input

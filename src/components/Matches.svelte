@@ -87,7 +87,7 @@
 </div>
 
 {#if matches?.matches && matches?.matches?.length > 0}
-	{@const matchesForEachRound = matches.matches.reduce((accumulator, currentValue) => {
+	{@const matchesForEachRound: any = matches.matches.reduce((accumulator, currentValue) => {
 		// @ts-expect-error just not happy with types
 		if (accumulator[currentValue.round]) {
 			// @ts-expect-error just not happy with types
@@ -113,11 +113,13 @@
 
 		<Table.Body>
 			{#each Object.keys(matchesForEachRound) as round}
-				{@const matchesForRound = matchesForEachRound[round].sort((a, b) => a.court - b.court)}
+				{@const matchesForRound = matchesForEachRound[round].sort(
+					(a: { court: number }, b: { court: number }) => a.court - b.court
+				)}
 
 				<Table.Row>
 					{#each Array(tournament.courts) as _, court}
-						{@const match = matchesForRound.find((m) => m.court === court)}
+						{@const match = matchesForRound.find((m: { court: number }) => m.court === court)}
 						{#if match}
 							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
 							{@const teamsForMatch = [

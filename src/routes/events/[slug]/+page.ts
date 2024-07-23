@@ -36,7 +36,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 	}
 
 	if (!res) {
-		throw error(404, 'Event not found: ');
+		throw error(404, 'Event not found');
 	}
 
 	const { tournament, matches, teams, bracket } = res;
