@@ -54,7 +54,7 @@
 
 		<Label class="ml-4 min-w-[50px]" for="team1-score-input">Score:</Label>
 		<Input
-			class="border border-blue-500 rounded w-16 py-2 px-3 leading-tight text-center"
+			class="border border-blue-500 rounded max-w-16 py-2 px-3 leading-tight text-center"
 			id="team1-score-input"
 			type="number"
 			bind:value={match[`${teamNumber}_score`]}
@@ -63,7 +63,7 @@
 {/snippet}
 
 {#if match}
-	<div class="flex flex-col">
+	<div class="flex flex-col m-2 w-3/4">
 		{@render editTeam(match, 'team1')}
 
 		{@render editTeam(match, 'team2')}
