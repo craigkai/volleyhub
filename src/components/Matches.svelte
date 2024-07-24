@@ -76,6 +76,13 @@
 		}
 		showGenerateMatchesAlert = false;
 	}
+
+	const rounds = Math.max.apply(
+		Math,
+		matches?.matches?.map(function (m) {
+			return m.round;
+		}) ?? [0]
+	);
 </script>
 
 <div class="block text-gray-700 text-sm font-bold mb-4 flex">
@@ -86,24 +93,13 @@
 	{/if}:
 </div>
 
-{#if matches?.matches && matches?.matches?.length > 0}
-	{@const matchesForEachRound: any = matches.matches.reduce((accumulator, currentValue) => {
-		// @ts-expect-error just not happy with types
-		if (accumulator[currentValue.round]) {
-			// @ts-expect-error just not happy with types
-			accumulator[currentValue.round].push(currentValue);
-		} else {
-			// @ts-expect-error just not happy with types
-			accumulator[currentValue.round] = [currentValue];
-		}
-		return accumulator;
-	}, {})}
-
+{#if matches && matches.matches && matches?.matches?.length > 0}
 	<Table.Root class="table-auto border-solid border-2 rounded">
 		<Table.Header>
 			<Table.Row>
 				{#each Array(tournament.courts) as _, i}
-					<Table.Head>Court {i + 1}</Table.Head>
+					{@const index = i + 1}
+					<Table.Head>Court {index + 1}</Table.Head>
 				{/each}
 				{#if tournament.refs === 'teams'}
 					<Table.Head>Ref</Table.Head>
@@ -112,25 +108,24 @@
 		</Table.Header>
 
 		<Table.Body>
-			{#each Object.keys(matchesForEachRound) as round}
-				{@const matchesForRound = matchesForEachRound[round].sort(
-					(a: { court: number }, b: { court: number }) => a.court - b.court
-				)}
-
+			{#each Array(rounds) as _, i}
+				{@const round = i + 1}
 				<Table.Row>
 					{#each Array(tournament.courts) as _, court}
-						{@const match = matchesForRound.find((m: { court: number }) => m.court === court)}
+						{@const match = matches.matches.find(
+							(m: MatchRow) => m.court === court && m.round.toString() === round.toString()
+						)}
 						{#if match}
 							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
 							{@const teamsForMatch = [
 								match.public_matches_team1_fkey.name,
 								match.public_matches_team2_fkey.name
 							]}
-							{@const hasDefaultTeam = teamsForMatch.includes(defaultTeam)}
+							{@const hasDefaultTeam = defaultTeam ? teamsForMatch.includes(defaultTeam) : false}
 							{@const defaultTeamWin =
 								match.public_matches_team1_fkey.name == defaultTeam
-									? match.team1_score > match.team2_score
-									: match.team2_score > match.team1_score}
+									? (match.team1_score ?? 0) > (match.team2_score ?? 0)
+									: (match.team2_score ?? 0) > (match.team1_score ?? 0)}
 							{@const rowTdClass = defaultTeamWin
 								? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
 								: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
@@ -148,12 +143,15 @@
 						{/if}
 					{/each}
 					{#if tournament.refs === 'teams'}
+						{@const ref = matches.matches.find(
+							(m: MatchRow) => m.round.toString() === round.toString()
+						)?.public_matches_ref_fkey}
 						<Table.Cell
-							class={matchesForRound[0]?.public_matches_ref_fkey?.name == defaultTeam
+							class={ref?.name == defaultTeam
 								? 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
 								: 'p-2'}
 						>
-							{matchesForRound[0]?.public_matches_ref_fkey?.name}
+							{ref?.name}
 						</Table.Cell>
 					{/if}
 				</Table.Row>

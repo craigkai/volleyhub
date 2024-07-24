@@ -76,10 +76,18 @@
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
 				{#if data?.matches}
-					<EditMatch matchId={$page.state.matchId as number} bind:matches={data.matches} />
+					<EditMatch
+						matchId={$page.state.matchId as number}
+						bind:matches={data.matches}
+						teams={data.teams}
+					/>
 				{/if}
 			{:else if data?.bracket}
-				<EditMatch matchId={$page.state.matchId as number} bind:matches={data.bracket} />
+				<EditMatch
+					matchId={$page.state.matchId as number}
+					bind:matches={data.bracket}
+					teams={data.teams}
+				/>
 			{/if}
 		</AlertDialog.Content>
 	</AlertDialog.Root>
