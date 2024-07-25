@@ -101,9 +101,21 @@ export class Matches extends Base {
 
 	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
 		const updatedMatch = await this.databaseService.put(match);
+
 		if (!updatedMatch) {
 			this.handleError(500, 'Failed to update match.');
 		}
+
+		if (this.matches) {
+			const matchIndex = this?.matches.findIndex((m: MatchRow) => m.id === match.id);
+
+			if (matchIndex !== -1) {
+				// Existing match, update it
+				const updatedMatches = { ...this.matches[matchIndex], ...updatedMatch };
+				this.matches.splice(matchIndex, 1, updatedMatches);
+			}
+		}
+
 		return updatedMatch;
 	}
 
