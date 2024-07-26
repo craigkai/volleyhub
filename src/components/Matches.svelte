@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { error } from '$lib/toast';
+	import { error, success } from '$lib/toast';
 	import * as Table from '$components/ui/table';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches.svelte';
@@ -29,6 +29,7 @@
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let subscriptionStatus: any | undefined = $state(matches?.subscriptionStatus);
+	let isReconnecting = false;
 
 	$effect(() => {
 		matches;
@@ -50,6 +51,7 @@
 	async function subscribeToMatches() {
 		try {
 			matchesSubscription = await matches.subscribeToMatches();
+			matchesSubscription.on('broadcast', { event: 'status' }, handleSubscriptionStatusChange);
 		} catch (err) {
 			error(`Failed to subscribe to matches: ${err as HttpError}`);
 			console.error('Subscription error:', err);
@@ -70,11 +72,51 @@
 				// Ensure there's a delay to resubscribe
 				await new Promise((r) => setTimeout(r, 1000));
 				await subscribeToMatches();
+				success('Matches generated successfully');
 			}
 		} catch (err) {
 			error((err as HttpError).toString());
+		} finally {
+			showGenerateMatchesAlert = false;
 		}
-		showGenerateMatchesAlert = false;
+	}
+
+	function handleSubscriptionStatusChange(payload: { status: string }) {
+		console.log('payload.status', payload.status);
+		if (payload.status === 'error' && !isReconnecting) {
+			isReconnecting = true;
+			reconnect();
+		} else if (payload.status === 'ok') {
+			isReconnecting = false;
+		}
+	}
+
+	async function reconnect() {
+		let attempts = 0;
+		while (attempts < 5) {
+			attempts += 1;
+			console.log(`Reconnection attempt ${attempts}`);
+			await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
+			try {
+				if (matchesSubscription) {
+					await matchesSubscription.unsubscribe();
+				}
+				await subscribeToMatches();
+				if (subscriptionStatus === 'ok') {
+					isReconnecting = false;
+					return;
+				}
+			} catch (error) {
+				console.error('Reconnection failed:', error);
+			}
+		}
+		error('Failed to reconnect after multiple attempts.');
+	}
+
+	function handleVisibilityChange() {
+		if (document.visibilityState === 'visible' && !matchesSubscription) {
+			reconnect();
+		}
 	}
 
 	const rounds = Math.max.apply(
@@ -94,7 +136,10 @@
 </div>
 
 {#if matches && matches.matches && matches?.matches?.length > 0}
-	<Table.Root class="table-auto border-solid border-2 rounded">
+	<Table.Root
+		onvisibilitychange={handleVisibilityChange}
+		class="table-auto border-solid border-2 rounded"
+	>
 		<Table.Header>
 			<Table.Row>
 				{#each Array(tournament.courts) as _, i}
