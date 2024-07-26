@@ -77,12 +77,13 @@
 		showGenerateMatchesAlert = false;
 	}
 
-	const rounds = Math.max.apply(
-		Math,
-		matches?.matches?.map(function (m) {
-			return m.round;
-		}) ?? [0]
-	);
+	const rounds =
+		Math.max.apply(
+			Math,
+			matches?.matches?.map(function (m) {
+				return m.round;
+			}) ?? [0]
+		) ?? 0;
 </script>
 
 <div class="block text-gray-700 text-sm font-bold mb-4 flex">
