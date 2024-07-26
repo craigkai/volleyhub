@@ -4,6 +4,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { UAParser } from 'ua-parser-js';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { supabaseDatabaseServiceInstance } from '$lib/database/supabaseDatabaseService.svelte';
 
 export const supabase: Handle = async ({ event, resolve }) => {
 	const userAgent = event.request.headers.get('user-agent') || '';
@@ -28,6 +29,8 @@ export const supabase: Handle = async ({ event, resolve }) => {
 			}
 		}
 	});
+
+	supabaseDatabaseServiceInstance.setSupabaseClient(event.locals.supabase);
 
 	/**
 	 * Unlike `supabase.auth.getSession()`, which returns the session _without_

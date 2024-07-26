@@ -1,4 +1,7 @@
-import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService.svelte';
+import {
+	SupabaseDatabaseService,
+	supabaseDatabaseServiceInstance
+} from '$lib/database/supabaseDatabaseService.svelte';
 import type { PostgrestResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { matchesRowSchema, matchesUpdateSchema, matchesInsertSchema } from '$schemas/supabase';
@@ -15,6 +18,13 @@ type Filter = {
 };
 
 export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
+	constructor(databaseService: SupabaseDatabaseService) {
+		super();
+		if (!databaseService.supabaseClient) throw new Error('Supabase client not provided.');
+
+		this.setSupabaseClient(databaseService.supabaseClient);
+	}
+
 	/**
 	 * Load all matches associated with a specific event from the database.
 	 * @param {string} event_id - The ID of the event whose matches to load.
@@ -22,6 +32,8 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue loading the matches.
 	 */
 	async load(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		const query = this.supabaseClient
 			.from('matches')
 			.select(MATCHES_SELECT_QUERY)
@@ -41,21 +53,29 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	}
 
 	async deleteMatchesByEvent(event_id: number): Promise<void> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		const response = await this.supabaseClient.from('matches').delete().eq('event_id', event_id);
 		this.handleDatabaseError(response);
 	}
 
 	async deleteMatchesByIds(ids: number[]): Promise<void> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		const response = await this.supabaseClient.from('matches').delete().in('id', ids);
 		this.handleDatabaseError(response);
 	}
 
 	async delete(id: number): Promise<void> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		const response = await this.supabaseClient.from('matches').delete().eq('id', id);
 		this.handleDatabaseError(response);
 	}
 
 	async insertMatch(match: Partial<MatchRow>): Promise<MatchRow> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		try {
 			const matches = await this.insertMatches([match]);
 
@@ -70,6 +90,8 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	}
 
 	async insertMatches(matches: Partial<MatchRow>[]): Promise<MatchRow[]> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		const parsedMatches = z.array(matchesInsertSchema).parse(matches);
 
 		const res = await this.supabaseClient
@@ -83,6 +105,8 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	}
 
 	async put(match: MatchRow): Promise<MatchRow | null> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		const parsedMatch = matchesUpdateSchema.parse(match);
 
 		const res = await this.supabaseClient
@@ -97,3 +121,7 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		return res.data as MatchRow;
 	}
 }
+
+export const MatchesSupabaseDatabaseServiceInstance = new MatchesSupabaseDatabaseService(
+	supabaseDatabaseServiceInstance
+);

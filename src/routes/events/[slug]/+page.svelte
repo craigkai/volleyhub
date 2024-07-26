@@ -8,13 +8,15 @@
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { pushState } from '$app/navigation';
-	import { onMount, tick } from 'svelte';
+	import { onMount, setContext, tick } from 'svelte';
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
 	import { closeModal } from '$lib/helper.svelte';
 	import EditMatch from '$components/EditMatch.svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
-	import { error } from '@sveltejs/kit';
+	import { EventInstance } from '$lib/event.svelte.js';
+	import { TeamsInstance } from '$lib/teams.svelte.js';
+	import { MatchesInstance } from '$lib/matches.svelte.js';
 
 	let { data = $bindable() } = $props();
 
@@ -22,24 +24,9 @@
 	let defaultTeam = $state(data.defaultTeam);
 	let readOnly = $state(data.readOnly);
 
-	$effect(() => {
-		(async () => {
-			if (data.event_id !== 'create') {
-				console.debug('Loading event data ... (should I be?)');
-				try {
-					await Promise.all([
-						data?.tournament?.load(),
-						data?.matches?.load(),
-						data?.teams?.load(),
-						data?.bracket?.load()
-					]);
-				} catch (err) {
-					console.error('Error initiating event:', err);
-					error(500, 'Failed to load event');
-				}
-			}
-		})();
-	});
+	setContext('event', EventInstance);
+	setContext('teams', TeamsInstance);
+	setContext('matches', MatchesInstance);
 
 	let historyReady = false;
 	onMount(async () => {
@@ -48,7 +35,7 @@
 	});
 
 	const teamsSelect = $derived(
-		data?.teams?.teams
+		TeamsInstance?.teams
 			?.map((team: { name: string }) => {
 				return { value: team.name, name: team.name };
 			})

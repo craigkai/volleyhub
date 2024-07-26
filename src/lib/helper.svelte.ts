@@ -50,18 +50,20 @@ export async function initiateEvent(
 	bracket: Brackets;
 }> {
 	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(supabase);
-	const tournament = $state(new EventInstance(eventId, eventSupabaseDatabaseService));
 
 	const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(supabase);
-	const matches = $state(new Pool(eventId, matchesSupabaseDatabaseService));
 
 	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(supabase);
-	const teams = $state(new TeamsInstance(eventId, teamsSupabaseDatabaseService));
 
 	const bracket = $state(new Brackets(eventId, matchesSupabaseDatabaseService));
 
 	try {
-		await Promise.all([tournament.load(), matches.load(), teams.load(), bracket.load()]);
+		await Promise.all([
+			tournament.load(eventId, eventSupabaseDatabaseService),
+			matches.load(eventId, matchesSupabaseDatabaseService),
+			teams.load(eventId, teamsSupabaseDatabaseService),
+			bracket.load(eventId, matchesSupabaseDatabaseService)
+		]);
 	} catch (err) {
 		console.error('Error loading event data:', err);
 		throw new Error(

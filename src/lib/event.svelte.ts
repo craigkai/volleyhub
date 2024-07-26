@@ -8,11 +8,8 @@ import type { FormSchema } from '$schemas/settingsSchema';
  * It provides methods for creating and managing a tournament.
  */
 export class Event extends Base {
-	// The service used to interact with the database
-	private databaseService: EventSupabaseDatabaseService;
-
 	// Event properties
-	id: number;
+	id?: number;
 	name?: string;
 	date?: string;
 	pools?: number;
@@ -25,17 +22,32 @@ export class Event extends Base {
 
 	/**
 	 * The constructor for the Event class.
-	 * @param {number} event_id - The ID of the event.
-	 * @param {EventSupabaseDatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: number, databaseService: EventSupabaseDatabaseService) {
+	constructor() {
 		super();
-		if (!event_id) {
-			this.handleError(400, 'Invalid event ID, are you sure your link is correct?');
+	}
+
+	/**
+	 * Load the event (tournament settings) from the database.
+	 * @param {number} id - The ID of the event.
+	 * @param {EventSupabaseDatabaseService} databaseService - The service used to interact with the database.
+	 * @returns {Promise<Event>} - Returns a promise that resolves to the loaded event.
+	 */
+	async load(id: number): Promise<Event> {
+		if (!this.databaseService) {
+			throw new Error('Database service not provided, did you load the event first?.');
 		}
 
-		this.databaseService = databaseService;
-		this.id = event_id;
+		try {
+			const eventResponse: EventRow | null = await this.databaseService.load(id);
+
+			if (eventResponse !== null) {
+				Object.assign(this, eventResponse);
+			}
+		} catch (err) {
+			this.handleError(500, `Failed to load event: ${(err as Error).message}`);
+		}
+		return this;
 	}
 
 	/**
@@ -45,6 +57,10 @@ export class Event extends Base {
 	 * @throws {Error} - Throws an error if the event data does not have all required values.
 	 */
 	async create(input: Infer<FormSchema>): Promise<Event> {
+		if (!this.databaseService) {
+			throw new Error('Database service not provided, did you load the event first?.');
+		}
+
 		if ('id' in input) {
 			delete input.id;
 		}
@@ -69,6 +85,10 @@ export class Event extends Base {
 	 * @throws {Error} - Throws an error if there's an issue updating the event.
 	 */
 	async update(id: number, input: Infer<FormSchema>): Promise<Event> {
+		if (!this.databaseService) {
+			throw new Error('Database service not provided, did you load the event first?.');
+		}
+
 		const res: EventRow | null = await this.databaseService.put(id, input);
 
 		if (res !== null) {
@@ -78,27 +98,14 @@ export class Event extends Base {
 	}
 
 	/**
-	 * Load the event (tournament settings) from the database.
-	 * @returns {Promise<Event>} - Returns a promise that resolves to the loaded event.
-	 */
-	async load(): Promise<Event> {
-		try {
-			const eventResponse: EventRow | null = await this.databaseService.load(this.id);
-
-			if (eventResponse !== null) {
-				Object.assign(this, eventResponse);
-			}
-		} catch (err) {
-			this.handleError(500, `Failed to load event: ${(err as Error).message}`);
-		}
-		return this;
-	}
-
-	/**
 	 * Deletes the event.
 	 * @returns {Promise<void>} - Returns a promise that resolves when the event is deleted.
 	 */
 	async delete(): Promise<void> {
+		if (!this.databaseService || !this.id) {
+			throw new Error('Database service  or id not provided, did you load the event first?.');
+		}
+
 		try {
 			await this.databaseService.delete(this.id);
 		} catch (err) {
@@ -106,6 +113,8 @@ export class Event extends Base {
 		}
 	}
 }
+
+export const EventInstance = new Event();
 
 // Vitest unit tests
 if (import.meta.vitest) {

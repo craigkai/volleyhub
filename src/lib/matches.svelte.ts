@@ -6,21 +6,25 @@ import type { Brackets } from './brackets/brackets.svelte';
 import { Event } from '$lib/event.svelte';
 
 export class Matches extends Base {
-	public databaseService: MatchesSupabaseDatabaseService;
-	event_id: number;
+	event_id?: number;
 	matches?: MatchRow[] = $state<MatchRow[]>();
 	subscriptionStatus? = $state();
 	type = 'pool';
 
-	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
-		super();
-		this.databaseService = databaseService;
-		this.event_id = Number(event_id);
+	constructor(databaseService: MatchesSupabaseDatabaseService) {
+		super(databaseService);
 	}
 
-	async load() {
+	/**
+	 * Load the matches from the database.
+	 * @param {number} event_id - The ID of the event.
+	 * @returns {Promise<Event>} - Returns a promise that resolves to the loaded event.
+	 */
+	async load(event_id: number): Promise<Matches> {
+		if (!this.databaseService) throw new Error('Database service not provided.');
+
 		try {
-			const res = await this.databaseService.load(this.event_id, {
+			const res = await this.databaseService.load(event_id, {
 				column: 'type',
 				operator: 'eq',
 				value: this.type
@@ -44,12 +48,12 @@ export class Matches extends Base {
 		if (self.type !== updated.type) return;
 
 		if (self.type === 'bracket') {
-			await self.load();
+			await self.load(old.event_id);
 			(self as Brackets).nextRound(updated);
 		}
 
 		if (!self.matches) {
-			await self.load();
+			await self.load(self.id);
 			return;
 		}
 
@@ -65,6 +69,9 @@ export class Matches extends Base {
 	}
 
 	async subscribeToMatches(): Promise<RealtimeChannel> {
+		if (!this.databaseService)
+			throw new Error('Database service not provided, did you load the event first?.');
+
 		const channel = await this.databaseService.subscribeToChanges(
 			this,
 			this.handleUpdate,

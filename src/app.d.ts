@@ -63,7 +63,7 @@ declare global {
 			eventCreated?: number;
 		}
 	}
-	type supabaseClient = SupabaseClient<Database>;
+	type supabaseClient = SupabaseClient<any, 'public', any>;
 }
 
 interface ImportMetaEnv {

@@ -8,13 +8,9 @@ export class Teams extends Base {
 
 	/**
 	 * The constructor for the Teams class.
-	 * @param {number} event_id - The ID of the event.
-	 * @param {TeamsSupabaseDatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: number, databaseService: TeamsSupabaseDatabaseService) {
+	constructor() {
 		super();
-		this.databaseService = databaseService;
-		this.event_id = event_id;
 	}
 
 	/**

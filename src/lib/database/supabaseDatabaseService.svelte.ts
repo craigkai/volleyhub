@@ -14,10 +14,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class SupabaseDatabaseService {
 	// Private property for Supabase client
-	supabaseClient: supabaseClient;
+	supabaseClient?: supabaseClient;
 
-	// Constructor to initialize Supabase client
-	constructor(supabaseClient: supabaseClient) {
+	setSupabaseClient(supabaseClient: supabaseClient): void {
 		this.supabaseClient = supabaseClient;
 	}
 
@@ -54,6 +53,8 @@ export class SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue retrieving the user.
 	 */
 	async getCurrentUser(): Promise<User | null> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		try {
 			// Use the Supabase client to get the current user
 			const response = await this.supabaseClient.auth.getUser();
@@ -84,6 +85,8 @@ export class SupabaseDatabaseService {
 		table: string,
 		filter?: string
 	): Promise<RealtimeChannel> {
+		if (!this.supabaseClient) throw new Error('Supabase client not provided.');
+
 		const channelName = `${self.constructor.name}-${uuidv4()}`;
 
 		console.debug(
@@ -113,9 +116,11 @@ export class SupabaseDatabaseService {
 			.subscribe((status) => {
 				// We call the load function to update in case our content is stale
 				// when we re-connect to the web socket.
-				self.load();
+				self.load(self.id);
 				self.subscriptionStatus = status;
 				console.debug('Realtime status', status);
 			});
 	}
 }
+
+export const supabaseDatabaseServiceInstance = new SupabaseDatabaseService();
