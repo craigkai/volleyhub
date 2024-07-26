@@ -4,7 +4,7 @@ import { Base } from './base';
 export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
 	event_id: number;
-	teams: TeamRow[] = [];
+	teams: TeamRow[] = $state([]);
 
 	/**
 	 * The constructor for the Teams class.
