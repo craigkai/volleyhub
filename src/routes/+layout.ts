@@ -1,6 +1,7 @@
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import type { LayoutLoad } from './$types';
 import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
+import { SupabaseDatabaseServiceInstance } from '$lib/database/supabaseDatabaseService.svelte';
 
 export const load: LayoutLoad = async ({ fetch, data, depends }) => {
 	depends('supabase:auth');
@@ -16,11 +17,12 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
 					fetch
 				},
 				cookies: {
-					get() {
-						return JSON.stringify(data.session);
+					getAll() {
+						return data.cookies;
 					}
 				}
 			});
+	SupabaseDatabaseServiceInstance.setSupabaseClient(supabase);
 
 	/**
 	 * It's fine to use `getSession` here, because on the client, `getSession` is

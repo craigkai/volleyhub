@@ -5,18 +5,21 @@
 	import Sun from 'lucide-svelte/icons/sun';
 	import Moon from 'lucide-svelte/icons/moon';
 	import { toggleMode } from 'mode-watcher';
+	import { SupabaseDatabaseServiceInstance } from '$lib/database/supabaseDatabaseService.svelte';
 
-	let { supabase, isMobile }: { supabase: any; isMobile: boolean } = $props();
+	let { isMobile }: { isMobile: boolean } = $props();
 
 	let open: boolean = $state(!isMobile);
 
-	let currentUser: { data: { user: { aud: string } } } | undefined = $state();
+	let currentUser: { data: { user: { aud: string } } | null } | undefined = $state();
 
 	async function getCurrentUser() {
-		currentUser = await supabase.auth.getUser();
+		if (SupabaseDatabaseServiceInstance && SupabaseDatabaseServiceInstance.supabaseClient) {
+			currentUser = await SupabaseDatabaseServiceInstance.supabaseClient.auth.getUser();
+		}
 	}
 
-	supabase.auth.onAuthStateChange(() => {
+	SupabaseDatabaseServiceInstance.supabaseClient?.auth.onAuthStateChange(() => {
 		getCurrentUser();
 	});
 </script>
@@ -57,7 +60,7 @@
 				<Hamburger bind:open --color="white" />
 			</div>
 		</a>
-		
+
 		{#if open}
 			<nav
 				class="relative flex w-full items-center justify-between py-2 bg-white rounded text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 dark:bg-gray-800 dark:text-gray-200 md:flex-wrap md:justify-start"

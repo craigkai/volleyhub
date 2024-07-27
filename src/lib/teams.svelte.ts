@@ -2,8 +2,8 @@ import type { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
 import { Base } from './base';
 
 export class Teams extends Base {
-	private databaseService: TeamsSupabaseDatabaseService;
-	event_id: number;
+	private databaseService?: TeamsSupabaseDatabaseService;
+	event_id: number | undefined = undefined;
 	teams: TeamRow[] = $state([]);
 
 	/**
@@ -17,7 +17,12 @@ export class Teams extends Base {
 	 * Load all teams for the current event.
 	 * @returns {Promise<TeamRow[] | undefined>} - A promise that resolves to the loaded teams.
 	 */
-	async load(): Promise<TeamRow[] | undefined> {
+	async load(eventId: number): Promise<TeamRow[] | undefined> {
+		if (!this.databaseService)
+			throw new Error('Database service not provided, did you load the teams first?.');
+
+		this.event_id = eventId;
+
 		try {
 			const res = await this.databaseService.load(this.event_id);
 			if (!res) {
@@ -39,6 +44,9 @@ export class Teams extends Base {
 	 * @returns {Promise<number | undefined>} - A promise that resolves to the team ID.
 	 */
 	async create(team: Partial<TeamRow>): Promise<number | undefined> {
+		if (!this.databaseService)
+			throw new Error('Database service not provided, did you load the teams first?.');
+
 		try {
 			const res = await this.databaseService.createTeam(team);
 			if (res) {
@@ -58,6 +66,9 @@ export class Teams extends Base {
 	 * @returns {Promise<void>} - A promise that resolves when the team is successfully deleted.
 	 */
 	async delete(team: TeamRow): Promise<void> {
+		if (!this.databaseService)
+			throw new Error('Database service not provided, did you load the teams first?.');
+
 		try {
 			await this.databaseService.deleteTeam(team);
 		} catch (err) {
@@ -71,6 +82,9 @@ export class Teams extends Base {
 	 * @returns {Promise<TeamRow | undefined>} - A promise that resolves to the updated team.
 	 */
 	async update(team: TeamRow): Promise<TeamRow | undefined> {
+		if (!this.databaseService)
+			throw new Error('Database service not provided, did you load the teams first?.');
+
 		try {
 			const res = await this.databaseService.put(team);
 			if (res) {
@@ -84,3 +98,5 @@ export class Teams extends Base {
 		}
 	}
 }
+
+export const TeamsInstance = $state(new Teams());

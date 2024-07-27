@@ -1,24 +1,25 @@
-import type { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
 import { RoundRobin } from './brackets/roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { Base } from './base';
 import type { Brackets } from './brackets/brackets.svelte';
 import { Event } from '$lib/event.svelte';
+import type { MatchesSupabaseDatabaseService } from './database/matches.svelte';
 
 export class Matches extends Base {
+	databaseService?: MatchesSupabaseDatabaseService;
 	event_id?: number;
 	matches?: MatchRow[] = $state<MatchRow[]>();
 	subscriptionStatus? = $state();
 	type = 'pool';
 
-	constructor(databaseService: MatchesSupabaseDatabaseService) {
-		super(databaseService);
+	constructor() {
+		super();
 	}
 
 	/**
 	 * Load the matches from the database.
 	 * @param {number} event_id - The ID of the event.
-	 * @returns {Promise<Event>} - Returns a promise that resolves to the loaded event.
+	 * @returns {Promise<Matches>} - Returns a promise that resolves to the loaded matches.
 	 */
 	async load(event_id: number): Promise<Matches> {
 		if (!this.databaseService) throw new Error('Database service not provided.');
@@ -37,6 +38,11 @@ export class Matches extends Base {
 		return this;
 	}
 
+	/**
+	 * Handle updates to matches from Supabase real-time subscriptions.
+	 * @param {Matches | Brackets} self - The instance of Matches or Brackets.
+	 * @param {RealtimePostgresChangesPayload} payload - The payload containing the changes.
+	 */
 	async handleUpdate(
 		self: Matches | Brackets,
 		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
@@ -68,6 +74,10 @@ export class Matches extends Base {
 		}
 	}
 
+	/**
+	 * Subscribe to real-time updates for matches.
+	 * @returns {Promise<RealtimeChannel>} - Returns a promise that resolves to the real-time subscription channel.
+	 */
 	async subscribeToMatches(): Promise<RealtimeChannel> {
 		if (!this.databaseService)
 			throw new Error('Database service not provided, did you load the event first?.');
@@ -82,6 +92,12 @@ export class Matches extends Base {
 		return channel;
 	}
 
+	/**
+	 * Create matches for the event.
+	 * @param {Event | Partial<EventRow>} event - The event data.
+	 * @param {TeamRow[] | Partial<TeamRow>[]} teams - The teams participating in the event.
+	 * @returns {Promise<Matches | undefined>} - Returns a promise that resolves to the created matches.
+	 */
 	async create(
 		{ pools, courts, refs = 'provided' }: Event | Partial<EventRow>,
 		teams: TeamRow[] | Partial<TeamRow>[]
@@ -106,7 +122,14 @@ export class Matches extends Base {
 		}
 	}
 
+	/**
+	 * Update a match in the database.
+	 * @param {MatchRow} match - The match data to update.
+	 * @returns {Promise<MatchRow | null>} - Returns a promise that resolves to the updated match.
+	 */
 	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
+		if (!this.databaseService) throw new Error('Database service not provided.');
+
 		const updatedMatch = await this.databaseService.put(match);
 
 		if (!updatedMatch) {
@@ -126,6 +149,14 @@ export class Matches extends Base {
 		return updatedMatch;
 	}
 
+	/**
+	 * Validate the inputs for creating matches.
+	 * @param {TeamRow[] | Partial<TeamRow>[]} teams - The teams participating in the event.
+	 * @param {number | undefined | null} pools - The number of pool play games.
+	 * @param {number | undefined | null} courts - The number of courts available.
+	 * @param {string | undefined | null} refs - The source of referees.
+	 * @throws {Error} - Throws an error if validation fails.
+	 */
 	validateInputs(
 		teams: TeamRow[] | Partial<TeamRow>[],
 		pools: number | undefined | null,
@@ -149,6 +180,12 @@ export class Matches extends Base {
 		}
 	}
 
+	/**
+	 * Calculate the number of rounds and courts needed.
+	 * @param {TeamRow[]} teams - The teams participating in the event.
+	 * @param {number} courts - The number of courts available.
+	 * @returns {Object} - Returns an object with the number of rounds and courts per round.
+	 */
 	calculateRoundsAndCourts(
 		teams: TeamRow[],
 		courts: number
@@ -159,6 +196,13 @@ export class Matches extends Base {
 		return { rounds, courtsPerRound };
 	}
 
+	/**
+	 * Generate matches using the RoundRobin algorithm.
+	 * @param {number} pools - The number of pool play games.
+	 * @param {Partial<TeamRow>[]} teams - The teams participating in the event.
+	 * @param {number} courts - The number of courts available.
+	 * @returns {Partial<MatchRow>[]} - Returns an array of generated matches.
+	 */
 	generateMatches(pools: number, teams: Partial<TeamRow>[], courts: number): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
 		const totalMatches = (teams.length * pools) / 2; // Calculate the total number of matches needed
@@ -199,6 +243,11 @@ export class Matches extends Base {
 		return matches.slice(0, totalMatches); // Limit to the required number of matches
 	}
 
+	/**
+	 * Assign referees to matches.
+	 * @param {Partial<MatchRow>[]} matches - The matches to assign referees to.
+	 * @param {Partial<TeamRow>[]} teams - The teams participating in the event.
+	 */
 	assignReferees(matches: Partial<MatchRow>[], teams: Partial<TeamRow>[]) {
 		const teamsPerRound: { [round: number]: Set<number> } = {};
 
@@ -232,6 +281,13 @@ export class Matches extends Base {
 		});
 	}
 
+	/**
+	 * Determine the referee for a match.
+	 * @param {number[]} teamsPlayingThisRound - The teams playing in the current round.
+	 * @param {number[]} allTeams - All teams participating in the event.
+	 * @param {Object} refereeCounts - The counts of refereeing assignments for each team.
+	 * @returns {number} - Returns the ID of the selected referee.
+	 */
 	determineReferee(
 		teamsPlayingThisRound: number[],
 		allTeams: number[],
@@ -250,6 +306,8 @@ export class Matches extends Base {
 		return availableTeams[0];
 	}
 }
+
+export const MatchesInstance = $state(new Matches());
 
 if (import.meta.vitest) {
 	const { vi, it, expect, beforeEach } = import.meta.vitest;
@@ -274,7 +332,8 @@ if (import.meta.vitest) {
 			load: vi.fn(() => []), // Return an empty array or the matches as expected
 			updateMatch: vi.fn((match: MatchRow) => match)
 		};
-		matches = new Matches(1, mockDatabaseService);
+		matches = new Matches();
+		matches.databaseService = mockDatabaseService;
 	});
 
 	it('Test matches are correct with two teams and one pool play game', async () => {
@@ -295,7 +354,7 @@ if (import.meta.vitest) {
 			state: null
 		})) as unknown as Partial<TeamRow>[];
 
-		await matches.load();
+		await matches.load(1);
 		await matches.create(input, teams);
 
 		expect(matches.matches?.length).toEqual(1);
@@ -330,7 +389,7 @@ if (import.meta.vitest) {
 			state: 'active'
 		})) as unknown as Partial<TeamRow>[];
 
-		await matches.load();
+		await matches.load(1);
 		await matches.create(input, teams);
 
 		expect(matches?.matches?.length).toEqual(3 * (4 / 2));
@@ -365,7 +424,7 @@ if (import.meta.vitest) {
 			state: 'active'
 		})) as unknown as Partial<TeamRow>[];
 
-		await matches.load();
+		await matches.load(1);
 		await matches.create(input, teams);
 
 		const refGamesPerTeam: any = {};

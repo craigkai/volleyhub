@@ -9,7 +9,6 @@ import { Event } from '$lib/event.svelte';
 import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
 import { Teams } from '$lib/teams.svelte';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -109,10 +108,9 @@ export const actions: Actions = {
 	deleteEvent: async (event) => {
 		const event_id = Number(event.params.slug);
 
-		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
 		const tournament = new Event();
 		try {
-			await tournament.load(event_id as unknown as number, eventSupabaseDatabaseService);
+			await tournament.load(event_id as unknown as number);
 		} catch (err) {
 			if (isHttpError(err)) {
 				return error(400, err.body.message);
@@ -145,8 +143,12 @@ export const actions: Actions = {
 
 		const event_id = Number(event.params.slug);
 
-		const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(event.locals.supabase);
-		const teams = new Teams(event_id, teamsSupabaseDatabaseService);
+		const teams = new Teams();
+		try {
+			teams.load(event_id);
+		} catch (err) {
+			error(500, JSON.stringify(err));
+		}
 
 		try {
 			const newTeam: Partial<TeamRow> = {

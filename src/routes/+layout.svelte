@@ -10,27 +10,32 @@
 	import { error } from '$lib/toast';
 	import { goto, invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { SupabaseDatabaseServiceInstance } from '$lib/database/supabaseDatabaseService.svelte';
 
 	inject({ mode: dev ? 'development' : 'production' });
 
 	let { data = $bindable(), children } = $props();
-	let { session, supabase, isMobile } = data;
+	let { session, isMobile } = data;
 
 	onMount(() => {
-		const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
-			if (!newSession && event !== 'INITIAL_SESSION') {
-				/**
-				 * Queue this as a task so the navigation won't prevent the
-				 * triggering function from completing
-				 */
-				setTimeout(() => {
-					goto('/', { invalidateAll: true });
-				});
-			}
-			if (newSession?.expires_at !== session?.expires_at) {
-				invalidate('supabase:auth');
-			}
-		});
+		if (SupabaseDatabaseServiceInstance && SupabaseDatabaseServiceInstance.supabaseClient) {
+			const { data } = SupabaseDatabaseServiceInstance.supabaseClient.auth.onAuthStateChange(
+				(event, newSession) => {
+					if (!newSession && event !== 'INITIAL_SESSION') {
+						/**
+						 * Queue this as a task so the navigation won't prevent the
+						 * triggering function from completing
+						 */
+						setTimeout(() => {
+							goto('/', { invalidateAll: true });
+						});
+					}
+					if (newSession?.expires_at !== session?.expires_at) {
+						invalidate('supabase:auth');
+					}
+				}
+			);
+		}
 
 		return () => data.subscription.unsubscribe();
 	});
@@ -53,7 +58,7 @@
 >
 	<div class="flex-grow mb-8">
 		<ModeWatcher />
-		<Header {supabase} {isMobile} />
+		<Header {isMobile} />
 		<div class="max-w-7xl mx-auto p-4">
 			<SvelteToast {options} />
 		</div>

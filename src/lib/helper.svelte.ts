@@ -2,13 +2,6 @@ import { Matches } from './matches.svelte';
 import { pushState } from '$app/navigation';
 import type { HttpError } from '@sveltejs/kit';
 import { error, success } from '$lib/toast';
-import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
-import { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
-import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
-import { Brackets } from '$lib/brackets/brackets.svelte';
-import { Event as EventInstance } from '$lib/event.svelte';
-import { Pool } from '$lib/pool/pool.svelte';
-import { Teams as TeamsInstance } from '$lib/teams.svelte';
 
 export function showModal(matchId: number, type: string): void {
 	pushState('', {
@@ -38,38 +31,4 @@ export async function updateMatch(match: MatchRow | undefined, matches: Matches)
 			error((err as HttpError).toString());
 		}
 	}
-}
-
-export async function initiateEvent(
-	eventId: number,
-	supabase: supabaseClient
-): Promise<{
-	tournament: EventInstance;
-	matches: Pool;
-	teams: TeamsInstance;
-	bracket: Brackets;
-}> {
-	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(supabase);
-
-	const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(supabase);
-
-	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(supabase);
-
-	const bracket = $state(new Brackets(eventId, matchesSupabaseDatabaseService));
-
-	try {
-		await Promise.all([
-			tournament.load(eventId, eventSupabaseDatabaseService),
-			matches.load(eventId, matchesSupabaseDatabaseService),
-			teams.load(eventId, teamsSupabaseDatabaseService),
-			bracket.load(eventId, matchesSupabaseDatabaseService)
-		]);
-	} catch (err) {
-		console.error('Error loading event data:', err);
-		throw new Error(
-			(err as HttpError)?.body?.message || 'An error occurred while loading the event data.'
-		);
-	}
-
-	return { tournament, matches, teams, bracket };
 }

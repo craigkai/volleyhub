@@ -1,4 +1,3 @@
-// Importing necessary types from supabase-js and sveltejs/kit
 import type {
 	PostgrestSingleResponse,
 	PostgrestResponse,
@@ -15,6 +14,10 @@ import { v4 as uuidv4 } from 'uuid';
 export class SupabaseDatabaseService {
 	// Private property for Supabase client
 	supabaseClient?: supabaseClient;
+
+	constructor() {
+		this.supabaseClient = undefined;
+	}
 
 	setSupabaseClient(supabaseClient: supabaseClient): void {
 		this.supabaseClient = supabaseClient;
@@ -114,13 +117,10 @@ export class SupabaseDatabaseService {
 				}
 			)
 			.subscribe((status) => {
-				// We call the load function to update in case our content is stale
-				// when we re-connect to the web socket.
-				self.load(self.id);
 				self.subscriptionStatus = status;
 				console.debug('Realtime status', status);
 			});
 	}
 }
 
-export const supabaseDatabaseServiceInstance = new SupabaseDatabaseService();
+export const SupabaseDatabaseServiceInstance = $state(new SupabaseDatabaseService());

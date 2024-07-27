@@ -17,6 +17,7 @@
 	import { EventInstance } from '$lib/event.svelte.js';
 	import { TeamsInstance } from '$lib/teams.svelte.js';
 	import { MatchesInstance } from '$lib/matches.svelte.js';
+	import { BracketInstance } from '$lib/brackets/brackets.svelte.js';
 
 	let { data = $bindable() } = $props();
 
@@ -65,15 +66,15 @@
 				{#if data?.matches}
 					<EditMatch
 						matchId={$page.state.matchId as number}
-						bind:matches={data.matches}
-						teams={data.teams}
+						bind:matches={MatchesInstance}
+						teams={TeamsInstance}
 					/>
 				{/if}
 			{:else if data?.bracket}
 				<EditMatch
 					matchId={$page.state.matchId as number}
-					bind:matches={data.bracket}
-					teams={data.teams}
+					bind:matches={BracketInstance}
+					teams={TeamsInstance}
 				/>
 			{/if}
 		</AlertDialog.Content>

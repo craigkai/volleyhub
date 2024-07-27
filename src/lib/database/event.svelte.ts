@@ -15,6 +15,10 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue creating the event.
 	 */
 	async create(input: Infer<FormSchema>): Promise<EventRow | null> {
+		if (!this.supabaseClient) {
+			throw new Error('Supabase client not provided.');
+		}
+
 		try {
 			const parsedEvent = eventsRowSchema.partial().parse(input);
 
@@ -43,6 +47,10 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue loading the event.
 	 */
 	async load(event_id: number): Promise<EventRow | null> {
+		if (!this.supabaseClient) {
+			throw new Error('Supabase client not provided.');
+		}
+
 		try {
 			// Load the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
@@ -69,6 +77,10 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue updating the tournament.
 	 */
 	async put(id: number, input: Infer<FormSchema>): Promise<EventRow | null> {
+		if (!this.supabaseClient) {
+			throw new Error('Supabase client not provided.');
+		}
+
 		try {
 			const parsedEvent = eventsUpdateSchema.parse(input);
 
@@ -98,6 +110,10 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue deleting the event.
 	 */
 	async delete(event_id: number): Promise<void> {
+		if (!this.supabaseClient) {
+			throw new Error('Supabase client not provided.');
+		}
+
 		try {
 			// Delete the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient
@@ -121,6 +137,10 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue loading the events.
 	 */
 	async loadEvents(ownerId: string): Promise<EventRow[]> {
+		if (!this.supabaseClient) {
+			throw new Error('Supabase client not provided.');
+		}
+
 		// Load the events from the 'events' table
 		const res = await this.supabaseClient.from('events').select('*').eq('owner', ownerId);
 
@@ -130,7 +150,16 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 		return res.data ?? [];
 	}
 
+	/**
+	 * Get the upcoming events from the database.
+	 * @returns {Promise<EventRow[]>} - Returns a promise that resolves to an array of the upcoming events.
+	 * @throws {Error} - Throws an error if there's an issue getting the upcoming events.
+	 */
 	async getUpcomingEvents(): Promise<EventRow[] | null> {
+		if (!this.supabaseClient) {
+			throw new Error('Supabase client not provided.');
+		}
+
 		// Get the current date and set the time to the beginning of the day
 		const today = new Date();
 		today.setHours(0, 0, 0, 0); // Set time to 00:00:00.000

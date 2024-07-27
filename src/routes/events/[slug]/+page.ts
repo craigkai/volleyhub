@@ -2,12 +2,13 @@ import type { PageLoad } from './$types';
 import { superValidate, type Infer, type SuperValidated } from 'sveltekit-superforms';
 import { formSchema as settingsSchema, type FormSchema } from '$schemas/settingsSchema';
 import { zod } from 'sveltekit-superforms/adapters';
-import { initiateEvent } from '$lib/helper.svelte';
 import { error } from '@sveltejs/kit';
+import { EventInstance } from '$lib/event.svelte';
+import { MatchesInstance } from '$lib/matches.svelte';
+import { TeamsInstance } from '$lib/teams.svelte';
+import { BracketInstance } from '$lib/brackets/brackets.svelte';
 
-export const load: PageLoad = async ({ params, parent, url, data }) => {
-	const { supabase } = await parent();
-
+export const load: PageLoad = async ({ params, url, data }) => {
 	const eventId = params.slug === 'create' ? 'create' : parseInt(params.slug, 10);
 
 	// Validate eventId
@@ -29,7 +30,12 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 
 	let res;
 	try {
-		res = await initiateEvent(eventId, supabase);
+		await Promise.all([
+			EventInstance.load(eventId),
+			MatchesInstance.load(eventId),
+			TeamsInstance.load(eventId),
+			BracketInstance.load(eventId)
+		]);
 	} catch (err) {
 		console.error('Error initiating event:', err);
 		error(500, 'Failed to load event');

@@ -1,20 +1,29 @@
 import { Event } from '../event.svelte';
 import { findStandings } from '../standings.svelte';
 import { Matches } from '../matches.svelte';
+import type { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
 
 export class Brackets extends Matches {
+	databaseService?: MatchesSupabaseDatabaseService;
 	matches?: MatchRow[] = $state();
 	type = 'bracket';
 
 	// Overload Matches load method to only load our bracket matches.
-	async load() {
+	async load(eventId: number) {
+		if (!this.databaseService) {
+			throw new Error('Database service not provided, did you load the bracket first?.');
+		}
+
 		try {
-			const res = await this.databaseService.load(this.event_id, {
+			const res = await this.databaseService.load(eventId, {
 				column: 'type',
 				operator: 'eq',
 				value: 'bracket'
 			});
-			if (res) this.matches = res;
+			if (res) {
+				this.matches = res;
+				this.event_id = eventId;
+			}
 		} catch (error) {
 			this.handleError(500, `Failed to load bracket matches: ${(error as Error).message}`);
 		}
@@ -22,6 +31,10 @@ export class Brackets extends Matches {
 	}
 
 	async createBracketMatches(event: Event, teams: TeamRow[], matches: MatchRow[]) {
+		if (!this.databaseService) {
+			throw new Error('Database service not provided, did you load the bracket first?.');
+		}
+
 		try {
 			if (this.matches && this.matches.length > 0) {
 				await this.databaseService.deleteMatchesByIds(this.matches.map((m) => m.id));
@@ -83,6 +96,10 @@ export class Brackets extends Matches {
 	}
 
 	async generateSubsequentRounds(parentMatches: Partial<MatchRow>[], totalTeams: number) {
+		if (!this.databaseService) {
+			throw new Error('Database service not provided, did you load the bracket first?.');
+		}
+
 		const totalRounds = Math.ceil(Math.log2(totalTeams));
 		const matchups: Partial<MatchRow>[] = [...parentMatches];
 
@@ -190,3 +207,5 @@ export class Brackets extends Matches {
 		}
 	}
 }
+
+export const BracketInstance = $state(new Brackets());

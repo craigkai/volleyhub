@@ -1,17 +1,17 @@
-import { createServerClient } from '@supabase/ssr';
+import { createBrowserClient } from '@supabase/ssr';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { UAParser } from 'ua-parser-js';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { supabaseDatabaseServiceInstance } from '$lib/database/supabaseDatabaseService.svelte';
+import { SupabaseDatabaseServiceInstance } from '$lib/database/supabaseDatabaseService.svelte';
 
 export const supabase: Handle = async ({ event, resolve }) => {
 	const userAgent = event.request.headers.get('user-agent') || '';
 	const parser = new UAParser(userAgent);
 	event.locals.isMobile = parser.getDevice().type === 'mobile';
 
-	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+	event.locals.supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		cookies: {
 			getAll() {
 				return event.cookies.getAll();
@@ -29,8 +29,7 @@ export const supabase: Handle = async ({ event, resolve }) => {
 			}
 		}
 	});
-
-	supabaseDatabaseServiceInstance.setSupabaseClient(event.locals.supabase);
+	SupabaseDatabaseServiceInstance.setSupabaseClient(event.locals.supabase);
 
 	/**
 	 * Unlike `supabase.auth.getSession()`, which returns the session _without_

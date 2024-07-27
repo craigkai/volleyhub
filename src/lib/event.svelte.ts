@@ -1,13 +1,14 @@
-import type { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
 import type { Infer } from 'sveltekit-superforms';
 import { Base } from './base';
 import type { FormSchema } from '$schemas/settingsSchema';
+import { EventSupabaseDatabaseService } from './database/event.svelte';
 
 /**
  * The Event class represents a tournament in the application.
  * It provides methods for creating and managing a tournament.
  */
 export class Event extends Base {
+	private databaseService: EventSupabaseDatabaseService;
 	// Event properties
 	id?: number;
 	name?: string;
@@ -25,6 +26,7 @@ export class Event extends Base {
 	 */
 	constructor() {
 		super();
+		this.databaseService = new EventSupabaseDatabaseService();
 	}
 
 	/**
@@ -112,9 +114,22 @@ export class Event extends Base {
 			this.handleError(500, `Failed to delete event: ${(err as Error).message}`);
 		}
 	}
+
+	async getUpcomingEvents() {
+		if (!this.databaseService) {
+			throw new Error('Database service not provided, did you load the event first?.');
+		}
+
+		try {
+			const events = await this.databaseService.getUpcomingEvents();
+			return events;
+		} catch (err) {
+			this.handleError(500, `Failed to get upcoming events: ${(err as Error).message}`);
+		}
+	}
 }
 
-export const EventInstance = new Event();
+export const EventInstance = $state(new Event());
 
 // Vitest unit tests
 if (import.meta.vitest) {
