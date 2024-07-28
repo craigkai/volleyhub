@@ -30,12 +30,12 @@
 					const eventId = Number(data.event_id);
 
 					console.log(`Loading event data for event ${eventId}`);
-					// await Promise.all([
-					// 	data?.tournament?.load(eventId),
-					// 	data?.matches?.load(eventId),
-					// 	data?.teams?.load(eventId),
-					// 	data?.bracket?.load(eventId)
-					// ]);
+					await Promise.all([
+						data?.tournament?.load(eventId),
+						data?.matches?.load(eventId),
+						data?.teams?.load(eventId),
+						data?.bracket?.load(eventId)
+					]);
 				} catch (err) {
 					console.error('Error initiating event:', err);
 					error(500, 'Failed to load event');

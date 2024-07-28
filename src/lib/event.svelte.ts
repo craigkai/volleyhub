@@ -98,6 +98,11 @@ export class Event extends Base {
 	 * @returns {Promise<void>} - Returns a promise that resolves when the event is deleted.
 	 */
 	async delete(): Promise<void> {
+		if (!this.id) {
+			this.handleError(400, 'Invalid event ID, are you sure your link is correct?');
+			return;
+		}
+
 		try {
 			await this.databaseService.delete(this.id);
 		} catch (err) {

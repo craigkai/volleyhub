@@ -1,13 +1,13 @@
-import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
 import type { PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { eventsRowSchema, eventsUpdateSchema } from '$schemas/supabase';
 import type { Infer } from 'sveltekit-superforms';
 import type { FormSchema } from '$schemas/settingsSchema';
+import { Base } from '$lib/database/base';
 
 const EventsRowSchemaArray = z.array(eventsRowSchema);
 
-export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
+export class EventSupabaseDatabaseService extends Base {
 	/**
 	 * Create a new event in the database.
 	 * @param {EventRow} input - The data for the new event.
