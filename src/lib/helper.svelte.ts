@@ -2,9 +2,9 @@ import { Matches } from './matches.svelte';
 import { pushState } from '$app/navigation';
 import type { HttpError } from '@sveltejs/kit';
 import { error, success } from '$lib/toast';
-import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
-import { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
-import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
+import { EventSupabaseDatabaseService } from '$lib/database/event';
+import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
+import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Event as EventInstance } from '$lib/event.svelte';
 import { Pool } from '$lib/pool/pool.svelte';
@@ -50,18 +50,23 @@ export async function initiateEvent(
 	bracket: Brackets;
 }> {
 	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(supabase);
-	const tournament = $state(new EventInstance(eventId, eventSupabaseDatabaseService));
+	const tournament = new EventInstance(eventSupabaseDatabaseService);
 
 	const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(supabase);
-	const matches = $state(new Pool(eventId, matchesSupabaseDatabaseService));
+	const matches = new Pool(matchesSupabaseDatabaseService);
 
 	const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(supabase);
-	const teams = $state(new TeamsInstance(eventId, teamsSupabaseDatabaseService));
+	const teams = new TeamsInstance(teamsSupabaseDatabaseService);
 
-	const bracket = $state(new Brackets(eventId, matchesSupabaseDatabaseService));
+	const bracket = new Brackets(matchesSupabaseDatabaseService);
 
 	try {
-		await Promise.all([tournament.load(), matches.load(), teams.load(), bracket.load()]);
+		await Promise.all([
+			tournament.load(eventId),
+			matches.load(eventId),
+			teams.load(eventId),
+			bracket.load(eventId)
+		]);
 	} catch (err) {
 		console.error('Error loading event data:', err);
 		throw new Error(

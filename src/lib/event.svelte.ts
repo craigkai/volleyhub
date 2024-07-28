@@ -1,4 +1,4 @@
-import type { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
+import type { EventSupabaseDatabaseService } from '$lib/database/event';
 import type { Infer } from 'sveltekit-superforms';
 import { Base } from './base';
 import type { FormSchema } from '$schemas/settingsSchema';
@@ -12,7 +12,7 @@ export class Event extends Base {
 	private databaseService: EventSupabaseDatabaseService;
 
 	// Event properties
-	id: number;
+	id?: number;
 	name?: string;
 	date?: string;
 	pools?: number;
@@ -25,17 +25,12 @@ export class Event extends Base {
 
 	/**
 	 * The constructor for the Event class.
-	 * @param {number} event_id - The ID of the event.
 	 * @param {EventSupabaseDatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: number, databaseService: EventSupabaseDatabaseService) {
+	constructor(databaseService: EventSupabaseDatabaseService) {
 		super();
-		if (!event_id) {
-			this.handleError(400, 'Invalid event ID, are you sure your link is correct?');
-		}
 
 		this.databaseService = databaseService;
-		this.id = event_id;
 	}
 
 	/**
@@ -81,9 +76,13 @@ export class Event extends Base {
 	 * Load the event (tournament settings) from the database.
 	 * @returns {Promise<Event>} - Returns a promise that resolves to the loaded event.
 	 */
-	async load(): Promise<Event> {
+	async load(id: number): Promise<Event> {
+		if (!id) {
+			this.handleError(400, 'Invalid event ID, are you sure your link is correct?');
+		}
+
 		try {
-			const eventResponse: EventRow | null = await this.databaseService.load(this.id);
+			const eventResponse: EventRow | null = await this.databaseService.load(id);
 
 			if (eventResponse !== null) {
 				Object.assign(this, eventResponse);

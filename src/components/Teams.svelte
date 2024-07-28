@@ -44,15 +44,17 @@
 	}
 
 	async function loadEventTeams() {
-		try {
-			const res = await teams.load();
-			// @ts-ignore
-			currentTeams = res;
-		} catch (err) {
-			if (isHttpError(err)) {
-				error(err.body.message);
+		if (teams.event_id) {
+			try {
+				const res = await teams.load(teams.event_id);
+				// @ts-ignore
+				currentTeams = res;
+			} catch (err) {
+				if (isHttpError(err)) {
+					error(err.body.message);
+				}
+				error('Something has gone very wrong');
 			}
-			error('Something has gone very wrong');
 		}
 	}
 	let newTeamName = $state('');

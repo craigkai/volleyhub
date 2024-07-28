@@ -1,4 +1,4 @@
-import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService.svelte';
+import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
 import type { PostgrestResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { teamsRowSchema } from '$schemas/supabase';
@@ -18,7 +18,7 @@ export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 			.insert({ ...team })
 			.select();
 
-		this.validateAndHandleErrors(res, TeamsRowSchemaArray);
+		this.validateAndHandleErrors(res, teamsRowSchema);
 
 		// Return the newly created or updated team
 		return res.data as unknown as TeamRow;
@@ -43,6 +43,7 @@ export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 				.select('*')
 				.eq('event_id', event_id);
 
+			// @ts-ignore
 			this.validateAndHandleErrors(res, TeamsRowSchemaArray);
 
 			// Return the loaded teams

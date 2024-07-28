@@ -6,10 +6,10 @@ import { zod } from 'sveltekit-superforms/adapters';
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { Event } from '$lib/event.svelte';
-import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
+import { EventSupabaseDatabaseService } from '$lib/database/event';
 import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
+import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 import { Teams } from '$lib/teams.svelte';
 
 export const load: PageServerLoad = async ({ locals }) => {

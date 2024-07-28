@@ -27,12 +27,15 @@
 			if (data.event_id !== 'create') {
 				console.debug('Loading event data ... (should I be?)');
 				try {
-					await Promise.all([
-						data?.tournament?.load(),
-						data?.matches?.load(),
-						data?.teams?.load(),
-						data?.bracket?.load()
-					]);
+					const eventId = Number(data.event_id);
+
+					console.log(`Loading event data for event ${eventId}`);
+					// await Promise.all([
+					// 	data?.tournament?.load(eventId),
+					// 	data?.matches?.load(eventId),
+					// 	data?.teams?.load(eventId),
+					// 	data?.bracket?.load(eventId)
+					// ]);
 				} catch (err) {
 					console.error('Error initiating event:', err);
 					error(500, 'Failed to load event');

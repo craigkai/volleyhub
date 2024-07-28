@@ -1,4 +1,4 @@
-import type { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
+import type { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 import { RoundRobin } from './brackets/roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { Base } from './base';
@@ -7,20 +7,19 @@ import { Event } from '$lib/event.svelte';
 
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
-	event_id: number;
+	event_id?: number;
 	matches?: MatchRow[] = $state<MatchRow[]>();
 	subscriptionStatus? = $state();
 	type = 'pool';
 
-	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
+	constructor(databaseService: MatchesSupabaseDatabaseService) {
 		super();
 		this.databaseService = databaseService;
-		this.event_id = Number(event_id);
 	}
 
-	async load() {
+	async load(id: number) {
 		try {
-			const res = await this.databaseService.load(this.event_id, {
+			const res = await this.databaseService.load(id, {
 				column: 'type',
 				operator: 'eq',
 				value: this.type
@@ -44,12 +43,12 @@ export class Matches extends Base {
 		if (self.type !== updated.type) return;
 
 		if (self.type === 'bracket') {
-			await self.load();
+			await self.load(self.event_id);
 			(self as Brackets).nextRound(updated);
 		}
 
 		if (!self.matches) {
-			await self.load();
+			await self.load(self.event_id);
 			return;
 		}
 

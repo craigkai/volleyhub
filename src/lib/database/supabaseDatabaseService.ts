@@ -113,7 +113,8 @@ export class SupabaseDatabaseService {
 			.subscribe((status) => {
 				// We call the load function to update in case our content is stale
 				// when we re-connect to the web socket.
-				self.load();
+				if (self.event_id) self.load(self.event_id);
+
 				self.subscriptionStatus = status;
 				console.debug('Realtime status', status);
 			});

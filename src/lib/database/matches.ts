@@ -1,4 +1,4 @@
-import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService.svelte';
+import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
 import type { PostgrestResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { matchesRowSchema, matchesUpdateSchema, matchesInsertSchema } from '$schemas/supabase';

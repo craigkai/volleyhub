@@ -1,9 +1,9 @@
-import type { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
+import type { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 import { Base } from './base';
 
 export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
-	event_id: number;
+	event_id?: number;
 	teams: TeamRow[] = $state([]);
 
 	/**
@@ -11,21 +11,25 @@ export class Teams extends Base {
 	 * @param {number} event_id - The ID of the event.
 	 * @param {TeamsSupabaseDatabaseService} databaseService - The service used to interact with the database.
 	 */
-	constructor(event_id: number, databaseService: TeamsSupabaseDatabaseService) {
+	constructor(databaseService: TeamsSupabaseDatabaseService) {
 		super();
 		this.databaseService = databaseService;
-		this.event_id = event_id;
 	}
 
 	/**
 	 * Load all teams for the current event.
 	 * @returns {Promise<TeamRow[] | undefined>} - A promise that resolves to the loaded teams.
 	 */
-	async load(): Promise<TeamRow[] | undefined> {
+	async load(eventId: number): Promise<TeamRow[] | undefined> {
+		if (!eventId) {
+			this.handleError(400, 'Invalid event ID');
+			return undefined;
+		}
+
 		try {
-			const res = await this.databaseService.load(this.event_id);
+			const res = await this.databaseService.load(eventId);
 			if (!res) {
-				console.warn('Failed to load teams for event', this.event_id);
+				console.warn('Failed to load teams for event', eventId);
 				return undefined;
 			}
 			this.teams = res;
