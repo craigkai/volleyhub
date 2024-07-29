@@ -8,7 +8,7 @@ import { Event } from '$lib/event.svelte';
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
 	event_id?: number;
-	matches?: MatchRow[] = $state<MatchRow[]>();
+	matches? = $state<MatchRow[]>();
 	subscriptionStatus? = $state();
 	type = 'pool';
 
@@ -24,6 +24,7 @@ export class Matches extends Base {
 				operator: 'eq',
 				value: this.type
 			});
+			this.event_id = id;
 
 			if (res) this.matches = res;
 		} catch (err) {
@@ -36,6 +37,10 @@ export class Matches extends Base {
 		self: Matches | Brackets,
 		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
 	): Promise<void> {
+		if (!self.event_id) {
+			throw new Error('Event ID is required to handle updates.');
+		}
+
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
@@ -78,6 +83,11 @@ export class Matches extends Base {
 		{ pools, courts, refs = 'provided' }: Event | Partial<EventRow>,
 		teams: TeamRow[] | Partial<TeamRow>[]
 	): Promise<Matches | undefined> {
+		if (!this.event_id) {
+			this.handleError(400, 'Event ID is required to create matches.');
+			return;
+		}
+
 		try {
 			this.validateInputs(teams, pools, courts, refs);
 
@@ -185,7 +195,7 @@ export class Matches extends Base {
 			matches = matches.concat(roundMatches);
 		}
 
-		// Add event_id to each match
+		// Add eventId to each match
 		matches = matches.map((match) => ({ ...match, event_id: this.event_id }));
 
 		return matches.slice(0, totalMatches); // Limit to the required number of matches
@@ -281,7 +291,7 @@ if (import.meta.vitest) {
 
 		const teams = Array.from({ length: 2 }, (_x, i) => ({
 			id: `team${i}`,
-			event_id: '1',
+			eventId: '1',
 			created_at: null,
 			name: '',
 			state: null
@@ -316,7 +326,7 @@ if (import.meta.vitest) {
 
 		const teams = Array.from({ length: 4 }, (_x, i) => ({
 			id: `team${i}`,
-			event_id: '1',
+			eventId: '1',
 			created_at: '',
 			name: `team${i}`,
 			state: 'active'
@@ -351,7 +361,7 @@ if (import.meta.vitest) {
 
 		const teams = Array.from({ length: 7 }, (_x, i) => ({
 			id: `${i + 1}`,
-			event_id: '1',
+			eventId: '1',
 			created_at: '',
 			name: `team${i}`,
 			state: 'active'

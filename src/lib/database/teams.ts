@@ -16,7 +16,8 @@ export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 		const res = await this.supabaseClient
 			.from('teams')
 			.insert({ ...team })
-			.select();
+			.select()
+			.single();
 
 		this.validateAndHandleErrors(res, teamsRowSchema);
 
@@ -66,9 +67,10 @@ export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 			.from('teams')
 			.update({ ...team })
 			.eq('id', team.id)
-			.select();
+			.select()
+			.single();
 
-		this.validateAndHandleErrors(res, TeamsRowSchemaArray);
+		this.validateAndHandleErrors(res, teamsRowSchema);
 
 		// Return the updated team
 		return res.data as unknown as TeamRow;

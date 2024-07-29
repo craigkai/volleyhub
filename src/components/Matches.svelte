@@ -13,17 +13,17 @@
 	import { onMount } from 'svelte';
 
 	let {
-		matches = $bindable(),
-		tournament = $bindable(),
-		teams = $bindable(),
 		readOnly = $bindable(false),
-		defaultTeam
+		defaultTeam,
+		teams,
+		tournament,
+		matches
 	}: {
-		matches: Matches;
-		tournament: Event;
-		teams: Teams;
 		readOnly: boolean;
 		defaultTeam: string | null;
+		teams: Teams;
+		tournament: Event;
+		matches: Matches;
 	} = $props();
 
 	let showGenerateMatchesAlert = $state(false);
@@ -83,6 +83,7 @@
 			return m.round;
 		}) ?? [0]
 	);
+	$inspect(rounds);
 </script>
 
 <div class="block text-gray-700 text-sm font-bold mb-4 flex">
@@ -108,54 +109,56 @@
 		</Table.Header>
 
 		<Table.Body>
-			{#each Array(rounds) as _, i}
-				{@const round = i + 1}
-				<Table.Row>
-					{#each Array(tournament.courts) as _, court}
-						{@const match = matches.matches.find(
-							(m: MatchRow) => m.court === court && m.round.toString() === round.toString()
-						)}
-						{#if match}
-							{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
-							{@const teamsForMatch = [
-								match.public_matches_team1_fkey.name,
-								match.public_matches_team2_fkey.name
-							]}
-							{@const hasDefaultTeam = defaultTeam ? teamsForMatch.includes(defaultTeam) : false}
-							{@const defaultTeamWin =
-								match.public_matches_team1_fkey.name == defaultTeam
-									? (match.team1_score ?? 0) > (match.team2_score ?? 0)
-									: (match.team2_score ?? 0) > (match.team1_score ?? 0)}
-							{@const rowTdClass = defaultTeamWin
-								? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
-								: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
+			{#if rounds}
+				{#each Array(rounds) as _, i}
+					{@const round = i + 1}
+					<Table.Row>
+						{#each Array(tournament.courts) as _, court}
+							{@const match = matches.matches.find(
+								(m: MatchRow) => m.court === court && m.round.toString() === round.toString()
+							)}
+							{#if match}
+								{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
+								{@const teamsForMatch = [
+									match.public_matches_team1_fkey.name,
+									match.public_matches_team2_fkey.name
+								]}
+								{@const hasDefaultTeam = defaultTeam ? teamsForMatch.includes(defaultTeam) : false}
+								{@const defaultTeamWin =
+									match.public_matches_team1_fkey.name == defaultTeam
+										? (match.team1_score ?? 0) > (match.team2_score ?? 0)
+										: (match.team2_score ?? 0) > (match.team1_score ?? 0)}
+								{@const rowTdClass = defaultTeamWin
+									? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
+									: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
+								<Table.Cell
+									class={hasDefaultTeam
+										? matchComplete
+											? 'p-2 ' + rowTdClass
+											: 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+										: 'p-2'}
+								>
+									<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
+								</Table.Cell>
+							{:else}
+								<Table.Cell class="p-2"></Table.Cell>
+							{/if}
+						{/each}
+						{#if tournament.refs === 'teams'}
+							{@const ref = matches.matches.find(
+								(m: MatchRow) => m.round.toString() === round.toString()
+							)?.public_matches_ref_fkey}
 							<Table.Cell
-								class={hasDefaultTeam
-									? matchComplete
-										? 'p-2 ' + rowTdClass
-										: 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+								class={ref?.name == defaultTeam
+									? 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
 									: 'p-2'}
 							>
-								<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
+								{ref?.name}
 							</Table.Cell>
-						{:else}
-							<Table.Cell class="p-2"></Table.Cell>
 						{/if}
-					{/each}
-					{#if tournament.refs === 'teams'}
-						{@const ref = matches.matches.find(
-							(m: MatchRow) => m.round.toString() === round.toString()
-						)?.public_matches_ref_fkey}
-						<Table.Cell
-							class={ref?.name == defaultTeam
-								? 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
-								: 'p-2'}
-						>
-							{ref?.name}
-						</Table.Cell>
-					{/if}
-				</Table.Row>
-			{/each}
+					</Table.Row>
+				{/each}
+			{/if}
 		</Table.Body>
 	</Table.Root>
 {/if}

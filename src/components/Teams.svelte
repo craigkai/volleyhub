@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { Teams } from '$lib/teams.svelte';
 	import { success, error } from '$lib/toast';
 	import { isHttpError, type HttpError } from '@sveltejs/kit';
 	import * as Table from '$components/ui/table';
 	import { Input } from '$components/ui/input/index.js';
+	import type { Teams } from '$lib/teams.svelte';
 
-	let { teams = $bindable() }: { teams: Teams } = $props();
+	const { teams = $bindable() }: { teams: Teams } = $props();
 
 	async function createTeam() {
 		if (teams.teams.findIndex((team) => team.name === newTeamName) !== -1) {
@@ -16,7 +16,7 @@
 		try {
 			const newTeam: Partial<TeamRow> = {
 				name: newTeamName,
-				event_id: teams.event_id
+				event_id: teams.eventId
 			};
 
 			await teams.create(newTeam);
@@ -44,9 +44,9 @@
 	}
 
 	async function loadEventTeams() {
-		if (teams.event_id) {
+		if (teams.eventId) {
 			try {
-				const res = await teams.load(teams.event_id);
+				const res = await teams.load(teams.eventId);
 				// @ts-ignore
 				currentTeams = res;
 			} catch (err) {

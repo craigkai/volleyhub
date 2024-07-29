@@ -2,19 +2,22 @@
 	import { Label } from '$components/ui/label/index.js';
 	import { Input } from '$components/ui/input/index.js';
 	import * as Select from '$components/ui/select/index.js';
-	import { Matches } from '$lib/matches.svelte';
 	import { closeModal, updateMatch } from '$lib/helper.svelte';
 	import type { Brackets } from '$lib/brackets/brackets.svelte';
 	import type { Teams } from '$lib/teams.svelte';
 	import { error } from '@sveltejs/kit';
+	import { getContext } from 'svelte';
+	import type { Pool } from '$lib/pool/pool.svelte';
 
-	let {
-		matchId,
-		matches = $bindable(),
-		teams = $bindable()
-	}: { matchId: number; matches: Matches | Brackets; teams: Teams } = $props();
+	let { matchId, matches }: { matchId: number; matches: Pool | Brackets } = $props();
+	const teams = getContext('teams') as Teams;
 
-	let match = matches?.matches?.find((m) => m.id === matchId);
+	let match = $state(matches?.matches?.find((m) => m.id === matchId));
+
+	$effect(() => {
+		matches;
+		match = matches?.matches?.find((m) => m.id === matchId);
+	});
 
 	async function saveMatch() {
 		try {

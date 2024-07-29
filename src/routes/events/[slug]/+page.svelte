@@ -21,27 +21,26 @@
 	// State
 	let defaultTeam = $state(data.defaultTeam);
 	let readOnly = $state(data.readOnly);
+	let { teams, matches, bracket, tournament } = $state(data);
 
+	// Getting reactivity to work?
+	let dog = '';
+
+	// If we update teams, we should also update matches?
 	$effect(() => {
-		(async () => {
-			if (data.event_id !== 'create') {
-				console.debug('Loading event data ... (should I be?)');
-				try {
-					const eventId = Number(data.event_id);
+		dog = JSON.stringify(teams?.teams);
 
-					console.log(`Loading event data for event ${eventId}`);
-					await Promise.all([
-						data?.tournament?.load(eventId),
-						data?.matches?.load(eventId),
-						data?.teams?.load(eventId),
-						data?.bracket?.load(eventId)
-					]);
-				} catch (err) {
-					console.error('Error initiating event:', err);
-					error(500, 'Failed to load event');
-				}
+		// If we aren't
+		if (data.eventId !== 'create' && teams) {
+			console.log(`Reloading matches`);
+
+			try {
+				if (data.matches?.event_id) data.matches.load(data.matches.event_id);
+			} catch (err) {
+				console.error('Error loading matches:', err);
+				error(500, 'Failed to load matches');
 			}
-		})();
+		}
 	});
 
 	let historyReady = false;
@@ -64,7 +63,7 @@
 		open = $page.state.showModal ?? false;
 	});
 
-	const isCreate = $derived(data?.event_id === 'create');
+	const isCreate = $derived(data?.eventId === 'create');
 
 	const tabsWidth = $derived(readOnly ? 'grid-cols-3' : 'grid-cols-5');
 </script>
@@ -78,19 +77,11 @@
 	>
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
-				{#if data?.matches}
-					<EditMatch
-						matchId={$page.state.matchId as number}
-						bind:matches={data.matches}
-						teams={data.teams}
-					/>
+				{#if matches}
+					<EditMatch matchId={$page.state.matchId as number} {matches} />
 				{/if}
-			{:else if data?.bracket}
-				<EditMatch
-					matchId={$page.state.matchId as number}
-					bind:matches={data.bracket}
-					teams={data.teams}
-				/>
+			{:else if bracket}
+				<EditMatch matchId={$page.state.matchId as number} matches={bracket} />
 			{/if}
 		</AlertDialog.Content>
 	</AlertDialog.Root>
@@ -149,7 +140,7 @@
 						<Card.Description>Make changes to your event here.</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						<Settings event_id={data.event_id as number | 'create'} {data} />
+						<Settings eventId={data.eventId as number | 'create'} {data} />
 					</Card.Content>
 				</Card.Root>
 			</Tabs.Content>
@@ -161,8 +152,8 @@
 						<Card.Description>add/edit/remove teams</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						{#if data?.teams}
-							<Teams bind:teams={data.teams} />
+						{#if teams}
+							<Teams bind:teams />
 						{/if}
 					</Card.Content>
 				</Card.Root>
@@ -176,14 +167,8 @@
 					<Card.Description>Results of pool play (live)</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if data?.tournament && data?.matches && data?.teams}
-						<Matches
-							bind:tournament={data.tournament}
-							bind:matches={data.matches}
-							bind:teams={data.teams}
-							{defaultTeam}
-							{readOnly}
-						/>
+					{#if tournament && matches && teams}
+						<Matches {defaultTeam} {readOnly} {tournament} {matches} {teams} />
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -196,13 +181,8 @@
 					<Card.Description>Current standings based on pool play results</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if data?.tournament && data?.matches && data?.teams}
-						<Standings
-							event={data.tournament}
-							matches={data.matches}
-							teams={data.teams}
-							{defaultTeam}
-						/>
+					{#if tournament && matches && teams}
+						<Standings event={tournament} {matches} {teams} {defaultTeam} />
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -215,14 +195,8 @@
 					<Card.Description>Single/Double elim bracket</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if data?.tournament && data?.matches && data?.teams && data?.bracket}
-						<Bracket
-							tournament={data.tournament}
-							matches={data.matches}
-							teams={data.teams}
-							bracket={data.bracket}
-							{readOnly}
-						/>
+					{#if tournament && matches && teams && bracket}
+						<Bracket {tournament} {matches} {teams} {bracket} {readOnly} />
 					{/if}
 				</Card.Content>
 			</Card.Root>

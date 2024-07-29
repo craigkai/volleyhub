@@ -3,12 +3,11 @@ import { Base } from './base';
 
 export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
-	event_id?: number;
-	teams: TeamRow[] = $state([]);
+	eventId?: number;
+	teams = $state<TeamRow[]>([]);
 
 	/**
 	 * The constructor for the Teams class.
-	 * @param {number} event_id - The ID of the event.
 	 * @param {TeamsSupabaseDatabaseService} databaseService - The service used to interact with the database.
 	 */
 	constructor(databaseService: TeamsSupabaseDatabaseService) {
@@ -25,6 +24,8 @@ export class Teams extends Base {
 			this.handleError(400, 'Invalid event ID');
 			return undefined;
 		}
+
+		this.eventId = eventId;
 
 		try {
 			const res = await this.databaseService.load(eventId);
@@ -82,6 +83,12 @@ export class Teams extends Base {
 		try {
 			const res = await this.databaseService.put(team);
 			if (res) {
+				this.teams.splice(
+					this.teams.findIndex((t) => t.id === team.id),
+					1,
+					res
+				);
+
 				return res;
 			}
 			console.warn('Failed to update team', team);
@@ -92,3 +99,5 @@ export class Teams extends Base {
 		}
 	}
 }
+
+// const TEAMS_KEY = Symbol('Teams');

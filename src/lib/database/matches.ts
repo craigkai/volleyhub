@@ -17,15 +17,15 @@ type Filter = {
 export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
 	 * Load all matches associated with a specific event from the database.
-	 * @param {string} event_id - The ID of the event whose matches to load.
+	 * @param {string} eventId - The ID of the event whose matches to load.
 	 * @returns {Promise<MatchRow[][]>} - Returns a promise that resolves to an array of the loaded matches.
 	 * @throws {Error} - Throws an error if there's an issue loading the matches.
 	 */
-	async load(event_id: number, filter?: Filter): Promise<MatchRow[] | null> {
+	async load(eventId: number, filter?: Filter): Promise<MatchRow[] | null> {
 		const query = this.supabaseClient
 			.from('matches')
 			.select(MATCHES_SELECT_QUERY)
-			.eq('event_id', event_id);
+			.eq('event_id', eventId);
 
 		if (filter) {
 			query.filter(filter.column, filter.operator, filter.value);
@@ -40,8 +40,8 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		return res.data as unknown as MatchRow[];
 	}
 
-	async deleteMatchesByEvent(event_id: number): Promise<void> {
-		const response = await this.supabaseClient.from('matches').delete().eq('event_id', event_id);
+	async deleteMatchesByEvent(eventId: number): Promise<void> {
+		const response = await this.supabaseClient.from('matches').delete().eq('event_id', eventId);
 		this.handleDatabaseError(response);
 	}
 
