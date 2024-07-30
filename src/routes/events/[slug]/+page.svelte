@@ -127,7 +127,7 @@
 			{/if}
 			<Tabs.Trigger disabled={isCreate} value="matches">Matches</Tabs.Trigger>
 			<Tabs.Trigger disabled={isCreate} value="standings">Standings</Tabs.Trigger>
-			<Tabs.Trigger disabled={isCreate} value="bracket">Bracket</Tabs.Trigger>
+			<Tabs.Trigger disabled={true} value="bracket">Bracket</Tabs.Trigger>
 		</Tabs.List>
 
 		{#if !readOnly}

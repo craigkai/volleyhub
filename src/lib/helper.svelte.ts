@@ -24,7 +24,10 @@ export function closeModal() {
 	});
 }
 
-export async function updateMatch(match: MatchRow | undefined, matches: Matches): Promise<void> {
+export async function updateMatch(
+	match: MatchRow | undefined,
+	matches: Pool | Brackets
+): Promise<void> {
 	if (match) {
 		try {
 			match.team1_score = Number(match.team1_score);
