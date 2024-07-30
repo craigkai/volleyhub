@@ -115,7 +115,7 @@
 		</Table.Header>
 
 		<Table.Body>
-			{#if rounds}
+			{#if rounds > 0}
 				{#each Array(rounds) as _, i}
 					{@const round = i + 1}
 					<Table.Row>
