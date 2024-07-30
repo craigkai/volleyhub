@@ -70,21 +70,23 @@
 
 	async function generateBracket() {
 		try {
-			if (matchesSubscription) await matchesSubscription.unsubscribe();
+			if (bracket.event_id) {
+				if (matchesSubscription) await matchesSubscription.unsubscribe();
 
-			const res = await bracket.createBracketMatches(
-				tournament,
-				teams.teams,
-				matches.matches || []
-			);
-			if (!res) {
-				error('Failed to create matches');
-			} else {
-				// We need to wait to resub to the matches channel
-				await new Promise((r) => setTimeout(r, 1000));
+				const res = await bracket.createBracketMatches(
+					tournament,
+					teams.teams,
+					matches.matches || []
+				);
+				if (!res) {
+					error('Failed to create matches');
+				} else {
+					// We need to wait to resub to the matches channel
+					await new Promise((r) => setTimeout(r, 1000));
 
-				matchesSubscription = await bracket.subscribeToMatches();
-				await bracket.load();
+					matchesSubscription = await bracket.subscribeToMatches();
+					await bracket.load(bracket.event_id);
+				}
 			}
 		} catch (err) {
 			error((err as HttpError).toString());

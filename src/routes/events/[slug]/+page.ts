@@ -21,7 +21,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		return {
 			// Only logged in users can create events
 			readOnly: !data.user?.id,
-			event_id: params.slug,
+			eventId: params.slug,
 			form,
 			defaultTeam: url.searchParams.get('team')
 		};
@@ -52,7 +52,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 
 	return {
 		readOnly,
-		event_id: params.slug,
+		eventId: params.slug,
 		form,
 		tournament,
 		matches,

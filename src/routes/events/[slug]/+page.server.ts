@@ -1,4 +1,4 @@
-import { setMessage, superValidate } from 'sveltekit-superforms';
+import { superValidate } from 'sveltekit-superforms';
 import { formSchema as settingsSchema } from '$schemas/settingsSchema';
 import { formSchema as teamsSchema } from '$schemas/teamsSchema';
 import { eventsInsertSchema, eventsUpdateSchema, teamsInsertSchema } from '$schemas/supabase';
@@ -6,10 +6,10 @@ import { zod } from 'sveltekit-superforms/adapters';
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { Event } from '$lib/event.svelte';
-import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
+import { EventSupabaseDatabaseService } from '$lib/database/event';
 import type { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import { TeamsSupabaseDatabaseService } from '$lib/database/teams.svelte';
+import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 import { Teams } from '$lib/teams.svelte';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -27,16 +27,16 @@ export const actions: Actions = {
 			});
 		}
 
-		const event_id = Number(event.params.slug);
+		const eventId = Number(event.params.slug);
 
 		if (!event.params.slug) {
 			throw new Error('Slug is undefined');
 		}
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
-		const tournament = new Event(event_id, eventSupabaseDatabaseService);
+		const tournament = new Event(eventSupabaseDatabaseService);
 
 		try {
-			await tournament.update(event_id, form.data);
+			await tournament.update(eventId, form.data);
 			// @ts-ignore
 			form.data = eventsUpdateSchema.parse(tournament);
 
@@ -63,19 +63,24 @@ export const actions: Actions = {
 			});
 		}
 
-		const event_id = event.params.slug;
-
-		if (!event.params.slug) {
-			throw new Error('Slug is undefined');
-		}
-
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
-		const tournament = new Event(event_id as unknown as number, eventSupabaseDatabaseService);
+		const tournament = new Event(eventSupabaseDatabaseService);
 
 		let newId: number;
+
 		try {
 			const res = await tournament.create(form.data);
-			newId = res.id;
+			if (res.id) {
+				newId = res.id;
+				redirect(303, `/events/${newId}`);
+			} else {
+				form.valid = false;
+				form.message = 'Failed to create event';
+
+				return fail(400, {
+					form
+				});
+			}
 		} catch (error) {
 			form.valid = false;
 
@@ -86,18 +91,21 @@ export const actions: Actions = {
 				form
 			});
 		}
-
-		redirect(303, `/events/${newId}`);
 	},
 
 	deleteEvent: async (event) => {
-		const event_id = Number(event.params.slug);
+		const eventId = Number(event.params.slug);
 
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
-		const tournament = new Event(event_id, eventSupabaseDatabaseService);
+		const tournament = new Event(eventSupabaseDatabaseService);
+		try {
+			await tournament.load(eventId);
 
-		// TODO: How do we handle delete failure?
-		await tournament.delete();
+			// TODO: How do we handle delete failure?
+			await tournament.delete();
+		} catch (error) {
+			return fail(400, {});
+		}
 
 		redirect(303, '/protected-routes/dashboard');
 	},
@@ -110,15 +118,15 @@ export const actions: Actions = {
 			});
 		}
 
-		const event_id = Number(event.params.slug);
+		const eventId = Number(event.params.slug);
 
 		const teamsSupabaseDatabaseService = new TeamsSupabaseDatabaseService(event.locals.supabase);
-		const teams = new Teams(event_id, teamsSupabaseDatabaseService);
+		const teams = new Teams(teamsSupabaseDatabaseService);
 
 		try {
 			const newTeam: Partial<TeamRow> = {
 				name: form.data.name,
-				event_id
+				event_id: eventId
 			};
 			await teams.create(newTeam);
 			return { form };

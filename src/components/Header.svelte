@@ -24,7 +24,7 @@
 <header class="w-full">
 	<!-- Navigation bar -->
 	<div class="bg-blue-500 dark:bg-slate-900 p-4">
-		<a href="/" class="flex">
+		<div href="/" class="flex">
 			<svg
 				class="h-20 w-20 p-2 dark:fill-blue-600"
 				fill="#000000"
@@ -56,8 +56,8 @@
 			<div class="absolute end-0">
 				<Hamburger bind:open --color="white" />
 			</div>
-		</a>
-		
+		</div>
+
 		{#if open}
 			<nav
 				class="relative flex w-full items-center justify-between py-2 bg-white rounded text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 dark:bg-gray-800 dark:text-gray-200 md:flex-wrap md:justify-start"

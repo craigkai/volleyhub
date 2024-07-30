@@ -1,30 +1,39 @@
-import type { MatchesSupabaseDatabaseService } from '$lib/database/matches.svelte';
+import type { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 import { RoundRobin } from './brackets/roundRobin';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { Base } from './base';
 import type { Brackets } from './brackets/brackets.svelte';
 import { Event } from '$lib/event.svelte';
 
+/**
+ * The Matches class represents the matches in a tournament.
+ * It provides methods to load, create, update, and manage matches.
+ */
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
-	event_id: number;
-	matches?: MatchRow[] = $state<MatchRow[]>();
-	subscriptionStatus? = $state();
+	event_id?: number;
+	matches = $state<MatchRow[]>();
+	subscriptionStatus = $state();
 	type = 'pool';
 
-	constructor(event_id: number, databaseService: MatchesSupabaseDatabaseService) {
+	constructor(databaseService: MatchesSupabaseDatabaseService) {
 		super();
 		this.databaseService = databaseService;
-		this.event_id = Number(event_id);
 	}
 
-	async load() {
+	/**
+	 * Load matches from the database.
+	 * @param {number} id - The ID of the event.
+	 * @returns {Promise<Matches>} - Returns a promise that resolves to the Matches instance.
+	 */
+	async load(id: number): Promise<Matches> {
 		try {
-			const res = await this.databaseService.load(this.event_id, {
+			const res = await this.databaseService.load(id, {
 				column: 'type',
 				operator: 'eq',
 				value: this.type
 			});
+			this.event_id = id;
 
 			if (res) this.matches = res;
 		} catch (err) {
@@ -33,23 +42,32 @@ export class Matches extends Base {
 		return this;
 	}
 
+	/**
+	 * Handle updates from the database via real-time subscriptions.
+	 * @param {Matches | Brackets} self - The instance of the class that handles the update.
+	 * @param {RealtimePostgresChangesPayload<{ [key: string]: any }>} payload - The payload from the real-time subscription.
+	 */
 	async handleUpdate(
 		self: Matches | Brackets,
 		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
 	): Promise<void> {
+		if (!self.event_id) {
+			throw new Error('Event ID is required to handle updates.');
+		}
+
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
-		// If we are updating for another type of match, ignore it
+		// If updating for another type of match, ignore it
 		if (self.type !== updated.type) return;
 
 		if (self.type === 'bracket') {
-			await self.load();
+			await self.load(self.event_id);
 			(self as Brackets).nextRound(updated);
 		}
 
 		if (!self.matches) {
-			await self.load();
+			await self.load(self.event_id);
 			return;
 		}
 
@@ -64,7 +82,15 @@ export class Matches extends Base {
 		}
 	}
 
+	/**
+	 * Subscribe to real-time updates for matches.
+	 * @returns {Promise<RealtimeChannel>} - Returns a promise that resolves to the real-time channel.
+	 */
 	async subscribeToMatches(): Promise<RealtimeChannel> {
+		if (!this.event_id) {
+			throw new Error('Event ID is required to subscribe to matches.');
+		}
+
 		const channel = await this.databaseService.subscribeToChanges(
 			this,
 			this.handleUpdate,
@@ -75,10 +101,21 @@ export class Matches extends Base {
 		return channel;
 	}
 
+	/**
+	 * Create matches for the event.
+	 * @param {Event | Partial<EventRow>} eventDetails - The details of the event.
+	 * @param {TeamRow[] | Partial<TeamRow>[]} teams - The teams participating in the event.
+	 * @returns {Promise<Matches | undefined>} - Returns a promise that resolves to the Matches instance.
+	 */
 	async create(
 		{ pools, courts, refs = 'provided' }: Event | Partial<EventRow>,
 		teams: TeamRow[] | Partial<TeamRow>[]
 	): Promise<Matches | undefined> {
+		if (!this.event_id) {
+			this.handleError(400, 'Event ID is required to create matches.');
+			return;
+		}
+
 		try {
 			this.validateInputs(teams, pools, courts, refs);
 
@@ -99,6 +136,11 @@ export class Matches extends Base {
 		}
 	}
 
+	/**
+	 * Update a specific match in the database.
+	 * @param {MatchRow} match - The match details to be updated.
+	 * @returns {Promise<MatchRow | null>} - Returns a promise that resolves to the updated match.
+	 */
 	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
 		const updatedMatch = await this.databaseService.put(match);
 
@@ -107,7 +149,7 @@ export class Matches extends Base {
 		}
 
 		if (this.matches) {
-			const matchIndex = this?.matches.findIndex((m: MatchRow) => m.id === match.id);
+			const matchIndex = this.matches.findIndex((m: MatchRow) => m.id === match.id);
 
 			if (matchIndex !== -1) {
 				// Existing match, update it
@@ -119,6 +161,13 @@ export class Matches extends Base {
 		return updatedMatch;
 	}
 
+	/**
+	 * Validate the inputs for creating matches.
+	 * @param {TeamRow[] | Partial<TeamRow>[]} teams - The teams participating in the event.
+	 * @param {number | undefined | null} pools - The number of pools.
+	 * @param {number | undefined | null} courts - The number of courts.
+	 * @param {string | undefined | null} refs - The type of referees.
+	 */
 	validateInputs(
 		teams: TeamRow[] | Partial<TeamRow>[],
 		pools: number | undefined | null,
@@ -142,6 +191,12 @@ export class Matches extends Base {
 		}
 	}
 
+	/**
+	 * Calculate the number of rounds and courts per round.
+	 * @param {TeamRow[]} teams - The teams participating in the event.
+	 * @param {number} courts - The number of courts available.
+	 * @returns {{ rounds: number; courtsPerRound: number }} - The number of rounds and courts per round.
+	 */
 	calculateRoundsAndCourts(
 		teams: TeamRow[],
 		courts: number
@@ -152,46 +207,99 @@ export class Matches extends Base {
 		return { rounds, courtsPerRound };
 	}
 
+	/**
+	 * Generate the matches using a Round Robin algorithm.
+	 * @param {number} pools - The number of pools.
+	 * @param {Partial<TeamRow>[]} teams - The teams participating in the event.
+	 * @param {number} courts - The number of courts available.
+	 * @returns {Partial<MatchRow>[]} - The generated matches.
+	 */
 	generateMatches(pools: number, teams: Partial<TeamRow>[], courts: number): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
-		const totalMatches = (teams.length * pools) / 2; // Calculate the total number of matches needed
+		const totalTeams = teams.length;
 
-		let currentRound = 1;
-		const teamsPerRound: { [round: number]: Set<number> } = {};
-
-		// Generate matches using RoundRobin
-		for (let i = 0; i < totalMatches; i += courts) {
-			const roundMatches = RoundRobin(
-				teams.map((t) => t.id).filter((id) => id !== undefined) as number[],
-				currentRound,
-				courts
-			);
-
-			// Assign matches to rounds and distribute them based on courts
-			for (const match of roundMatches) {
-				if (!teamsPerRound[currentRound]) {
-					teamsPerRound[currentRound] = new Set();
-				}
-
-				if (teamsPerRound[currentRound].size >= courts * 2) {
-					currentRound++;
-					teamsPerRound[currentRound] = new Set();
-				}
-
-				match.round = currentRound;
-				teamsPerRound[currentRound].add(match.team1!);
-				teamsPerRound[currentRound].add(match.team2!);
-			}
-
-			matches = matches.concat(roundMatches);
+		if (totalTeams < 2) {
+			throw new Error('At least two teams are required to generate matches.');
 		}
 
-		// Add event_id to each match
-		matches = matches.map((match) => ({ ...match, event_id: this.event_id }));
+		const maxGamesPerTeam = pools;
+		const matchCounter: { [key: string]: number } = {};
+		let gamesPlayedPerTeam: { [teamId: number]: number } = {};
 
-		return matches.slice(0, totalMatches); // Limit to the required number of matches
+		// Initialize the games played counter for each team
+		teams.forEach((team) => {
+			if (team.id !== undefined) {
+				gamesPlayedPerTeam[team.id] = 0;
+			}
+		});
+
+		// Loop until each team has played the required number of games
+		while (Object.values(gamesPlayedPerTeam).some((count) => count < maxGamesPerTeam)) {
+			for (let i = 0; i < totalTeams; i++) {
+				for (let j = i + 1; j < totalTeams; j++) {
+					const team1 = teams[i].id;
+					const team2 = teams[j].id;
+
+					// Ensure valid teams and they haven't played more than the max games
+					if (
+						team1 !== undefined &&
+						team2 !== undefined &&
+						team1 !== team2 &&
+						gamesPlayedPerTeam[team1] < maxGamesPerTeam &&
+						gamesPlayedPerTeam[team2] < maxGamesPerTeam
+					) {
+						// Generate unique matchup key
+						const matchupKey = `${team1}-${team2}`;
+						const reverseMatchupKey = `${team2}-${team1}`;
+
+						// Initialize counter if not present
+						if (!matchCounter[matchupKey]) {
+							matchCounter[matchupKey] = 0;
+						}
+						if (!matchCounter[reverseMatchupKey]) {
+							matchCounter[reverseMatchupKey] = 0;
+						}
+
+						// Check if the matchup has already been played enough times
+						if (
+							matchCounter[matchupKey] + matchCounter[reverseMatchupKey] <
+							maxGamesPerTeam / (totalTeams - 1)
+						) {
+							// Create the match
+							matches.push({
+								event_id: this.event_id,
+								team1,
+								team2,
+								round: Math.floor(matches.length / courts) + 1,
+								type: this.type
+							});
+
+							// Update counters
+							matchCounter[matchupKey]++;
+							gamesPlayedPerTeam[team1]++;
+							gamesPlayedPerTeam[team2]++;
+
+							// Exit early if all teams have played the required number of games
+							if (Object.values(gamesPlayedPerTeam).every((count) => count >= maxGamesPerTeam)) {
+								break;
+							}
+						}
+					}
+				}
+				if (Object.values(gamesPlayedPerTeam).every((count) => count >= maxGamesPerTeam)) {
+					break;
+				}
+			}
+		}
+
+		return matches;
 	}
 
+	/**
+	 * Assign referees to matches.
+	 * @param {Partial<MatchRow>[]} matches - The matches to assign referees to.
+	 * @param {Partial<TeamRow>[]} teams - The teams participating in the event.
+	 */
 	assignReferees(matches: Partial<MatchRow>[], teams: Partial<TeamRow>[]) {
 		const teamsPerRound: { [round: number]: Set<number> } = {};
 
@@ -225,6 +333,13 @@ export class Matches extends Base {
 		});
 	}
 
+	/**
+	 * Determine the referee for a given match.
+	 * @param {number[]} teamsPlayingThisRound - The IDs of the teams playing in this round.
+	 * @param {number[]} allTeams - The IDs of all teams in the event.
+	 * @param {{ [teamId: number]: number }} refereeCounts - The counts of how many times each team has refereed.
+	 * @returns {number} - The ID of the selected referee.
+	 */
 	determineReferee(
 		teamsPlayingThisRound: number[],
 		allTeams: number[],
@@ -244,6 +359,7 @@ export class Matches extends Base {
 	}
 }
 
+// Test cases for the Matches class
 if (import.meta.vitest) {
 	const { vi, it, expect, beforeEach } = import.meta.vitest;
 
@@ -267,7 +383,7 @@ if (import.meta.vitest) {
 			load: vi.fn(() => []), // Return an empty array or the matches as expected
 			updateMatch: vi.fn((match: MatchRow) => match)
 		};
-		matches = new Matches(1, mockDatabaseService);
+		matches = new Matches(mockDatabaseService);
 	});
 
 	it('Test matches are correct with two teams and one pool play game', async () => {
@@ -288,7 +404,7 @@ if (import.meta.vitest) {
 			state: null
 		})) as unknown as Partial<TeamRow>[];
 
-		await matches.load();
+		await matches.load(1);
 		await matches.create(input, teams);
 
 		expect(matches.matches?.length).toEqual(1);
@@ -323,7 +439,7 @@ if (import.meta.vitest) {
 			state: 'active'
 		})) as unknown as Partial<TeamRow>[];
 
-		await matches.load();
+		await matches.load(1);
 		await matches.create(input, teams);
 
 		expect(matches?.matches?.length).toEqual(3 * (4 / 2));
@@ -358,7 +474,7 @@ if (import.meta.vitest) {
 			state: 'active'
 		})) as unknown as Partial<TeamRow>[];
 
-		await matches.load();
+		await matches.load(1);
 		await matches.create(input, teams);
 
 		const refGamesPerTeam: any = {};

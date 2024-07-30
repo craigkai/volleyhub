@@ -1,53 +1,12 @@
 // Importing necessary types from supabase-js and sveltejs/kit
-import type {
-	PostgrestSingleResponse,
-	PostgrestResponse,
-	User,
-	RealtimeChannel,
-	RealtimePostgresChangesPayload
-} from '@supabase/supabase-js';
-import { error, type NumericRange } from '@sveltejs/kit';
-import type { z } from 'zod';
+import type { User, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { error } from '@sveltejs/kit';
 import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Matches } from '$lib/matches.svelte';
 import { v4 as uuidv4 } from 'uuid';
+import { Base } from '$lib/database/base';
 
-export class SupabaseDatabaseService {
-	// Private property for Supabase client
-	supabaseClient: supabaseClient;
-
-	// Constructor to initialize Supabase client
-	constructor(supabaseClient: supabaseClient) {
-		this.supabaseClient = supabaseClient;
-	}
-
-	validateAndHandleErrors<T>(
-		response: PostgrestResponse<T> | PostgrestSingleResponse<T>,
-		schema: z.ZodType<T, any, any>
-	): T {
-		this.handleDatabaseError(response as PostgrestResponse<T[]> | PostgrestResponse<T[][]>);
-
-		const result = schema.safeParse(response.data);
-		if (!result.success) {
-			const errorResponse = { status: 500, error: result.error } as unknown as PostgrestResponse<T>;
-			this.handleDatabaseError(errorResponse as PostgrestResponse<T[]> | PostgrestResponse<T[][]>);
-		}
-
-		return response.data as T;
-	}
-
-	// Method to handle database errors
-	handleDatabaseError<T>(response: PostgrestSingleResponse<T> | PostgrestResponse<T>): void {
-		// If there's an error in the response
-		if (response.error) {
-			// Log the status and error message
-			console.error(`Failed operation with status ${response.status}: ${response.error.message}`);
-			// Log the error details
-			console.error(response.error);
-			error(response.status as NumericRange<400, 599>, response.error);
-		}
-	}
-
+export class SupabaseDatabaseService extends Base {
 	/**
 	 * Get the UserResponse object for the current authenticated user for the supabase client.
 	 * @returns Promise<User> - Returns a promise that resolves to the User object of the currently authenticated user.
@@ -113,7 +72,8 @@ export class SupabaseDatabaseService {
 			.subscribe((status) => {
 				// We call the load function to update in case our content is stale
 				// when we re-connect to the web socket.
-				self.load();
+				if (self.event_id) self.load(self.event_id);
+
 				self.subscriptionStatus = status;
 				console.debug('Realtime status', status);
 			});

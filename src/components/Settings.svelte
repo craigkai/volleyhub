@@ -31,7 +31,7 @@
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 
 	export let data;
-	export let event_id;
+	export let eventId;
 
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
@@ -41,6 +41,7 @@
 		onUpdated({ form }) {
 			if (form.valid) {
 				success(`Tournament settings updated`);
+				data.tournament.load(data.eventId);
 			}
 		}
 	});
@@ -72,7 +73,7 @@
 <form
 	class="form-container dark:bg-gray-800 dark:text-gray-200 p-2 rounded"
 	method="POST"
-	action="?/{event_id === 'create' ? 'createEvent' : 'updateEvent'}"
+	action="?/{eventId === 'create' ? 'createEvent' : 'updateEvent'}"
 	use:enhance
 >
 	<div class="form-field">
@@ -240,7 +241,7 @@
 	</div>
 </form>
 
-{#if event_id !== 'create'}
+{#if eventId !== 'create'}
 	<form method="POST" action="?/deleteEvent" use:enhance>
 		<div class="flex justify-center">
 			<Button class="m-2 bg-red-500 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-900"

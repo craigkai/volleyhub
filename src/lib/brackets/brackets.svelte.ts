@@ -7,9 +7,9 @@ export class Brackets extends Matches {
 	type = 'bracket';
 
 	// Overload Matches load method to only load our bracket matches.
-	async load() {
+	async load(eventId: number): Promise<this> {
 		try {
-			const res = await this.databaseService.load(this.event_id, {
+			const res = await this.databaseService.load(eventId, {
 				column: 'type',
 				operator: 'eq',
 				value: 'bracket'

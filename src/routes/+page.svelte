@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { EventSupabaseDatabaseService } from '$lib/database/event.svelte';
+	import { EventSupabaseDatabaseService } from '$lib/database/event';
 	import { Loader } from 'lucide-svelte';
 	import EventsCards from '$components/eventsCards.svelte';
-	import type { PageData } from '$types';
 
-	export let data: PageData;
+	export let data;
 
 	const eventsDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
 	const eventsPromise = eventsDatabaseService.getUpcomingEvents();
@@ -20,7 +19,7 @@
 			<div class="text-center text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
 				Upcoming Events
 			</div>
-			<EventsCards {events} readOnly={true} />
+			<EventsCards {events} />
 		</div>
 	{:else}
 		<div class="flex justify-center">
