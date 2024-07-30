@@ -24,12 +24,10 @@
 	let { teams, matches, bracket, tournament } = $state(data);
 
 	// Getting reactivity to work?
-	let dog = '';
-
+	let _dog = '';
 	// If we update teams, we should also update matches?
 	$effect(() => {
-		dog = JSON.stringify(teams?.teams);
-
+		_dog = JSON.stringify(teams?.teams) || '';
 		// If we aren't
 		if (data.eventId !== 'create' && teams) {
 			console.log(`Reloading matches`);
