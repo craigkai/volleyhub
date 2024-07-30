@@ -10,7 +10,7 @@
 	import Zap from 'lucide-svelte/icons/zap';
 	import Zapoff from 'lucide-svelte/icons/zap-off';
 	import { Event } from '$lib/event.svelte';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	let {
 		readOnly = $bindable(false),
@@ -47,6 +47,10 @@
 		if ((matches?.matches?.length ?? 0) > 0) await subscribeToMatches();
 	});
 
+	onDestroy(() => {
+		if (matchesSubscription) matchesSubscription.unsubscribe();
+	});
+
 	async function subscribeToMatches() {
 		try {
 			matchesSubscription = await matches.subscribeToMatches();
@@ -58,23 +62,26 @@
 
 	async function generateMatches(): Promise<void> {
 		try {
+			// Unsubscribe from existing subscription if any
 			if (matchesSubscription) {
 				await matchesSubscription.unsubscribe();
 				matchesSubscription = undefined;
 			}
 
+			// Create new matches
 			const res: Matches | undefined = await matches.create(tournament, teams.teams);
 			if (!res) {
 				error('Failed to create matches');
-			} else {
-				// Ensure there's a delay to resubscribe
-				await new Promise((r) => setTimeout(r, 1000));
-				await subscribeToMatches();
+				return;
 			}
+
+			// Resubscribe to matches updates
+			await subscribeToMatches();
 		} catch (err) {
 			error((err as HttpError).toString());
+		} finally {
+			showGenerateMatchesAlert = false;
 		}
-		showGenerateMatchesAlert = false;
 	}
 
 	const rounds = Math.max.apply(

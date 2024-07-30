@@ -58,6 +58,12 @@ export class Matches extends Base {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
+		if (payload.eventType === 'INSERT') {
+			if (self.type !== updated.type) return;
+			self.matches?.push(updated) ?? (self.matches = [updated]);
+			return;
+		}
+
 		// If updating for another type of match, ignore it
 		if (self.type !== updated.type) return;
 
@@ -78,7 +84,10 @@ export class Matches extends Base {
 			const updatedMatch = { ...self.matches[matchIndex], ...updated };
 			self.matches.splice(matchIndex, 1, updatedMatch);
 		} else {
-			self.handleError(400, `Failed to find match to update.`);
+			self.handleError(
+				400,
+				`Failed to find match to update for payload: ${JSON.stringify(payload)}`
+			);
 		}
 	}
 
