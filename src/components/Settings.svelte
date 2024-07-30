@@ -38,12 +38,16 @@
 		onError({ result }) {
 			error(result.error.message || 'Unknown error');
 		},
-		onUpdated({ form }) {
+		async onUpdated({ form }) {
 			if (form.valid) {
 				success(`Tournament settings updated`);
-				data.tournament.load(data.eventId);
+				data.tournament.load(data.eventId).catch((err: any) => {
+					error(`Failed to load tournament: ${err}`);
+				});
+				$formData = form.data;
 			}
-		}
+		},
+		dataType: 'json'
 	});
 
 	let { form: formData, enhance } = form;

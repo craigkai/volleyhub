@@ -36,10 +36,13 @@ export const actions: Actions = {
 		const tournament = new Event(eventSupabaseDatabaseService);
 
 		try {
-			await tournament.update(eventId, form.data);
-			// @ts-ignore
-			form.data = eventsUpdateSchema.parse(tournament);
+			const updatedTournament = await tournament.update(eventId, form.data);
 
+			// Parse the updated tournament data
+			const parsedData = eventsUpdateSchema.parse(updatedTournament);
+
+			// Update the form data with the parsed and updated values
+			form.data = parsedData;
 			return {
 				form
 			};
