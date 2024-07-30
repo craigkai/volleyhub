@@ -90,7 +90,6 @@
 			return m.round;
 		}) ?? [0]
 	);
-	$inspect(rounds);
 </script>
 
 <div class="block text-gray-700 text-sm font-bold mb-4 flex">
