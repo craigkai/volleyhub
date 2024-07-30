@@ -223,7 +223,7 @@
 									$formData.date = v.toString();
 									dateValue = v; // Ensure dateValue is updated
 								} else {
-									formData.date = '';
+									$formData.date = '';
 									dateValue = undefined;
 								}
 							}}

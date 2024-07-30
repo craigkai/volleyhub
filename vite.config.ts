@@ -5,6 +5,9 @@ export default defineConfig({
 	plugins: [sveltekit(), myErrorFilterPlugin()],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
+	},
+	build: {
+		sourcemap: true
 	}
 });
 

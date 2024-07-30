@@ -225,81 +225,54 @@ export class Matches extends Base {
 	 */
 	generateMatches(pools: number, teams: Partial<TeamRow>[], courts: number): Partial<MatchRow>[] {
 		let matches: Partial<MatchRow>[] = [];
-		const totalTeams = teams.length;
+		const totalMatches = Math.ceil((teams.length * pools) / 2); // Calculate the total number of matches needed
 
-		if (totalTeams < 2) {
-			throw new Error('At least two teams are required to generate matches.');
-		}
+		let currentRound = 1;
+		let matchCount = 0;
+		const teamsPerRound: { [round: number]: Set<number> } = {};
 
-		const maxGamesPerTeam = pools;
-		const matchCounter: { [key: string]: number } = {};
-		let gamesPlayedPerTeam: { [teamId: number]: number } = {};
+		// Generate matches using RoundRobin with adjustments
+		while (matchCount < totalMatches) {
+			const roundMatches = RoundRobin(
+				teams.map((t) => t.id).filter((id) => id !== undefined) as number[],
+				currentRound,
+				courts
+			);
 
-		// Initialize the games played counter for each team
-		teams.forEach((team) => {
-			if (team.id !== undefined) {
-				gamesPlayedPerTeam[team.id] = 0;
-			}
-		});
+			// Assign matches to rounds and distribute them based on courts
+			for (const match of roundMatches) {
+				if (!teamsPerRound[currentRound]) {
+					teamsPerRound[currentRound] = new Set();
+				}
 
-		// Loop until each team has played the required number of games
-		while (Object.values(gamesPlayedPerTeam).some((count) => count < maxGamesPerTeam)) {
-			for (let i = 0; i < totalTeams; i++) {
-				for (let j = i + 1; j < totalTeams; j++) {
-					const team1 = teams[i].id;
-					const team2 = teams[j].id;
+				if (teamsPerRound[currentRound].size >= courts * 2) {
+					currentRound++;
+					teamsPerRound[currentRound] = new Set();
+				}
 
-					// Ensure valid teams and they haven't played more than the max games
-					if (
-						team1 !== undefined &&
-						team2 !== undefined &&
-						team1 !== team2 &&
-						gamesPlayedPerTeam[team1] < maxGamesPerTeam &&
-						gamesPlayedPerTeam[team2] < maxGamesPerTeam
-					) {
-						// Generate unique matchup key
-						const matchupKey = `${team1}-${team2}`;
-						const reverseMatchupKey = `${team2}-${team1}`;
+				if (match.team1 !== undefined && match.team2 !== undefined) {
+					if (matchCount >= totalMatches) break;
 
-						// Initialize counter if not present
-						if (!matchCounter[matchupKey]) {
-							matchCounter[matchupKey] = 0;
-						}
-						if (!matchCounter[reverseMatchupKey]) {
-							matchCounter[reverseMatchupKey] = 0;
-						}
-
-						// Check if the matchup has already been played enough times
-						if (
-							matchCounter[matchupKey] + matchCounter[reverseMatchupKey] <
-							maxGamesPerTeam / (totalTeams - 1)
-						) {
-							// Create the match
-							matches.push({
-								event_id: this.event_id,
-								team1,
-								team2,
-								round: Math.floor(matches.length / courts) + 1,
-								type: this.type
-							});
-
-							// Update counters
-							matchCounter[matchupKey]++;
-							gamesPlayedPerTeam[team1]++;
-							gamesPlayedPerTeam[team2]++;
-
-							// Exit early if all teams have played the required number of games
-							if (Object.values(gamesPlayedPerTeam).every((count) => count >= maxGamesPerTeam)) {
-								break;
-							}
-						}
+					match.round = currentRound;
+					if (match.team1 !== null) {
+						teamsPerRound[currentRound].add(match.team1);
 					}
-				}
-				if (Object.values(gamesPlayedPerTeam).every((count) => count >= maxGamesPerTeam)) {
-					break;
+					if (match.team2 !== null) {
+						teamsPerRound[currentRound].add(match.team2);
+					}
+					matches.push(match);
+					matchCount++;
 				}
 			}
+
+			// Ensure that we break out of the loop if we've created enough matches
+			if (matchCount >= totalMatches) break;
+
+			currentRound++;
 		}
+
+		// Add event_id to each match
+		matches = matches.map((match) => ({ ...match, event_id: this.event_id }));
 
 		return matches;
 	}
