@@ -222,74 +222,63 @@ export class Matches extends Base {
 			throw new Error('At least two teams are required to generate matches.');
 		}
 
-		const maxGamesPerTeam = pools;
-		const matchCounter: { [key: string]: number } = {};
+		// Initialize tracking objects
 		let gamesPlayedPerTeam: { [teamId: number]: number } = {};
+		let matchupCounter: { [matchupKey: string]: number } = {};
 
-		// Initialize the games played counter for each team
+		// Initialize games played counter for each team
 		teams.forEach((team) => {
 			if (team.id !== undefined) {
 				gamesPlayedPerTeam[team.id] = 0;
 			}
 		});
 
-		// Loop until each team has played the required number of games
-		while (Object.values(gamesPlayedPerTeam).some((count) => count < maxGamesPerTeam)) {
+		// Helper function to get the matchup key
+		const getMatchupKey = (team1: number, team2: number): string => {
+			return team1 < team2 ? `${team1}-${team2}` : `${team2}-${team1}`;
+		};
+
+		// Main loop to generate matches
+		while (Object.values(gamesPlayedPerTeam).some((count) => count < pools)) {
+			let matchCreated = false;
+
 			for (let i = 0; i < totalTeams; i++) {
 				for (let j = i + 1; j < totalTeams; j++) {
 					const team1 = teams[i].id;
 					const team2 = teams[j].id;
 
-					// Ensure valid teams and they haven't played more than the max games
+					if (team1 === undefined || team2 === undefined) continue;
+
+					const matchupKey = getMatchupKey(team1, team2);
+					if (!matchupCounter[matchupKey]) {
+						matchupCounter[matchupKey] = 0;
+					}
+
 					if (
-						team1 !== undefined &&
-						team2 !== undefined &&
-						team1 !== team2 &&
-						gamesPlayedPerTeam[team1] < maxGamesPerTeam &&
-						gamesPlayedPerTeam[team2] < maxGamesPerTeam
+						gamesPlayedPerTeam[team1] < pools &&
+						gamesPlayedPerTeam[team2] < pools &&
+						matchupCounter[matchupKey] < pools / (totalTeams - 1)
 					) {
-						// Generate unique matchup key
-						const matchupKey = `${team1}-${team2}`;
-						const reverseMatchupKey = `${team2}-${team1}`;
+						// Create match
+						matches.push({
+							event_id: this.event_id,
+							team1,
+							team2,
+							round: Math.floor(matches.length / courts) + 1,
+							type: this.type
+						});
 
-						// Initialize counter if not present
-						if (!matchCounter[matchupKey]) {
-							matchCounter[matchupKey] = 0;
-						}
-						if (!matchCounter[reverseMatchupKey]) {
-							matchCounter[reverseMatchupKey] = 0;
-						}
-
-						// Check if the matchup has already been played enough times
-						if (
-							matchCounter[matchupKey] + matchCounter[reverseMatchupKey] <
-							maxGamesPerTeam / (totalTeams - 1)
-						) {
-							// Create the match
-							matches.push({
-								event_id: this.event_id,
-								team1,
-								team2,
-								round: Math.floor(matches.length / courts) + 1,
-								type: this.type
-							});
-
-							// Update counters
-							matchCounter[matchupKey]++;
-							gamesPlayedPerTeam[team1]++;
-							gamesPlayedPerTeam[team2]++;
-
-							// Exit early if all teams have played the required number of games
-							if (Object.values(gamesPlayedPerTeam).every((count) => count >= maxGamesPerTeam)) {
-								break;
-							}
-						}
+						// Update counters
+						matchupCounter[matchupKey]++;
+						gamesPlayedPerTeam[team1]++;
+						gamesPlayedPerTeam[team2]++;
+						matchCreated = true;
 					}
 				}
-				if (Object.values(gamesPlayedPerTeam).every((count) => count >= maxGamesPerTeam)) {
-					break;
-				}
 			}
+
+			// Check if no match was created in this iteration, to break potential infinite loop
+			if (!matchCreated) break;
 		}
 
 		return matches;

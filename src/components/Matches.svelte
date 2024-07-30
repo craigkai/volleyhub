@@ -83,7 +83,6 @@
 			return m.round;
 		}) ?? [0]
 	);
-	$inspect(rounds);
 </script>
 
 <div class="block text-gray-700 text-sm font-bold mb-4 flex">
@@ -109,7 +108,7 @@
 		</Table.Header>
 
 		<Table.Body>
-			{#if rounds}
+			{#if rounds > 0}
 				{#each Array(rounds) as _, i}
 					{@const round = i + 1}
 					<Table.Row>

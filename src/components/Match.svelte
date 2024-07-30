@@ -2,7 +2,6 @@
 	import * as Popover from '$components/ui/popover';
 	import { page } from '$app/stores';
 	import { showModal } from '$lib/helper.svelte';
-	import type { Teams } from '$lib/teams.svelte';
 
 	let {
 		match,
