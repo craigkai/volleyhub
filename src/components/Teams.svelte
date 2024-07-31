@@ -64,14 +64,14 @@
 
 <div class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Teams:</div>
 
-<Table.Root class="min-w-full bg-white dark:bg-gray-800">
+<Table.Root class="min-w-full bg-white dark:bg-gray-800 rounded">
 	<Table.Caption>A list of your teams.</Table.Caption>
 	<Table.Body>
 		{#each currentTeams ?? [] as team}
 			<Table.Row>
 				<Table.Cell>
 					<Input
-						class="input-field"
+						class="input-field dark:bg-gray-700 dark:text-gray-200"
 						id="team2-score-input"
 						type="text"
 						value={team.name}
@@ -122,10 +122,6 @@
 
 <style>
 	.action-button {
-		@apply font-medium text-blue-600 hover:underline dark:text-blue-400;
-	}
-
-	.input-field {
-		@apply w-full border rounded px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200 dark:border-gray-600 dark:focus:ring-blue-400;
+		@apply font-medium text-blue-600 hover:underline;
 	}
 </style>

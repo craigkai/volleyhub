@@ -119,8 +119,8 @@
 		</div>
 	{/if}
 
-	<Tabs.Root value={readOnly ? 'matches' : 'settings'} class="tabs-container">
-		<Tabs.List class="grid w-full gap-2 mb-4 {tabsWidth}">
+	<Tabs.Root value={readOnly ? 'matches' : 'settings'} class="tabs-container ">
+		<Tabs.List class="grid w-full gap-2 mb-4 {tabsWidth} dark:bg-gray-700">
 			{#if !readOnly}
 				<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
 				<Tabs.Trigger disabled={isCreate} value="teams">Teams</Tabs.Trigger>
@@ -132,7 +132,7 @@
 
 		{#if !readOnly}
 			<Tabs.Content value="settings">
-				<Card.Root>
+				<Card.Root class="dark:bg-gray-700">
 					<Card.Header>
 						<Card.Title>Account</Card.Title>
 						<Card.Description>Make changes to your event here.</Card.Description>
@@ -144,7 +144,7 @@
 			</Tabs.Content>
 
 			<Tabs.Content value="teams">
-				<Card.Root>
+				<Card.Root class="dark:bg-gray-700">
 					<Card.Header>
 						<Card.Title>Teams</Card.Title>
 						<Card.Description>add/edit/remove teams</Card.Description>
@@ -159,7 +159,7 @@
 		{/if}
 
 		<Tabs.Content value="matches" class="card-container">
-			<Card.Root>
+			<Card.Root class="dark:bg-gray-700">
 				<Card.Header>
 					<Card.Title>Matches</Card.Title>
 					<Card.Description>Results of pool play (live)</Card.Description>
@@ -173,7 +173,7 @@
 		</Tabs.Content>
 
 		<Tabs.Content value="standings" class="card-container">
-			<Card.Root>
+			<Card.Root class="dark:bg-gray-700">
 				<Card.Header>
 					<Card.Title>Current Standings</Card.Title>
 					<Card.Description>Current standings based on pool play results</Card.Description>
@@ -187,7 +187,7 @@
 		</Tabs.Content>
 
 		<Tabs.Content value="bracket" class="card-container">
-			<Card.Root>
+			<Card.Root class="dark:bg-gray-700">
 				<Card.Header>
 					<Card.Title>Bracket</Card.Title>
 					<Card.Description>Single/Double elim bracket</Card.Description>
@@ -212,7 +212,7 @@
 	.header {
 		font-size: 2rem;
 		font-weight: 700;
-		color: #1f2937;
+		color: #3d73c0;
 		margin-bottom: 1rem;
 		text-align: center;
 	}
