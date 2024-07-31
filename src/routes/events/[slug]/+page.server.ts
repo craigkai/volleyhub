@@ -42,7 +42,7 @@ export const actions: Actions = {
 			const parsedData = eventsUpdateSchema.parse(updatedTournament);
 
 			// Update the form data with the parsed and updated values
-			form.data = parsedData;
+			form.data = parsedData as typeof form.data;
 			return {
 				form
 			};

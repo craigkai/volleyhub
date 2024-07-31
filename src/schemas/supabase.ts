@@ -37,7 +37,8 @@ export const eventsInsertSchema = z.object({
 	owner: z.string(),
 	pools: z.number().optional().nullable(),
 	refs: z.string().optional().nullable(),
-	scoring: z.string().optional().nullable()
+	scoring: z.string().optional().nullable(),
+	description: z.string().optional()
 });
 
 export const eventsUpdateSchema = z.object({
