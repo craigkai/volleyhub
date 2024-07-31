@@ -1,5 +1,9 @@
 # Volleyball Tournament Manager
 
+<picture>
+  <img alt="Screenshot of matches view." src="/assets/matches.png">
+</picture>
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
