@@ -1,8 +1,8 @@
 # Volleyball Tournament Manager
 
-![Screenshot of event settings view.](/assets/mobile_settings.png)
-
-![Screenshot of matches view.](/assets/matches.png)
+<picture>
+  <img alt="Screenshot of matches view." src="/assets/matches.png">
+</picture>
 
 ## Developing
 
