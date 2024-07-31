@@ -1,5 +1,9 @@
 # Volleyball Tournament Manager
 
+![Screenshot of event settings view.](/assets/mobile_settings.png)
+
+![Screenshot of matches view.](/assets/matches.png)
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
