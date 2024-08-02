@@ -47,9 +47,9 @@
 			</svg>
 
 			<h1 class="flex text-white items-center text-5l font-extrabold">
-				<span class="dark:text-slate-300">VolleyHub</span><span
+				<span
 					class="bg-blue-100 text-blue-800 text-2xl font-semibold px-2.5 py-0.5
-				rounded ml-2 dark:bg-blue-600 dark:text-gray-200">Beta</span
+				rounded ml-2 dark:bg-blue-600 dark:text-gray-200">VolleyHub</span
 				>
 			</h1>
 
