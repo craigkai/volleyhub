@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { error } from '$lib/toast';
 	import * as Table from '$components/ui/table';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches.svelte';
@@ -11,6 +10,7 @@
 	import Zapoff from 'lucide-svelte/icons/zap-off';
 	import { Event } from '$lib/event.svelte';
 	import { onDestroy, onMount } from 'svelte';
+	import toast from 'svelte-french-toast';
 
 	let {
 		readOnly = $bindable(false),
@@ -55,8 +55,8 @@
 		try {
 			matchesSubscription = await matches.subscribeToMatches();
 		} catch (err) {
-			error(`Failed to subscribe to matches: ${err as HttpError}`);
-			console.error('Subscription error:', err);
+			toast.error(`Failed to subscribe to matches: ${err as HttpError}`);
+			console.toast.error('Subscription error:', err);
 		}
 	}
 
@@ -71,14 +71,14 @@
 			// Create new matches
 			const res: Matches | undefined = await matches.create(tournament, teams.teams);
 			if (!res) {
-				error('Failed to create matches');
+				toast.error('Failed to create matches');
 				return;
 			}
 
 			// Resubscribe to matches updates
 			await subscribeToMatches();
 		} catch (err) {
-			error((err as HttpError).toString());
+			toast.error((err as HttpError).toString());
 		} finally {
 			showGenerateMatchesAlert = false;
 		}

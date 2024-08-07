@@ -1,7 +1,6 @@
-import { Matches } from './matches.svelte';
 import { pushState } from '$app/navigation';
 import type { HttpError } from '@sveltejs/kit';
-import { error, success } from '$lib/toast';
+import toast from 'svelte-french-toast';
 import { EventSupabaseDatabaseService } from '$lib/database/event';
 import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
@@ -34,11 +33,11 @@ export async function updateMatch(
 			match.team2_score = Number(match.team2_score);
 
 			const updatedMatch = await matches.updateMatch(match);
-			success(
+			toast.success(
 				`Match ${updatedMatch?.public_matches_team1_fkey.name} vs ${updatedMatch?.public_matches_team1_fkey.name} updated`
 			);
 		} catch (err) {
-			error((err as HttpError).toString());
+			toast.error((err as HttpError).toString());
 		}
 	}
 }

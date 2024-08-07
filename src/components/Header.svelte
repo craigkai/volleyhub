@@ -24,7 +24,7 @@
 <header class="w-full">
 	<!-- Navigation bar -->
 	<div class="bg-blue-500 dark:bg-slate-900 p-4">
-		<div href="/" class="flex">
+		<div class="flex">
 			<svg
 				class="h-20 w-20 p-2 dark:fill-blue-600"
 				fill="#000000"

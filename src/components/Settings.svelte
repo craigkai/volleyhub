@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { error, success } from '$lib/toast';
+	import toast from 'svelte-french-toast';
 	import { Input } from '$components/ui/input';
 	import { Field, Label, Control, Description, FieldErrors, Button } from '$components/ui/form';
 	import { Textarea } from '$components/ui/textarea/index.js';
@@ -36,13 +36,13 @@
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
 		onError({ result }) {
-			error(result.error.message || 'Unknown error');
+			toast.error(result.error.message || 'Unknown error');
 		},
 		async onUpdated({ form }) {
 			if (form.valid) {
-				success(`Tournament settings updated`);
+				toast.success(`Tournament settings updated`);
 				data.tournament.load(data.eventId).catch((err: any) => {
-					error(`Failed to load tournament: ${err}`);
+					toast.error(`Failed to load tournament: ${err}`);
 				});
 				$formData = form.data;
 			}

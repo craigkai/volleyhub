@@ -5,11 +5,11 @@
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button } from '$components/ui/button/index.js';
 	import { updateMatch } from '$lib/helper.svelte';
-	import { error } from '$lib/toast';
 	import type { HttpError } from '@sveltejs/kit';
 	import { Event } from '$lib/event.svelte';
 	import { onMount } from 'svelte';
 	import * as Alert from '$components/ui/alert/index.js';
+	import toast from 'svelte-french-toast';
 
 	let {
 		matches = $bindable(),
@@ -79,7 +79,7 @@
 					matches.matches || []
 				);
 				if (!res) {
-					error('Failed to create matches');
+					toast.error('Failed to create matches');
 				} else {
 					// We need to wait to resub to the matches channel
 					await new Promise((r) => setTimeout(r, 1000));
@@ -89,7 +89,7 @@
 				}
 			}
 		} catch (err) {
-			error((err as HttpError).toString());
+			toast.error((err as HttpError).toString());
 		}
 		showGenerateBracketAlert = false;
 	}

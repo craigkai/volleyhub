@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { success, error } from '$lib/toast';
+	import toast from 'svelte-french-toast';
 	import { Label } from '$components/ui/label/index.js';
 	import { Input } from '$components/ui/input/index.js';
 	import { Button } from '$components/ui/button/index.js';
@@ -13,11 +13,11 @@
 		await data.supabase.auth
 			.updateUser({ password: newPassword })
 			.then((_) => {
-				success('Password updated successfully');
+				toast.success('Password updated successfully');
 				goto('/protected-routes/dashboard');
 			})
 			.catch((err) => {
-				error(err.message);
+				toast.error(err.message);
 			});
 	}
 	const whoAmI = data?.user?.email;

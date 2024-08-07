@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { success, error } from '$lib/toast';
 	import { isHttpError, type HttpError } from '@sveltejs/kit';
 	import * as Table from '$components/ui/table';
 	import { Input } from '$components/ui/input/index.js';
 	import type { Teams } from '$lib/teams.svelte';
+	import toast from 'svelte-french-toast';
 
 	const { teams = $bindable() }: { teams: Teams } = $props();
 
 	async function createTeam() {
 		if (teams.teams.findIndex((team) => team.name === newTeamName) !== -1) {
-			error('Team already exists');
+			toast.error('Team already exists');
 			return;
 		}
 
@@ -22,13 +22,13 @@
 			await teams.create(newTeam);
 			await loadEventTeams();
 
-			success(`Team ${newTeamName} created`);
+			toast.success(`Team ${newTeamName} created`);
 			newTeamName = '';
 		} catch (err) {
 			if (isHttpError(err)) {
-				error(err.body.message);
+				toast.error(err.body.message);
 			} else {
-				error('Something went wrong');
+				toast.error('Something went wrong');
 			}
 		}
 	}
@@ -37,9 +37,9 @@
 		try {
 			await teams.delete(team);
 			await loadEventTeams();
-			success(`Team ${team.name} deleted`);
+			toast.success(`Team ${team.name} deleted`);
 		} catch (err: any) {
-			error(err?.body?.message ?? `Something went wrong: ${err}`);
+			toast.error(err?.body?.message ?? `Something went wrong: ${err}`);
 		}
 	}
 
@@ -51,9 +51,9 @@
 				currentTeams = res;
 			} catch (err) {
 				if (isHttpError(err)) {
-					error(err.body.message);
+					toast.error(err.body.message);
 				}
-				error('Something has gone very wrong');
+				toast.error('Something has gone very wrong');
 			}
 		}
 	}
@@ -84,10 +84,10 @@
 									try {
 										const res = await teams.update(team);
 										if (res) {
-											success(`Team ${team.name} updated`);
+											toast.success(`Team ${team.name} updated`);
 										}
 									} catch (err: any) {
-										error((err as HttpError).toString());
+										toast.error((err as HttpError).toString());
 									}
 								}
 							}
