@@ -106,7 +106,7 @@
 			<Table.Row>
 				{#each Array(tournament.courts) as _, i}
 					{@const index = i + 1}
-					<Table.Head>Court {index + 1}</Table.Head>
+					<Table.Head>Court {index}</Table.Head>
 				{/each}
 				{#if tournament.refs === 'teams'}
 					<Table.Head>Ref</Table.Head>
