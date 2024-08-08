@@ -29,7 +29,7 @@
 
 Scoring based on {scoring}
 
-<Table.Root>
+<Table.Root class="table-auto">
 	<Table.Header>
 		<Table.Row>
 			<Table.Head>Team</Table.Head>

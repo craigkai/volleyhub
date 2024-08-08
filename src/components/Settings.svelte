@@ -207,7 +207,7 @@
 						{...attrs}
 						class={cn(
 							buttonVariants({ variant: 'outline' }),
-							'w-[280px] justify-start pl-4 text-left font-normal',
+							'w-full justify-start pl-4 text-left font-normal',
 							!dateValue && 'text-muted-foreground',
 							'dark:bg-gray-700 dark:text-gray-200'
 						)}

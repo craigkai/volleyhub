@@ -92,16 +92,16 @@
 	);
 </script>
 
-<div class="block text-gray-700 text-sm font-bold mb-4 flex">
+<div class="mb-4 block flex text-sm font-bold text-gray-700">
 	Matches {#if subscriptionStatus && subscriptionStatus === 'SUBSCRIBED'}
-		<Zap class="text-green-500 fill-green-200" />
+		<Zap class="fill-green-200 text-green-500" />
 	{:else}
-		<Zapoff class="text-red-500 fill-red-200" />
+		<Zapoff class="fill-red-200 text-red-500" />
 	{/if}:
 </div>
 
 {#if matches && matches.matches && matches?.matches?.length > 0}
-	<Table.Root class="table-auto border-solid border-2 rounded">
+	<Table.Root class="table-auto">
 		<Table.Header>
 			<Table.Row>
 				{#each Array(tournament.courts) as _, i}
@@ -141,7 +141,7 @@
 									class={hasDefaultTeam
 										? matchComplete
 											? 'p-2 ' + rowTdClass
-											: 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+											: 'border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
 										: 'p-2'}
 								>
 									<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
@@ -156,7 +156,7 @@
 							)?.public_matches_ref_fkey}
 							<Table.Cell
 								class={ref?.name == defaultTeam
-									? 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
+									? 'border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
 									: 'p-2'}
 							>
 								{ref?.name}
@@ -179,13 +179,13 @@
 				</Alert.Description>
 				<div class="flex gap-2">
 					<button
-						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						class="dark:text-nord-1 focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
 						onclick={generateMatches}
 					>
 						Yes
 					</button>
 					<button
-						class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						class="dark:text-nord-1 focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
 						onclick={() => (showGenerateMatchesAlert = false)}
 					>
 						No
@@ -197,7 +197,7 @@
 
 	<div class="m-2 flex justify-center">
 		<button
-			class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+			class="dark:text-nord-1 focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none"
 			type="button"
 			onclick={checkGenerateMatches}
 		>

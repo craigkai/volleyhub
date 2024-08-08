@@ -62,9 +62,9 @@
 	let currentTeams = $state(teams.teams ?? []);
 </script>
 
-<div class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Teams:</div>
+<div class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300">Teams:</div>
 
-<Table.Root class="min-w-full bg-white dark:bg-gray-800 rounded">
+<Table.Root class="dark:bg-gray-800">
 	<Table.Caption>A list of your teams.</Table.Caption>
 	<Table.Body>
 		{#each currentTeams ?? [] as team}
