@@ -4,11 +4,14 @@
 	"tailwind": {
 		"config": "tailwind.config.js",
 		"css": "src/app.postcss",
-		"baseColor": "slate"
+		"baseColor": "slate",
+		"cssVariables": true
 	},
 	"aliases": {
 		"components": "$components",
-		"utils": "$lib/utils"
+		"utils": "$lib/utils",
+		"ui": "$components/ui",
+		"magicui": "$components/magicui"
 	},
 	"typescript": true
 }

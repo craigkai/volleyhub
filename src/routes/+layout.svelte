@@ -9,9 +9,12 @@
 	import { onMount } from 'svelte';
 	import toast, { Toaster } from 'svelte-french-toast';
 
-	inject({ mode: dev ? 'development' : 'production' });
+	inject({
+		mode: dev ? 'development' : 'production'
+	});
 
 	let { data = $bindable(), children } = $props();
+
 	let { session, supabase, isMobile } = data;
 
 	onMount(() => {
@@ -22,9 +25,12 @@
 				 * triggering function from completing
 				 */
 				setTimeout(() => {
-					goto('/', { invalidateAll: true });
+					goto('/', {
+						invalidateAll: true
+					});
 				});
 			}
+
 			if (newSession?.expires_at !== session?.expires_at) {
 				invalidate('supabase:auth');
 			}
@@ -45,16 +51,16 @@
 </svelte:head>
 
 <div
-	class="dark:bg-slate-800 dark:text-white text-gray-900 bg-white flex flex-col min-h-screen overflow-x-hidden"
+	class="flex min-h-screen flex-col overflow-x-hidden bg-white text-gray-900 dark:bg-slate-800 dark:text-white"
 >
-	<div class="flex-grow mb-8">
-		<ModeWatcher />
-		<Header {supabase} {isMobile} />
-		<div class="max-w-7xl mx-auto p-4">
-			<Toaster />
+	<div class="mb-8 flex-grow">
+		<ModeWatcher></ModeWatcher>
+		<Header {supabase} {isMobile}></Header>
+		<div class="mx-auto max-w-7xl p-4">
+			<Toaster></Toaster>
 		</div>
 		{@render children()}
 	</div>
 
-	<Footer />
+	<Footer></Footer>
 </div>
