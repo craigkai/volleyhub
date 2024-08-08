@@ -14,7 +14,7 @@
 
 	const scoring = event.scoring;
 	let teamScores: TeamScores = $state({});
-	let orderedTeamScores = $state({});
+	let orderedTeamScores: string[] = $state([]);
 
 	async function generateResults() {
 		teamScores = await findStandings(matches.matches ?? [], event, teams.teams ?? []);
