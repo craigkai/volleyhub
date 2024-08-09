@@ -120,7 +120,7 @@
 		</div>
 	{/if}
 
-	<Tabs.Root value={readOnly ? 'matches' : 'settings'} class="tabs-container ">
+	<Tabs.Root value={readOnly ? 'matches' : 'settings'}>
 		<Tabs.List class="mb-4 grid w-full gap-2 {tabsWidth} dark:bg-gray-700">
 			{#if !readOnly}
 				<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
@@ -132,7 +132,7 @@
 		</Tabs.List>
 
 		{#if !readOnly}
-			<Tabs.Content value="settings" class="tab-content">
+			<Tabs.Content value="settings">
 				<Card.Root
 					class="relative flex max-w-xl flex-col items-start justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
 				>
@@ -148,7 +148,7 @@
 				</Card.Root>
 			</Tabs.Content>
 
-			<Tabs.Content value="teams" class="tab-content">
+			<Tabs.Content value="teams">
 				<Card.Root
 					class="min-w-xl relative flex max-w-xl flex-col items-start justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
 				>
@@ -166,7 +166,7 @@
 			</Tabs.Content>
 		{/if}
 
-		<Tabs.Content value="matches" class="tab-content">
+		<Tabs.Content value="matches">
 			<Card.Root
 				class="relative flex flex-col rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
 			>
@@ -183,7 +183,7 @@
 			</Card.Root>
 		</Tabs.Content>
 
-		<Tabs.Content value="standings" class="tab-content">
+		<Tabs.Content value="standings">
 			<Card.Root
 				class="min-w-xl relative flex max-w-xl flex-col rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
 			>
@@ -200,7 +200,7 @@
 			</Card.Root>
 		</Tabs.Content>
 
-		<Tabs.Content value="bracket" class="tab-content">
+		<Tabs.Content value="bracket">
 			<Card.Root class="dark:bg-gray-700">
 				<Card.Header>
 					<Card.Title>Bracket</Card.Title>
@@ -233,19 +233,5 @@
 
 	.select-container {
 		margin-bottom: 1.5rem;
-	}
-
-	.tabs-container {
-		width: 100%;
-		max-width: 800px;
-		margin: auto;
-	}
-
-	.tab-content {
-		min-width: 300px; /* Adjust based on your needs */
-		max-width: 100%; /* Ensure it doesn’t exceed container */
-		/* Optionally, set a fixed height if needed */
-		/* height: 500px; */
-		box-sizing: border-box;
 	}
 </style>

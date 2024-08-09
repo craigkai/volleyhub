@@ -8,7 +8,8 @@ export const formSchema = z.object({
 	refs: z.string().min(1, 'Referee option is required'),
 	scoring: z.string().min(1, 'Scoring method is required'),
 	date: z.string().optional(),
-	id: z.coerce.number().optional()
+	id: z.coerce.number().optional(),
+	owner: z.string().optional()
 });
 
 export type FormSchema = typeof formSchema;

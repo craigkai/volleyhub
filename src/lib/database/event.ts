@@ -3,11 +3,11 @@ import { z } from 'zod';
 import { eventsRowSchema, eventsUpdateSchema } from '$schemas/supabase';
 import type { Infer } from 'sveltekit-superforms';
 import type { FormSchema } from '$schemas/settingsSchema';
-import { Base } from '$lib/database/base';
+import { SupabaseDatabaseService } from './supabaseDatabaseService';
 
 const EventsRowSchemaArray = z.array(eventsRowSchema);
 
-export class EventSupabaseDatabaseService extends Base {
+export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
 	 * Create a new event in the database.
 	 * @param {EventRow} input - The data for the new event.
