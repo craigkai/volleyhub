@@ -76,7 +76,7 @@
 </script>
 
 <form
-	class="form-container rounded p-2 dark:bg-gray-800 dark:text-gray-200"
+	class="form-container rounded rounded-2xl p-2 dark:bg-gray-800"
 	method="POST"
 	action="?/{eventId === 'create' ? 'createEvent' : 'updateEvent'}"
 	use:enhance

@@ -92,7 +92,7 @@
 	);
 </script>
 
-<div class="mb-4 block flex text-sm font-bold text-gray-700">
+<div class="mb-4 block flex text-sm font-bold">
 	Matches {#if subscriptionStatus && subscriptionStatus === 'SUBSCRIBED'}
 		<Zap class="fill-green-200 text-green-500" />
 	{:else}
@@ -100,108 +100,112 @@
 	{/if}:
 </div>
 
-{#if matches && matches.matches && matches?.matches?.length > 0}
-	<Table.Root class="table-auto">
-		<Table.Header>
-			<Table.Row>
-				{#each Array(tournament.courts) as _, i}
-					{@const index = i + 1}
-					<Table.Head>Court {index}</Table.Head>
-				{/each}
-				{#if tournament.refs === 'teams'}
-					<Table.Head>Ref</Table.Head>
-				{/if}
-			</Table.Row>
-		</Table.Header>
+<div class="rounded rounded-2xl p-2 dark:bg-gray-800">
+	{#if matches && matches.matches && matches?.matches?.length > 0}
+		<Table.Root class="table-auto">
+			<Table.Header>
+				<Table.Row>
+					{#each Array(tournament.courts) as _, i}
+						{@const index = i + 1}
+						<Table.Head>Court {index}</Table.Head>
+					{/each}
+					{#if tournament.refs === 'teams'}
+						<Table.Head>Ref</Table.Head>
+					{/if}
+				</Table.Row>
+			</Table.Header>
 
-		<Table.Body>
-			{#if rounds > 0}
-				{#each Array(rounds) as _, i}
-					{@const round = i + 1}
-					<Table.Row>
-						{#each Array(tournament.courts) as _, court}
-							{@const match = matches.matches.find(
-								(m: MatchRow) => m.court === court && m.round.toString() === round.toString()
-							)}
-							{#if match}
-								{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
-								{@const teamsForMatch = [
-									match.public_matches_team1_fkey.name,
-									match.public_matches_team2_fkey.name
-								]}
-								{@const hasDefaultTeam = defaultTeam ? teamsForMatch.includes(defaultTeam) : false}
-								{@const defaultTeamWin =
-									match.public_matches_team1_fkey.name == defaultTeam
-										? (match.team1_score ?? 0) > (match.team2_score ?? 0)
-										: (match.team2_score ?? 0) > (match.team1_score ?? 0)}
-								{@const rowTdClass = defaultTeamWin
-									? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
-									: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
+			<Table.Body>
+				{#if rounds > 0}
+					{#each Array(rounds) as _, i}
+						{@const round = i + 1}
+						<Table.Row>
+							{#each Array(tournament.courts) as _, court}
+								{@const match = matches.matches.find(
+									(m: MatchRow) => m.court === court && m.round.toString() === round.toString()
+								)}
+								{#if match}
+									{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
+									{@const teamsForMatch = [
+										match.public_matches_team1_fkey.name,
+										match.public_matches_team2_fkey.name
+									]}
+									{@const hasDefaultTeam = defaultTeam
+										? teamsForMatch.includes(defaultTeam)
+										: false}
+									{@const defaultTeamWin =
+										match.public_matches_team1_fkey.name == defaultTeam
+											? (match.team1_score ?? 0) > (match.team2_score ?? 0)
+											: (match.team2_score ?? 0) > (match.team1_score ?? 0)}
+									{@const rowTdClass = defaultTeamWin
+										? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
+										: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
+									<Table.Cell
+										class={hasDefaultTeam
+											? matchComplete
+												? 'p-2 ' + rowTdClass
+												: 'border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
+											: 'p-2'}
+									>
+										<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
+									</Table.Cell>
+								{:else}
+									<Table.Cell class="p-2"></Table.Cell>
+								{/if}
+							{/each}
+							{#if tournament.refs === 'teams'}
+								{@const ref = matches.matches.find(
+									(m: MatchRow) => m.round.toString() === round.toString()
+								)?.public_matches_ref_fkey}
 								<Table.Cell
-									class={hasDefaultTeam
-										? matchComplete
-											? 'p-2 ' + rowTdClass
-											: 'border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
+									class={ref?.name == defaultTeam
+										? 'border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
 										: 'p-2'}
 								>
-									<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
+									{ref?.name}
 								</Table.Cell>
-							{:else}
-								<Table.Cell class="p-2"></Table.Cell>
 							{/if}
-						{/each}
-						{#if tournament.refs === 'teams'}
-							{@const ref = matches.matches.find(
-								(m: MatchRow) => m.round.toString() === round.toString()
-							)?.public_matches_ref_fkey}
-							<Table.Cell
-								class={ref?.name == defaultTeam
-									? 'border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
-									: 'p-2'}
-							>
-								{ref?.name}
-							</Table.Cell>
-						{/if}
-					</Table.Row>
-				{/each}
-			{/if}
-		</Table.Body>
-	</Table.Root>
-{/if}
-
-{#if !readOnly}
-	{#if showGenerateMatchesAlert}
-		<div class="m-2">
-			<Alert.Root>
-				<Alert.Title>Generate new matches?</Alert.Title>
-				<Alert.Description>
-					You already have some match content, are you sure you want to wipe that?
-				</Alert.Description>
-				<div class="flex gap-2">
-					<button
-						class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-						onclick={generateMatches}
-					>
-						Yes
-					</button>
-					<button
-						class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-						onclick={() => (showGenerateMatchesAlert = false)}
-					>
-						No
-					</button>
-				</div>
-			</Alert.Root>
-		</div>
+						</Table.Row>
+					{/each}
+				{/if}
+			</Table.Body>
+		</Table.Root>
 	{/if}
 
-	<div class="m-2 flex justify-center">
-		<button
-			class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-			type="button"
-			onclick={checkGenerateMatches}
-		>
-			Generate matches
-		</button>
-	</div>
-{/if}
+	{#if !readOnly}
+		{#if showGenerateMatchesAlert}
+			<div class="m-2">
+				<Alert.Root>
+					<Alert.Title>Generate new matches?</Alert.Title>
+					<Alert.Description>
+						You already have some match content, are you sure you want to wipe that?
+					</Alert.Description>
+					<div class="flex gap-2">
+						<button
+							class="focus:shadow-outline dark:text-nord-1 rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
+							onclick={generateMatches}
+						>
+							Yes
+						</button>
+						<button
+							class="focus:shadow-outline dark:text-nord-1 rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
+							onclick={() => (showGenerateMatchesAlert = false)}
+						>
+							No
+						</button>
+					</div>
+				</Alert.Root>
+			</div>
+		{/if}
+
+		<div class="m-2 flex justify-center">
+			<button
+				class="focus:shadow-outline dark:text-nord-1 rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none"
+				type="button"
+				onclick={checkGenerateMatches}
+			>
+				Generate matches
+			</button>
+		</div>
+	{/if}
+</div>

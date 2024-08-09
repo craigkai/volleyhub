@@ -64,61 +64,63 @@
 
 <div class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300">Teams:</div>
 
-<Table.Root class="dark:bg-gray-800">
-	<Table.Caption>A list of your teams.</Table.Caption>
-	<Table.Body>
-		{#each currentTeams ?? [] as team}
+<div class="rounded rounded-2xl p-2 dark:bg-gray-800">
+	<Table.Root class="dark:bg-gray-800">
+		<Table.Caption>A list of your teams.</Table.Caption>
+		<Table.Body>
+			{#each currentTeams ?? [] as team}
+				<Table.Row>
+					<Table.Cell>
+						<Input
+							class="input-field dark:bg-gray-700 dark:text-gray-200"
+							id="team2-score-input"
+							type="text"
+							value={team.name}
+							on:keypress={async (e) => {
+								// if we hit enter
+								if (e?.key === 'Enter') {
+									const target = e.target as HTMLInputElement;
+									if (target.value) {
+										team.name = target.value;
+										try {
+											const res = await teams.update(team);
+											if (res) {
+												toast.success(`Team ${team.name} updated`);
+											}
+										} catch (err: any) {
+											toast.error((err as HttpError).toString());
+										}
+									}
+								}
+							}}
+						/></Table.Cell
+					>
+					<Table.Cell
+						><button onclick={() => deleteTeam(team)} class="action-button">Delete</button
+						></Table.Cell
+					>
+				</Table.Row>
+			{/each}
 			<Table.Row>
 				<Table.Cell>
 					<Input
-						class="input-field dark:bg-gray-700 dark:text-gray-200"
-						id="team2-score-input"
 						type="text"
-						value={team.name}
-						on:keypress={async (e) => {
-							// if we hit enter
+						id="newTeam"
+						class="input-field dark:bg-gray-700 dark:text-gray-200"
+						placeholder="Enter new team name"
+						onkeydown={(e) => {
 							if (e?.key === 'Enter') {
-								const target = e.target as HTMLInputElement;
-								if (target.value) {
-									team.name = target.value;
-									try {
-										const res = await teams.update(team);
-										if (res) {
-											toast.success(`Team ${team.name} updated`);
-										}
-									} catch (err: any) {
-										toast.error((err as HttpError).toString());
-									}
-								}
+								createTeam();
 							}
 						}}
-					/></Table.Cell
-				>
-				<Table.Cell
-					><button onclick={() => deleteTeam(team)} class="action-button">Delete</button
-					></Table.Cell
-				>
+						bind:value={newTeamName}
+					></Input>
+				</Table.Cell>
+				<Table.Cell><button onclick={createTeam} class="action-button">Add</button></Table.Cell>
 			</Table.Row>
-		{/each}
-		<Table.Row>
-			<Table.Cell>
-				<Input
-					type="text"
-					id="newTeam"
-					class="input-field dark:bg-gray-700 dark:text-gray-200"
-					placeholder="Enter new team name"
-					onkeydown={(e) => {
-						if (e?.key === 'Enter') {
-							createTeam();
-						}
-					}}
-					bind:value={newTeamName}
-				></Input>
-			</Table.Cell>
-			<Table.Cell><button onclick={createTeam} class="action-button">Add</button></Table.Cell>
-		</Table.Row>
-	</Table.Body>
-</Table.Root>
+		</Table.Body>
+	</Table.Root>
+</div>
 
 <style>
 	.action-button {
