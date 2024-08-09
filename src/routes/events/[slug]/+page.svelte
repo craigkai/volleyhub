@@ -31,8 +31,6 @@
 		_dog = JSON.stringify(teams?.teams) || '';
 		// If we aren't
 		if (data.eventId !== 'create' && teams) {
-			console.log(`Reloading matches`);
-
 			try {
 				if (data.matches?.event_id) data.matches.load(data.matches.event_id);
 			} catch (err) {

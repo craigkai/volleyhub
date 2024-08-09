@@ -30,9 +30,9 @@
 	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import type { PageData } from './$types';
 
-	export let data;
-	export let eventId;
+	const { data, eventId } = $props<{ eventId: Number; data: PageData }>();
 
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
@@ -58,19 +58,25 @@
 	});
 
 	let dateValue = $formData.date ? parseDateTime($formData.date) : undefined;
-	$: $formData.date = dateValue?.toString() ?? '';
+	$effect(() => {
+		$formData.date = dateValue?.toString() ?? '';
+	});
 
 	let selectedRefValue = {
 		label: $formData.refs,
 		value: $formData.refs
 	};
-	$: $formData.refs = selectedRefValue.value;
+	$effect(() => {
+		$formData.refs = selectedRefValue.value;
+	});
 
 	let scoringValue = {
 		label: $formData.scoring,
 		value: $formData.scoring
 	};
-	$: $formData.scoring = scoringValue.value;
+	$effect(() => {
+		$formData.scoring = scoringValue.value;
+	});
 
 	const datePlaceholder: DateValue = today(getLocalTimeZone());
 </script>
@@ -241,6 +247,7 @@
 			</Control>
 		</Field>
 	</div>
+
 	<div class="flex justify-center">
 		<Button
 			class="rounded-xl border border-emerald-900 bg-emerald-950 px-4 py-2 text-sm font-medium text-emerald-500"

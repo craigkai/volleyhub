@@ -13,7 +13,7 @@
 	import toast from 'svelte-french-toast';
 
 	let {
-		readOnly = $bindable(false),
+		readOnly = false,
 		defaultTeam,
 		teams,
 		tournament,

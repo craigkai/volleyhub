@@ -46,7 +46,15 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 	const readOnly = !isOwner;
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
-		tournament,
+		{
+			...tournament,
+			name: tournament.name,
+			date: tournament.date,
+			pools: tournament.pools,
+			courts: tournament.courts,
+			scoring: tournament.scoring,
+			refs: tournament.refs
+		},
 		zod(settingsSchema)
 	);
 
