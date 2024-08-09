@@ -15,8 +15,8 @@
 	</div>
 {:then events}
 	{#if events && events.length > 0}
-		<div class="p-8 bg-gray-100 dark:bg-gray-600 rounded-lg shadow-lg max-w-3xl mx-auto my-8">
-			<div class="text-center text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+		<div class="mx-auto my-8 max-w-3xl rounded-lg bg-gray-100 p-8 shadow-lg dark:bg-gray-600">
+			<div class="mb-4 text-center text-xl font-semibold text-gray-900 dark:text-gray-100">
 				Upcoming Events
 			</div>
 			<EventsCards {events} />

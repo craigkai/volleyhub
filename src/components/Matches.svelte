@@ -179,13 +179,13 @@
 				</Alert.Description>
 				<div class="flex gap-2">
 					<button
-						class="dark:text-nord-1 focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
+						class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 						onclick={generateMatches}
 					>
 						Yes
 					</button>
 					<button
-						class="dark:text-nord-1 focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
+						class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 						onclick={() => (showGenerateMatchesAlert = false)}
 					>
 						No
@@ -197,7 +197,7 @@
 
 	<div class="m-2 flex justify-center">
 		<button
-			class="dark:text-nord-1 focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none"
+			class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 			type="button"
 			onclick={checkGenerateMatches}
 		>

@@ -10,7 +10,7 @@
 		<div class="m-2">
 			{#each events as event}
 				<a href="/events/{event.id}">
-					<Card.Root class="w-[350px] m-2 dark:bg-slate-700">
+					<Card.Root class="m-2 w-[350px] dark:bg-slate-700">
 						<Card.Header>
 							<Card.Title>{event.name}</Card.Title>
 							<Card.Description>{event.description}</Card.Description>
