@@ -19,7 +19,11 @@
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
-	let subscriptionStatus: any | undefined = $state(data.matches?.subscriptionStatus);
+	let subscriptionStatus: any | undefined = $derived(data.matches?.subscriptionStatus);
+
+	function deleteAllMatches() {
+		data.matches.deleteAllMatches();
+	}
 
 	// When number of matches change or courts, clear matches
 	$effect(() => {
@@ -27,18 +31,13 @@
 		// 	`Clearing matches as court or pool value has changed: Courts: ${data.tournament.courts}, Pools: ${data.tournament.pools}`
 		// );
 		console.log('do not see me');
-
-		try {
-			data.matches.deleteAllMatches();
-		} catch (err) {
-			console.error(`Failed to delete matches: ${err as HttpError}`);
-			toast.error('Failed to delete matches');
-		}
-	});
-
-	$effect(() => {
-		data.matches;
-		subscriptionStatus = data.matches?.subscriptionStatus;
+		deleteAllMatches();
+		// try {
+		// 	data.matches.deleteAllMatches();
+		// } catch (err) {
+		// 	console.error(`Failed to delete matches: ${err as HttpError}`);
+		// 	toast.error('Failed to delete matches');
+		// }
 	});
 
 	async function checkGenerateMatches() {

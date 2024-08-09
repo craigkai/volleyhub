@@ -39,13 +39,13 @@
 		onError({ result }) {
 			toast.error(result.error.message || 'Unknown error');
 		},
-		// async onUpdated({ form }) {
-		// 	if (form.valid) {
-		// 		$formData = form.data;
+		async onUpdated({ form }) {
+			if (form.valid) {
+				$formData = form.data;
 
-		// 		toast.success(`Tournament settings updated`);
-		// 	}
-		// },
+				toast.success(`Tournament settings updated`);
+			}
+		},
 		dataType: 'json'
 	});
 
@@ -55,27 +55,16 @@
 		dateStyle: 'long'
 	});
 
-	let dateValue = $state($formData.date ? parseDateTime($formData.date) : undefined);
-	$effect(() => {
-		$formData.date = dateValue?.toString() ?? '';
-	});
+	let dateValue = $derived($formData.date ? parseDateTime($formData.date) : undefined);
 
-	let selectedRefValue = $state({
+	let selectedRefValue = $derived({
 		label: $formData.refs,
 		value: $formData.refs
 	});
 
-	$effect(() => {
-		$formData.refs = selectedRefValue.value;
-	});
-
-	let scoringValue = $state({
+	let scoringValue = $derived({
 		label: $formData.scoring,
 		value: $formData.scoring
-	});
-
-	$effect(() => {
-		$formData.scoring = scoringValue.value;
 	});
 
 	const datePlaceholder: DateValue = today(getLocalTimeZone());
@@ -156,7 +145,7 @@
 			<Control let:attrs>
 				<Label class="form-label dark:text-gray-300">Ref's</Label>
 				<SelectRoot
-					bind:selected={selectedRefValue}
+					selected={selectedRefValue}
 					onSelectedChange={(v) => {
 						v && ($formData.refs = v.value);
 					}}
@@ -183,7 +172,7 @@
 			<Control let:attrs>
 				<Label class="form-label dark:text-gray-300">Scoring Method</Label>
 				<SelectRoot
-					bind:selected={scoringValue}
+					selected={scoringValue}
 					onSelectedChange={(v) => {
 						v && ($formData.scoring = v.value);
 					}}
@@ -224,7 +213,7 @@
 					</PopoverTrigger>
 					<PopoverContent class="w-auto p-0" side="top">
 						<Calendar
-							bind:value={dateValue}
+							value={dateValue}
 							placeholder={datePlaceholder}
 							minValue={today(getLocalTimeZone())}
 							calendarLabel="Date of event"
@@ -232,10 +221,8 @@
 							onValueChange={(v) => {
 								if (v) {
 									$formData.date = v.toString();
-									dateValue = v as CalendarDateTime; // Ensure dateValue is updated
 								} else {
 									$formData.date = '';
-									dateValue = undefined;
 								}
 							}}
 						/>

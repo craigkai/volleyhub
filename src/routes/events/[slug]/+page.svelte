@@ -24,22 +24,6 @@
 	let readOnly = $state(data.readOnly);
 	let { teams, matches, bracket, tournament } = $state(data);
 
-	// Getting reactivity to work?
-	let _dog = '';
-	// If we update teams, we should also update matches?
-	$effect(() => {
-		_dog = JSON.stringify(teams?.teams) || '';
-		// If we aren't
-		if (data.eventId !== 'create' && teams) {
-			try {
-				if (data.matches?.event_id) data.matches.load(data.matches.event_id);
-			} catch (err) {
-				console.error('Error loading matches:', err);
-				error(500, 'Failed to load matches');
-			}
-		}
-	});
-
 	let historyReady = false;
 	onMount(async () => {
 		await tick();
@@ -54,11 +38,7 @@
 			.concat([{ value: '', name: 'none' }]) || []
 	);
 
-	let open = $state($page.state.showModal);
-
-	$effect(() => {
-		open = $page.state.showModal ?? false;
-	});
+	let open = $derived($page.state.showModal ?? false);
 
 	const isCreate = $derived(data?.eventId === 'create');
 
@@ -67,7 +47,7 @@
 
 {#if $page.state.showModal && $page.state.matchId}
 	<AlertDialog.Root
-		bind:open
+		{open}
 		onOpenChange={closeModal}
 		closeOnOutsideClick={true}
 		closeOnEscape={true}

@@ -12,12 +12,7 @@
 	let { matchId, matches }: { matchId: number; matches: Pool | Brackets } = $props();
 	const teams = getContext('teams') as Teams;
 
-	let match = $state(matches?.matches?.find((m) => m.id === matchId));
-
-	$effect(() => {
-		matches;
-		match = matches?.matches?.find((m) => m.id === matchId);
-	});
+	let match = $derived(matches?.matches?.find((m) => m.id === matchId));
 
 	async function saveMatch() {
 		try {
