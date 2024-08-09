@@ -122,7 +122,7 @@
 	</Table.Root>
 </div>
 
-<style>
+<style lang="postcss">
 	.action-button {
 		@apply font-medium text-blue-600 hover:underline;
 	}
