@@ -55,8 +55,8 @@
 		try {
 			matchesSubscription = await matches.subscribeToMatches();
 		} catch (err) {
-			toast.error(`Failed to subscribe to matches: ${err as HttpError}`);
-			console.toast.error('Subscription error:', err);
+			console.error(`Failed to subscribe to matches: ${err as HttpError}`);
+			toast.error('Subscription error!');
 		}
 	}
 
