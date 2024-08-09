@@ -145,6 +145,17 @@ export class Matches extends Base {
 		}
 	}
 
+	async deleteAllMatches() {
+		console.log('deleting...');
+		// if (!this.event_id) {
+		// 	this.handleError(400, 'Event ID is required to delete all matches.');
+		// 	return;
+		// }
+
+		// await this.databaseService.deleteMatchesByEvent(this.event_id);
+		// this.matches = [];
+	}
+
 	/**
 	 * Update a specific match in the database.
 	 * @param {MatchRow} match - The match details to be updated.

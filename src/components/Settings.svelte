@@ -32,22 +32,20 @@
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import type { PageData } from './$types';
 
-	const { data, eventId } = $props<{ eventId: Number; data: PageData }>();
+	const { data, eventId } = $props<{ eventId: Number | string; data: PageData }>();
 
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
 		onError({ result }) {
 			toast.error(result.error.message || 'Unknown error');
 		},
-		async onUpdated({ form }) {
-			if (form.valid) {
-				toast.success(`Tournament settings updated`);
-				data.tournament.load(data.eventId).catch((err: any) => {
-					toast.error(`Failed to load tournament: ${err}`);
-				});
-				$formData = form.data;
-			}
-		},
+		// async onUpdated({ form }) {
+		// 	if (form.valid) {
+		// 		$formData = form.data;
+
+		// 		toast.success(`Tournament settings updated`);
+		// 	}
+		// },
 		dataType: 'json'
 	});
 
@@ -57,23 +55,25 @@
 		dateStyle: 'long'
 	});
 
-	let dateValue = $formData.date ? parseDateTime($formData.date) : undefined;
+	let dateValue = $state($formData.date ? parseDateTime($formData.date) : undefined);
 	$effect(() => {
 		$formData.date = dateValue?.toString() ?? '';
 	});
 
-	let selectedRefValue = {
+	let selectedRefValue = $state({
 		label: $formData.refs,
 		value: $formData.refs
-	};
+	});
+
 	$effect(() => {
 		$formData.refs = selectedRefValue.value;
 	});
 
-	let scoringValue = {
+	let scoringValue = $state({
 		label: $formData.scoring,
 		value: $formData.scoring
-	};
+	});
+
 	$effect(() => {
 		$formData.scoring = scoringValue.value;
 	});

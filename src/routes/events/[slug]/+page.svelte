@@ -174,8 +174,8 @@
 					<Card.Description>Results of pool play (live)</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams}
-						<Matches {defaultTeam} {readOnly} {tournament} {matches} {teams} />
+					{#if data.tournament && data.matches && data.teams}
+						<Matches {defaultTeam} {readOnly} {data} />
 					{/if}
 				</Card.Content>
 			</Card.Root>

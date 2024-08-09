@@ -5,38 +5,44 @@
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import * as Alert from '$components/ui/alert/index.js';
 	import type { HttpError } from '@sveltejs/kit';
-	import type { Teams } from '$lib/teams.svelte';
 	import Zap from 'lucide-svelte/icons/zap';
 	import Zapoff from 'lucide-svelte/icons/zap-off';
-	import { Event } from '$lib/event.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import toast from 'svelte-french-toast';
+	import type { PageData } from './$types';
 
 	let {
 		readOnly = false,
 		defaultTeam,
-		teams,
-		tournament,
-		matches
-	}: {
-		readOnly: boolean;
-		defaultTeam: string | null;
-		teams: Teams;
-		tournament: Event;
-		matches: Matches;
-	} = $props();
+		data
+	} = $props<{ eventId: Number | string; data: PageData }>();
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
-	let subscriptionStatus: any | undefined = $state(matches?.subscriptionStatus);
+	let subscriptionStatus: any | undefined = $state(data.matches?.subscriptionStatus);
+
+	// When number of matches change or courts, clear matches
+	$effect(() => {
+		// console.info(
+		// 	`Clearing matches as court or pool value has changed: Courts: ${data.tournament.courts}, Pools: ${data.tournament.pools}`
+		// );
+		console.log('do not see me');
+
+		try {
+			data.matches.deleteAllMatches();
+		} catch (err) {
+			console.error(`Failed to delete matches: ${err as HttpError}`);
+			toast.error('Failed to delete matches');
+		}
+	});
 
 	$effect(() => {
-		matches;
-		subscriptionStatus = matches?.subscriptionStatus;
+		data.matches;
+		subscriptionStatus = data.matches?.subscriptionStatus;
 	});
 
 	async function checkGenerateMatches() {
-		if ((matches?.matches?.length ?? 0) > 0) {
+		if ((data.matches?.matches?.length ?? 0) > 0) {
 			showGenerateMatchesAlert = true;
 		} else {
 			generateMatches();
@@ -44,7 +50,7 @@
 	}
 
 	onMount(async () => {
-		if ((matches?.matches?.length ?? 0) > 0) await subscribeToMatches();
+		if ((data.matches?.matches?.length ?? 0) > 0) await subscribeToMatches();
 	});
 
 	onDestroy(() => {
@@ -53,7 +59,7 @@
 
 	async function subscribeToMatches() {
 		try {
-			matchesSubscription = await matches.subscribeToMatches();
+			matchesSubscription = await data.matches.subscribeToMatches();
 		} catch (err) {
 			console.error(`Failed to subscribe to matches: ${err as HttpError}`);
 			toast.error('Subscription error!');
@@ -69,7 +75,7 @@
 			}
 
 			// Create new matches
-			const res: Matches | undefined = await matches.create(tournament, teams.teams);
+			const res: Matches | undefined = await data.matches.create(data.tournament, data.teams.teams);
 			if (!res) {
 				toast.error('Failed to create matches');
 				return;
@@ -86,7 +92,7 @@
 
 	const rounds = Math.max.apply(
 		Math,
-		matches?.matches?.map(function (m) {
+		data.matches?.matches?.map(function (m) {
 			return m.round;
 		}) ?? [0]
 	);
@@ -101,15 +107,15 @@
 </div>
 
 <div class="rounded rounded-2xl p-2 dark:bg-gray-800">
-	{#if matches && matches.matches && matches?.matches?.length > 0}
+	{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
 		<Table.Root class="table-auto">
 			<Table.Header>
 				<Table.Row>
-					{#each Array(tournament.courts) as _, i}
+					{#each Array(data.tournament.courts) as _, i}
 						{@const index = i + 1}
 						<Table.Head>Court {index}</Table.Head>
 					{/each}
-					{#if tournament.refs === 'teams'}
+					{#if data.tournament.refs === 'teams'}
 						<Table.Head>Ref</Table.Head>
 					{/if}
 				</Table.Row>
@@ -120,8 +126,8 @@
 					{#each Array(rounds) as _, i}
 						{@const round = i + 1}
 						<Table.Row>
-							{#each Array(tournament.courts) as _, court}
-								{@const match = matches.matches.find(
+							{#each Array(data.tournament.courts) as _, court}
+								{@const match = data.matches.matches.find(
 									(m: MatchRow) => m.court === court && m.round.toString() === round.toString()
 								)}
 								{#if match}
@@ -153,8 +159,8 @@
 									<Table.Cell class="p-2"></Table.Cell>
 								{/if}
 							{/each}
-							{#if tournament.refs === 'teams'}
-								{@const ref = matches.matches.find(
+							{#if data.tournament.refs === 'teams'}
+								{@const ref = data.matches.matches.find(
 									(m: MatchRow) => m.round.toString() === round.toString()
 								)?.public_matches_ref_fkey}
 								<Table.Cell
