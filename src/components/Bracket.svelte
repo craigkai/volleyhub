@@ -118,19 +118,19 @@
 												class="tournament-bracket__team"
 												class:tournament-bracket__team--winner={team1Win}
 											>
-												<td class="tournament-bracket__country rounded p-1 m-1">
+												<td class="tournament-bracket__country m-1 rounded p-1">
 													<abbr class="tournament-bracket__code" title="team1">
 														{match.public_matches_team1_fkey?.name ?? 'tbd'}
 													</abbr>
 												</td>
-												<td class="tournament-bracket__score rounded p-1 m-1">
+												<td class="tournament-bracket__score m-1 rounded p-1">
 													{#if readOnly}
 														<span class="tournament-bracket__number">{match?.team1_score || 0}</span
 														>
 													{:else}
 														<input
 															disabled={!match.public_matches_team1_fkey?.name}
-															class="border-solid border-2 text-center max-w-8"
+															class="max-w-8 border-2 border-solid text-center"
 															bind:value={match.team1_score}
 															onchange={() => updateMatch(match, bracket)}
 														/>
@@ -142,19 +142,19 @@
 												class="tournament-bracket__team"
 												class:tournament-bracket__team--winner={team2Win}
 											>
-												<td class="tournament-bracket__country rounded p-1 m-1">
+												<td class="tournament-bracket__country m-1 rounded p-1">
 													<abbr class="tournament-bracket__code" title="team">
 														{match.public_matches_team2_fkey?.name ?? 'tbd'}
 													</abbr>
 												</td>
-												<td class="tournament-bracket__score rounded p-1 m-1">
+												<td class="tournament-bracket__score m-1 rounded p-1">
 													{#if readOnly}
 														<span class="tournament-bracket__number">{match?.team2_score || 0}</span
 														>
 													{:else}
 														<input
 															disabled={!match.public_matches_team1_fkey?.name}
-															class="border-solid border-2 text-center max-w-8"
+															class="max-w-8 border-2 border-solid text-center"
 															bind:value={match.team2_score}
 															onchange={() => updateMatch(match, bracket)}
 														/>
@@ -184,11 +184,11 @@
 					>
 					<div class="flex gap-2">
 						<button
-							class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+							class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 							onclick={generateBracket}>Yes</button
 						>
 						<button
-							class="text-black bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+							class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 							onclick={() => (showGenerateBracketAlert = false)}>No</button
 						>
 					</div>
@@ -199,13 +199,13 @@
 		{#if !bracket?.matches || bracket.matches.length === 0}
 			<Button
 				variant="outline"
-				class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+				class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 				onclick={checkGenerateBracket}>Generate initial bracket</Button
 			>
 		{:else}
 			<Button
 				variant="outline"
-				class="bg-blue-400 hover:bg-blue-600 text-white dark:text-nord-1 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+				class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 				onclick={checkGenerateBracket}>Regenerate bracket</Button
 			>
 		{/if}

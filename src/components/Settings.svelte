@@ -241,14 +241,18 @@
 		</Field>
 	</div>
 	<div class="flex justify-center">
-		<Button class="m-2 dark:bg-gray-700 dark:text-gray-200">Submit</Button>
+		<Button
+			class="rounded-xl border border-emerald-900 bg-emerald-950 px-4 py-2 text-sm font-medium text-emerald-500"
+			>Submit</Button
+		>
 	</div>
 </form>
 
 {#if eventId !== 'create'}
 	<form method="POST" action="?/deleteEvent" use:enhance>
 		<div class="flex justify-center">
-			<Button class="m-2 bg-red-500 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-900"
+			<Button
+				class="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-medium text-red-500"
 				>Delete</Button
 			>
 		</div>

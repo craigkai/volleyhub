@@ -25,7 +25,7 @@
 
 <div class="row flex-center flex justify-center">
 	<div class="col-6 form-widget flex flex-col">
-		<Label for="password" class="block mb-2">New Password</Label>
+		<Label for="password" class="mb-2 block">New Password</Label>
 		<Input
 			type="password"
 			bind:value={newPassword}

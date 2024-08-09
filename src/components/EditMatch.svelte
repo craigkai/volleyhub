@@ -31,7 +31,7 @@
 </script>
 
 {#snippet editTeam(match, teamNumber)}
-	<div class="flex items-center space-x-4 mb-4">
+	<div class="mb-4 flex items-center space-x-4">
 		<Label class="min-w-[100px]" for="{teamNumber}-select">
 			{teamNumber === 'team1' ? 'Home' : 'Away'} Team: {match[`public_matches_${teamNumber}_fkey`]
 				.name}:
@@ -57,7 +57,7 @@
 
 		<Label class="ml-4 min-w-[50px]" for="team1-score-input">Score:</Label>
 		<Input
-			class="border border-blue-500 rounded max-w-16 py-2 px-3 leading-tight text-center"
+			class="max-w-16 rounded border border-blue-500 px-3 py-2 text-center leading-tight"
 			id="team1-score-input"
 			type="number"
 			bind:value={match[`${teamNumber}_score`]}
@@ -66,11 +66,11 @@
 {/snippet}
 
 {#if match}
-	<div class="flex flex-col m-2 w-3/4">
+	<div class="m-2 flex w-3/4 flex-col">
 		{@render editTeam(match, 'team1')}
 
 		{@render editTeam(match, 'team2')}
 
-		<button class="bg-blue-500 text-white py-2 px-4 rounded mt-4" onclick={saveMatch}>Save</button>
+		<button class="mt-4 rounded bg-blue-500 px-4 py-2 text-white" onclick={saveMatch}>Save</button>
 	</div>
 {/if}

@@ -65,9 +65,9 @@
 	<title>User Auth</title>
 </svelte:head>
 
-<div class="flex justify-center items-center bg-gray-100">
-	<div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-		<h2 class="text-2xl font-bold text-center text-gray-700 dark:text-gray-200">
+<div class="flex items-center justify-center bg-gray-100">
+	<div class="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
+		<h2 class="text-center text-2xl font-bold text-gray-700 dark:text-gray-200">
 			User Authentication
 		</h2>
 		{#if method === 'magic'}
@@ -75,11 +75,11 @@
 				<Label for="email" class="text-gray-700 dark:text-gray-400">Email Address</Label>
 				<Input
 					name="email"
-					class="w-full px-4 py-2 text-gray-700 bg-gray-200 rounded-md border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
 					bind:value={email}
 				/>
 				<Button
-					class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					on:click={handleSignInOtp}>Send Magic Link</Button
 				>
 			</div>
@@ -89,24 +89,24 @@
 				<Input
 					name="email"
 					id="email"
-					class="w-full px-4 py-2 text-gray-700 bg-gray-200 rounded-md border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
 					bind:value={email}
 				/>
 				<Label for="password" class="text-gray-700 dark:text-gray-400">Password</Label>
 				<Input
 					type="password"
 					id="password"
-					class="w-full px-4 py-2 text-gray-700 bg-gray-200 rounded-md border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
 					bind:value={password}
 					placeholder="•••••••••"
 					required
 				/>
 				<Button
-					class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					on:click={handleSignIn}>Sign In</Button
 				>
 				<Button
-					class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					on:click={() => (method = 'recovery')}>Forgot your password?</Button
 				>
 			</div>
@@ -115,26 +115,26 @@
 				<Label for="email" class="text-gray-700 dark:text-gray-400">Email Address</Label>
 				<Input
 					name="email"
-					class="w-full px-4 py-2 text-gray-700 bg-gray-200 rounded-md border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
 					bind:value={email}
 				/>
 				<Button
-					class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					on:click={handleForgotPassword}>Send Reset Password Instructions</Button
 				>
 			</div>
 		{/if}
 		<div class="space-y-4">
 			<Button
-				class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				on:click={() => (method = 'password')}>Already have an account? Sign In With Email</Button
 			>
 		</div>
 		{#if message}
-			<div class="text-center text-green-500 mt-4">{message}</div>
+			<div class="mt-4 text-center text-green-500">{message}</div>
 		{/if}
 		{#if errorString}
-			<div class="text-center text-red-500 mt-4">{errorString}</div>
+			<div class="mt-4 text-center text-red-500">{errorString}</div>
 		{/if}
 	</div>
 </div>

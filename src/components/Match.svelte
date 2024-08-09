@@ -17,7 +17,7 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="flex justify-center place-items-center text-pretty"
+		class="flex place-items-center justify-center text-pretty"
 		onclick={() => {
 			if (!readOnly && !$page.state.showModal) {
 				showModal(match?.id, 'pool');
@@ -25,7 +25,7 @@
 		}}
 	>
 		<span
-			class="p-1 text-pretty rounded {showWinLoss &&
+			class="text-pretty rounded p-1 {showWinLoss &&
 			match?.team1_score &&
 			match?.team2_score &&
 			match.team1_score > match.team2_score
@@ -41,7 +41,7 @@
 		>
 		vs
 		<span
-			class="p-1 text-pretty rounded {showWinLoss &&
+			class="text-pretty rounded p-1 {showWinLoss &&
 			match?.team1_score &&
 			match?.team2_score &&
 			match.team2_score > match.team1_score
