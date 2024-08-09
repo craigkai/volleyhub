@@ -23,8 +23,8 @@
 
 <header class="w-full">
 	<!-- Navigation bar -->
-	<div class="bg-blue-500 dark:bg-slate-900 p-4">
-		<div class="flex">
+	<div class="bg-blue-500 p-4 dark:bg-slate-900">
+		<a href="/" class="flex">
 			<svg
 				class="h-20 w-20 p-2 dark:fill-blue-600"
 				fill="#000000"
@@ -46,21 +46,21 @@
 				</g>
 			</svg>
 
-			<h1 class="flex text-white items-center text-5l font-extrabold">
+			<h1 class="text-5l flex items-center font-extrabold text-white">
 				<span
-					class="bg-blue-100 text-blue-800 text-2xl font-semibold px-2.5 py-0.5
-				rounded ml-2 dark:bg-blue-600 dark:text-gray-200">VolleyHub</span
+					class="ml-2 rounded bg-blue-100 px-2.5 py-0.5 text-2xl
+				font-semibold text-blue-800 dark:bg-blue-600 dark:text-gray-200">VolleyHub</span
 				>
 			</h1>
 
 			<div class="absolute end-0">
 				<Hamburger bind:open --color="white" />
 			</div>
-		</div>
+		</a>
 
 		{#if open}
 			<nav
-				class="relative flex w-full items-center justify-between py-2 bg-white rounded text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 dark:bg-gray-800 dark:text-gray-200 md:flex-wrap md:justify-start"
+				class="relative flex w-full items-center justify-between rounded bg-white py-2 text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 dark:bg-gray-800 dark:text-gray-200 md:flex-wrap md:justify-start"
 				transition:fade={{ duration: 300 }}
 			>
 				<div class="flex w-full flex-wrap items-center justify-between px-3">
