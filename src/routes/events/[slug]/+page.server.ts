@@ -32,17 +32,17 @@ export const actions: Actions = {
 		if (!event.params.slug) {
 			throw new Error('Slug is undefined');
 		}
-		// const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
-		// const tournament = new Event(eventSupabaseDatabaseService);
+		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
+		const tournament = new Event(eventSupabaseDatabaseService);
 
 		try {
-			// const updatedTournament = await tournament.update(eventId, form.data);
+			const updatedTournament = await tournament.update(eventId, form.data);
 
-			// // Parse the updated tournament data
-			// const parsedData = eventsUpdateSchema.parse(updatedTournament);
+			// Parse the updated tournament data
+			const parsedData = eventsUpdateSchema.parse(updatedTournament);
 
-			// // Update the form data with the parsed and updated values
-			// form.data = parsedData as typeof form.data;
+			// Update the form data with the parsed and updated values
+			form.data = parsedData as typeof form.data;
 			return {
 				form
 			};
