@@ -23,7 +23,8 @@
 		DateFormatter,
 		getLocalTimeZone,
 		today,
-		parseDateTime
+		parseDateTime,
+		CalendarDateTime
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$components/ui/button';
@@ -225,7 +226,7 @@
 							onValueChange={(v) => {
 								if (v) {
 									$formData.date = v.toString();
-									dateValue = v; // Ensure dateValue is updated
+									dateValue = v as CalendarDateTime; // Ensure dateValue is updated
 								} else {
 									$formData.date = '';
 									dateValue = undefined;
