@@ -25,23 +25,44 @@
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let subscriptionStatus: any | undefined = $derived(data.matches?.subscriptionStatus);
 
-	function deleteAllMatches() {
-		data.matches.deleteAllMatches();
-	}
+	let seenEvent = $state.snapshot(data.tournament);
+	let seenTeam = $state.snapshot(data.teams.teams);
 
-	// When number of matches change or courts, clear matches
+	// When number of matches change or courts, clear matches or teams
 	$effect(() => {
-		// console.info(
-		// 	`Clearing matches as court or pool value has changed: Courts: ${data.tournament.courts}, Pools: ${data.tournament.pools}`
-		// );
-		console.log('do not see me');
-		deleteAllMatches();
-		// try {
-		// 	data.matches.deleteAllMatches();
-		// } catch (err) {
-		// 	console.error(`Failed to delete matches: ${err as HttpError}`);
-		// 	toast.error('Failed to delete matches');
-		// }
+		const eventAttributes = ['courts', 'pools', 'refs'];
+
+		let deleted = false;
+		for (var i = 0; i < eventAttributes.length; i++) {
+			const key = eventAttributes[i];
+
+			if (!$state.is(data.tournament[key], seenEvent[key])) {
+				try {
+					data.matches.deleteAllMatches();
+					deleted = true;
+				} catch (err) {
+					console.error(`Failed to delete matches: ${err as HttpError}`);
+					toast.error('Failed to delete matches');
+				}
+			}
+
+			if (deleted) break;
+		}
+
+		if (!deleted && $state.snapshot(data.teams.teams).length !== seenTeam.length) {
+			try {
+				data.matches.deleteAllMatches();
+				deleted = true;
+			} catch (err) {
+				console.error(`Failed to delete matches: ${err as HttpError}`);
+				toast.error('Failed to delete matches');
+			}
+		}
+
+		if (deleted) {
+			seenEvent = Object.assign(data.tournament);
+			seenTeam = Object.assign(data.teams);
+		}
 	});
 
 	async function checkGenerateMatches() {
@@ -78,7 +99,10 @@
 			}
 
 			// Create new matches
-			const res: Matches | undefined = await data.matches.create(data.tournament, data.teams.teams);
+			const res: Matches | undefined = await data.matches.create(
+				data.tournament,
+				$state.snapshot(data.teams.teams)
+			);
 			if (!res) {
 				toast.error('Failed to create matches');
 				return;

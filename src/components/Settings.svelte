@@ -23,8 +23,7 @@
 		DateFormatter,
 		getLocalTimeZone,
 		today,
-		parseDateTime,
-		CalendarDateTime
+		parseDateTime
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$components/ui/button';

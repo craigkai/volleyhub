@@ -146,14 +146,14 @@ export class Matches extends Base {
 	}
 
 	async deleteAllMatches() {
-		console.log('deleting...');
-		// if (!this.event_id) {
-		// 	this.handleError(400, 'Event ID is required to delete all matches.');
-		// 	return;
-		// }
+		console.info('deleteAllMatches');
+		if (!this.event_id) {
+			this.handleError(400, 'Event ID is required to delete all matches.');
+			return;
+		}
 
-		// await this.databaseService.deleteMatchesByEvent(this.event_id);
-		// this.matches = [];
+		await this.databaseService.deleteMatchesByEvent(this.event_id);
+		this.matches = [];
 	}
 
 	/**
