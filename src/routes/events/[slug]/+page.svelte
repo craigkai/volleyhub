@@ -15,7 +15,7 @@
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
 	import { error } from '@sveltejs/kit';
-	import BorderBeam from '$components/magic-ui/border-beam.svelte';
+	import BorderBeam from '$components/magic-ui/BorderBeam.svelte';
 
 	let { data = $bindable() } = $props();
 
