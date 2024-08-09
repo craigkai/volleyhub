@@ -14,15 +14,12 @@
 	import EditMatch from '$components/EditMatch.svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
-	import { error } from '@sveltejs/kit';
 	import BorderBeam from '$components/magic-ui/BorderBeam.svelte';
 
 	let { data = $bindable() } = $props();
 
-	// State
 	let defaultTeam = $state(data.defaultTeam);
 	let readOnly = $state(data.readOnly);
-	let { teams, matches, bracket, tournament } = $state(data);
 
 	let historyReady = false;
 	onMount(async () => {
@@ -54,11 +51,11 @@
 	>
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
-				{#if matches}
-					<EditMatch matchId={$page.state.matchId as number} {matches} />
+				{#if data.matches}
+					<EditMatch matchId={$page.state.matchId as number} matches={data.matches} />
 				{/if}
-			{:else if bracket}
-				<EditMatch matchId={$page.state.matchId as number} matches={bracket} />
+			{:else if data.bracket}
+				<EditMatch matchId={$page.state.matchId as number} matches={data.bracket} />
 			{/if}
 		</AlertDialog.Content>
 	</AlertDialog.Root>
@@ -136,8 +133,8 @@
 						<Card.Description>add/edit/remove teams</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						{#if teams}
-							<Teams bind:teams />
+						{#if data.teams}
+							<Teams bind:teams={data.teams} />
 						{/if}
 					</Card.Content>
 				</Card.Root>
@@ -171,8 +168,13 @@
 					<Card.Description>Current standings based on pool play results</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams}
-						<Standings event={tournament} {matches} {teams} {defaultTeam} />
+					{#if data.tournament && data.matches && data.teams}
+						<Standings
+							event={data.tournament}
+							matches={data.matches}
+							teams={data.teams}
+							{defaultTeam}
+						/>
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -185,8 +187,14 @@
 					<Card.Description>Single/Double elim bracket</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams && bracket}
-						<Bracket {tournament} {matches} {teams} {bracket} {readOnly} />
+					{#if data.tournament && data.matches && data.teams && data.bracket}
+						<Bracket
+							tournament={data.tournament}
+							matches={data.matches}
+							teams={data.teams}
+							bracket={data.bracket}
+							{readOnly}
+						/>
 					{/if}
 				</Card.Content>
 			</Card.Root>

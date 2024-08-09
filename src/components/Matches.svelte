@@ -15,7 +15,11 @@
 		readOnly = false,
 		defaultTeam,
 		data
-	} = $props<{ eventId: Number | string; data: PageData }>();
+	} = $props<{
+		readOnly: Boolean;
+		defaultTeam: String | null;
+		data: PageData;
+	}>();
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
