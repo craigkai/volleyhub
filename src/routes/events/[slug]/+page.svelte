@@ -14,33 +14,12 @@
 	import EditMatch from '$components/EditMatch.svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
-	import { error } from '@sveltejs/kit';
 	import BorderBeam from '$components/magic-ui/BorderBeam.svelte';
 
 	let { data = $bindable() } = $props();
 
-	// State
 	let defaultTeam = $state(data.defaultTeam);
 	let readOnly = $state(data.readOnly);
-	let { teams, matches, bracket, tournament } = $state(data);
-
-	// Getting reactivity to work?
-	let _dog = '';
-	// If we update teams, we should also update matches?
-	$effect(() => {
-		_dog = JSON.stringify(teams?.teams) || '';
-		// If we aren't
-		if (data.eventId !== 'create' && teams) {
-			console.log(`Reloading matches`);
-
-			try {
-				if (data.matches?.event_id) data.matches.load(data.matches.event_id);
-			} catch (err) {
-				console.error('Error loading matches:', err);
-				error(500, 'Failed to load matches');
-			}
-		}
-	});
 
 	let historyReady = false;
 	onMount(async () => {
@@ -56,11 +35,7 @@
 			.concat([{ value: '', name: 'none' }]) || []
 	);
 
-	let open = $state($page.state.showModal);
-
-	$effect(() => {
-		open = $page.state.showModal ?? false;
-	});
+	let open = $derived($page.state.showModal ?? false);
 
 	const isCreate = $derived(data?.eventId === 'create');
 
@@ -69,18 +44,18 @@
 
 {#if $page.state.showModal && $page.state.matchId}
 	<AlertDialog.Root
-		bind:open
+		{open}
 		onOpenChange={closeModal}
 		closeOnOutsideClick={true}
 		closeOnEscape={true}
 	>
 		<AlertDialog.Content>
 			{#if $page.state.type === 'pool'}
-				{#if matches}
-					<EditMatch matchId={$page.state.matchId as number} {matches} />
+				{#if data.matches}
+					<EditMatch matchId={$page.state.matchId as number} matches={data.matches} />
 				{/if}
-			{:else if bracket}
-				<EditMatch matchId={$page.state.matchId as number} matches={bracket} />
+			{:else if data.bracket}
+				<EditMatch matchId={$page.state.matchId as number} matches={data.bracket} />
 			{/if}
 		</AlertDialog.Content>
 	</AlertDialog.Root>
@@ -158,8 +133,8 @@
 						<Card.Description>add/edit/remove teams</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-2">
-						{#if teams}
-							<Teams bind:teams />
+						{#if data.teams}
+							<Teams bind:teams={data.teams} />
 						{/if}
 					</Card.Content>
 				</Card.Root>
@@ -176,8 +151,8 @@
 					<Card.Description>Results of pool play (live)</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams}
-						<Matches {defaultTeam} {readOnly} {tournament} {matches} {teams} />
+					{#if data.tournament && data.matches && data.teams}
+						<Matches {defaultTeam} {readOnly} {data} />
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -193,8 +168,13 @@
 					<Card.Description>Current standings based on pool play results</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams}
-						<Standings event={tournament} {matches} {teams} {defaultTeam} />
+					{#if data.tournament && data.matches && data.teams}
+						<Standings
+							event={data.tournament}
+							matches={data.matches}
+							teams={data.teams}
+							{defaultTeam}
+						/>
 					{/if}
 				</Card.Content>
 			</Card.Root>
@@ -207,8 +187,14 @@
 					<Card.Description>Single/Double elim bracket</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-2">
-					{#if tournament && matches && teams && bracket}
-						<Bracket {tournament} {matches} {teams} {bracket} {readOnly} />
+					{#if data.tournament && data.matches && data.teams && data.bracket}
+						<Bracket
+							tournament={data.tournament}
+							matches={data.matches}
+							teams={data.teams}
+							bracket={data.bracket}
+							{readOnly}
+						/>
 					{/if}
 				</Card.Content>
 			</Card.Root>

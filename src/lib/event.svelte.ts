@@ -13,14 +13,14 @@ export class Event extends Base {
 
 	// Event properties
 	id?: number;
-	name?: string;
-	date?: string;
-	pools?: number;
-	courts?: number;
-	owner?: string;
+	name?: string = $state();
+	date?: string = $state();
+	pools?: number = $state();
+	courts?: number = $state();
+	owner?: string = $state();
 	created_at?: string;
-	scoring?: string;
-	refs?: string;
+	scoring?: string = $state();
+	refs?: string = $state();
 	description?: string;
 
 	/**
@@ -146,7 +146,7 @@ if (import.meta.vitest) {
 				return input;
 			})
 		};
-		event = new Event(1, mockDatabaseService);
+		event = new Event(mockDatabaseService);
 	});
 
 	it('should throw an error if not all required values are provided', async () => {
@@ -168,7 +168,7 @@ if (import.meta.vitest) {
 			created_at: 'test'
 		};
 
-		const updatedEvent = new Event(1, mockDatabaseService);
+		const updatedEvent = new Event(mockDatabaseService);
 		Object.assign(updatedEvent, input);
 
 		mockDatabaseService.updateEvent.mockResolvedValue(updatedEvent);

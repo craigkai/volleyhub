@@ -23,16 +23,15 @@
 		DateFormatter,
 		getLocalTimeZone,
 		today,
-		parseDateTime,
-		CalendarDateTime
+		parseDateTime
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import type { PageData } from './$types';
 
-	export let data;
-	export let eventId;
+	const { data, eventId } = $props<{ eventId: Number | string; data: PageData }>();
 
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
@@ -41,11 +40,9 @@
 		},
 		async onUpdated({ form }) {
 			if (form.valid) {
-				toast.success(`Tournament settings updated`);
-				data.tournament.load(data.eventId).catch((err: any) => {
-					toast.error(`Failed to load tournament: ${err}`);
-				});
 				$formData = form.data;
+
+				toast.success(`Tournament settings updated`);
 			}
 		},
 		dataType: 'json'
@@ -57,26 +54,23 @@
 		dateStyle: 'long'
 	});
 
-	let dateValue = $formData.date ? parseDateTime($formData.date) : undefined;
-	$: $formData.date = dateValue?.toString() ?? '';
+	let dateValue = $derived($formData.date ? parseDateTime($formData.date) : undefined);
 
-	let selectedRefValue = {
+	let selectedRefValue = $derived({
 		label: $formData.refs,
 		value: $formData.refs
-	};
-	$: $formData.refs = selectedRefValue.value;
+	});
 
-	let scoringValue = {
+	let scoringValue = $derived({
 		label: $formData.scoring,
 		value: $formData.scoring
-	};
-	$: $formData.scoring = scoringValue.value;
+	});
 
 	const datePlaceholder: DateValue = today(getLocalTimeZone());
 </script>
 
 <form
-	class="form-container rounded rounded-2xl p-2 dark:bg-gray-800"
+	class="form-container rounded rounded-2xl"
 	method="POST"
 	action="?/{eventId === 'create' ? 'createEvent' : 'updateEvent'}"
 	use:enhance
@@ -150,7 +144,7 @@
 			<Control let:attrs>
 				<Label class="form-label dark:text-gray-300">Ref's</Label>
 				<SelectRoot
-					bind:selected={selectedRefValue}
+					selected={selectedRefValue}
 					onSelectedChange={(v) => {
 						v && ($formData.refs = v.value);
 					}}
@@ -177,7 +171,7 @@
 			<Control let:attrs>
 				<Label class="form-label dark:text-gray-300">Scoring Method</Label>
 				<SelectRoot
-					bind:selected={scoringValue}
+					selected={scoringValue}
 					onSelectedChange={(v) => {
 						v && ($formData.scoring = v.value);
 					}}
@@ -218,7 +212,7 @@
 					</PopoverTrigger>
 					<PopoverContent class="w-auto p-0" side="top">
 						<Calendar
-							bind:value={dateValue}
+							value={dateValue}
 							placeholder={datePlaceholder}
 							minValue={today(getLocalTimeZone())}
 							calendarLabel="Date of event"
@@ -226,10 +220,8 @@
 							onValueChange={(v) => {
 								if (v) {
 									$formData.date = v.toString();
-									dateValue = v as CalendarDateTime; // Ensure dateValue is updated
 								} else {
 									$formData.date = '';
-									dateValue = undefined;
 								}
 							}}
 						/>
@@ -241,6 +233,7 @@
 			</Control>
 		</Field>
 	</div>
+
 	<div class="flex justify-center">
 		<Button
 			class="rounded-xl border border-emerald-900 bg-emerald-950 px-4 py-2 text-sm font-medium text-emerald-500"
