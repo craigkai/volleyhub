@@ -138,7 +138,7 @@
 					</Card.Header>
 					<Card.Content class="space-y-2">
 						{#if data.teams}
-							<Teams bind:teams={data.teams} />
+							<Teams bind:teams={data.teams} matches={data.matches} />
 						{/if}
 					</Card.Content>
 				</Card.Root>
