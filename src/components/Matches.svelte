@@ -117,11 +117,13 @@
 		}
 	}
 
-	const rounds = Math.max.apply(
-		Math,
-		data.matches?.matches?.map(function (m) {
-			return m.round;
-		}) ?? [0]
+	const rounds = $derived(
+		Math.max.apply(
+			Math,
+			data.matches?.matches?.map(function (m: { round: any }) {
+				return m.round;
+			}) ?? [0]
+		)
 	);
 </script>
 
