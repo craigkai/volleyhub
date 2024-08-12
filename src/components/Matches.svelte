@@ -1,5 +1,4 @@
 <script lang="ts">
-	import * as Table from '$components/ui/table';
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
