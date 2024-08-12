@@ -135,7 +135,7 @@
 	{/if}
 </div>
 
-<div class="rounded rounded-2xl p-2 dark:bg-gray-800">
+<div class="rounded rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-lg">
 	{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
 		<div class="flex w-full flex-col">
 			<div class="flex w-full">
