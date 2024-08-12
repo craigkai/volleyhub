@@ -1,46 +1,22 @@
-# Volleyball Tournament Manager
+# SvelteKit (SvelteJS 5) + Supabase + Vercel
 
-<picture>
-  <img alt="Screenshot of matches view." src="/assets/matches.png">
-</picture>
+The problem: I regularly attend volleyball tournaments hosted around the Buffalo area. Often times at these events, there is a great amount of effort that goes into creating a balanced "round robin" schedule and keeping teams on this schedule.
 
-## Developing
+Regularly the schedules are handmade and often teams end up playing consecutive games in a row or sitting for far too long, resulting in grumbling and general dissatisfaction.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## The Format
 
-```bash
-npm run dev
+Typically, tournaments follow this format:
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+1. Play X games of `pool` play -- This is for seeding before going into playoffs.
+2. During pool play, teams are expected to ref other teams' matches (this means refs need to be pulled from teams not playing).
+3. Teams should ref the same amount of games where possible.
+4. Teams should sit in between games logical amounts.
 
-## Building
+## The Challenges
 
-To create a production version of your app:
+The problems with creating a schedule by hand are that teams often end up playing multiple games in a row or sitting for too many. Teams are often slow to realize when they should be on the court and even more so when they should be ref'ing.
 
-```bash
-npm run build
-```
+I knew I wanted to build something for fun and learning using SvelteKit and Supabase, so this is the problem that I chose to tackle (I know scheduling tournaments is a solved problem)!
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
-
-## Supabase locally
-
-```bash
-    supabase start
-    supabase npx supabase link
-    npx supabase db pull
-```
-
-Should set supabase URL and key to connect to local instance in `.env.development`.
-
-```
-PUBLIC_COMMIT_REF=dev
-PUBLIC_ADMIN_USER=root@localhost
-PUBLIC_ADMIN_USER_PASSWORD=njkdnbkjdbfhjf
-PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-PUBLIC_SUPABASE_ANON_KEY=<YOUR KEY>
-```
+<img src="static/blog/images/settings.png" alt="Settings page" style="width: 100%; margin-top: 20px; margin-bottom: 20px; " />
