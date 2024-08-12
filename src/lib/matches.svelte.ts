@@ -342,7 +342,9 @@ export class Matches extends Base {
 		const availableTeams = allTeams.filter((team) => !teamsPlayingThisRound.includes(team));
 
 		if (availableTeams.length === 0) {
-			throw new Error('No available teams to assign as referees.');
+			throw new Error(
+				'No available teams to assign as referees, too many courts for the number of teams?'
+			);
 		}
 
 		// Sort available teams by the number of times they have refereed, ascending

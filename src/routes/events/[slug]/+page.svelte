@@ -99,8 +99,8 @@
 		</div>
 	{/if}
 
-	<Tabs.Root value={readOnly ? 'matches' : 'settings'}>
-		<Tabs.List class="mb-4 grid w-full gap-2 {tabsWidth} dark:bg-gray-700">
+	<Tabs.Root class="w-full lg:w-1/2" value={readOnly ? 'matches' : 'settings'}>
+		<Tabs.List class="mb-4 grid gap-2 {tabsWidth} dark:bg-gray-700">
 			{#if !readOnly}
 				<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
 				<Tabs.Trigger disabled={isCreate} value="teams">Teams</Tabs.Trigger>
@@ -113,7 +113,7 @@
 		{#if !readOnly}
 			<Tabs.Content value="settings">
 				<Card.Root
-					class="relative flex max-w-xl flex-col items-start justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
+					class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
 				>
 					<BorderBeam size={150} duration={12} />
 
@@ -129,7 +129,7 @@
 
 			<Tabs.Content value="teams">
 				<Card.Root
-					class="min-w-xl relative flex max-w-xl flex-col items-start justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
+					class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
 				>
 					<BorderBeam size={150} duration={12} />
 					<Card.Header>
@@ -147,7 +147,7 @@
 
 		<Tabs.Content value="matches">
 			<Card.Root
-				class="relative flex flex-col rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
+				class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
 			>
 				<BorderBeam size={150} duration={12} />
 				<Card.Header>
@@ -164,7 +164,7 @@
 
 		<Tabs.Content value="standings">
 			<Card.Root
-				class="min-w-xl relative flex max-w-xl flex-col rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
+				class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
 			>
 				<BorderBeam size={150} duration={12} />
 				<Card.Header>

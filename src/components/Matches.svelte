@@ -127,12 +127,12 @@
 	);
 </script>
 
-<div class="mb-4 block flex text-sm font-bold">
-	Matches {#if subscriptionStatus && subscriptionStatus === 'SUBSCRIBED'}
+<div class="mb-4 block flex justify-center text-sm font-bold">
+	{#if subscriptionStatus && subscriptionStatus === 'SUBSCRIBED'}
 		<Zap class="fill-green-200 text-green-500" />
 	{:else}
 		<Zapoff class="fill-red-200 text-red-500" />
-	{/if}:
+	{/if}
 </div>
 
 <div class="rounded rounded-2xl p-2 dark:bg-gray-800">
