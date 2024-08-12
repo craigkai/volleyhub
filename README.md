@@ -19,4 +19,4 @@ The problems with creating a schedule by hand are that teams often end up playin
 
 I knew I wanted to build something for fun and learning using SvelteKit and Supabase, so this is the problem that I chose to tackle (I know scheduling tournaments is a solved problem)!
 
-<img src="static/blog/images/settings.png" alt="Settings page" style="width: 100%; margin-top: 20px; margin-bottom: 20px; " />
+<img src="assets/blog/settings.png" alt="Settings page" style="width: 100%; margin-top: 20px; margin-bottom: 20px; " />
