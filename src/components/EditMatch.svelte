@@ -6,11 +6,10 @@
 	import type { Brackets } from '$lib/brackets/brackets.svelte';
 	import type { Teams } from '$lib/teams.svelte';
 	import { error } from '@sveltejs/kit';
-	import { getContext } from 'svelte';
 	import type { Pool } from '$lib/pool/pool.svelte';
 
-	let { matchId, matches }: { matchId: number; matches: Pool | Brackets } = $props();
-	const teams = getContext('teams') as Teams;
+	let { matchId, matches, teams }: { matchId: number; matches: Pool | Brackets; teams: Teams } =
+		$props();
 
 	let match = $derived(matches?.matches?.find((m) => m.id === matchId));
 
