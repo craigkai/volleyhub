@@ -61,6 +61,10 @@
 	</AlertDialog.Root>
 {/if}
 
+<svelte:head>
+	<title>{data?.tournament?.name}</title>
+</svelte:head>
+
 <div class="page-container flex flex-col items-center">
 	<div class="header">{data?.tournament?.name}</div>
 

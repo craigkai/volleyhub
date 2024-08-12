@@ -9,6 +9,10 @@
 	const eventsPromise = eventsDatabaseService.getUpcomingEvents();
 </script>
 
+<svelte:head>
+	<title>Upcoming events</title>
+</svelte:head>
+
 {#await eventsPromise}
 	<div class="flex items-center justify-center">
 		<Loader class="animate-spin" />

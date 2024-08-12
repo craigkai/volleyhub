@@ -8,6 +8,10 @@
 	const events = data?.events;
 </script>
 
+<svelte:head>
+	<title>Your events</title>
+</svelte:head>
+
 <div class="justify-center text-center">
 	<div class="text-2xl">A place to see your tournaments you manage</div>
 
