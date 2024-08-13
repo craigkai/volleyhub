@@ -53,7 +53,7 @@ Supabase has made things such as Auth and real time a piece of cake! Supabase ha
 
 Supabase makes it easy to spin up a local Supabase web studio along with a database instance to allow for easy and effective DB testing and version control!
 
-<img src="/assets/blog/supabase" alt="supoabase" style="width: 100%; margin-top: 20px; margin-bottom: 20px;" />
+<img src="/assets/blog/supabase.png" alt="supabase" style="width: 100%; margin-top: 20px; margin-bottom: 20px;" />
 
 ### Svelte 5 and SvelteKit
 
