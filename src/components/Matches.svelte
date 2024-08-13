@@ -172,11 +172,11 @@
 									? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
 									: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
 								<div
-									class={hasDefaultTeam
+									class="min-w-[100px] {hasDefaultTeam
 										? matchComplete
 											? 'flex-1 p-2 ' + rowDivClass
 											: 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
-										: 'flex-1 p-2'}
+										: 'flex-1 p-2'}"
 								>
 									<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
 								</div>
@@ -212,13 +212,13 @@
 					</Alert.Description>
 					<div class="flex gap-2">
 						<button
-							class="focus:shadow-outline dark:text-nord-1 rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
+							class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 							onclick={generateMatches}
 						>
 							Yes
 						</button>
 						<button
-							class="focus:shadow-outline dark:text-nord-1 rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
+							class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 							onclick={() => (showGenerateMatchesAlert = false)}
 						>
 							No
@@ -230,7 +230,7 @@
 
 		<div class="m-2 flex justify-center">
 			<button
-				class="focus:shadow-outline dark:text-nord-1 rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none"
+				class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 				type="button"
 				onclick={checkGenerateMatches}
 			>
