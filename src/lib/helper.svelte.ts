@@ -1,5 +1,5 @@
 import { pushState } from '$app/navigation';
-import type { HttpError } from '@sveltejs/kit';
+import { error, type HttpError } from '@sveltejs/kit';
 import toast from 'svelte-french-toast';
 import { EventSupabaseDatabaseService } from '$lib/database/event';
 import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
@@ -25,7 +25,8 @@ export function closeModal() {
 
 export async function updateMatch(
 	match: MatchRow | undefined,
-	matches: Pool | Brackets
+	matches: Pool | Brackets,
+	teams: TeamsInstance
 ): Promise<void> {
 	if (match) {
 		try {
@@ -33,9 +34,18 @@ export async function updateMatch(
 			match.team2_score = Number(match.team2_score);
 
 			const updatedMatch = await matches.updateMatch(match);
-			toast.success(
-				`Match ${updatedMatch?.public_matches_team1_fkey.name} vs ${updatedMatch?.public_matches_team1_fkey.name} updated`
-			);
+			if (!updateMatch) {
+				error(500, 'failed to update match');
+			} else {
+				const team1 = updatedMatch
+					? teams.teams.find((t: TeamRow) => t.id === updatedMatch.team1)
+					: null;
+				const team2 = updatedMatch
+					? teams.teams.find((t: TeamRow) => t.id === updatedMatch.team2)
+					: null;
+
+				toast.success(`Match ${team1?.name} vs ${team2?.name} updated`);
+			}
 		} catch (err) {
 			toast.error((err as HttpError).toString());
 		}

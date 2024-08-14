@@ -5,8 +5,7 @@ import { matchesRowSchema, matchesUpdateSchema, matchesInsertSchema } from '$sch
 
 const MatchesRowSchemaArray = z.array(matchesRowSchema);
 
-const MATCHES_SELECT_QUERY =
-	'*, public_matches_team1_fkey(name), public_matches_team2_fkey(name), public_matches_ref_fkey(name)';
+const MATCHES_SELECT_QUERY = '*';
 
 type Filter = {
 	column: string;

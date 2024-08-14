@@ -159,13 +159,12 @@
 							)}
 							{#if match}
 								{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
-								{@const teamsForMatch = [
-									match.public_matches_team1_fkey.name,
-									match.public_matches_team2_fkey.name
-								]}
+								{@const team1 = data.teams.teams.find((t: TeamRow) => t.id === match.team1)}
+								{@const team2 = data.teams.teams.find((t: TeamRow) => t.id === match.team2)}
+								{@const teamsForMatch = [team1?.name, team2?.name]}
 								{@const hasDefaultTeam = defaultTeam ? teamsForMatch.includes(defaultTeam) : false}
 								{@const defaultTeamWin =
-									match.public_matches_team1_fkey.name == defaultTeam
+									team1.name == defaultTeam
 										? (match.team1_score ?? 0) > (match.team2_score ?? 0)
 										: (match.team2_score ?? 0) > (match.team1_score ?? 0)}
 								{@const rowDivClass = defaultTeamWin
@@ -178,16 +177,17 @@
 											: 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
 										: 'flex-1 p-2'}"
 								>
-									<ViewMatch {match} {readOnly} showWinLoss={!hasDefaultTeam} />
+									<ViewMatch {match} {readOnly} {team1} {team2} showWinLoss={!hasDefaultTeam} />
 								</div>
 							{:else}
 								<div class="flex-1 p-2"></div>
 							{/if}
 						{/each}
 						{#if data.tournament.refs === 'teams'}
-							{@const ref = data.matches.matches.find(
+							{@const exampleMatch = data.matches.matches.find(
 								(m: MatchRow) => m.round.toString() === round.toString()
-							)?.public_matches_ref_fkey}
+							)}
+							{@const ref = data.teams.teams.find((t: TeamRow) => t.id == exampleMatch.ref)}
 							<div
 								class="flex place-items-center justify-end text-pretty {ref?.name == defaultTeam
 									? 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'

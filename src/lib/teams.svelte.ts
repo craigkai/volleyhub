@@ -1,6 +1,10 @@
 import type { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 import { Base } from './base';
 
+/**
+ * The Teams class is responsible for managing team-related operations.
+ * It extends the Base class and uses the TeamsSupabaseDatabaseService to interact with the database.
+ */
 export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
 	eventId?: number;

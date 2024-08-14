@@ -105,6 +105,9 @@
 					<h3 class="tournament-bracket__round-title">{roundName}</h3>
 					<ul class="tournament-bracket__list">
 						{#each roundObj.matches.sort((a, b) => a.id - b.id) as match, index (index)}
+							{@const team1 = teams.teams.find((t: TeamRow) => t.id === match.team1)}
+							{@const team2 = teams.teams.find((t: TeamRow) => t.id === match.team2)}
+
 							{@const team1Win =
 								match.team1_score && match.team2_score
 									? match.team1_score > match.team2_score
@@ -120,19 +123,18 @@
 											>
 												<td class="tournament-bracket__country m-1 rounded p-1">
 													<abbr class="tournament-bracket__code" title="team1">
-														{match.public_matches_team1_fkey?.name ?? 'tbd'}
+														{team1?.name ?? 'tbd'}
 													</abbr>
 												</td>
 												<td class="tournament-bracket__score m-1 rounded p-1">
 													{#if readOnly}
-														<span class="tournament-bracket__number">{match?.team1_score || 0}</span
-														>
+														<span class="tournament-bracket__number">{match?.team1 || 0}</span>
 													{:else}
 														<input
-															disabled={!match.public_matches_team1_fkey?.name}
+															disabled={!team1?.name}
 															class="max-w-8 border-2 border-solid text-center"
 															bind:value={match.team1_score}
-															onchange={() => updateMatch(match, bracket)}
+															onchange={() => updateMatch(match, bracket, teams)}
 														/>
 													{/if}
 												</td>
@@ -144,7 +146,7 @@
 											>
 												<td class="tournament-bracket__country m-1 rounded p-1">
 													<abbr class="tournament-bracket__code" title="team">
-														{match.public_matches_team2_fkey?.name ?? 'tbd'}
+														{team2?.name ?? 'tbd'}
 													</abbr>
 												</td>
 												<td class="tournament-bracket__score m-1 rounded p-1">
@@ -153,10 +155,10 @@
 														>
 													{:else}
 														<input
-															disabled={!match.public_matches_team1_fkey?.name}
+															disabled={!team2?.name}
 															class="max-w-8 border-2 border-solid text-center"
 															bind:value={match.team2_score}
-															onchange={() => updateMatch(match, bracket)}
+															onchange={() => updateMatch(match, bracket, teams)}
 														/>
 													{/if}
 												</td>

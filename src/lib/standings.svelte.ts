@@ -1,4 +1,5 @@
 import { Event } from '$lib/event.svelte';
+import { error } from '@sveltejs/kit';
 
 export async function findStandings(
 	matches: MatchRow[],
@@ -11,23 +12,28 @@ export async function findStandings(
 	}, {});
 
 	matches.forEach((match: MatchRow) => {
+		const team1 = teams.find((t: TeamRow) => t.id === match.team1);
+		const team2 = teams.find((t: TeamRow) => t.id === match.team2);
+		if (!team1 || !team2) {
+			console.warn(`Match ${match.id} has invalid team IDs`);
+			error(500, 'Invalid team IDs');
+		}
+
 		if (match.team1_score && match.team2_score) {
-			if (!teamScores[match.public_matches_team1_fkey.name]) {
-				teamScores[match.public_matches_team1_fkey.name] = 0;
+			if (!teamScores[team1.name]) {
+				teamScores[team1.name] = 0;
 			}
 
-			if (!teamScores[match.public_matches_team2_fkey.name]) {
-				teamScores[match.public_matches_team2_fkey.name] = 0;
+			if (!teamScores[team2.name]) {
+				teamScores[team2.name] = 0;
 			}
 
 			if (event?.scoring === 'points') {
-				teamScores[match.public_matches_team1_fkey.name] += match?.team1_score || 0;
-				teamScores[match.public_matches_team2_fkey.name] += match?.team2_score || 0;
+				teamScores[team1.name] += match?.team1_score || 0;
+				teamScores[team2.name] += match?.team2_score || 0;
 			} else {
-				teamScores[match.public_matches_team1_fkey.name] +=
-					match.team1_score > match.team2_score ? 1 : 0;
-				teamScores[match.public_matches_team2_fkey.name] +=
-					match.team2_score > match.team1_score ? 1 : 0;
+				teamScores[team1.name] += match.team1_score > match.team2_score ? 1 : 0;
+				teamScores[team2.name] += match.team2_score > match.team1_score ? 1 : 0;
 			}
 		}
 	});

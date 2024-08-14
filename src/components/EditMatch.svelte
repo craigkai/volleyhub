@@ -15,7 +15,7 @@
 
 	async function saveMatch() {
 		try {
-			await updateMatch(match, matches);
+			await updateMatch(match, matches, teams);
 			closeModal();
 		} catch (err) {
 			console.error('Failed to save match:', err);

@@ -5,9 +5,17 @@
 
 	let {
 		match,
+		team1,
+		team2,
 		readOnly = false,
 		showWinLoss = true
-	}: { match: MatchRow; readOnly: boolean; showWinLoss: boolean } = $props();
+	}: {
+		match: MatchRow;
+		team1: TeamRow;
+		team2: TeamRow;
+		readOnly: boolean;
+		showWinLoss: boolean;
+	} = $props();
 
 	const winClass = 'bg-green-300 dark:bg-green-700';
 	const lossClass = 'bg-red-300 dark:bg-red-700';
@@ -37,7 +45,7 @@
 				? lossClass
 				: ''}"
 		>
-			{match?.public_matches_team1_fkey?.name}</span
+			{team1.name}</span
 		>
 		vs
 		<span
@@ -51,7 +59,7 @@
 			match?.team2_score &&
 			match?.team1_score > match?.team2_score
 				? lossClass
-				: ''}">{match?.public_matches_team2_fkey?.name}</span
+				: ''}">{team2.name}</span
 		>
 	</div>
 {/snippet}

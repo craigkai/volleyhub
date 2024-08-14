@@ -86,10 +86,6 @@
 										try {
 											const res = await teams.update(team);
 											if (res) {
-												if (matches && matches.event_id) {
-													await matches.load(matches.event_id);
-												}
-
 												toast.success(`Team ${team.name} updated`);
 											}
 										} catch (err: any) {
