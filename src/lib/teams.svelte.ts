@@ -1,5 +1,7 @@
-import type { TeamsSupabaseDatabaseService } from '$lib/database/teams';
+import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 import { Base } from './base';
+import { TeamSupabaseDatabaseService } from './database/team';
+import { Team } from './team.svelte';
 
 /**
  * The Teams class is responsible for managing team-related operations.
@@ -8,7 +10,7 @@ import { Base } from './base';
 export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
 	eventId?: number;
-	teams = $state<TeamRow[]>([]);
+	teams = $state<Team[]>([]);
 
 	/**
 	 * The constructor for the Teams class.
@@ -23,7 +25,7 @@ export class Teams extends Base {
 	 * Load all teams for the current event.
 	 * @returns {Promise<TeamRow[] | undefined>} - A promise that resolves to the loaded teams.
 	 */
-	async load(eventId: number): Promise<TeamRow[] | undefined> {
+	async load(eventId: number): Promise<Team[] | undefined> {
 		if (!eventId) {
 			this.handleError(400, 'Invalid event ID');
 			return undefined;
@@ -37,7 +39,26 @@ export class Teams extends Base {
 				console.warn('Failed to load teams for event', eventId);
 				return undefined;
 			}
-			this.teams = res;
+			const teams: Team[] = [];
+
+			const teamSupabaseDatabaseService = new TeamSupabaseDatabaseService(
+				this.databaseService.supabaseClient
+			);
+
+			let team = new Team(teamSupabaseDatabaseService);
+			for (let i = 0; i < res.length; i++) {
+				const teamRow = res[i];
+
+				try {
+					await team.load(teamRow.id);
+
+					teams.push(team);
+				} catch (err: any) {
+					this.handleError(500, `Faild to load team ${err}`);
+				}
+			}
+
+			this.teams = teams;
 			return this.teams;
 		} catch (err) {
 			this.handleError(500, `Failed to load teams: ${(err as Error).message}`);
@@ -48,12 +69,12 @@ export class Teams extends Base {
 	/**
 	 * Inserts a new team into the database. If a team with the same name and event ID exists,
 	 * returns that team's ID.
-	 * @param {Partial<TeamRow>} team - The team data to be created.
+	 * @param {Partial<Team>} team - The team data to be created.
 	 * @returns {Promise<number | undefined>} - A promise that resolves to the team ID.
 	 */
 	async create(team: Partial<TeamRow>): Promise<number | undefined> {
 		try {
-			const res = await this.databaseService.createTeam(team);
+			const res = await this.databaseService.create(team);
 			if (res) {
 				return res.id;
 			}
@@ -61,44 +82,6 @@ export class Teams extends Base {
 			return undefined;
 		} catch (err) {
 			this.handleError(500, `Failed to create team: ${(err as Error).message}`);
-			return undefined;
-		}
-	}
-
-	/**
-	 * Deletes a team from the database.
-	 * @param {TeamRow} team - The team to be deleted.
-	 * @returns {Promise<void>} - A promise that resolves when the team is successfully deleted.
-	 */
-	async delete(team: TeamRow): Promise<void> {
-		try {
-			await this.databaseService.deleteTeam(team);
-		} catch (err) {
-			this.handleError(500, `Failed to delete team: ${(err as Error).message}`);
-		}
-	}
-
-	/**
-	 * Updates a team in the database.
-	 * @param {TeamRow} team - The team to be updated.
-	 * @returns {Promise<TeamRow | undefined>} - A promise that resolves to the updated team.
-	 */
-	async update(team: TeamRow): Promise<TeamRow | undefined> {
-		try {
-			const res = await this.databaseService.put(team);
-			if (res) {
-				this.teams.splice(
-					this.teams.findIndex((t) => t.id === team.id),
-					1,
-					res
-				);
-
-				return res;
-			}
-			console.warn('Failed to update team', team);
-			this.handleError(500, 'Failed to update team');
-		} catch (err) {
-			this.handleError(500, `Failed to update team: ${(err as Error).message}`);
 			return undefined;
 		}
 	}

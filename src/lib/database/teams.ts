@@ -8,11 +8,11 @@ const TeamsRowSchemaArray = z.array(teamsRowSchema);
 export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
 	 * Create a new team in the database or update an existing one.
-	 * @param {Partial<TeamRow>} team - The data for the team.
-	 * @returns {Promise<TeamRow>} - Returns a promise that resolves to the newly created or updated team.
+	 * @param {Partial<Team>} team - The data for the team.
+	 * @returns {Promise<Team>} - Returns a promise that resolves to the newly created or updated team.
 	 * @throws {Error} - Throws an error if there's an issue creating or updating the team.
 	 */
-	async createTeam(team: Partial<TeamRow>): Promise<TeamRow | null> {
+	async create(team: Partial<TeamRow>): Promise<TeamRow | null> {
 		const res = await this.supabaseClient
 			.from('teams')
 			.insert({ ...team })
@@ -21,13 +21,7 @@ export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 
 		this.validateAndHandleErrors(res, teamsRowSchema);
 
-		// Return the newly created or updated team
-		return res.data as unknown as TeamRow;
-	}
-
-	async deleteTeam(team: TeamRow): Promise<void> {
-		const res = await this.supabaseClient.from('teams').delete().eq('id', team.id);
-		this.handleDatabaseError(res);
+		return res.data;
 	}
 
 	/**
@@ -54,25 +48,5 @@ export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 			console.error('An error occurred while loading the teams:', error);
 			throw error;
 		}
-	}
-
-	/**
-	 * Update an existing team in the database.
-	 * @param {TeamRow} team - The team to update.
-	 * @returns {Promise<TeamRow>} - Returns a promise that resolves to the updated team.
-	 * @throws {Error} - Throws an error if there's an issue updating the team.
-	 */
-	async put(team: TeamRow): Promise<TeamRow | null> {
-		const res = await this.supabaseClient
-			.from('teams')
-			.update({ ...team })
-			.eq('id', team.id)
-			.select()
-			.single();
-
-		this.validateAndHandleErrors(res, teamsRowSchema);
-
-		// Return the updated team
-		return res.data as unknown as TeamRow;
 	}
 }

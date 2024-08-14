@@ -8,6 +8,7 @@ import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Event as EventInstance } from '$lib/event.svelte';
 import { Pool } from '$lib/pool/pool.svelte';
 import { Teams as TeamsInstance } from '$lib/teams.svelte';
+import type { Team } from './team.svelte';
 
 export function showModal(matchId: number, type: string): void {
 	pushState('', {
@@ -38,10 +39,10 @@ export async function updateMatch(
 				error(500, 'failed to update match');
 			} else {
 				const team1 = updatedMatch
-					? teams.teams.find((t: TeamRow) => t.id === updatedMatch.team1)
+					? teams.teams.find((t: Team) => t.id === updatedMatch.team1)
 					: null;
 				const team2 = updatedMatch
-					? teams.teams.find((t: TeamRow) => t.id === updatedMatch.team2)
+					? teams.teams.find((t: Team) => t.id === updatedMatch.team2)
 					: null;
 
 				toast.success(`Match ${team1?.name} vs ${team2?.name} updated`);

@@ -116,6 +116,7 @@ export class Matches extends Base {
 	 * @param {TeamRow[] | Partial<TeamRow>[]} teams - The teams participating in the event.
 	 * @returns {Promise<Matches | undefined>} - Returns a promise that resolves to the Matches instance.
 	 */
+	// Todo: Load these instances in this method so that we never have stale data and pass nothing?
 	async create(
 		{ pools, courts, refs = 'provided' }: Event | Partial<EventRow>,
 		teams: TeamRow[] | Partial<TeamRow>[]

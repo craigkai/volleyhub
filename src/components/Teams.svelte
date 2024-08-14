@@ -4,9 +4,9 @@
 	import { Input } from '$components/ui/input/index.js';
 	import type { Teams } from '$lib/teams.svelte';
 	import toast from 'svelte-french-toast';
-	import type { Matches } from '$lib/matches.svelte';
+	import { Team } from '$lib/team.svelte';
 
-	const { teams = $bindable(), matches }: { teams: Teams; matches: Matches | undefined } = $props();
+	const { teams = $bindable() }: { teams: Teams } = $props();
 
 	async function createTeam() {
 		if (teams.teams.findIndex((team) => team.name === newTeamName) !== -1) {
@@ -34,9 +34,9 @@
 		}
 	}
 
-	async function deleteTeam(team: TeamRow) {
+	async function deleteTeam(team: Team) {
 		try {
-			await teams.delete(team);
+			await team.delete(team);
 			await loadEventTeams();
 			toast.success(`Team ${team.name} deleted`);
 		} catch (err: any) {
@@ -84,7 +84,7 @@
 									if (target.value) {
 										team.name = target.value;
 										try {
-											const res = await teams.update(team);
+											const res = await team.update(team);
 											if (res) {
 												toast.success(`Team ${team.name} updated`);
 											}
