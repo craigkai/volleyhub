@@ -6,6 +6,7 @@ import type { Brackets } from './brackets/brackets.svelte';
 import { Event } from '$lib/event.svelte';
 import { Match } from './match.svelte';
 import { MatchSupabaseDatabaseService } from './database/match';
+import type { Team } from './team.svelte';
 
 /**
  * The Matches class represents the matches in a tournament.
@@ -14,7 +15,7 @@ import { MatchSupabaseDatabaseService } from './database/match';
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
 	event_id?: number;
-	matches: Match[] = [];
+	matches = $state<Match[]>([]);
 	subscriptionStatus = $state();
 	type = 'pool';
 
@@ -40,9 +41,7 @@ export class Matches extends Base {
 			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
 				this.databaseService.supabaseClient
 			);
-
 			const matches: Match[] = [];
-
 			if (res) {
 				for (let i = 0; i < res.length; i++) {
 					let match = new Match(matchSupabaseDatabaseService);
@@ -83,7 +82,10 @@ export class Matches extends Base {
 
 		if (payload.eventType === 'INSERT') {
 			if (self.type !== updated.type) return;
-			self.matches?.push(updated) ?? (self.matches = [updated]);
+
+			const match = self.matches.find((m: Match) => m.id === updated.id);
+			if (match && match.id) match.load(match.id);
+
 			return;
 		}
 
@@ -100,12 +102,11 @@ export class Matches extends Base {
 			return;
 		}
 
-		const matchIndex = self.matches.findIndex((m: MatchRow) => m.id === old.id);
+		const updatedMatch = self.matches.find((m: Match) => m.id === old.id);
 
-		if (matchIndex !== -1) {
+		if (updatedMatch && updatedMatch.id) {
 			// Existing match, update it
-			const updatedMatch = { ...self.matches[matchIndex], ...updated };
-			self.matches.splice(matchIndex, 1, updatedMatch);
+			updatedMatch.load(updatedMatch.id);
 		} else {
 			self.handleError(
 				400,
@@ -142,7 +143,7 @@ export class Matches extends Base {
 	// Todo: Load these instances in this method so that we never have stale data and pass nothing?
 	async create(
 		{ pools, courts, refs = 'provided' }: Event | Partial<EventRow>,
-		teams: TeamRow[] | Partial<TeamRow>[]
+		teams: Team[]
 	): Promise<Matches | undefined> {
 		if (!this.event_id) {
 			this.handleError(400, 'Event ID is required to create matches.');
@@ -161,7 +162,27 @@ export class Matches extends Base {
 			}
 
 			const res = await this.databaseService.insertMatches(matches);
-			if (res) this.matches = res;
+			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
+				this.databaseService.supabaseClient
+			);
+
+			const matchInstances: Match[] = [];
+			if (res) {
+				for (let i = 0; i < res.length; i++) {
+					let match = new Match(matchSupabaseDatabaseService);
+
+					const matchRow = res[i];
+
+					try {
+						await match.load(matchRow.id);
+
+						matchInstances.push(match);
+					} catch (err: any) {
+						this.handleError(500, `Faild to load team ${err}`);
+					}
+				}
+				this.matches = matchInstances;
+			}
 
 			return this;
 		} catch (err) {
@@ -233,7 +254,11 @@ export class Matches extends Base {
 	 * @param {number} courts - The number of courts available.
 	 * @returns {Partial<MatchRow>[]} - The generated matches.
 	 */
-	generateMatches(pools: number, teams: Partial<TeamRow>[], courts: number): Partial<MatchRow>[] {
+	generateMatches(pools: number, teams: Team[], courts: number): Partial<MatchRow>[] {
+		if (teams.length <= 1) {
+			this.handleError(400, 'Not enough teams to generate matches');
+		}
+
 		let matches: Partial<MatchRow>[] = [];
 		const totalMatches = Math.ceil((teams.length * pools) / 2); // Calculate the total number of matches needed
 
@@ -396,7 +421,7 @@ if (import.meta.vitest) {
 			created_at: null,
 			name: '',
 			state: null
-		})) as unknown as Partial<TeamRow>[];
+		})) as unknown as Team[];
 
 		await matches.load(1);
 		await matches.create(input, teams);
@@ -404,7 +429,7 @@ if (import.meta.vitest) {
 		expect(matches.matches?.length).toEqual(1);
 
 		const gamesPerTeam: any = { team0: 0, team1: 0 };
-		matches?.matches?.forEach((match: MatchRow) => {
+		matches?.matches?.forEach((match: Match) => {
 			if (match.team1 && match.team2) {
 				gamesPerTeam[match.team1]++;
 				gamesPerTeam[match.team2]++;
@@ -431,7 +456,7 @@ if (import.meta.vitest) {
 			created_at: '',
 			name: `team${i}`,
 			state: 'active'
-		})) as unknown as Partial<TeamRow>[];
+		})) as unknown as Team[];
 
 		await matches.load(1);
 		await matches.create(input, teams);
@@ -439,7 +464,7 @@ if (import.meta.vitest) {
 		expect(matches?.matches?.length).toEqual(3 * (4 / 2));
 
 		const gamesPerTeam: any = { team0: 0, team1: 0, team2: 0, team3: 0 };
-		matches?.matches?.forEach((match: MatchRow) => {
+		matches?.matches?.forEach((match: Match) => {
 			if (match.team1 && match.team2) {
 				gamesPerTeam[match.team1]++;
 				gamesPerTeam[match.team2]++;
@@ -466,13 +491,13 @@ if (import.meta.vitest) {
 			created_at: '',
 			name: `team${i}`,
 			state: 'active'
-		})) as unknown as Partial<TeamRow>[];
+		})) as unknown as Team[];
 
 		await matches.load(1);
 		await matches.create(input, teams);
 
 		const refGamesPerTeam: any = {};
-		matches?.matches?.forEach((match: MatchRow) => {
+		matches?.matches?.forEach((match: Match) => {
 			if (match.ref) {
 				refGamesPerTeam[match.ref] = refGamesPerTeam[match.ref]
 					? refGamesPerTeam[match.ref] + 1

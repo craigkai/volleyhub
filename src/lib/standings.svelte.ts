@@ -1,19 +1,19 @@
 import { Event } from '$lib/event.svelte';
-import { error } from '@sveltejs/kit';
 import type { Team } from './team.svelte';
+import type { Match } from './match.svelte';
 
-export function findStandings(matches: MatchRow[], event: Event, teams: Team[]): TeamScores {
+export function findStandings(matches: Match[], event: Event, teams: Team[]): TeamScores {
 	const teamScores: TeamScores = teams.reduce((acc: TeamScores, team: Team) => {
 		if (team.name) acc[team.name] = 0;
 		return acc;
 	}, {});
 
-	matches.forEach((match: MatchRow) => {
+	matches.forEach((match: Match) => {
 		const team1 = $state.snapshot(teams).find((t: Team) => t.id === match.team1);
 		const team2 = $state.snapshot(teams).find((t: Team) => t.id === match.team2);
 		if (!team1 || !team2 || !team1.name || !team2.name) {
 			console.warn(`Match ${match.id} has invalid team IDs`);
-			error(500, 'Invalid team IDs');
+			return teamScores;
 		}
 
 		if (match.team1_score && match.team2_score) {

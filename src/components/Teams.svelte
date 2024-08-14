@@ -5,8 +5,9 @@
 	import type { Teams } from '$lib/teams.svelte';
 	import toast from 'svelte-french-toast';
 	import { Team } from '$lib/team.svelte';
+	import type { Matches } from '$lib/matches.svelte';
 
-	const { teams = $bindable() }: { teams: Teams } = $props();
+	const { teams = $bindable(), matches }: { teams: Teams; matches: Matches } = $props();
 
 	async function createTeam() {
 		if (teams.teams.findIndex((team) => team.name === newTeamName) !== -1) {
@@ -20,8 +21,11 @@
 				event_id: teams.eventId
 			};
 
-			await teams.create(newTeam);
-			await loadEventTeams();
+			const newTeamInstance = await teams.create(newTeam);
+			if (newTeamInstance) teams.teams.push(newTeamInstance);
+
+			// Clear out matches
+			if (matches) await matches.deleteAllMatches();
 
 			toast.success(`Team ${newTeamName} created`);
 			newTeamName = '';
@@ -37,27 +41,17 @@
 	async function deleteTeam(team: Team) {
 		try {
 			await team.delete(team);
-			await loadEventTeams();
+			teams.teams = teams.teams.filter((t) => t.id !== team.id);
+
+			// Clear out matches
+			if (matches) await matches.deleteAllMatches();
+
 			toast.success(`Team ${team.name} deleted`);
 		} catch (err: any) {
 			toast.error(err?.body?.message ?? `Something went wrong: ${err}`);
 		}
 	}
 
-	async function loadEventTeams() {
-		if (teams.eventId) {
-			try {
-				const res = await teams.load(teams.eventId);
-				// @ts-ignore
-				currentTeams = res;
-			} catch (err) {
-				if (isHttpError(err)) {
-					toast.error(err.body.message);
-				}
-				toast.error('Something has gone very wrong');
-			}
-		}
-	}
 	let newTeamName = $state('');
 
 	let currentTeams = $state(teams.teams ?? []);

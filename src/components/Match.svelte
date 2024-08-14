@@ -2,6 +2,7 @@
 	import * as Popover from '$components/ui/popover';
 	import { page } from '$app/stores';
 	import { showModal } from '$lib/helper.svelte';
+	import type { Team } from '$lib/team.svelte';
 
 	let {
 		match,
@@ -11,8 +12,8 @@
 		showWinLoss = true
 	}: {
 		match: MatchRow;
-		team1: TeamRow;
-		team2: TeamRow;
+		team1: Team;
+		team2: Team;
 		readOnly: boolean;
 		showWinLoss: boolean;
 	} = $props();

@@ -14,9 +14,7 @@
 
 	const scoring = event.scoring;
 
-	let teamScores: TeamScores = $derived(
-		findStandings(matches.matches ?? [], event, teams.teams ?? [])
-	);
+	let teamScores: TeamScores = $derived(findStandings(matches.matches, event, teams.teams));
 	let orderedTeamScores = $derived(
 		Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a])
 	);

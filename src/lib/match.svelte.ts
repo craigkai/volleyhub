@@ -55,16 +55,8 @@ export class Match extends Base {
 			this.handleError(500, 'Failed to update match.');
 		}
 
-		if (this.matches) {
-			const matchIndex = this.matches.findIndex((m: MatchRow) => m.id === match.id);
+		Object.assign(this, updatedMatch);
 
-			if (matchIndex !== -1) {
-				// Existing match, update it
-				const updatedMatches = { ...this.matches[matchIndex], ...updatedMatch };
-				this.matches.splice(matchIndex, 1, updatedMatches);
-			}
-		}
-
-		return updatedMatch;
+		return this;
 	}
 }

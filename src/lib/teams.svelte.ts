@@ -10,7 +10,7 @@ import { Team } from './team.svelte';
 export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
 	eventId?: number;
-	teams: Team[] = [];
+	teams = $state<Team[]>([]);
 
 	/**
 	 * The constructor for the Teams class.
@@ -71,13 +71,20 @@ export class Teams extends Base {
 	 * Inserts a new team into the database. If a team with the same name and event ID exists,
 	 * returns that team's ID.
 	 * @param {Partial<Team>} team - The team data to be created.
-	 * @returns {Promise<number | undefined>} - A promise that resolves to the team ID.
+	 * @returns {Promise<Team | undefined>} - A promise that resolves to the team ID.
 	 */
-	async create(team: Partial<TeamRow>): Promise<number | undefined> {
+	async create(team: Partial<TeamRow>): Promise<Team | undefined> {
 		try {
 			const res = await this.databaseService.create(team);
 			if (res) {
-				return res.id;
+				const teamSupabaseDatabaseService = new TeamSupabaseDatabaseService(
+					this.databaseService.supabaseClient
+				);
+
+				const newTeam = new Team(teamSupabaseDatabaseService);
+				await newTeam.load(res.id);
+
+				return newTeam;
 			}
 			console.warn('Failed to create team', team);
 			return undefined;

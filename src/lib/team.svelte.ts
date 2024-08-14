@@ -9,8 +9,8 @@ export class Team extends Base {
 	created_at?: string;
 	event_id?: number;
 	id?: number;
-	name?: string = $state();
-	state?: string = $state();
+	name: string = $state('');
+	state: string = $state('');
 
 	constructor(databaseService: TeamSupabaseDatabaseService) {
 		super();
@@ -63,15 +63,6 @@ export class Team extends Base {
 
 		try {
 			await this.databaseService.delete(team);
-
-			const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(
-				this.databaseService.supabaseClient
-			);
-			const matches = new Matches(matchesSupabaseDatabaseService);
-
-			await matches.load(this.event_id);
-
-			await matches.deleteAllMatches();
 		} catch (err) {
 			this.handleError(500, `Failed to delete team: ${(err as Error).message}`);
 		}

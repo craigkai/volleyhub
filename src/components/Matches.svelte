@@ -8,6 +8,7 @@
 	import Zapoff from 'lucide-svelte/icons/zap-off';
 	import { onDestroy, onMount } from 'svelte';
 	import toast from 'svelte-french-toast';
+	// @ts-ignore
 	import type { PageData } from './$types';
 	import { Team } from '$lib/team.svelte';
 
