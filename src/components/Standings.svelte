@@ -13,18 +13,13 @@
 	}: { event: Event; matches: Matches; teams: Teams; defaultTeam: string | null } = $props();
 
 	const scoring = event.scoring;
-	let teamScores: TeamScores = $state({});
-	let orderedTeamScores: string[] = $state([]);
 
-	async function generateResults() {
-		teamScores = await findStandings(matches.matches ?? [], event, teams.teams ?? []);
-		orderedTeamScores = Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a]);
-	}
-	generateResults();
-	$effect(() => {
-		matches;
-		generateResults();
-	});
+	let teamScores: TeamScores = $derived(
+		findStandings(matches.matches ?? [], event, teams.teams ?? [])
+	);
+	let orderedTeamScores = $derived(
+		Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a])
+	);
 </script>
 
 <div class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300">

@@ -1,77 +1,95 @@
 import { teamsRowSchema } from '$schemas/supabase';
-import type { PostgrestResponse } from '@supabase/supabase-js';
+import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 import { SupabaseDatabaseService } from './supabaseDatabaseService';
 import type { Team } from '$lib/team.svelte';
 
 export class TeamSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
 	 * Create a new team in the database or update an existing one.
-	 * @param {Partial<Team>} team - The data for the team.
-	 * @returns {Promise<Team>} - Returns a promise that resolves to the newly created or updated team.
+	 * @param {Partial<TeamRow>} team - The data for the team.
+	 * @returns {Promise<TeamRow | null>} - Returns a promise that resolves to the newly created or updated team, or null if the operation fails.
 	 * @throws {Error} - Throws an error if there's an issue creating or updating the team.
 	 */
 	async create(team: Partial<TeamRow>): Promise<TeamRow | null> {
-		const res = await this.supabaseClient
-			.from('teams')
-			.insert({ ...team })
-			.select()
-			.single();
-
-		this.validateAndHandleErrors(res, teamsRowSchema);
-
-		return res.data;
-	}
-
-	async deleteTeam(team: Team): Promise<void> {
-		const res = await this.supabaseClient.from('teams').delete().eq('id', team.id);
-		this.handleDatabaseError(res);
-	}
-
-	/**
-	 * Load all teams associated with a specific event from the database.
-	 * @param {string} id - The ID of the event whose teams to load.
-	 * @returns {Promise<TeamRow>} - Returns a promise that resolves to the loaded team.
-	 * @throws {Error} - Throws an error if there's an issue loading the teams.
-	 */
-	async load(id: number): Promise<TeamRow | null> {
 		try {
-			// Load the teams from the 'teams' table
-			const res: PostgrestResponse<Team> = await this.supabaseClient
+			const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
 				.from('teams')
-				.select('*')
-				.eq('id', id)
+				.insert({ ...team })
 				.select()
 				.single();
 
-			// @ts-ignore
 			this.validateAndHandleErrors(res, teamsRowSchema);
 
-			// Return the loaded teams
 			return res.data;
 		} catch (error) {
-			// If an error occurs while loading the teams, log it and rethrow it
-			console.error('An error occurred while loading the teams:', error);
-			throw error;
+			console.error('Error creating or updating the team:', error);
+			throw new Error('Failed to create or update the team.');
+		}
+	}
+
+	/**
+	 * Delete a team from the database.
+	 * @param {Team} team - The team to delete.
+	 * @returns {Promise<void>} - Returns a promise that resolves when the team is deleted.
+	 * @throws {Error} - Throws an error if there's an issue deleting the team.
+	 */
+	async delete(team: Team): Promise<void> {
+		try {
+			const res = await this.supabaseClient.from('teams').delete().eq('id', team.id);
+			this.handleDatabaseError(res);
+		} catch (error) {
+			console.error('Error deleting the team:', error);
+			throw new Error('Failed to delete the team.');
+		}
+	}
+
+	/**
+	 * Load a team by its ID from the database.
+	 * @param {number} id - The ID of the team to load.
+	 * @returns {Promise<TeamRow | null>} - Returns a promise that resolves to the loaded team, or null if not found.
+	 * @throws {Error} - Throws an error if there's an issue loading the team.
+	 */
+	async load(id: number): Promise<TeamRow | null> {
+		try {
+			const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
+				.from('teams')
+				.select('*')
+				.eq('id', id)
+				.single();
+
+			this.validateAndHandleErrors(res, teamsRowSchema);
+
+			return res.data;
+		} catch (error) {
+			console.error('Error loading the team:', error);
+			throw new Error('Failed to load the team.');
 		}
 	}
 
 	/**
 	 * Update an existing team in the database.
 	 * @param {Team} team - The team to update.
-	 * @returns {Promise<TeamRow>} - Returns a promise that resolves to the updated team.
+	 * @returns {Promise<TeamRow | null>} - Returns a promise that resolves to the updated team, or null if the update fails.
 	 * @throws {Error} - Throws an error if there's an issue updating the team.
 	 */
 	async put(team: Team): Promise<TeamRow | null> {
-		const res = await this.supabaseClient
-			.from('teams')
-			.update({ ...team })
-			.eq('id', team.id)
-			.select()
-			.single();
+		try {
+			// Validate the team data against the schema
+			const parsedTeam = teamsRowSchema.partial().parse(team);
 
-		this.validateAndHandleErrors(res, teamsRowSchema);
+			const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
+				.from('teams')
+				.update(parsedTeam)
+				.eq('id', team.id)
+				.select()
+				.single();
 
-		// Return the updated team
-		return res.data;
+			this.validateAndHandleErrors(res, teamsRowSchema);
+
+			return res.data;
+		} catch (error) {
+			console.error('Error updating the team:', error);
+			throw new Error('Failed to update the team.');
+		}
 	}
 }

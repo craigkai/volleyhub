@@ -10,7 +10,7 @@ import { Team } from './team.svelte';
 export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
 	eventId?: number;
-	teams = $state<Team[]>([]);
+	teams: Team[] = [];
 
 	/**
 	 * The constructor for the Teams class.
@@ -45,8 +45,9 @@ export class Teams extends Base {
 				this.databaseService.supabaseClient
 			);
 
-			let team = new Team(teamSupabaseDatabaseService);
 			for (let i = 0; i < res.length; i++) {
+				let team = new Team(teamSupabaseDatabaseService);
+
 				const teamRow = res[i];
 
 				try {

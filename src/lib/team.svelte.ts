@@ -1,5 +1,7 @@
 import { Base } from './base';
+import { MatchesSupabaseDatabaseService } from './database/matches';
 import type { TeamSupabaseDatabaseService } from './database/team';
+import { Matches } from './matches.svelte';
 
 export class Team extends Base {
 	private databaseService: TeamSupabaseDatabaseService;
@@ -54,8 +56,22 @@ export class Team extends Base {
 	 * @returns {Promise<void>} - A promise that resolves when the team is successfully deleted.
 	 */
 	async delete(team: Team): Promise<void> {
+		if (!this.event_id) {
+			this.handleError(400, 'No event Id found for team');
+			return;
+		}
+
 		try {
-			await this.databaseService.deleteTeam(team);
+			await this.databaseService.delete(team);
+
+			const matchesSupabaseDatabaseService = new MatchesSupabaseDatabaseService(
+				this.databaseService.supabaseClient
+			);
+			const matches = new Matches(matchesSupabaseDatabaseService);
+
+			await matches.load(this.event_id);
+
+			await matches.deleteAllMatches();
 		} catch (err) {
 			this.handleError(500, `Failed to delete team: ${(err as Error).message}`);
 		}
