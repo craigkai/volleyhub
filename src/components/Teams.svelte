@@ -41,7 +41,10 @@
 	async function deleteTeam(team: Team) {
 		try {
 			await team.delete(team);
-			teams.teams = teams.teams.filter((t) => t.id !== team.id);
+			teams.teams.splice(
+				teams.teams.findIndex((t) => t.id === team.id),
+				1
+			);
 
 			// Clear out matches
 			if (matches) await matches.deleteAllMatches();
