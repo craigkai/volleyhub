@@ -4,6 +4,8 @@ import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/
 import { Base } from './base';
 import type { Brackets } from './brackets/brackets.svelte';
 import { Event } from '$lib/event.svelte';
+import { Match } from './match.svelte';
+import { MatchSupabaseDatabaseService } from './database/match';
 
 /**
  * The Matches class represents the matches in a tournament.
@@ -12,7 +14,7 @@ import { Event } from '$lib/event.svelte';
 export class Matches extends Base {
 	public databaseService: MatchesSupabaseDatabaseService;
 	event_id?: number;
-	matches = $state<MatchRow[]>();
+	matches: Match[] = [];
 	subscriptionStatus = $state();
 	type = 'pool';
 
@@ -35,7 +37,28 @@ export class Matches extends Base {
 			});
 			this.event_id = id;
 
-			if (res) this.matches = res;
+			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
+				this.databaseService.supabaseClient
+			);
+
+			const matches: Match[] = [];
+
+			if (res) {
+				for (let i = 0; i < res.length; i++) {
+					let match = new Match(matchSupabaseDatabaseService);
+
+					const matchRow = res[i];
+
+					try {
+						await match.load(matchRow.id);
+
+						matches.push(match);
+					} catch (err: any) {
+						this.handleError(500, `Faild to load team ${err}`);
+					}
+				}
+				this.matches = matches;
+			}
 		} catch (err) {
 			this.handleError(500, `Failed to load matches: ${(err as Error).message}`);
 		}
@@ -155,31 +178,6 @@ export class Matches extends Base {
 
 		await this.databaseService.deleteMatchesByEvent(this.event_id);
 		this.matches = [];
-	}
-
-	/**
-	 * Update a specific match in the database.
-	 * @param {MatchRow} match - The match details to be updated.
-	 * @returns {Promise<MatchRow | null>} - Returns a promise that resolves to the updated match.
-	 */
-	async updateMatch(match: MatchRow): Promise<MatchRow | null> {
-		const updatedMatch = await this.databaseService.put(match);
-
-		if (!updatedMatch) {
-			this.handleError(500, 'Failed to update match.');
-		}
-
-		if (this.matches) {
-			const matchIndex = this.matches.findIndex((m: MatchRow) => m.id === match.id);
-
-			if (matchIndex !== -1) {
-				// Existing match, update it
-				const updatedMatches = { ...this.matches[matchIndex], ...updatedMatch };
-				this.matches.splice(matchIndex, 1, updatedMatches);
-			}
-		}
-
-		return updatedMatch;
 	}
 
 	/**

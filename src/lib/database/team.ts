@@ -5,6 +5,29 @@ import type { Team } from '$lib/team.svelte';
 
 export class TeamSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
+	 * Load a team by its ID from the database.
+	 * @param {number} id - The ID of the team to load.
+	 * @returns {Promise<TeamRow | null>} - Returns a promise that resolves to the loaded team, or null if not found.
+	 * @throws {Error} - Throws an error if there's an issue loading the team.
+	 */
+	async load(id: number): Promise<TeamRow | null> {
+		try {
+			const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
+				.from('teams')
+				.select('*')
+				.eq('id', id)
+				.single();
+
+			this.validateAndHandleErrors(res, teamsRowSchema);
+
+			return res.data;
+		} catch (error) {
+			console.error('Error loading the team:', error);
+			throw new Error('Failed to load the team.');
+		}
+	}
+
+	/**
 	 * Create a new team in the database or update an existing one.
 	 * @param {Partial<TeamRow>} team - The data for the team.
 	 * @returns {Promise<TeamRow | null>} - Returns a promise that resolves to the newly created or updated team, or null if the operation fails.
@@ -40,29 +63,6 @@ export class TeamSupabaseDatabaseService extends SupabaseDatabaseService {
 		} catch (error) {
 			console.error('Error deleting the team:', error);
 			throw new Error('Failed to delete the team.');
-		}
-	}
-
-	/**
-	 * Load a team by its ID from the database.
-	 * @param {number} id - The ID of the team to load.
-	 * @returns {Promise<TeamRow | null>} - Returns a promise that resolves to the loaded team, or null if not found.
-	 * @throws {Error} - Throws an error if there's an issue loading the team.
-	 */
-	async load(id: number): Promise<TeamRow | null> {
-		try {
-			const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
-				.from('teams')
-				.select('*')
-				.eq('id', id)
-				.single();
-
-			this.validateAndHandleErrors(res, teamsRowSchema);
-
-			return res.data;
-		} catch (error) {
-			console.error('Error loading the team:', error);
-			throw new Error('Failed to load the team.');
 		}
 	}
 
