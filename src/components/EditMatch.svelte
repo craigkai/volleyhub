@@ -7,15 +7,27 @@
 	import type { Teams } from '$lib/teams.svelte';
 	import { error } from '@sveltejs/kit';
 	import type { Pool } from '$lib/pool/pool.svelte';
+	import { Team } from '$lib/team.svelte';
+	import toast from 'svelte-french-toast';
+	import { Match } from '$lib/match.svelte';
 
 	let { matchId, matches, teams }: { matchId: number; matches: Pool | Brackets; teams: Teams } =
 		$props();
 
-	let match = $derived(matches?.matches?.find((m) => m.id === matchId));
+	let match = matches?.matches?.find((m) => m.id === matchId) as Match;
 
 	async function saveMatch() {
 		try {
-			await updateMatch(match, matches, teams);
+			const updatedMatch = await updateMatch(match);
+
+			const team1 = updatedMatch
+				? teams.teams.find((t: Team) => t.id === updatedMatch.team1)
+				: null;
+			const team2 = updatedMatch
+				? teams.teams.find((t: Team) => t.id === updatedMatch.team2)
+				: null;
+
+			toast.success(`Match ${team1?.name} vs ${team2?.name} updated`);
 			closeModal();
 		} catch (err) {
 			console.error('Failed to save match:', err);
@@ -25,16 +37,17 @@
 </script>
 
 {#snippet editTeam(match, teamNumber)}
+	{@const team = teams.teams.find((t: Team) => t.id === match[teamNumber])}
+
 	<div class="mb-4 flex items-center space-x-4">
 		<Label class="min-w-[100px]" for="{teamNumber}-select">
-			{teamNumber === 'team1' ? 'Home' : 'Away'} Team: {match[`public_matches_${teamNumber}_fkey`]
-				.name}:
+			{teamNumber === 'team1' ? 'Home' : 'Away'} Team: {team?.name}:
 		</Label>
 
 		<Select.Root
 			selected={{
 				value: match[teamNumber],
-				label: match[`public_matches_${teamNumber}_fkey`].name
+				label: team?.name
 			}}
 			onSelectedChange={(event) => (match[teamNumber] = event?.value)}
 		>

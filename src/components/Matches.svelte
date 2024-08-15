@@ -8,7 +8,9 @@
 	import Zapoff from 'lucide-svelte/icons/zap-off';
 	import { onDestroy, onMount } from 'svelte';
 	import toast from 'svelte-french-toast';
+	// @ts-ignore
 	import type { PageData } from './$types';
+	import { Team } from '$lib/team.svelte';
 
 	let {
 		readOnly = false,
@@ -23,46 +25,6 @@
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let subscriptionStatus: any | undefined = $derived(data.matches?.subscriptionStatus);
-
-	let seenEvent = $state.snapshot(data.tournament);
-	let seenTeam = $state.snapshot(data.teams.teams);
-
-	// When number of matches change or courts, clear matches or teams
-	$effect(() => {
-		const eventAttributes = ['courts', 'pools', 'refs'];
-
-		let deleted = false;
-		for (var i = 0; i < eventAttributes.length; i++) {
-			const key = eventAttributes[i];
-
-			if (!$state.is(data.tournament[key], seenEvent[key])) {
-				try {
-					data.matches.deleteAllMatches();
-					deleted = true;
-				} catch (err) {
-					console.error(`Failed to delete matches: ${err as HttpError}`);
-					toast.error('Failed to delete matches');
-				}
-			}
-
-			if (deleted) break;
-		}
-
-		if (!deleted && $state.snapshot(data.teams.teams).length !== seenTeam.length) {
-			try {
-				data.matches.deleteAllMatches();
-				deleted = true;
-			} catch (err) {
-				console.error(`Failed to delete matches: ${err as HttpError}`);
-				toast.error('Failed to delete matches');
-			}
-		}
-
-		if (deleted) {
-			seenEvent = Object.assign(data.tournament);
-			seenTeam = Object.assign(data.teams);
-		}
-	});
 
 	async function checkGenerateMatches() {
 		if ((data.matches?.matches?.length ?? 0) > 0) {
@@ -134,7 +96,7 @@
 	{/if}
 </div>
 
-<div class="rounded rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-lg">
+<div class="rounded rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-base">
 	{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
 		<div class="flex w-full flex-col">
 			<div class="flex w-full">
@@ -159,12 +121,12 @@
 							)}
 							{#if match}
 								{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
-								{@const team1 = data.teams.teams.find((t: TeamRow) => t.id === match.team1)}
-								{@const team2 = data.teams.teams.find((t: TeamRow) => t.id === match.team2)}
+								{@const team1 = data.teams.teams.find((t: Team) => t.id === match.team1)}
+								{@const team2 = data.teams.teams.find((t: Team) => t.id === match.team2)}
 								{@const teamsForMatch = [team1?.name, team2?.name]}
 								{@const hasDefaultTeam = defaultTeam ? teamsForMatch.includes(defaultTeam) : false}
 								{@const defaultTeamWin =
-									team1.name == defaultTeam
+									team1?.name === defaultTeam
 										? (match.team1_score ?? 0) > (match.team2_score ?? 0)
 										: (match.team2_score ?? 0) > (match.team1_score ?? 0)}
 								{@const rowDivClass = defaultTeamWin
@@ -177,7 +139,9 @@
 											: 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
 										: 'flex-1 p-2'}"
 								>
-									<ViewMatch {match} {readOnly} {team1} {team2} showWinLoss={!hasDefaultTeam} />
+									{#if team1 && team2}
+										<ViewMatch {match} {readOnly} {team1} {team2} showWinLoss={!hasDefaultTeam} />
+									{/if}
 								</div>
 							{:else}
 								<div class="flex-1 p-2"></div>

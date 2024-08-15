@@ -1,9 +1,12 @@
 import { Event } from '../event.svelte';
 import { findStandings } from '../standings.svelte';
 import { Matches } from '../matches.svelte';
+import { Match } from '$lib/match.svelte';
+import { MatchSupabaseDatabaseService } from '$lib/database/match';
+import type { Team } from '$lib/team.svelte';
 
 export class Brackets extends Matches {
-	matches: MatchRow[] = $state();
+	matches = $state<Match[]>([]);
 	type = 'bracket';
 
 	// Overload Matches load method to only load our bracket matches.
@@ -14,14 +17,34 @@ export class Brackets extends Matches {
 				operator: 'eq',
 				value: 'bracket'
 			});
-			if (res) this.matches = res;
+
+			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
+				this.databaseService.supabaseClient
+			);
+			const matches: Match[] = [];
+			if (res) {
+				for (let i = 0; i < res.length; i++) {
+					let match = new Match(matchSupabaseDatabaseService);
+
+					const matchRow = res[i];
+
+					try {
+						await match.load(matchRow.id);
+
+						matches.push(match);
+					} catch (err: any) {
+						this.handleError(500, `Faild to load team ${err}`);
+					}
+				}
+				this.matches = matches;
+			}
 		} catch (error) {
 			this.handleError(500, `Failed to load bracket matches: ${(error as Error).message}`);
 		}
 		return this;
 	}
 
-	async createBracketMatches(event: Event, teams: TeamRow[], matches: MatchRow[]) {
+	async createBracketMatches(event: Event, teams: Team[], matches: Match[]) {
 		try {
 			if (this.matches && this.matches.length > 0) {
 				await this.databaseService.deleteMatchesByIds(this.matches.map((m) => m.id));
@@ -34,7 +57,7 @@ export class Brackets extends Matches {
 				);
 			}
 
-			const teamScores: TeamScores = await findStandings(matches ?? [], event, teams);
+			const teamScores: TeamScores = findStandings(matches, event, teams);
 			const orderedTeamScores = Object.keys(teamScores).sort(
 				(a, b) => teamScores[b] - teamScores[a]
 			);

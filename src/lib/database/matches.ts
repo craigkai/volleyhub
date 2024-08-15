@@ -1,7 +1,7 @@
 import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
 import type { PostgrestResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { matchesRowSchema, matchesUpdateSchema, matchesInsertSchema } from '$schemas/supabase';
+import { matchesRowSchema, matchesInsertSchema } from '$schemas/supabase';
 
 const MatchesRowSchemaArray = z.array(matchesRowSchema);
 
@@ -49,25 +49,6 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.handleDatabaseError(response);
 	}
 
-	async delete(id: number): Promise<void> {
-		const response = await this.supabaseClient.from('matches').delete().eq('id', id);
-		this.handleDatabaseError(response);
-	}
-
-	async insertMatch(match: Partial<MatchRow>): Promise<MatchRow> {
-		try {
-			const matches = await this.insertMatches([match]);
-
-			if (matches.length === 0) {
-				throw new Error('Failed to insert match');
-			}
-
-			return matches[0];
-		} catch (err) {
-			throw new Error(`Failed to insert match: ${(err as Error).message}`);
-		}
-	}
-
 	async insertMatches(matches: Partial<MatchRow>[]): Promise<MatchRow[]> {
 		const parsedMatches = z.array(matchesInsertSchema).parse(matches);
 
@@ -79,20 +60,5 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.validateAndHandleErrors(res, MatchesRowSchemaArray);
 
 		return res.data ?? [];
-	}
-
-	async put(match: MatchRow): Promise<MatchRow | null> {
-		const parsedMatch = matchesUpdateSchema.parse(match);
-
-		const res = await this.supabaseClient
-			.from('matches')
-			.update(parsedMatch)
-			.eq('id', match.id)
-			.select(MATCHES_SELECT_QUERY)
-			.single();
-
-		this.validateAndHandleErrors(res, matchesRowSchema);
-
-		return res.data as MatchRow;
 	}
 }

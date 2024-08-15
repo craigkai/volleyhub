@@ -1,8 +1,6 @@
 // Importing necessary types from supabase-js and sveltejs/kit
 import type { User, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { error } from '@sveltejs/kit';
-import { Brackets } from '$lib/brackets/brackets.svelte';
-import { Matches } from '$lib/matches.svelte';
 import { v4 as uuidv4 } from 'uuid';
 import { Base } from '$lib/database/base';
 
@@ -33,9 +31,9 @@ export class SupabaseDatabaseService extends Base {
 	}
 
 	async subscribeToChanges(
-		self: Matches | Brackets,
+		self: any,
 		callback: (
-			self: Matches | Brackets,
+			self: any,
 			payload: RealtimePostgresChangesPayload<{
 				[key: string]: any;
 			}>
@@ -70,10 +68,6 @@ export class SupabaseDatabaseService extends Base {
 				}
 			)
 			.subscribe((status) => {
-				// We call the load function to update in case our content is stale
-				// when we re-connect to the web socket.
-				if (self.event_id) self.load(self.event_id);
-
 				self.subscriptionStatus = status;
 				console.debug('Realtime status', status);
 			});

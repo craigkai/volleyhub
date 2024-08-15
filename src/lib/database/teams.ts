@@ -1,78 +1,58 @@
 import { SupabaseDatabaseService } from '$lib/database/supabaseDatabaseService';
-import type { PostgrestResponse } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { teamsRowSchema } from '$schemas/supabase';
 
-const TeamsRowSchemaArray = z.array(teamsRowSchema);
+// Schema validation for an array of teams
+const TeamsRowSchemaArray = z.array(teamsRowSchema).refine((data) => Array.isArray(data), {
+	message: 'Expected an array of teams.'
+});
 
 export class TeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
 	 * Create a new team in the database or update an existing one.
+	 * If the team already exists, it will be updated.
 	 * @param {Partial<TeamRow>} team - The data for the team.
-	 * @returns {Promise<TeamRow>} - Returns a promise that resolves to the newly created or updated team.
+	 * @returns {Promise<TeamRow | null>} - Returns a promise that resolves to the newly created or updated team, or null if the operation fails.
 	 * @throws {Error} - Throws an error if there's an issue creating or updating the team.
 	 */
-	async createTeam(team: Partial<TeamRow>): Promise<TeamRow | null> {
-		const res = await this.supabaseClient
-			.from('teams')
-			.insert({ ...team })
-			.select()
-			.single();
-
-		this.validateAndHandleErrors(res, teamsRowSchema);
-
-		// Return the newly created or updated team
-		return res.data as unknown as TeamRow;
-	}
-
-	async deleteTeam(team: TeamRow): Promise<void> {
-		const res = await this.supabaseClient.from('teams').delete().eq('id', team.id);
-		this.handleDatabaseError(res);
-	}
-
-	/**
-	 * Load all teams associated with a specific event from the database.
-	 * @param {string} event_id - The ID of the event whose teams to load.
-	 * @returns {Promise<TeamRow[]>} - Returns a promise that resolves to an array of the loaded teams.
-	 * @throws {Error} - Throws an error if there's an issue loading the teams.
-	 */
-	async load(event_id: number): Promise<TeamRow[] | null> {
+	async create(team: Partial<TeamRow>): Promise<TeamRow | null> {
 		try {
-			// Load the teams from the 'teams' table
-			const res: PostgrestResponse<TeamRow> = await this.supabaseClient
+			const res = await this.supabaseClient
 				.from('teams')
-				.select('*')
-				.eq('event_id', event_id);
+				.insert({ ...team })
+				.select()
+				.single();
 
-			// @ts-ignore
-			this.validateAndHandleErrors(res, TeamsRowSchemaArray);
+			// Validate the response using the Zod schema
+			this.validateAndHandleErrors(res, teamsRowSchema);
 
-			// Return the loaded teams
-			return res.data as TeamRow[]; // Consider additional checks here
+			// Return the created or updated team data
+			return res.data;
 		} catch (error) {
-			// If an error occurs while loading the teams, log it and rethrow it
-			console.error('An error occurred while loading the teams:', error);
-			throw error;
+			console.error('An error occurred while creating or updating the team:', error);
+			throw new Error('Failed to create or update the team.');
 		}
 	}
 
 	/**
-	 * Update an existing team in the database.
-	 * @param {TeamRow} team - The team to update.
-	 * @returns {Promise<TeamRow>} - Returns a promise that resolves to the updated team.
-	 * @throws {Error} - Throws an error if there's an issue updating the team.
+	 * Load all teams associated with a specific event from the database.
+	 * @param {number} event_id - The ID of the event whose teams to load.
+	 * @returns {Promise<TeamRow[] | null>} - Returns a promise that resolves to an array of the loaded teams, or null if no teams were found.
+	 * @throws {Error} - Throws an error if there's an issue loading the teams.
 	 */
-	async put(team: TeamRow): Promise<TeamRow | null> {
-		const res = await this.supabaseClient
-			.from('teams')
-			.update({ ...team })
-			.eq('id', team.id)
-			.select()
-			.single();
+	async load(event_id: number): Promise<TeamRow[] | null> {
+		try {
+			// Load the teams from the 'teams' table where the event ID matches
+			const res = await this.supabaseClient.from('teams').select('*').eq('event_id', event_id);
 
-		this.validateAndHandleErrors(res, teamsRowSchema);
+			// Validate the response using the Zod schema for an array
+			this.validateAndHandleErrors(res, TeamsRowSchemaArray);
 
-		// Return the updated team
-		return res.data as unknown as TeamRow;
+			// Return the loaded teams, or null if none were found
+			return res.data;
+		} catch (error) {
+			console.error('An error occurred while loading the teams:', error);
+			throw new Error('Failed to load teams.');
+		}
 	}
 }

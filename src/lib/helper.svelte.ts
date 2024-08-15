@@ -8,6 +8,7 @@ import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Event as EventInstance } from '$lib/event.svelte';
 import { Pool } from '$lib/pool/pool.svelte';
 import { Teams as TeamsInstance } from '$lib/teams.svelte';
+import type { Match } from './match.svelte';
 
 export function showModal(matchId: number, type: string): void {
 	pushState('', {
@@ -23,29 +24,17 @@ export function closeModal() {
 	});
 }
 
-export async function updateMatch(
-	match: MatchRow | undefined,
-	matches: Pool | Brackets,
-	teams: TeamsInstance
-): Promise<void> {
+export async function updateMatch(match: Match): Promise<Match | undefined> {
 	if (match) {
 		try {
 			match.team1_score = Number(match.team1_score);
 			match.team2_score = Number(match.team2_score);
 
-			const updatedMatch = await matches.updateMatch(match);
-			if (!updateMatch) {
+			const updatedMatch = await match.update(match);
+			if (!updatedMatch) {
 				error(500, 'failed to update match');
-			} else {
-				const team1 = updatedMatch
-					? teams.teams.find((t: TeamRow) => t.id === updatedMatch.team1)
-					: null;
-				const team2 = updatedMatch
-					? teams.teams.find((t: TeamRow) => t.id === updatedMatch.team2)
-					: null;
-
-				toast.success(`Match ${team1?.name} vs ${team2?.name} updated`);
 			}
+			return updatedMatch;
 		} catch (err) {
 			toast.error((err as HttpError).toString());
 		}
