@@ -8,17 +8,17 @@ import type { MatchSupabaseDatabaseService } from './database/match';
 export class Match extends Base {
 	public databaseService: MatchSupabaseDatabaseService;
 	child_id?: number;
-	court?: number;
 	created_at?: string;
 	event_id?: number;
 	id?: number;
-	ref?: number;
+	court?: number;
+	ref?: string;
 	round?: number;
-	state?: MatchState;
-	team1?: number;
-	team1_score?: number;
-	team2?: number;
-	team2_score?: number;
+	state? = $state<MatchState>();
+	team1? = $state<number>();
+	team1_score? = $state<number>();
+	team2? = $state<number>();
+	team2_score? = $state<number>();
 	type?: string;
 
 	constructor(databaseService: MatchSupabaseDatabaseService) {

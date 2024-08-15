@@ -10,7 +10,6 @@
 	import toast from 'svelte-french-toast';
 	// @ts-ignore
 	import type { PageData } from './$types';
-	import { Team } from '$lib/team.svelte';
 
 	let {
 		readOnly = false,
@@ -117,34 +116,12 @@
 					<div class="flex w-full rounded {i % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}">
 						{#each Array(data.tournament.courts) as _, court}
 							{@const match = data.matches.matches.find(
-								(m: MatchRow) => m.court === court && m.round.toString() === round.toString()
+								(m: MatchRow) => m?.court === court && m?.round.toString() === round?.toString()
 							)}
 							{#if match}
-								{@const matchComplete = match.team1_score !== null && match.team2_score !== null}
-								{@const team1 = data.teams.teams.find((t: Team) => t.id === match.team1)}
-								{@const team2 = data.teams.teams.find((t: Team) => t.id === match.team2)}
-								{@const teamsForMatch = [team1?.name, team2?.name]}
-								{@const hasDefaultTeam = defaultTeam ? teamsForMatch.includes(defaultTeam) : false}
-								{@const defaultTeamWin =
-									team1?.name === defaultTeam
-										? (match.team1_score ?? 0) > (match.team2_score ?? 0)
-										: (match.team2_score ?? 0) > (match.team1_score ?? 0)}
-								{@const rowDivClass = defaultTeamWin
-									? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
-									: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'}
-								<div
-									class="min-w-[100px] {hasDefaultTeam
-										? matchComplete
-											? 'flex-1 p-2 ' + rowDivClass
-											: 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
-										: 'flex-1 p-2'}"
-								>
-									{#if team1 && team2}
-										<ViewMatch {match} {readOnly} {team1} {team2} showWinLoss={!hasDefaultTeam} />
-									{/if}
-								</div>
+								<ViewMatch {match} teams={data.teams} {readOnly} {defaultTeam} />
 							{:else}
-								<div class="flex-1 p-2"></div>
+								<div class="flex-1 p-2 text-center">-</div>
 							{/if}
 						{/each}
 						{#if data.tournament.refs === 'teams'}

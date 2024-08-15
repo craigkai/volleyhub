@@ -80,17 +80,21 @@ export class Matches extends Base {
 		const old = payload.old as MatchRow;
 		const updated = payload.new as MatchRow;
 
-		if (payload.eventType === 'INSERT') {
-			if (self.type !== updated.type) return;
+		// If updating for another type of match, ignore it
+		if (self.type !== updated.type) return;
 
-			const match = self.matches.find((m: Match) => m.id === updated.id);
-			if (match && match.id) match.load(match.id);
+		if (payload.eventType === 'INSERT') {
+			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
+				this.databaseService.supabaseClient
+			);
+			const newMatchInstance = new Match(matchSupabaseDatabaseService);
+
+			self.matches.push(newMatchInstance);
 
 			return;
 		}
 
-		// If updating for another type of match, ignore it
-		if (self.type !== updated.type) return;
+		console.info(`handleUpdate: ${JSON.stringify(payload)}`);
 
 		if (self.type === 'bracket') {
 			await self.load(self.event_id);
@@ -102,11 +106,12 @@ export class Matches extends Base {
 			return;
 		}
 
-		const updatedMatch = self.matches.find((m: Match) => m.id === old.id);
+		let updatedMatch = self.matches.find((m: Match) => m.id === old.id);
 
 		if (updatedMatch && updatedMatch.id) {
 			// Existing match, update it
-			updatedMatch.load(updatedMatch.id);
+			await updatedMatch.load(updatedMatch.id);
+			updatedMatch = updatedMatch;
 		} else {
 			self.handleError(
 				400,

@@ -48,6 +48,7 @@ export const actions: Actions = {
 			};
 		} catch (error) {
 			form.valid = false;
+			console.error(error);
 
 			const validationError = fromZodError(error as ZodError<typeof eventsUpdateSchema>);
 			form.message = validationError.message;
@@ -75,7 +76,6 @@ export const actions: Actions = {
 			const res = await tournament.create(form.data);
 			if (res.id) {
 				newId = res.id;
-				redirect(303, `/events/${newId}`);
 			} else {
 				form.valid = false;
 				form.message = 'Failed to create event';
@@ -86,6 +86,7 @@ export const actions: Actions = {
 			}
 		} catch (error) {
 			form.valid = false;
+			console.error(error);
 
 			const validationError = fromZodError(error as ZodError<typeof eventsInsertSchema>);
 			form.message = validationError.message;
@@ -94,6 +95,7 @@ export const actions: Actions = {
 				form
 			});
 		}
+		redirect(303, `/events/${newId}`);
 	},
 
 	deleteEvent: async (event) => {

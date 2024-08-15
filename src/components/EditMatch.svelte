@@ -36,7 +36,7 @@
 	}
 </script>
 
-{#snippet editTeam(match, teamNumber)}
+{#snippet editTeam(match: Match, teamNumber: string)}
 	{@const team = teams.teams.find((t: Team) => t.id === match[teamNumber])}
 
 	<div class="mb-4 flex items-center space-x-4">
@@ -46,6 +46,7 @@
 
 		<Select.Root
 			selected={{
+				// @ts-ignore
 				value: match[teamNumber],
 				label: team?.name
 			}}
