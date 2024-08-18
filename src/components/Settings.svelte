@@ -29,6 +29,7 @@
 	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	// @ts-ignore
 	import type { PageData } from './$types';
 
 	const { data, eventId } = $props<{ eventId: Number | string; data: PageData }>();
