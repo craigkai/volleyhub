@@ -12,7 +12,7 @@ export class Match extends Base {
 	event_id?: number;
 	id?: number;
 	court?: number;
-	ref?: string;
+	ref?: number;
 	round?: number;
 	state? = $state<MatchState>();
 	team1? = $state<number>();

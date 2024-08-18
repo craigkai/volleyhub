@@ -1,20 +1,23 @@
 <script lang="ts">
 	import * as Popover from '$components/ui/popover';
-	import { page } from '$app/stores';
-	import { showModal } from '$lib/helper.svelte';
 	import type { Team } from '$lib/team.svelte';
 	import { Teams } from '$lib/teams.svelte';
+	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
+	import EditMatch from '$components/EditMatch.svelte';
+	import type { Matches } from '$lib/matches.svelte';
 
 	let {
 		match,
 		teams,
 		readOnly = false,
-		defaultTeam
+		defaultTeam,
+		matches
 	}: {
 		match: MatchRow;
 		teams: Teams;
 		readOnly: boolean;
 		defaultTeam: string;
+		matches: Matches;
 	} = $props();
 
 	const winClass = 'bg-green-300 dark:bg-green-700';
@@ -35,7 +38,19 @@
 			? 'border-solid border-2 border-green-400 bg-green-200 dark:bg-green-700 dark:border-green-700'
 			: 'border-solid border-2 border-red-400 bg-red-200 dark:bg-red-700 dark:border-red-700'
 	);
+	let open = $state(false);
 </script>
+
+<AlertDialog.Root
+	{open}
+	onOpenChange={() => (open = false)}
+	closeOnOutsideClick={true}
+	closeOnEscape={true}
+>
+	<AlertDialog.Content>
+		<EditMatch matchId={match.id} {matches} {teams} />
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 {#snippet matchView()}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -43,8 +58,8 @@
 	<div
 		class="flex place-items-center justify-center text-pretty"
 		onclick={() => {
-			if (!readOnly && !$page.state.showModal) {
-				showModal(match?.id, 'pool');
+			if (!readOnly) {
+				open = true;
 			}
 		}}
 	>

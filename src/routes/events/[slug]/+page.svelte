@@ -9,9 +9,6 @@
 	import { browser } from '$app/environment';
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
-	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
-	import { closeModal } from '$lib/helper.svelte';
-	import EditMatch from '$components/EditMatch.svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
 	import BorderBeam from '$components/magic-ui/BorderBeam.svelte';
@@ -35,39 +32,10 @@
 			.concat([{ value: '', name: 'none' }]) || []
 	);
 
-	let open = $derived($page.state.showModal ?? false);
-
 	const isCreate = $derived(data?.eventId === 'create');
 
 	const tabsWidth = $derived(readOnly ? 'grid-cols-3' : 'grid-cols-5');
 </script>
-
-{#if $page.state.showModal && $page.state.matchId}
-	<AlertDialog.Root
-		{open}
-		onOpenChange={closeModal}
-		closeOnOutsideClick={true}
-		closeOnEscape={true}
-	>
-		<AlertDialog.Content>
-			{#if $page.state.type === 'pool'}
-				{#if data.matches}
-					<EditMatch
-						matchId={$page.state.matchId as number}
-						matches={data.matches}
-						teams={data.teams}
-					/>
-				{/if}
-			{:else if data.bracket}
-				<EditMatch
-					matchId={$page.state.matchId as number}
-					matches={data.bracket}
-					teams={data.teams}
-				/>
-			{/if}
-		</AlertDialog.Content>
-	</AlertDialog.Root>
-{/if}
 
 <svelte:head>
 	<title>{data?.tournament?.name}</title>

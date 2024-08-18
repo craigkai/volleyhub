@@ -10,20 +10,6 @@ import { Pool } from '$lib/pool/pool.svelte';
 import { Teams as TeamsInstance } from '$lib/teams.svelte';
 import type { Match } from './match.svelte';
 
-export function showModal(matchId: number, type: string): void {
-	pushState('', {
-		showModal: true,
-		matchId: matchId,
-		type: type
-	});
-}
-
-export function closeModal() {
-	pushState('', {
-		showModal: false
-	});
-}
-
 export async function updateMatch(match: Match): Promise<Match | undefined> {
 	if (match) {
 		try {

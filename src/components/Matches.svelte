@@ -10,6 +10,7 @@
 	import toast from 'svelte-french-toast';
 	// @ts-ignore
 	import type { PageData } from './$types';
+	import EditRef from './EditRef.svelte';
 
 	let {
 		readOnly = false,
@@ -134,23 +135,22 @@
 									(m: MatchRow) => m?.court === court && m?.round.toString() === round?.toString()
 								)}
 								{#if match}
-									<ViewMatch {match} teams={data.teams} {readOnly} {defaultTeam} />
+									<ViewMatch
+										matches={data.matches}
+										{match}
+										teams={data.teams}
+										{readOnly}
+										{defaultTeam}
+									/>
 								{:else}
 									<div class="flex-1 p-2 text-center">-</div>
 								{/if}
 							{/each}
 							{#if data.tournament.refs === 'teams'}
-								{@const exampleMatch = data.matches.matches.find(
+								{@const matchesPerRound = data.matches.matches.filter(
 									(m: MatchRow) => m.round.toString() === round.toString()
 								)}
-								{@const ref = data.teams.teams.find((t: TeamRow) => t.id == exampleMatch.ref)}
-								<div
-									class="flex place-items-center justify-end text-pretty {ref?.name == defaultTeam
-										? 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
-										: 'flex-1 p-2'}"
-								>
-									{ref?.name}
-								</div>
+								<EditRef {matchesPerRound} teams={data.teams} {defaultTeam} />
 							{/if}
 						</div>
 					{/each}
