@@ -13,7 +13,7 @@
 					<Card.Root class="m-2 w-[350px] dark:bg-slate-700">
 						<Card.Header>
 							<Card.Title>{event.name}</Card.Title>
-							<Card.Description>{event.description}</Card.Description>
+							<Card.Description class="truncate">{event.description}</Card.Description>
 						</Card.Header>
 						<Card.Content>
 							<form>
