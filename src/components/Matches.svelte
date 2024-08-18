@@ -50,8 +50,11 @@
 		}
 	}
 
+	let loading: boolean = $state(false);
 	async function generateMatches(): Promise<void> {
 		try {
+			loading = true;
+			await new Promise((r) => setTimeout(r, 2000));
 			// Unsubscribe from existing subscription if any
 			if (matchesSubscription) {
 				await matchesSubscription.unsubscribe();
@@ -74,6 +77,7 @@
 			toast.error((err as HttpError).toString());
 		} finally {
 			showGenerateMatchesAlert = false;
+			loading = false;
 		}
 	}
 
@@ -95,88 +99,100 @@
 	{/if}
 </div>
 
-<div class="rounded rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-base">
-	{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
-		<div class="flex w-full flex-col">
-			<div class="flex w-full">
-				{#each Array(data.tournament.courts) as _, i}
-					{@const index = i + 1}
-					<div class="flex-1 p-2 text-center font-bold">
-						Court {index}
-					</div>
-				{/each}
-				{#if data.tournament.refs === 'teams'}
-					<div class="flex-1 p-2 text-center font-bold">Ref</div>
-				{/if}
-			</div>
+{#if loading}
+	<div
+		class="text-surface inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+		role="status"
+	>
+		<span
+			class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+			>Loading...</span
+		>
+	</div>
+{:else}
+	<div class="rounded rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-base">
+		{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
+			<div class="flex w-full flex-col">
+				<div class="flex w-full">
+					{#each Array(data.tournament.courts) as _, i}
+						{@const index = i + 1}
+						<div class="flex-1 p-2 text-center font-bold">
+							Court {index}
+						</div>
+					{/each}
+					{#if data.tournament.refs === 'teams'}
+						<div class="flex-1 p-2 text-center font-bold">Ref</div>
+					{/if}
+				</div>
 
-			{#if rounds > 0}
-				{#each Array(rounds) as _, i}
-					{@const round = i + 1}
-					<div class="flex w-full rounded {i % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}">
-						{#each Array(data.tournament.courts) as _, court}
-							{@const match = data.matches.matches.find(
-								(m: MatchRow) => m?.court === court && m?.round.toString() === round?.toString()
-							)}
-							{#if match}
-								<ViewMatch {match} teams={data.teams} {readOnly} {defaultTeam} />
-							{:else}
-								<div class="flex-1 p-2 text-center">-</div>
+				{#if rounds > 0}
+					{#each Array(rounds) as _, i}
+						{@const round = i + 1}
+						<div class="flex w-full rounded {i % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}">
+							{#each Array(data.tournament.courts) as _, court}
+								{@const match = data.matches.matches.find(
+									(m: MatchRow) => m?.court === court && m?.round.toString() === round?.toString()
+								)}
+								{#if match}
+									<ViewMatch {match} teams={data.teams} {readOnly} {defaultTeam} />
+								{:else}
+									<div class="flex-1 p-2 text-center">-</div>
+								{/if}
+							{/each}
+							{#if data.tournament.refs === 'teams'}
+								{@const exampleMatch = data.matches.matches.find(
+									(m: MatchRow) => m.round.toString() === round.toString()
+								)}
+								{@const ref = data.teams.teams.find((t: TeamRow) => t.id == exampleMatch.ref)}
+								<div
+									class="flex place-items-center justify-end text-pretty {ref?.name == defaultTeam
+										? 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
+										: 'flex-1 p-2'}"
+								>
+									{ref?.name}
+								</div>
 							{/if}
-						{/each}
-						{#if data.tournament.refs === 'teams'}
-							{@const exampleMatch = data.matches.matches.find(
-								(m: MatchRow) => m.round.toString() === round.toString()
-							)}
-							{@const ref = data.teams.teams.find((t: TeamRow) => t.id == exampleMatch.ref)}
-							<div
-								class="flex place-items-center justify-end text-pretty {ref?.name == defaultTeam
-									? 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
-									: 'flex-1 p-2'}"
-							>
-								{ref?.name}
-							</div>
-						{/if}
-					</div>
-				{/each}
-			{/if}
-		</div>
-	{/if}
-
-	{#if !readOnly}
-		{#if showGenerateMatchesAlert}
-			<div class="m-2">
-				<Alert.Root>
-					<Alert.Title>Generate new matches?</Alert.Title>
-					<Alert.Description>
-						You already have some match content, are you sure you want to wipe that?
-					</Alert.Description>
-					<div class="flex gap-2">
-						<button
-							class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-							onclick={generateMatches}
-						>
-							Yes
-						</button>
-						<button
-							class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-							onclick={() => (showGenerateMatchesAlert = false)}
-						>
-							No
-						</button>
-					</div>
-				</Alert.Root>
+						</div>
+					{/each}
+				{/if}
 			</div>
 		{/if}
 
-		<div class="m-2 flex justify-center">
-			<button
-				class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-				type="button"
-				onclick={checkGenerateMatches}
-			>
-				Generate matches
-			</button>
-		</div>
-	{/if}
-</div>
+		{#if !readOnly}
+			{#if showGenerateMatchesAlert}
+				<div class="m-2">
+					<Alert.Root>
+						<Alert.Title>Generate new matches?</Alert.Title>
+						<Alert.Description>
+							You already have some match content, are you sure you want to wipe that?
+						</Alert.Description>
+						<div class="flex gap-2">
+							<button
+								class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+								onclick={generateMatches}
+							>
+								Yes
+							</button>
+							<button
+								class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+								onclick={() => (showGenerateMatchesAlert = false)}
+							>
+								No
+							</button>
+						</div>
+					</Alert.Root>
+				</div>
+			{/if}
+
+			<div class="m-2 flex justify-center">
+				<button
+					class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+					type="button"
+					onclick={checkGenerateMatches}
+				>
+					Generate matches
+				</button>
+			</div>
+		{/if}
+	</div>
+{/if}
