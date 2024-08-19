@@ -55,7 +55,6 @@
 	async function generateMatches(): Promise<void> {
 		try {
 			loading = true;
-			await new Promise((r) => setTimeout(r, 2000));
 			// Unsubscribe from existing subscription if any
 			if (matchesSubscription) {
 				await matchesSubscription.unsubscribe();
@@ -102,7 +101,7 @@
 
 {#if loading}
 	<div
-		class="text-surface inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+		class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]"
 		role="status"
 	>
 		<span
