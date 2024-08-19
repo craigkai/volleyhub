@@ -6,7 +6,9 @@ import type { Brackets } from './brackets/brackets.svelte';
 import { Event } from '$lib/event.svelte';
 import { Match } from './match.svelte';
 import { MatchSupabaseDatabaseService } from './database/match';
-import type { Team } from './team.svelte';
+import { Team } from './team.svelte';
+import List from './list';
+import { error } from '@sveltejs/kit';
 
 /**
  * The Matches class represents the matches in a tournament.
@@ -160,10 +162,20 @@ export class Matches extends Base {
 
 			await this.databaseService.deleteMatchesByEvent(this.event_id);
 
-			const matches = this.generateMatches(pools!, teams, courts!);
+			if (teams.length % 2) {
+				teams.push({
+					id: 0,
+					name: 'bye'
+				} as unknown as Team);
+			}
+
+			let matches = this.calculateCourtsAndRounds(
+				this.calculateMatches(teams, [], 0, pools ?? 0),
+				courts as number
+			);
 
 			if (refs === 'teams') {
-				this.assignReferees(matches, teams);
+				matches = this.assignReferees(matches, teams);
 			}
 
 			const res = await this.databaseService.insertMatches(matches);
@@ -183,7 +195,7 @@ export class Matches extends Base {
 
 						matchInstances.push(match);
 					} catch (err: any) {
-						this.handleError(500, `Faild to load team ${err}`);
+						this.handleError(500, `Faild to load match ${err}`);
 					}
 				}
 				this.matches = matchInstances;
@@ -193,17 +205,6 @@ export class Matches extends Base {
 		} catch (err) {
 			this.handleError(500, err instanceof Error ? err.message : (err as string));
 		}
-	}
-
-	async deleteAllMatches() {
-		console.info('deleteAllMatches');
-		if (!this.event_id) {
-			this.handleError(400, 'Event ID is required to delete all matches.');
-			return;
-		}
-
-		await this.databaseService.deleteMatchesByEvent(this.event_id);
-		this.matches = [];
 	}
 
 	/**
@@ -219,7 +220,7 @@ export class Matches extends Base {
 		courts: number | undefined | null,
 		refs: string | undefined | null
 	) {
-		if (!teams || teams.length === 0) {
+		if (!teams || teams.length <= 1) {
 			this.handleError(400, "Can't generate matches without Teams");
 		}
 
@@ -236,83 +237,90 @@ export class Matches extends Base {
 		}
 	}
 
-	/**
-	 * Calculate the number of rounds and courts per round.
-	 * @param {TeamRow[]} teams - The teams participating in the event.
-	 * @param {number} courts - The number of courts available.
-	 * @returns {{ rounds: number; courtsPerRound: number }} - The number of rounds and courts per round.
-	 */
-	calculateRoundsAndCourts(
-		teams: TeamRow[],
-		courts: number
-	): { rounds: number; courtsPerRound: number } {
-		const numberOfTeams = teams.length;
-		const rounds = numberOfTeams % 2 === 0 ? numberOfTeams - 1 : numberOfTeams;
-		const courtsPerRound = Math.min(courts, Math.floor(numberOfTeams / 2));
-		return { rounds, courtsPerRound };
+	protected calculateMatches(
+		teams: Team[],
+		rounds: any = [],
+		round: number = 0,
+		totalRounds: number
+	): [number, number][][] {
+		if (round === totalRounds) return rounds;
+
+		const rotatedTeams = List.lockedRotate(
+			teams.sort((a: Team, b: Team) => a.name.localeCompare(b.name))
+		);
+		const halfTeams = rotatedTeams.slice(0, Math.ceil(rotatedTeams.length / 2));
+
+		const matchesForThisRound = halfTeams
+			.map((team: Team, index: number) => {
+				const opponent = rotatedTeams[rotatedTeams.length - ++index];
+				if (opponent.name === 'bye' || team.name === 'bye') return;
+				return round % 2 ? [team.id, opponent.id] : [opponent.id, team.id];
+			})
+			.filter(Boolean);
+
+		rounds.push(matchesForThisRound);
+
+		// Check if any team hasn't played enough games
+		const teamMatches = new Map<number, number>();
+		rounds.flat().forEach(([team1, team2]: [number, number]) => {
+			teamMatches.set(team1, (teamMatches.get(team1) || 0) + 1);
+			teamMatches.set(team2, (teamMatches.get(team2) || 0) + 1);
+		});
+
+		const maxMatches = Math.max(...Array.from(teamMatches.values()));
+		const minMatches = Math.min(...Array.from(teamMatches.values()));
+
+		// If any team has fewer matches, add more rounds
+		if (minMatches < maxMatches) {
+			return this.calculateMatches(teams, rounds, ++round, totalRounds);
+		}
+
+		return this.calculateMatches(rotatedTeams, rounds, ++round, totalRounds);
 	}
 
-	/**
-	 * Generate the matches using a Round Robin algorithm.
-	 * @param {number} pools - The number of pools.
-	 * @param {Partial<TeamRow>[]} teams - The teams participating in the event.
-	 * @param {number} courts - The number of courts available.
-	 * @returns {Partial<MatchRow>[]} - The generated matches.
-	 */
-	generateMatches(pools: number, teams: Team[], courts: number): Partial<MatchRow>[] {
-		if (teams.length <= 1) {
-			this.handleError(400, 'Not enough teams to generate matches');
-		}
+	protected calculateCourtsAndRounds(
+		rounds: [number, number][][],
+		courts: number
+	): Partial<MatchRow>[] {
+		let courtNumber = 0;
 
-		let matches: Partial<MatchRow>[] = [];
-		const totalMatches = Math.ceil((teams.length * pools) / 2); // Calculate the total number of matches needed
+		const matches: Partial<MatchRow>[] = [];
 
-		let currentRound = 1;
-		let matchCount = 0;
-		const teamsPerRound: { [round: number]: Set<number> } = {};
-
-		// Generate matches using RoundRobin with adjustments
-		while (matchCount < totalMatches) {
-			const roundMatches = RoundRobin(
-				teams.map((t) => t.id).filter((id) => id !== undefined) as number[],
-				currentRound,
-				courts
-			);
-
-			// Assign matches to rounds and distribute them based on courts
-			for (const match of roundMatches) {
-				if (!teamsPerRound[currentRound]) {
-					teamsPerRound[currentRound] = new Set();
-				}
-
-				if (teamsPerRound[currentRound].size >= courts * 2) {
-					currentRound++;
-					teamsPerRound[currentRound] = new Set();
-				}
-
-				if (match.team1 !== undefined && match.team2 !== undefined) {
-					if (matchCount >= totalMatches) break;
-
-					match.round = currentRound;
-					if (match.team1 !== null) {
-						teamsPerRound[currentRound].add(match.team1);
+		// Not the round robin rounds, but the rounds of matches
+		let scheduleRoundNumber = 0;
+		rounds.forEach((round: [number, number][]) => {
+			round.forEach((match: [number, number]) => {
+				if (match) {
+					matches.push({
+						team1: match[0],
+						team2: match[1],
+						round: scheduleRoundNumber,
+						court: courtNumber,
+						event_id: this.event_id
+					});
+					courtNumber = (courtNumber + 1) % courts;
+					if (courtNumber === 0) {
+						scheduleRoundNumber++;
 					}
-					if (match.team2 !== null) {
-						teamsPerRound[currentRound].add(match.team2);
-					}
-					matches.push(match);
-					matchCount++;
 				}
-			}
+			});
+		});
 
-			// Ensure that we break out of the loop if we've created enough matches
-			if (matchCount >= totalMatches) break;
+		// Ensure each team has played an equal number of matches
+		const teamMatchesCount = new Map<number, number>();
+		matches.forEach((match) => {
+			teamMatchesCount.set(match.team1!, (teamMatchesCount.get(match.team1!) || 0) + 1);
+			teamMatchesCount.set(match.team2!, (teamMatchesCount.get(match.team2!) || 0) + 1);
+		});
 
-			currentRound++;
+		const maxMatches = Math.max(...Array.from(teamMatchesCount.values()));
+		const minMatches = Math.min(...Array.from(teamMatchesCount.values()));
+
+		if (minMatches < maxMatches) {
+			// Add extra matches to ensure fairness
+			// Implement logic to find teams with fewer matches and assign additional rounds
+			this.handleError(400, 'Unequal number of matches for some teams detected');
 		}
-
-		// Add event_id to each match
-		matches = matches.map((match) => ({ ...match, event_id: this.event_id }));
 
 		return matches;
 	}
@@ -322,64 +330,38 @@ export class Matches extends Base {
 	 * @param {Partial<MatchRow>[]} matches - The matches to assign referees to.
 	 * @param {Partial<TeamRow>[]} teams - The teams participating in the event.
 	 */
-	assignReferees(matches: Partial<MatchRow>[], teams: Partial<TeamRow>[]) {
-		const teamsPerRound: { [round: number]: Set<number> } = {};
+	assignReferees(matches: Partial<MatchRow>[], teams: Partial<TeamRow>[]): Partial<MatchRow>[] {
+		const rotatedTeams = List.lockedRotate(
+			teams.filter((t) => t.id !== 0).sort((a, b) => (a?.name ?? '').localeCompare(b?.name ?? ''))
+		);
 
-		matches.forEach((match) => {
-			const round = match.round!;
-			if (!teamsPerRound[round]) {
-				teamsPerRound[round] = new Set();
-			}
-			teamsPerRound[round].add(match.team1!);
-			teamsPerRound[round].add(match.team2!);
-		});
-
-		const refereeCounts: { [teamId: number]: number } = {};
-		teams.forEach((team) => {
-			if (team.id !== undefined) {
-				refereeCounts[team.id] = 0;
-			}
-		});
-
-		matches.forEach((match) => {
-			const round = match.round!;
-			const ref = this.determineReferee(
-				Array.from(teamsPerRound[round]),
-				teams.map((t) => t.id).filter((id) => id !== undefined) as number[],
-				refereeCounts
-			);
-			match.ref = ref;
-			if (ref !== -1) {
-				refereeCounts[ref]++;
-			}
-		});
+		let currentRound = 0;
+		matches
+			.sort((m) => -(m.round ?? 0))
+			.forEach((match) => {
+				if (currentRound === match.round) {
+					match.ref = rotatedTeams[0].id;
+				} else {
+					currentRound = match.round ?? 0;
+					rotatedTeams.push(rotatedTeams.shift());
+					match.ref = rotatedTeams[0].id;
+				}
+			});
+		return matches;
 	}
 
 	/**
-	 * Determine the referee for a given match.
-	 * @param {number[]} teamsPlayingThisRound - The IDs of the teams playing in this round.
-	 * @param {number[]} allTeams - The IDs of all teams in the event.
-	 * @param {{ [teamId: number]: number }} refereeCounts - The counts of how many times each team has refereed.
-	 * @returns {number} - The ID of the selected referee.
+	 * delete matches
 	 */
-	determineReferee(
-		teamsPlayingThisRound: number[],
-		allTeams: number[],
-		refereeCounts: { [teamId: number]: number }
-	): number {
-		// Filter out teams already playing in the current round
-		const availableTeams = allTeams.filter((team) => !teamsPlayingThisRound.includes(team));
-
-		if (availableTeams.length === 0) {
-			throw new Error(
-				'No available teams to assign as referees, too many courts for the number of teams?'
-			);
+	async deleteAllMatches() {
+		console.info('deleteAllMatches');
+		if (!this.event_id) {
+			this.handleError(400, 'Event ID is required to delete all matches.');
+			return;
 		}
 
-		// Sort available teams by the number of times they have refereed, ascending
-		availableTeams.sort((a, b) => refereeCounts[a] - refereeCounts[b]);
-
-		return availableTeams[0];
+		await this.databaseService.deleteMatchesByEvent(this.event_id);
+		this.matches = [];
 	}
 }
 
