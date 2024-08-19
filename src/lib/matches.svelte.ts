@@ -174,8 +174,11 @@ export class Matches extends Base {
 				courts as number
 			);
 
+			// Remove our BYE team
+			teams = teams.filter((team) => team.id !== 0);
+
 			if (refs === 'teams') {
-				matches = this.assignReferees(matches, teams);
+				this.assignReferees(matches, teams);
 			}
 
 			const res = await this.databaseService.insertMatches(matches);
@@ -330,24 +333,83 @@ export class Matches extends Base {
 	 * @param {Partial<MatchRow>[]} matches - The matches to assign referees to.
 	 * @param {Partial<TeamRow>[]} teams - The teams participating in the event.
 	 */
-	assignReferees(matches: Partial<MatchRow>[], teams: Partial<TeamRow>[]): Partial<MatchRow>[] {
-		const rotatedTeams = List.lockedRotate(
-			teams.filter((t) => t.id !== 0).sort((a, b) => (a?.name ?? '').localeCompare(b?.name ?? ''))
-		);
+	assignReferees(matches: Partial<MatchRow>[], teams: Partial<TeamRow>[]) {
+		const teamsPerRound: { [round: number]: Set<number> } = {};
 
-		let currentRound = 0;
-		matches
-			.sort((m) => -(m.round ?? 0))
-			.forEach((match) => {
-				if (currentRound === match.round) {
-					match.ref = rotatedTeams[0].id;
-				} else {
-					currentRound = match.round ?? 0;
-					rotatedTeams.push(rotatedTeams.shift());
-					match.ref = rotatedTeams[0].id;
-				}
-			});
-		return matches;
+		matches.forEach((match) => {
+			const round = match.round!;
+			if (!teamsPerRound[round]) {
+				teamsPerRound[round] = new Set();
+			}
+			teamsPerRound[round].add(match.team1!);
+			teamsPerRound[round].add(match.team2!);
+		});
+
+		const refereeCounts: { [teamId: number]: number } = {};
+		const recentRefs: { [teamId: number]: number } = {};
+
+		teams.forEach((team) => {
+			if (team.id !== undefined) {
+				refereeCounts[team.id] = 0;
+				recentRefs[team.id] = 0;
+			}
+		});
+
+		let roundCount = 0;
+
+		matches.forEach((match) => {
+			const round = match.round!;
+			const ref = this.determineReferee(
+				Array.from(teamsPerRound[round]),
+				teams.map((t) => t.id).filter((id) => id !== undefined) as number[],
+				refereeCounts,
+				recentRefs
+			);
+
+			match.ref = ref;
+
+			if (ref !== -1) {
+				refereeCounts[ref]++;
+				recentRefs[ref] = roundCount;
+			}
+
+			roundCount++;
+		});
+	}
+
+	/**
+	 * Determine the referee for a given match.
+	 * @param {number[]} teamsPlayingThisRound - The IDs of the teams playing in this round.
+	 * @param {number[]} allTeams - The IDs of all teams in the event.
+	 * @param {{ [teamId: number]: number }} refereeCounts - The counts of how many times each team has refereed.
+	 * @param {{ [teamId: number]: number }} recentRefs - Tracks how recently a team has refereed.
+	 * @returns {number} - The ID of the selected referee.
+	 */
+	determineReferee(
+		teamsPlayingThisRound: number[],
+		allTeams: number[],
+		refereeCounts: { [teamId: number]: number },
+		recentRefs: { [teamId: number]: number }
+	): number {
+		// Filter out teams already playing in the current round
+		const availableTeams = allTeams.filter((team) => !teamsPlayingThisRound.includes(team));
+
+		if (availableTeams.length === 0) {
+			throw new Error(
+				'No available teams to assign as referees, too many courts for the number of teams?'
+			);
+		}
+
+		// Apply a penalty to teams that have refereed recently
+		const weightedTeams = availableTeams.map((team) => {
+			const weight = refereeCounts[team] * 10 + recentRefs[team]; // Heavier penalty for frequent refs
+			return { team, weight };
+		});
+
+		// Sort by the lowest weight (least refereed and least recently refereed)
+		weightedTeams.sort((a, b) => a.weight - b.weight);
+
+		return weightedTeams[0].team;
 	}
 
 	/**
