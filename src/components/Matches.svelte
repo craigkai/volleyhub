@@ -126,9 +126,8 @@
 				</div>
 
 				{#if rounds > 0}
-					{#each Array(rounds) as _, i}
-						{@const round = i + 1}
-						<div class="flex w-full rounded {i % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}">
+					{#each Array(rounds) as _, round}
+						<div class="flex w-full rounded {round % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}">
 							{#each Array(data.tournament.courts) as _, court}
 								{@const match = data.matches.matches.find(
 									(m: MatchRow) => m?.court === court && m?.round.toString() === round?.toString()
