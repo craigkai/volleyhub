@@ -87,7 +87,7 @@
 			data.matches?.matches?.map(function (m: { round: any }) {
 				return m.round;
 			}) ?? [0]
-		)
+		) + 1
 	);
 </script>
 
