@@ -23,9 +23,10 @@
 	const winClass = 'bg-green-300 dark:bg-green-700';
 	const lossClass = 'bg-red-300 dark:bg-red-700';
 
-	const team1 = teams.teams.find((t: Team) => t.id === match.team1);
-	const team2 = teams.teams.find((t: Team) => t.id === match.team2);
-	const teamsForMatch = [team1?.name, team2?.name];
+	const team1 = $derived(teams.teams.find((t: Team) => t.id === match.team1));
+	const team2 = $derived(teams.teams.find((t: Team) => t.id === match.team2));
+	const teamsForMatch = $derived([team1?.name, team2?.name]);
+
 	const hasDefaultTeam = $derived(defaultTeam ? teamsForMatch.includes(defaultTeam) : false);
 	const defaultTeamWin = $derived(
 		team1?.name === defaultTeam
