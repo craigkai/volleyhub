@@ -50,6 +50,7 @@ export class Teams extends Base {
 
 				const teamRow = res[i];
 				Object.assign(team, teamRow);
+				teams.push(team);
 			}
 
 			this.teams = teams;
