@@ -47,14 +47,8 @@ export class Matches extends Base {
 					let match = new Match(matchSupabaseDatabaseService);
 
 					const matchRow = res[i];
-
-					try {
-						await match.load(matchRow.id);
-
-						matches.push(match);
-					} catch (err: any) {
-						this.handleError(500, `Failed to load team ${err}`);
-					}
+					if (matchRow) Object.assign(match, matchRow);
+					matches.push(match);
 				}
 				this.matches = matches;
 			}
