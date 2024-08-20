@@ -49,14 +49,7 @@ export class Teams extends Base {
 				let team = new Team(teamSupabaseDatabaseService);
 
 				const teamRow = res[i];
-
-				try {
-					await team.load(teamRow.id);
-
-					teams.push(team);
-				} catch (err: any) {
-					this.handleError(500, `Faild to load team ${err}`);
-				}
+				Object.assign(team, teamRow);
 			}
 
 			this.teams = teams;
