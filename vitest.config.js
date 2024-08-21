@@ -19,7 +19,9 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			$lib: path.resolve('./src/lib'),
-			$supabaseTypes: path.resolve('src/types/supabase')
+			$supabaseTypes: path.resolve('src/types/supabase'),
+			$schemas: path.resolve('src/schemas'),
+			$components: path.resolve('src/components')
 		}
 	}
 });

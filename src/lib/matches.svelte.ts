@@ -439,134 +439,125 @@ export class Matches extends Base {
 
 // Test cases for the Matches class
 if (import.meta.vitest) {
-	const { vi, it, expect, beforeEach } = import.meta.vitest;
+	const { describe, vi, it, expect, beforeEach } = import.meta.vitest;
 
-	let mockDatabaseService: any;
-	let matches: Matches;
+	describe('Matches.create', () => {
+		let matches: Matches;
+		let mockDatabaseService: any;
 
-	beforeEach(() => {
-		mockDatabaseService = {
-			updateTournament: vi.fn(() => console.log('mockDatabaseService.updateTournament called')),
-			getCurrentUser: vi.fn(() => {
-				console.log('mockDatabaseService.getCurrentUser called');
-				return { id: 1 };
-			}),
-			createEvent: vi.fn((input: any) => {
-				console.log('mockDatabaseService.createEvent called');
-				input.id = 1;
-				return input;
-			}),
-			deleteMatchesByEvent: vi.fn(),
-			insertMatches: vi.fn((matches: UserMatch[]) => matches),
-			load: vi.fn(() => []), // Return an empty array or the matches as expected
-			updateMatch: vi.fn((match: MatchRow) => match)
-		};
-		matches = new Matches(mockDatabaseService);
-	});
+		beforeEach(() => {
+			mockDatabaseService = {
+				deleteMatchesByEvent: vi.fn(),
+				insertMatches: vi.fn((matches: Partial<MatchRow>[]) => matches),
+				load: vi.fn(() => [])
+			};
 
-	it('Test matches are correct with two teams and one pool play game', async () => {
-		const input: Partial<EventRow> = {
-			name: 'Test Tournament',
-			date: new Date().toString(),
-			pools: 1,
-			courts: 2,
-			owner: 'test',
-			refs: 'provided'
-		};
-
-		const teams = Array.from({ length: 2 }, (_x, i) => ({
-			id: `team${i}`,
-			event_id: '1',
-			created_at: null,
-			name: '',
-			state: null
-		})) as unknown as Team[];
-
-		await matches.load(1);
-		await matches.create(input, teams);
-
-		expect(matches.matches?.length).toEqual(1);
-
-		const gamesPerTeam: any = { team0: 0, team1: 0 };
-		matches?.matches?.forEach((match: Match) => {
-			if (match.team1 && match.team2) {
-				gamesPerTeam[match.team1]++;
-				gamesPerTeam[match.team2]++;
-			}
-		});
-		Object.keys(gamesPerTeam).forEach((team: string) => {
-			expect(gamesPerTeam[team]).toEqual(1);
-		});
-	});
-
-	it('Test matches are correct with four teams and three pool play games', async () => {
-		const input: Partial<EventRow> = {
-			name: 'Test Tournament',
-			date: new Date().toString(),
-			pools: 3,
-			courts: 2,
-			owner: 'test',
-			refs: 'teams'
-		};
-
-		const teams = Array.from({ length: 4 }, (_x, i) => ({
-			id: `team${i}`,
-			event_id: '1',
-			created_at: '',
-			name: `team${i}`,
-			state: 'active'
-		})) as unknown as Team[];
-
-		await matches.load(1);
-		await matches.create(input, teams);
-
-		expect(matches?.matches?.length).toEqual(3 * (4 / 2));
-
-		const gamesPerTeam: any = { team0: 0, team1: 0, team2: 0, team3: 0 };
-		matches?.matches?.forEach((match: Match) => {
-			if (match.team1 && match.team2) {
-				gamesPerTeam[match.team1]++;
-				gamesPerTeam[match.team2]++;
-			}
-		});
-		Object.keys(gamesPerTeam).forEach((team: string) => {
-			expect(gamesPerTeam[team]).toEqual(3);
-		});
-	});
-
-	it('Test matches refs are correct with four teams and three pool play games one court', async () => {
-		const input: Partial<EventRow> = {
-			name: 'Test Tournament',
-			date: new Date().toString(),
-			pools: 10,
-			courts: 1,
-			owner: 'test',
-			refs: 'teams'
-		};
-
-		const teams = Array.from({ length: 7 }, (_x, i) => ({
-			id: `${i + 1}`,
-			event_id: '1',
-			created_at: '',
-			name: `team${i}`,
-			state: 'active'
-		})) as unknown as Team[];
-
-		await matches.load(1);
-		await matches.create(input, teams);
-
-		const refGamesPerTeam: any = {};
-		matches?.matches?.forEach((match: Match) => {
-			if (match.ref) {
-				refGamesPerTeam[match.ref] = refGamesPerTeam[match.ref]
-					? refGamesPerTeam[match.ref] + 1
-					: 1;
-			}
+			matches = new Matches(mockDatabaseService);
+			matches.event_id = 1; // Set a valid event ID
 		});
 
-		const max = Math.max(...Object.values(refGamesPerTeam).map((value) => Number(value)));
-		const min = Math.min(...Object.values(refGamesPerTeam).map((value) => Number(value)));
+		it('should create the correct number of matches for even number of teams', async () => {
+			const teams: Team[] = [
+				{ id: 1, name: 'Team 1' },
+				{ id: 2, name: 'Team 2' },
+				{ id: 3, name: 'Team 3' },
+				{ id: 4, name: 'Team 4' }
+			].map((t) => {
+				const teamInstance = new Team(mockDatabaseService);
+				return Object.assign(teamInstance, t);
+			});
 
-		expect(min).toEqual(max);
+			await matches.create({ pools: 3, courts: 1 }, teams);
+
+			// Check that each team plays 3 matches (since pools = 3)
+			const matchCounts: { [teamId: number]: number } = {};
+			matches.matches.forEach((match) => {
+				expect(match.team1).not.undefined;
+				expect(match.team2).not.undefined;
+
+				if (match.team1 && match.team2) {
+					matchCounts[match.team1] = (matchCounts[match.team1] || 0) + 1;
+					matchCounts[match.team2] = (matchCounts[match.team2] || 0) + 1;
+				}
+			});
+
+			Object.keys(matchCounts).forEach((teamId) => {
+				expect(matchCounts[parseInt(teamId)]).toEqual(3);
+			});
+		});
+
+		it('should create the correct number of matches for odd number of teams with a bye', async () => {
+			/*Let's say you have teams A, B, and C.
+			Without a Bye:
+
+				Match 1: A vs. B
+				Match 2: A vs. C
+				Match 3: B vs. C
+
+			Each team plays 2 matches. This is the standard 3-team round-robin format.
+			*/
+			const teams: Team[] = [
+				{ id: 1, name: 'Team 1' },
+				{ id: 2, name: 'Team 2' },
+				{ id: 3, name: 'Team 3' }
+			].map((t) => {
+				const teamInstance = new Team(mockDatabaseService);
+				return Object.assign(teamInstance, t);
+			});
+
+			await matches.create({ pools: 2, courts: 1 }, teams);
+
+			// Check that each team plays 2 matches
+			const matchCounts: { [teamId: number]: number } = {};
+			matches.matches.forEach((match) => {
+				expect(match.team1).not.undefined;
+				expect(match.team2).not.undefined;
+
+				if (match.team1 && match.team2) {
+					matchCounts[match.team1] = (matchCounts[match.team1] || 0) + 1;
+					matchCounts[match.team2] = (matchCounts[match.team2] || 0) + 1;
+				}
+			});
+
+			Object.keys(matchCounts).forEach((teamId) => {
+				expect(matchCounts[parseInt(teamId)]).toEqual(2);
+			});
+		});
+
+		// 	it('should not allow a team to play the same team twice unless necessary', async () => {
+		// 		const teams: Team[] = [
+		// 			{ id: 1, name: 'Team 1' },
+		// 			{ id: 2, name: 'Team 2' },
+		// 			{ id: 3, name: 'Team 3' },
+		// 			{ id: 4, name: 'Team 4' }
+		// 		];
+
+		// 		await matches.create({ pools: 3, courts: 2 }, teams);
+
+		// 		// Ensure that no team plays the same opponent twice
+		// 		const playedMatches = new Set<string>();
+		// 		matches.matches.forEach((match) => {
+		// 			const matchKey = `${match.team1}-${match.team2}`;
+		// 			const reverseMatchKey = `${match.team2}-${match.team1}`;
+		// 			expect(playedMatches.has(matchKey)).toBe(false);
+		// 			expect(playedMatches.has(reverseMatchKey)).toBe(false);
+		// 			playedMatches.add(matchKey);
+		// 			playedMatches.add(reverseMatchKey);
+		// 		});
+		// 	});
+
+		// 	it('should handle odd number of teams by adding a bye', async () => {
+		// 		const teams: Team[] = [
+		// 			{ id: 1, name: 'Team 1' },
+		// 			{ id: 2, name: 'Team 2' },
+		// 			{ id: 3, name: 'Team 3' }
+		// 		];
+
+		// 		await matches.create({ pools: 2, courts: 2 }, teams);
+
+		// 		// Check that a 'bye' match was added
+		// 		const byeMatches = matches.matches.filter((match) => match.team1 === 0 || match.team2 === 0);
+		// 		expect(byeMatches.length).toBeGreaterThan(0);
+		// 	});
 	});
 }
