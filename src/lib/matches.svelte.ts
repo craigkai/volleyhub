@@ -298,6 +298,9 @@ export class Matches extends Base {
 				rounds.flat().map(([team1, team2]) => `${team1}-${team2}`)
 			);
 
+			// Initialize an array to store new rounds of matches
+			const newExtraRounds: [number, number][][] = [];
+
 			// Schedule extra rounds for underplayed teams
 			for (let i = 0; i < sortedTeams.length; i++) {
 				const [teamId, gamesPlayed] = sortedTeams[i];
@@ -314,16 +317,32 @@ export class Matches extends Base {
 
 					// Check if this match has already been played
 					if (!previousMatches.has(matchKey) && !previousMatches.has(reverseMatchKey)) {
-						console.log(
-							`Scheduling extra match for ${teams.find((t) => t.id === teamId)?.name} vs. ${teams.find((t) => t.id === oppId)?.name}`
-						);
+						// Find a round where neither team is already scheduled to play
+						let foundRound = false;
 
-						rounds.push([[teamId, oppId]]);
+						for (const round of newExtraRounds) {
+							const teamsInRound = round.flat();
+							if (!teamsInRound.includes(teamId) && !teamsInRound.includes(oppId)) {
+								// Add the match to this round
+								round.push([teamId, oppId]);
+								foundRound = true;
+								break;
+							}
+						}
+
+						if (!foundRound) {
+							// Create a new round if no suitable existing round was found
+							newExtraRounds.push([[teamId, oppId]]);
+						}
+
 						previousMatches.add(matchKey);
 						previousMatches.add(reverseMatchKey);
 					}
 				}
 			}
+
+			// Add the new extra rounds to the main rounds array
+			rounds.push(...newExtraRounds);
 		}
 
 		return rounds;
