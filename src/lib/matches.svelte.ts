@@ -536,19 +536,5 @@ if (import.meta.vitest) {
 				playedMatches.add(reverseMatchKey);
 			});
 		});
-
-		// 	it('should handle odd number of teams by adding a bye', async () => {
-		// 		const teams: Team[] = [
-		// 			{ id: 1, name: 'Team 1' },
-		// 			{ id: 2, name: 'Team 2' },
-		// 			{ id: 3, name: 'Team 3' }
-		// 		];
-
-		// 		await matches.create({ pools: 2, courts: 2 }, teams);
-
-		// 		// Check that a 'bye' match was added
-		// 		const byeMatches = matches.matches.filter((match) => match.team1 === 0 || match.team2 === 0);
-		// 		expect(byeMatches.length).toBeGreaterThan(0);
-		// 	});
 	});
 }
