@@ -176,7 +176,7 @@ export class Matches extends Base {
 			const totalRounds = Math.floor(teams.length * (pools / (teams.length - 1)));
 			let rounds = this.calculateMatches(teams, [], 0, totalRounds, pools);
 
-			let matches = this.calculateCourtsAndRounds(rounds, courts, teams);
+			let matches = this.calculateCourtsAndRounds(rounds, courts, teams, refs ?? 'provided');
 
 			const res = await this.databaseService.insertMatches(matches);
 			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
@@ -227,52 +227,43 @@ export class Matches extends Base {
 
 		// Track how many games each team has played
 		const teamGamesPlayed: Map<number, number> = new Map();
-		const teamWaitTime: Map<number, number> = new Map();
+		const playedMatches: Set<string> = new Set(); // Track played matchups
 
 		teams.forEach((team) => {
-			if (team.id && team.id !== 0) {
+			if (team.id !== 0) {
 				// Don't count the 'bye' team
 				teamGamesPlayed.set(team.id, 0);
-				teamWaitTime.set(team.id, 0);
 			}
 		});
 
 		while (round < totalRounds) {
-			// Sort teams by wait time (longest wait first)
-			const sortedTeams = [...teams].sort((a, b) => {
-				return (teamWaitTime.get(b.id!) || 0) - (teamWaitTime.get(a.id!) || 0);
-			});
-
 			const matchesForThisRound: [number, number][] = [];
 			const pairedTeams = new Set<number>();
 
 			for (let i = 0; i < halfSize; i++) {
-				const team1 = sortedTeams[i];
-				const team2 = sortedTeams[numTeams - 1 - i];
+				const team1 = teams[i];
+				const team2 = teams[numTeams - 1 - i];
 
-				if (team1.id && team2.id && team1.name !== 'bye' && team2.name !== 'bye') {
-					const team1Games = teamGamesPlayed.get(team1.id) || 0;
-					const team2Games = teamGamesPlayed.get(team2.id) || 0;
+				if (team1.name !== 'bye' && team2.name !== 'bye') {
+					const matchupKey = `${Math.min(team1.id!, team2.id!)}-${Math.max(team1.id!, team2.id!)}`;
 
-					if (team1Games < maxGames && team2Games < maxGames) {
-						matchesForThisRound.push([team1.id, team2.id]);
-						pairedTeams.add(team1.id!);
-						pairedTeams.add(team2.id!);
+					if (!playedMatches.has(matchupKey)) {
+						const team1Games = teamGamesPlayed.get(team1.id!) || 0;
+						const team2Games = teamGamesPlayed.get(team2.id!) || 0;
 
-						teamGamesPlayed.set(team1.id!, team1Games + 1);
-						teamGamesPlayed.set(team2.id!, team2Games + 1);
-						teamWaitTime.set(team1.id!, 0);
-						teamWaitTime.set(team2.id!, 0);
+						if (team1Games < maxGames && team2Games < maxGames) {
+							matchesForThisRound.push([team1.id!, team2.id!]);
+							pairedTeams.add(team1.id!);
+							pairedTeams.add(team2.id!);
+
+							teamGamesPlayed.set(team1.id!, team1Games + 1);
+							teamGamesPlayed.set(team2.id!, team2Games + 1);
+
+							playedMatches.add(matchupKey); // Mark this matchup as played
+						}
 					}
 				}
 			}
-
-			// Update wait times for teams that did not play
-			sortedTeams.forEach((team) => {
-				if (!pairedTeams.has(team.id!)) {
-					teamWaitTime.set(team.id!, (teamWaitTime.get(team.id!) || 0) + 1);
-				}
-			});
 
 			if (matchesForThisRound.length > 0) {
 				rounds.push(matchesForThisRound);
@@ -287,6 +278,8 @@ export class Matches extends Base {
 				break; // Stop scheduling further matches
 			}
 
+			// Rotate teams for the next round
+			teams = List.lockedRotate(teams);
 			round++;
 		}
 
@@ -299,12 +292,14 @@ export class Matches extends Base {
 	 * @param {[number, number][][]} rounds - The rounds of matches to be scheduled.
 	 * @param {number} courts - The number of available courts.
 	 * @param {Partial<TeamRow>[]} teams - The teams participating in the event.
+	 * @param {string} refs - The method to determine referees ('provided' or 'teams').
 	 * @returns {Partial<MatchRow>[]} - Returns an array of match rows with court assignments and referee assignments.
 	 */
 	protected calculateCourtsAndRounds(
 		rounds: [number, number][][],
 		courts: number,
-		teams: Partial<TeamRow>[]
+		teams: Partial<TeamRow>[],
+		refs: string = 'provided'
 	): Partial<MatchRow>[] {
 		let courtNumber = 0;
 		const matches: Partial<MatchRow>[] = [];
@@ -345,29 +340,31 @@ export class Matches extends Base {
 					if (courtNumber === 0) {
 						scheduleRoundNumber++;
 
-						const ref = this.determineReferee(
-							Array.from(teamsPlayingThisRound),
-							teams.map((t) => t.id!).filter((id) => id !== 0),
-							refereeCounts,
-							recentRefs
-						);
+						if (refs === 'teams') {
+							const ref = this.determineReferee(
+								Array.from(teamsPlayingThisRound),
+								teams.map((t) => t.id!).filter((id) => id !== 0),
+								refereeCounts,
+								recentRefs
+							);
 
-						matchesThisRound.forEach((match) => {
-							match.ref = ref;
-						});
+							matchesThisRound.forEach((match) => {
+								match.ref = ref;
+							});
+
+							// Update referee counts and recent refs
+							if (ref !== -1) {
+								refereeCounts[ref]++;
+								recentRefs.push(ref);
+
+								if (recentRefs.length > teams.length - 1) {
+									recentRefs.shift();
+								}
+							}
+						}
 
 						matchesThisRound = [];
 						teamsPlayingThisRound.clear();
-
-						// Update referee counts and recent refs
-						if (ref !== -1) {
-							refereeCounts[ref]++;
-							recentRefs.push(ref);
-
-							if (recentRefs.length > teams.length - 1) {
-								recentRefs.shift();
-							}
-						}
 					}
 				}
 			});
@@ -515,27 +512,30 @@ if (import.meta.vitest) {
 			});
 		});
 
-		// 	it('should not allow a team to play the same team twice unless necessary', async () => {
-		// 		const teams: Team[] = [
-		// 			{ id: 1, name: 'Team 1' },
-		// 			{ id: 2, name: 'Team 2' },
-		// 			{ id: 3, name: 'Team 3' },
-		// 			{ id: 4, name: 'Team 4' }
-		// 		];
+		it('should not allow a team to play the same team twice unless necessary', async () => {
+			const teams: Team[] = [
+				{ id: 1, name: 'Team 1' },
+				{ id: 2, name: 'Team 2' },
+				{ id: 3, name: 'Team 3' },
+				{ id: 4, name: 'Team 4' }
+			].map((t) => {
+				const teamInstance = new Team(mockDatabaseService);
+				return Object.assign(teamInstance, t);
+			});
 
-		// 		await matches.create({ pools: 3, courts: 2 }, teams);
+			await matches.create({ pools: 3, courts: 2 }, teams);
 
-		// 		// Ensure that no team plays the same opponent twice
-		// 		const playedMatches = new Set<string>();
-		// 		matches.matches.forEach((match) => {
-		// 			const matchKey = `${match.team1}-${match.team2}`;
-		// 			const reverseMatchKey = `${match.team2}-${match.team1}`;
-		// 			expect(playedMatches.has(matchKey)).toBe(false);
-		// 			expect(playedMatches.has(reverseMatchKey)).toBe(false);
-		// 			playedMatches.add(matchKey);
-		// 			playedMatches.add(reverseMatchKey);
-		// 		});
-		// 	});
+			// Ensure that no team plays the same opponent twice
+			const playedMatches = new Set<string>();
+			matches.matches.forEach((match) => {
+				const matchKey = `${match.team1}-${match.team2}`;
+				const reverseMatchKey = `${match.team2}-${match.team1}`;
+				expect(playedMatches.has(matchKey)).toBe(false);
+				expect(playedMatches.has(reverseMatchKey)).toBe(false);
+				playedMatches.add(matchKey);
+				playedMatches.add(reverseMatchKey);
+			});
+		});
 
 		// 	it('should handle odd number of teams by adding a bye', async () => {
 		// 		const teams: Team[] = [
