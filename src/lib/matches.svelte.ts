@@ -206,6 +206,7 @@ export class Matches extends Base {
 	 * @param {any[]} rounds - The existing rounds of matches.
 	 * @param {number} round - The current round number.
 	 * @param {number} totalRounds - The total number of rounds to be played.
+	 * @param {number} maxGames - The maximum number of games each team should play.
 	 * @returns {[number, number][][]} - Returns an array of rounds, each containing pairs of team IDs.
 	 */
 	protected calculateMatches(
@@ -230,7 +231,7 @@ export class Matches extends Base {
 		const playedMatches: Set<string> = new Set(); // Track played matchups
 
 		teams.forEach((team) => {
-			if (team.id !== 0) {
+			if (team.id && team.id !== 0) {
 				// Don't count the 'bye' team
 				teamGamesPlayed.set(team.id, 0);
 			}
@@ -281,6 +282,48 @@ export class Matches extends Base {
 			// Rotate teams for the next round
 			teams = List.lockedRotate(teams);
 			round++;
+		}
+
+		// Check for underplayed teams
+		const underplayedTeams = Array.from(teamGamesPlayed.entries()).filter(
+			([teamId, gamesPlayed]) => gamesPlayed < maxGames && teamId !== 0
+		);
+
+		if (underplayedTeams.length > 0) {
+			// Sort underplayed teams by their ID or other criteria if necessary
+			const sortedTeams = underplayedTeams.sort(([idA], [idB]) => idA - idB);
+
+			// Track previous matches to avoid duplicates
+			const previousMatches = new Set<string>(
+				rounds.flat().map(([team1, team2]) => `${team1}-${team2}`)
+			);
+
+			// Schedule extra rounds for underplayed teams
+			for (let i = 0; i < sortedTeams.length; i++) {
+				const [teamId, gamesPlayed] = sortedTeams[i];
+				const remainingGames = maxGames - gamesPlayed;
+
+				for (let j = 0; j < remainingGames; j++) {
+					// Find the next opponent in the sorted list
+					const opponentIndex = (i + 1 + j) % sortedTeams.length;
+					const [oppId] = sortedTeams[opponentIndex];
+
+					// Create a match key to check for duplicates
+					const matchKey = `${teamId}-${oppId}`;
+					const reverseMatchKey = `${oppId}-${teamId}`;
+
+					// Check if this match has already been played
+					if (!previousMatches.has(matchKey) && !previousMatches.has(reverseMatchKey)) {
+						console.log(
+							`Scheduling extra match for ${teams.find((t) => t.id === teamId)?.name} vs. ${teams.find((t) => t.id === oppId)?.name}`
+						);
+
+						rounds.push([[teamId, oppId]]);
+						previousMatches.add(matchKey);
+						previousMatches.add(reverseMatchKey);
+					}
+				}
+			}
 		}
 
 		return rounds;
@@ -534,6 +577,48 @@ if (import.meta.vitest) {
 				expect(playedMatches.has(reverseMatchKey)).toBe(false);
 				playedMatches.add(matchKey);
 				playedMatches.add(reverseMatchKey);
+			});
+		});
+
+		it('should correctly schedule matches for 11 teams', async () => {
+			const teams: Team[] = [
+				{ id: 1, name: 'Team 1' },
+				{ id: 2, name: 'Team 2' },
+				{ id: 3, name: 'Team 3' },
+				{ id: 4, name: 'Team 4' },
+				{ id: 5, name: 'Team 5' },
+				{ id: 6, name: 'Team 6' },
+				{ id: 7, name: 'Team 7' },
+				{ id: 8, name: 'Team 8' },
+				{ id: 9, name: 'Team 9' },
+				{ id: 10, name: 'Team 10' },
+				{ id: 11, name: 'Team 11' }
+			].map((t) => {
+				const teamInstance = new Team(mockDatabaseService);
+				return Object.assign(teamInstance, t);
+			});
+
+			await matches.create({ pools: 3, courts: 2 }, teams);
+
+			// Ensure that no team plays the same opponent twice
+			const playedMatches = new Set<string>();
+			matches.matches.forEach((match) => {
+				const matchKey = `${match.team1}-${match.team2}`;
+				const reverseMatchKey = `${match.team2}-${match.team1}`;
+				expect(playedMatches.has(matchKey)).toBe(false);
+				expect(playedMatches.has(reverseMatchKey)).toBe(false);
+				playedMatches.add(matchKey);
+				playedMatches.add(reverseMatchKey);
+			});
+
+			// Ensure that each team has a reasonable number of matches
+			const matchCounts: { [key: number]: number } = {};
+			matches.matches.forEach((match) => {
+				matchCounts[match.team1] = (matchCounts[match.team1] || 0) + 1;
+				matchCounts[match.team2] = (matchCounts[match.team2] || 0) + 1;
+			});
+			Object.keys(matchCounts).forEach((teamId) => {
+				expect(matchCounts[parseInt(teamId)]).toBeGreaterThanOrEqual(3);
 			});
 		});
 	});
