@@ -230,7 +230,7 @@ export class Matches extends Base {
 		const teamWaitTime: Map<number, number> = new Map();
 
 		teams.forEach((team) => {
-			if (team.id !== 0) {
+			if (team.id && team.id !== 0) {
 				// Don't count the 'bye' team
 				teamGamesPlayed.set(team.id, 0);
 				teamWaitTime.set(team.id, 0);
@@ -250,7 +250,7 @@ export class Matches extends Base {
 				const team1 = sortedTeams[i];
 				const team2 = sortedTeams[numTeams - 1 - i];
 
-				if (team1.name !== 'bye' && team2.name !== 'bye') {
+				if (team1.id && team2.id && team1.name !== 'bye' && team2.name !== 'bye') {
 					const team1Games = teamGamesPlayed.get(team1.id) || 0;
 					const team2Games = teamGamesPlayed.get(team2.id) || 0;
 
