@@ -61,6 +61,23 @@ export class Match extends Base {
 	}
 
 	/**
+	 * Delete a specific match from the database.
+	 * @returns {Promise<void>} - Returns a promise that resolves when the match is deleted.
+	 */
+	async delete(): Promise<void> {
+		if (!this.id) {
+			this.handleError(400, 'Match ID is required to delete a match.');
+			return;
+		}
+
+		try {
+			await this.databaseService.delete(this.id);
+		} catch (err) {
+			this.handleError(500, `Failed to delete match: ${(err as Error).message}`);
+		}
+	}
+
+	/**
 	 * Update a specific match in the database.
 	 * @param {MatchRow} match - The match details to be updated.
 	 * @returns {Promise<MatchRow | null>} - Returns a promise that resolves to the updated match.

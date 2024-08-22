@@ -252,7 +252,7 @@
 
 		<div class="flex justify-center">
 			<Button
-				class="rounded-xl border border-emerald-900 bg-emerald-950 px-4 py-2 text-sm font-medium text-emerald-500"
+				class="border-emerald-900 bg-emerald-950 text-emerald-500 rounded-xl border px-4 py-2 text-sm font-medium"
 				>Submit</Button
 			>
 		</div>
@@ -262,7 +262,7 @@
 		<form method="POST" action="?/deleteEvent" use:enhance>
 			<div class="flex justify-center">
 				<Button
-					class="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-medium text-red-500"
+					class="bg-red-950 rounded-xl border border-red-900 px-4 py-2 text-sm font-medium text-red-500"
 					>Delete</Button
 				>
 			</div>

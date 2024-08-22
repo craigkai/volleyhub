@@ -56,7 +56,7 @@
 </script>
 
 <div
-	class="flex place-items-center justify-end text-pretty {ref?.name === defaultTeam
+	class="text-pretty flex place-items-center justify-end {ref?.name === defaultTeam
 		? 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
 		: 'flex-1 p-2'}"
 >

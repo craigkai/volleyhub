@@ -51,7 +51,7 @@
 </svelte:head>
 
 <div
-	class="flex min-h-screen flex-col overflow-x-hidden bg-white text-gray-900 dark:bg-slate-800 dark:text-white"
+	class="dark:bg-slate-800 flex min-h-screen flex-col overflow-x-hidden bg-white text-gray-900 dark:text-white"
 >
 	<div class="mb-8 flex-grow">
 		<ModeWatcher defaultMode={'light'} track={false}></ModeWatcher>

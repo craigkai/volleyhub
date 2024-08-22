@@ -11,6 +11,7 @@
 	import EditRef from './EditRef.svelte';
 	import { MatchSupabaseDatabaseService } from '$lib/database/match';
 	import { Match } from '$lib/match.svelte';
+	// import { dndzone, type DndEvent } from 'svelte-dnd-action';
 
 	let {
 		readOnly = false,
@@ -117,15 +118,22 @@
 		}
 	}
 
-	// Function to delete an existing match
-	async function deleteMatch(matchId: string) {
-		try {
-			await data.matches.deleteMatch(matchId);
-			toast.success('Match deleted successfully');
-		} catch (err) {
-			toast.error('Failed to delete match');
-		}
-	}
+	// function handleDndConsider(e: { detail: { items: any } }) {
+	// 	const { items } = e.detail;
+
+	// 	// Temporarily update the order of matches based on the current drag position
+	// 	items.forEach((match: Match, index: number) => {
+	// 		if (data?.matches?.matches) {
+	// 			const matchToUpdate = data.matches.matches.find((m: Match) => m.id === match.id);
+	// 			if (matchToUpdate) matchToUpdate.round = index;
+	// 		}
+	// 	});
+	// }
+
+	// // Handle reordering of matches after a drag event
+	// function handleDragEnd(event: { detail: { items: any } }) {
+	// 	// Save the new state for the matches
+	// }
 </script>
 
 <div class="mb-4 block flex justify-center text-sm font-bold">
@@ -163,43 +171,45 @@
 				</div>
 
 				{#if rounds > 0}
-					{#each Array(rounds) as _, round}
-						<div class="flex w-full rounded {round % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}">
-							{#each Array(data.tournament.courts) as _, court}
-								{@const match = data.matches.matches.find(
-									(m: MatchRow) => m?.court === court && m?.round.toString() === round?.toString()
-								)}
-								{#if match}
-									<ViewMatch
-										matches={data.matches}
-										{match}
-										teams={data.teams}
-										{readOnly}
-										{defaultTeam}
-									>
-										{#if !readOnly}
-											<button onclick={() => deleteMatch(match.id)} class="text-red-500">
-												Delete
-											</button>
-										{/if}
-									</ViewMatch>
+					<!-- <section
+						use:dndzone={{ items: $state.snapshot(data.matches.matches) }}
+						onconsider={handleDndConsider}
+						onfinalize={handleDragEnd}
+					> -->
+					<section>
+						{#each Array(rounds) as _, round}
+							<div class="flex w-full rounded {round % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}">
+								{#each Array(data.tournament.courts) as _, court}
+									{@const match = data.matches.matches.find(
+										(m: Match) =>
+											m?.court === court && (m?.round ?? 0).toString() === round?.toString()
+									)}
+									{#if match}
+										<ViewMatch
+											matches={data.matches}
+											{match}
+											teams={data.teams}
+											{readOnly}
+											{defaultTeam}
+										></ViewMatch>
+									{/if}
+								{/each}
+								{#if data.tournament.refs === 'teams'}
+									{@const matchesPerRound = data.matches.matches.filter(
+										(m: MatchRow) => m.round.toString() === round.toString()
+									)}
+									<EditRef {matchesPerRound} teams={data.teams} {defaultTeam} />
 								{/if}
-							{/each}
-							{#if data.tournament.refs === 'teams'}
-								{@const matchesPerRound = data.matches.matches.filter(
-									(m: MatchRow) => m.round.toString() === round.toString()
-								)}
-								<EditRef {matchesPerRound} teams={data.teams} {defaultTeam} />
-							{/if}
-						</div>
-					{/each}
-				{/if}
-				{#if !readOnly}
-					<div class="flex-1 p-2 text-center">
-						<button onclick={() => addMatch()} class="text-blue-500">Add Match</button>
-					</div>
+							</div>
+						{/each}
+					</section>
 				{/if}
 			</div>
+			{#if !readOnly}
+				<div class="flex-1 p-2 text-center">
+					<button onclick={() => addMatch()} class="text-blue-500">Add Match</button>
+				</div>
+			{/if}
 		{/if}
 
 		{#if !readOnly}
@@ -212,13 +222,13 @@
 						</Alert.Description>
 						<div class="flex gap-2">
 							<button
-								class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+								class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 dark:text-nord-1"
 								onclick={generateMatches}
 							>
 								Yes
 							</button>
 							<button
-								class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+								class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 dark:text-nord-1"
 								onclick={() => (showGenerateMatchesAlert = false)}
 							>
 								No
@@ -230,7 +240,7 @@
 
 			<div class="m-2 flex justify-center">
 				<button
-					class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+					class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 dark:text-nord-1"
 					type="button"
 					onclick={checkGenerateMatches}
 				>
