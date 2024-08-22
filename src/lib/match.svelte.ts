@@ -44,6 +44,23 @@ export class Match extends Base {
 	}
 
 	/**
+	 * Create a new match in the database.
+	 * @param {MatchRow} match - The match details to be created.
+	 * @returns {Promise<MatchRow>} - Returns a promise that resolves to the created match.
+	 */
+	async create(match: Partial<Match>): Promise<Match> {
+		const newMatch = await this.databaseService.post(match);
+
+		if (!newMatch) {
+			this.handleError(500, 'Failed to create match.');
+		}
+
+		Object.assign(this, newMatch);
+
+		return this;
+	}
+
+	/**
 	 * Update a specific match in the database.
 	 * @param {MatchRow} match - The match details to be updated.
 	 * @returns {Promise<MatchRow | null>} - Returns a promise that resolves to the updated match.

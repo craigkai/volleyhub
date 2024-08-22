@@ -8,9 +8,9 @@
 	import Zapoff from 'lucide-svelte/icons/zap-off';
 	import { onDestroy, onMount } from 'svelte';
 	import toast from 'svelte-french-toast';
-	// @ts-ignore
-	import type { PageData } from './$types';
 	import EditRef from './EditRef.svelte';
+	import { MatchSupabaseDatabaseService } from '$lib/database/match';
+	import { Match } from '$lib/match.svelte';
 
 	let {
 		readOnly = false,
@@ -19,7 +19,7 @@
 	} = $props<{
 		readOnly: Boolean;
 		defaultTeam: String | null;
-		data: PageData;
+		data: any;
 	}>();
 
 	let showGenerateMatchesAlert = $state(false);
@@ -81,6 +81,7 @@
 		}
 	}
 
+	// Calculate the total number of rounds based on existing matches
 	const rounds = $derived(
 		Math.max.apply(
 			Math,
@@ -89,6 +90,42 @@
 			}) ?? [0]
 		) + 1
 	);
+
+	// Function to add a new match manually
+	async function addMatch() {
+		const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
+			data.matches.databaseService.supabaseClient
+		);
+
+		for (let i = 0; i < data.tournament.courts; i++) {
+			const newMatch = {
+				team1: undefined,
+				team2: undefined,
+				round: rounds,
+				i,
+				event_id: data.tournament.id
+			};
+
+			const newMatchInstance = new Match(matchSupabaseDatabaseService);
+
+			try {
+				await newMatchInstance.create(newMatch);
+				toast.success('Match added successfully');
+			} catch (err) {
+				toast.error('Failed to add match');
+			}
+		}
+	}
+
+	// Function to delete an existing match
+	async function deleteMatch(matchId: string) {
+		try {
+			await data.matches.deleteMatch(matchId);
+			toast.success('Match deleted successfully');
+		} catch (err) {
+			toast.error('Failed to delete match');
+		}
+	}
 </script>
 
 <div class="mb-4 block flex justify-center text-sm font-bold">
@@ -139,9 +176,13 @@
 										teams={data.teams}
 										{readOnly}
 										{defaultTeam}
-									/>
-								{:else}
-									<div class="flex-1 p-2 text-center">-</div>
+									>
+										{#if !readOnly}
+											<button onclick={() => deleteMatch(match.id)} class="text-red-500">
+												Delete
+											</button>
+										{/if}
+									</ViewMatch>
 								{/if}
 							{/each}
 							{#if data.tournament.refs === 'teams'}
@@ -152,6 +193,11 @@
 							{/if}
 						</div>
 					{/each}
+				{/if}
+				{#if !readOnly}
+					<div class="flex-1 p-2 text-center">
+						<button onclick={() => addMatch()} class="text-blue-500">Add Match</button>
+					</div>
 				{/if}
 			</div>
 		{/if}
