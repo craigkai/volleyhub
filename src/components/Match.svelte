@@ -5,7 +5,6 @@
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
 	import EditMatch from '$components/EditMatch.svelte';
 	import type { Matches } from '$lib/matches.svelte';
-	import toast from 'svelte-french-toast';
 	import { Match } from '$lib/match.svelte';
 
 	let {
