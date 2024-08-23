@@ -1,5 +1,5 @@
 import { SupabaseDatabaseService } from './supabaseDatabaseService';
-import { matchesRowSchema, matchesUpdateSchema } from '$schemas/supabase';
+import { matchesInsertSchema, matchesRowSchema, matchesUpdateSchema } from '$schemas/supabase';
 import type { Match } from '$lib/match.svelte';
 import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 
@@ -24,6 +24,32 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 		} catch (error) {
 			console.error('Error loading the match:', error);
 			throw new Error('Failed to load match.');
+		}
+	}
+
+	/**
+	 * Create a new match in the database.
+	 * @param {Match} match - The match data to create.
+	 * @returns {Promise<MatchRow | null>} - Returns a promise that resolves to the created match, or null if the creation fails.
+	 */
+	async post(match: Partial<Match>): Promise<MatchRow | null> {
+		try {
+			const parsedMatch = matchesInsertSchema.partial().parse(match);
+
+			// Insert the new event into the 'events' table
+			const res: PostgrestSingleResponse<MatchRow> = await this.supabaseClient
+				.from('matches')
+				.insert(parsedMatch)
+				.select()
+				.single();
+
+			this.validateAndHandleErrors(res, matchesInsertSchema);
+
+			return res.data;
+		} catch (error) {
+			// If an error occurs while creating the event, log it and rethrow it
+			console.error('An error occurred while creating the match:', error);
+			throw error;
 		}
 	}
 

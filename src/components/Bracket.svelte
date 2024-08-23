@@ -186,11 +186,11 @@
 					>
 					<div class="flex gap-2">
 						<button
-							class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+							class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 dark:text-nord-1"
 							onclick={generateBracket}>Yes</button
 						>
 						<button
-							class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+							class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 dark:text-nord-1"
 							onclick={() => (showGenerateBracketAlert = false)}>No</button
 						>
 					</div>
@@ -201,13 +201,13 @@
 		{#if !bracket?.matches || bracket.matches.length === 0}
 			<Button
 				variant="outline"
-				class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+				class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 dark:text-nord-1"
 				onclick={checkGenerateBracket}>Generate initial bracket</Button
 			>
 		{:else}
 			<Button
 				variant="outline"
-				class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+				class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 dark:text-nord-1"
 				onclick={checkGenerateBracket}>Regenerate bracket</Button
 			>
 		{/if}

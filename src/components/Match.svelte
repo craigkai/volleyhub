@@ -5,6 +5,7 @@
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
 	import EditMatch from '$components/EditMatch.svelte';
 	import type { Matches } from '$lib/matches.svelte';
+	import { Match } from '$lib/match.svelte';
 
 	let {
 		match,
@@ -13,7 +14,7 @@
 		defaultTeam,
 		matches
 	}: {
-		match: MatchRow;
+		match: Match;
 		teams: Teams;
 		readOnly: boolean;
 		defaultTeam: string;
@@ -49,7 +50,7 @@
 	closeOnEscape={true}
 >
 	<AlertDialog.Content>
-		<EditMatch matchId={match.id} {matches} {teams} />
+		<EditMatch matchId={match.id as number} {matches} {teams} />
 	</AlertDialog.Content>
 </AlertDialog.Root>
 
@@ -57,7 +58,7 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="flex place-items-center justify-center text-pretty"
+		class="text-pretty flex place-items-center justify-center"
 		onclick={() => {
 			if (!readOnly) {
 				open = true;

@@ -6,10 +6,10 @@
 	import type { Brackets } from '$lib/brackets/brackets.svelte';
 	import type { Teams } from '$lib/teams.svelte';
 	import { error } from '@sveltejs/kit';
-	import type { Pool } from '$lib/pool/pool.svelte';
-	import { Team } from '$lib/team.svelte';
 	import toast from 'svelte-french-toast';
 	import { Match } from '$lib/match.svelte';
+	import { Team } from '$lib/team.svelte';
+	import type { Pool } from '$lib/pool/pool.svelte';
 
 	let { matchId, matches, teams }: { matchId: number; matches: Pool | Brackets; teams: Teams } =
 		$props();
@@ -31,6 +31,26 @@
 		} catch (err) {
 			console.error('Failed to save match:', err);
 			error(500, 'Failed to save match');
+		}
+	}
+
+	// Function to delete an existing match with confirmation
+	async function deleteMatch() {
+		const confirmation = window.confirm(
+			'Are you sure you want to delete this match? This action cannot be undone.'
+		);
+
+		if (confirmation) {
+			try {
+				await match.delete();
+				matches.matches = matches.matches.filter((m: Match) => m.id !== match.id);
+
+				toast.success('Match deleted successfully');
+			} catch (err) {
+				toast.error('Failed to delete match');
+			}
+		} else {
+			toast('Match deletion canceled');
 		}
 	}
 </script>
@@ -77,5 +97,6 @@
 		{@render editEntity('Home Team', 'team1', 'team1_score')}
 		{@render editEntity('Away Team', 'team2', 'team2_score')}
 		<button class="mt-4 rounded bg-blue-500 px-4 py-2 text-white" onclick={saveMatch}>Save</button>
+		<button onclick={() => deleteMatch()} class="text-red-500"> Delete </button>
 	</div>
 {/if}

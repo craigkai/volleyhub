@@ -75,11 +75,11 @@
 				<Label for="email" class="text-gray-700 dark:text-gray-400">Email Address</Label>
 				<Input
 					name="email"
-					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="focus:outline-none w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500"
 					bind:value={email}
 				/>
 				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="focus:outline-none w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500"
 					on:click={handleSignInOtp}>Send Magic Link</Button
 				>
 			</div>
@@ -89,24 +89,24 @@
 				<Input
 					name="email"
 					id="email"
-					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="focus:outline-none w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500"
 					bind:value={email}
 				/>
 				<Label for="password" class="text-gray-700 dark:text-gray-400">Password</Label>
 				<Input
 					type="password"
 					id="password"
-					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="focus:outline-none w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500"
 					bind:value={password}
 					placeholder="•••••••••"
 					required
 				/>
 				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="focus:outline-none w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500"
 					on:click={handleSignIn}>Sign In</Button
 				>
 				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="focus:outline-none w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500"
 					on:click={() => (method = 'recovery')}>Forgot your password?</Button
 				>
 			</div>
@@ -115,18 +115,18 @@
 				<Label for="email" class="text-gray-700 dark:text-gray-400">Email Address</Label>
 				<Input
 					name="email"
-					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="focus:outline-none w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500"
 					bind:value={email}
 				/>
 				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="focus:outline-none w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500"
 					on:click={handleForgotPassword}>Send Reset Password Instructions</Button
 				>
 			</div>
 		{/if}
 		<div class="space-y-4">
 			<Button
-				class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="focus:outline-none w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500"
 				on:click={() => (method = 'password')}>Already have an account? Sign In With Email</Button
 			>
 		</div>
