@@ -176,7 +176,7 @@
 											(m: Match) =>
 												m?.court === court && (m?.round ?? 0).toString() === round?.toString()
 										)}
-										<Table.Cell class="text-center">
+										<Table.Cell class="cursor-pointer text-center">
 											{#if match}
 												<ViewMatch
 													matches={data.matches}
