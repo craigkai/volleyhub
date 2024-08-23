@@ -20,12 +20,12 @@
 	);
 </script>
 
-<div class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300">
+<div class="mb-2 block text-lg font-bold text-gray-700 dark:text-gray-300">
 	Scoring based on {scoring}
 </div>
 
 <div class="rounded rounded-2xl p-2 dark:bg-gray-800">
-	<Table.Root class="table-auto">
+	<Table.Root class="justify-content-center table-auto text-center text-lg">
 		<Table.Header>
 			<Table.Row>
 				<Table.Head>Team</Table.Head>

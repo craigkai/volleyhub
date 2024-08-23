@@ -11,7 +11,7 @@
 	import EditRef from './EditRef.svelte';
 	import { MatchSupabaseDatabaseService } from '$lib/database/match';
 	import { Match } from '$lib/match.svelte';
-	// import { dndzone, type DndEvent } from 'svelte-dnd-action';
+	import * as Table from '$components/ui/table/index.js';
 
 	let {
 		readOnly = false,
@@ -118,23 +118,6 @@
 			}
 		}
 	}
-
-	// function handleDndConsider(e: { detail: { items: any } }) {
-	// 	const { items } = e.detail;
-
-	// 	// Temporarily update the order of matches based on the current drag position
-	// 	items.forEach((match: Match, index: number) => {
-	// 		if (data?.matches?.matches) {
-	// 			const matchToUpdate = data.matches.matches.find((m: Match) => m.id === match.id);
-	// 			if (matchToUpdate) matchToUpdate.round = index;
-	// 		}
-	// 	});
-	// }
-
-	// // Handle reordering of matches after a drag event
-	// function handleDragEnd(event: { detail: { items: any } }) {
-	// 	// Save the new state for the matches
-	// }
 </script>
 
 <div class="mb-4 block flex justify-center text-sm font-bold">
@@ -156,77 +139,75 @@
 		>
 	</div>
 {:else}
-	<div class="rounded rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-base">
+	<div class="rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-base">
 		{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
-			<div class="flex w-full flex-col">
-				<div class="flex w-full">
-					{#each Array(data.tournament.courts) as _, i}
-						{@const index = i + 1}
-						<div
-							class="flex- p-2 text-center {data.tournament.courts < 2
-								? 'text-lg'
-								: 'text-base'} font-bold"
-						>
-							Court {index}
-						</div>
-					{/each}
-					{#if data.tournament.refs === 'teams'}
-						<div
-							class="flex-1 p-2 text-end {data.tournament.courts < 2
-								? 'text-lg'
-								: 'text-base'} font-bold"
-						>
-							Ref
-						</div>
-					{/if}
-				</div>
+			<div class="w-full flex-col">
+				<Table.Root>
+					<Table.Header>
+						<Table.Row>
+							{#each Array(data.tournament.courts) as _, i}
+								{@const index = i + 1}
+								<Table.Head
+									class="p-2 text-center {data.tournament.courts < 2
+										? 'text-lg'
+										: 'text-base'} font-bold"
+								>
+									Court {index}
+								</Table.Head>
+							{/each}
+							{#if data.tournament.refs === 'teams'}
+								<Table.Head
+									class="p-2 text-center {data.tournament.courts < 2
+										? 'text-lg'
+										: 'text-base'} font-bold"
+								>
+									Ref
+								</Table.Head>
+							{/if}
+						</Table.Row>
+					</Table.Header>
 
-				{#if rounds > 0}
-					<!-- <section
-						use:dndzone={{ items: $state.snapshot(data.matches.matches) }}
-						onconsider={handleDndConsider}
-						onfinalize={handleDragEnd}
-					> -->
-					<section>
-						{#each Array(rounds) as _, round}
-							<div
-								class="flex w-full items-center justify-center rounded {round % 2
-									? 'bg-gray-100 dark:bg-gray-500'
-									: ''}"
-							>
-								{#each Array(data.tournament.courts) as _, court}
-									{@const match = data.matches.matches.find(
-										(m: Match) =>
-											m?.court === court && (m?.round ?? 0).toString() === round?.toString()
-									)}
-									{#if match}
-										<ViewMatch
-											matches={data.matches}
-											{match}
-											teams={data.teams}
-											{readOnly}
-											{defaultTeam}
-											courts={data.tournament.courts ?? 1}
-										></ViewMatch>
+					<Table.Body>
+						{#if rounds > 0}
+							{#each Array(rounds) as _, round}
+								<Table.Row>
+									{#each Array(data.tournament.courts) as _, court}
+										{@const match = data.matches.matches.find(
+											(m: Match) =>
+												m?.court === court && (m?.round ?? 0).toString() === round?.toString()
+										)}
+										<Table.Cell class="text-center">
+											{#if match}
+												<ViewMatch
+													matches={data.matches}
+													{match}
+													teams={data.teams}
+													{readOnly}
+													{defaultTeam}
+													courts={data.tournament.courts ?? 1}
+												/>
+											{/if}
+										</Table.Cell>
+									{/each}
+									{#if data.tournament.refs === 'teams'}
+										{@const matchesPerRound = data.matches.matches.filter(
+											(m: MatchRow) => m.round.toString() === round.toString()
+										)}
+										<Table.Cell
+											class="text-center {data.tournament.courts < 2 ? 'text-lg' : 'text-base'}"
+										>
+											<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
+										</Table.Cell>
 									{/if}
-								{/each}
-								{#if data.tournament.refs === 'teams'}
-									{@const matchesPerRound = data.matches.matches.filter(
-										(m: MatchRow) => m.round.toString() === round.toString()
-									)}
-
-									<div class={data.tournament.courts < 2 ? 'text-lg' : 'text-base'}>
-										<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
-									</div>
-								{/if}
-							</div>
-						{/each}
-					</section>
-				{/if}
+								</Table.Row>
+							{/each}
+						{/if}
+					</Table.Body>
+				</Table.Root>
 			</div>
 			{#if !readOnly}
-				<div class="flex-1 p-2 text-center">
-					<button onclick={() => addMatch()} class="text-blue-500">Add Match</button>
+				<div class="text-center">
+					<button onclick={addMatch} class="text-blue-500">Add Match</button>
 				</div>
 			{/if}
 		{/if}

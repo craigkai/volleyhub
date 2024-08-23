@@ -57,9 +57,9 @@
 </script>
 
 <div
-	class={ref?.name === defaultTeam
+	class="rounded rounded-lg p-2 {ref?.name === defaultTeam
 		? 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 dark:border-gray-400 dark:bg-gray-400'
-		: 'flex-1'}
+		: 'flex-1'}"
 >
 	{#if readOnly}
 		<div>
