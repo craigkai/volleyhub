@@ -190,7 +190,7 @@
 					<section>
 						{#each Array(rounds) as _, round}
 							<div
-								class="flex w-full items-center justify-center rounded p-2 {round % 2
+								class="flex w-full items-center justify-center rounded {round % 2
 									? 'bg-gray-100 dark:bg-gray-500'
 									: ''}"
 							>
