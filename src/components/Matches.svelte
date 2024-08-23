@@ -192,6 +192,7 @@
 											teams={data.teams}
 											{readOnly}
 											{defaultTeam}
+											courts={data.tournament.courts ?? 1}
 										></ViewMatch>
 									{/if}
 								{/each}

@@ -12,13 +12,15 @@
 		teams,
 		readOnly = false,
 		defaultTeam,
-		matches
+		matches,
+		courts
 	}: {
 		match: Match;
 		teams: Teams;
 		readOnly: boolean;
 		defaultTeam: string;
 		matches: Matches;
+		courts: number;
 	} = $props();
 
 	const winClass = 'bg-green-300 dark:bg-green-700';
@@ -98,7 +100,7 @@
 {/snippet}
 
 <div
-	class="min-w-[100px] {hasDefaultTeam
+	class="min-w-[{300 / courts}px] {hasDefaultTeam
 		? match.state === 'COMPLETE'
 			? 'flex-1 p-2 ' + rowDivClass
 			: 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
