@@ -26,7 +26,7 @@ declare global {
 	interface TeamScores {
 		[teamName: string]: {
 			wins: number;
-			points: number;
+			pointsDiff: number;
 		};
 	}
 
