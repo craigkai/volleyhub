@@ -26,11 +26,15 @@
 	});
 
 	const teamsSelect = $derived(
-		data?.teams?.teams
-			?.map((team: { name: string }) => {
-				return { value: team.name, name: team.name };
-			})
-			.concat([{ value: '', name: 'none' }]) || []
+		data?.teams?.teams.sort((a: { name: string }, b: { name: string }) =>
+			a.name.localeCompare(b.name)
+		) ||
+			[]
+				?.map((team: { name: string }) => {
+					return { value: team.name, name: team.name };
+				})
+				.concat([{ value: '', name: 'none' }]) ||
+			[]
 	);
 
 	const isCreate = $derived(data?.eventId === 'create');
