@@ -170,7 +170,7 @@
 					<Table.Body>
 						{#if rounds > 0}
 							{#each Array(rounds) as _, round}
-								<Table.Row>
+								<Table.Row class={round % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}>
 									{#each Array(data.tournament.courts) as _, court}
 										{@const match = data.matches.matches.find(
 											(m: Match) =>
