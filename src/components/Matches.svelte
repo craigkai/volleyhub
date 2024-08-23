@@ -162,12 +162,12 @@
 				<div class="flex w-full">
 					{#each Array(data.tournament.courts) as _, i}
 						{@const index = i + 1}
-						<div class="flex-1 p-2 text-center font-bold">
+						<div class="flex- p-2 text-center font-bold">
 							Court {index}
 						</div>
 					{/each}
 					{#if data.tournament.refs === 'teams'}
-						<div class="flex-1 p-2 text-center font-bold">Ref</div>
+						<div class="flex-1 p-2 text-end font-bold">Ref</div>
 					{/if}
 				</div>
 
@@ -204,7 +204,7 @@
 									{@const matchesPerRound = data.matches.matches.filter(
 										(m: MatchRow) => m.round.toString() === round.toString()
 									)}
-									<EditRef {matchesPerRound} teams={data.teams} {defaultTeam} />
+									<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
 								{/if}
 							</div>
 						{/each}

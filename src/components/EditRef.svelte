@@ -8,10 +8,11 @@
 	import type { Teams } from '$lib/teams.svelte';
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
 
-	let { matchesPerRound, teams, defaultTeam } = $props<{
+	let { matchesPerRound, teams, defaultTeam, readOnly } = $props<{
 		defaultTeam: String | null;
 		matchesPerRound: Match[];
 		teams: Teams;
+		readOnly: boolean;
 	}>();
 
 	// Select the first match in the round as the reference match
@@ -56,13 +57,19 @@
 </script>
 
 <div
-	class="text-pretty flex place-items-center justify-end {ref?.name === defaultTeam
+	class="flex place-items-center justify-end text-pretty {ref?.name === defaultTeam
 		? 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
 		: 'flex-1 p-2'}"
 >
-	<button onclick={() => (open = true)}>
-		{ref?.name}
-	</button>
+	{#if readOnly}
+		<div>
+			{ref?.name}
+		</div>
+	{:else}
+		<button onclick={() => (open = true)}>
+			{ref?.name}
+		</button>
+	{/if}
 </div>
 
 <AlertDialog.Root
