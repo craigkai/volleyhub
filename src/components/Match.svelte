@@ -60,7 +60,9 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="flex place-items-center justify-center text-pretty"
+		class="flex place-items-center justify-center text-pretty {courts < 2
+			? 'text-lg'
+			: 'text-base'}"
 		onclick={() => {
 			if (!readOnly) {
 				open = true;

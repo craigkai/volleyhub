@@ -162,12 +162,22 @@
 				<div class="flex w-full">
 					{#each Array(data.tournament.courts) as _, i}
 						{@const index = i + 1}
-						<div class="flex- p-2 text-center font-bold">
+						<div
+							class="flex- p-2 text-center {data.tournament.courts < 2
+								? 'text-lg'
+								: 'text-base'} font-bold"
+						>
 							Court {index}
 						</div>
 					{/each}
 					{#if data.tournament.refs === 'teams'}
-						<div class="flex-1 p-2 text-end font-bold">Ref</div>
+						<div
+							class="flex-1 p-2 text-end {data.tournament.courts < 2
+								? 'text-lg'
+								: 'text-base'} font-bold"
+						>
+							Ref
+						</div>
 					{/if}
 				</div>
 
@@ -180,7 +190,7 @@
 					<section>
 						{#each Array(rounds) as _, round}
 							<div
-								class="justify-content-center flex w-full rounded {round % 2
+								class="flex w-full items-center justify-center rounded p-2 {round % 2
 									? 'bg-gray-100 dark:bg-gray-500'
 									: ''}"
 							>
@@ -204,7 +214,10 @@
 									{@const matchesPerRound = data.matches.matches.filter(
 										(m: MatchRow) => m.round.toString() === round.toString()
 									)}
-									<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
+
+									<div class={data.tournament.courts < 2 ? 'text-lg' : 'text-base'}>
+										<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
+									</div>
 								{/if}
 							</div>
 						{/each}
