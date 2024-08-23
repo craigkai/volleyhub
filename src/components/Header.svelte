@@ -23,11 +23,11 @@
 
 <header class="w-full">
 	<!-- Navigation bar -->
-	<div class="dark:bg-slate-900 bg-blue-500 p-4">
+	<div class="bg-blue-500 p-4 dark:bg-slate-900">
 		<div class="flex w-[300px]">
 			<a href="/">
 				<svg
-					class="dark:fill-blue-600 h-20 w-20 p-2"
+					class="h-20 w-20 p-2 dark:fill-blue-600"
 					fill="#000000"
 					height="800px"
 					width="800px"
@@ -62,17 +62,17 @@
 
 		{#if open}
 			<nav
-				class="text-neutral-600 hover:text-neutral-700 focus:text-neutral-700 relative flex w-full items-center justify-between rounded bg-white py-2 shadow-lg dark:bg-gray-800 dark:text-gray-200 md:flex-wrap md:justify-start"
+				class="relative flex w-full items-center justify-between rounded bg-white py-2 text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 dark:bg-gray-800 dark:text-gray-200 md:flex-wrap md:justify-start"
 				transition:fade={{ duration: 300 }}
 			>
 				<div class="flex w-full flex-wrap items-center justify-between px-3">
 					<div class="flex-row">
 						<!-- Navigation links -->
-						<div class="basis-[100%] lg:basis-auto grow items-center lg:!flex">
+						<div class="grow basis-[100%] items-center lg:!flex lg:basis-auto">
 							<ul class="mr-auto flex flex-col lg:flex-row" data-te-navbar-nav-ref>
 								<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
 									<a
-										class="hover:text-neutral-700 focus:text-neutral-700 block transition duration-150 ease-in-out disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
 										href="/"
 										data-te-nav-link-ref
 										data-te-ripple-init
@@ -83,7 +83,7 @@
 								{#if currentUser?.data?.user?.aud === 'authenticated'}
 									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
 										<a
-											class="hover:text-neutral-700 focus:text-neutral-700 block transition duration-150 ease-in-out disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
 											href="/protected-routes/dashboard"
 											data-te-nav-link-ref
 											data-te-ripple-init
@@ -94,7 +94,7 @@
 								{:else}
 									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
 										<a
-											class="hover:text-neutral-700 focus:text-neutral-700 block transition duration-150 ease-in-out disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
 											href="/auth"
 											data-te-nav-link-ref
 											data-te-ripple-init

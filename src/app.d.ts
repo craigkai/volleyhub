@@ -24,7 +24,10 @@ declare global {
 	};
 
 	interface TeamScores {
-		[key: string]: number;
+		[teamName: string]: {
+			wins: number;
+			points: number;
+		};
 	}
 
 	type UserMatch = Partial<MatchRow> & {

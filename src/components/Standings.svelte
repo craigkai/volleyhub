@@ -16,7 +16,14 @@
 
 	let teamScores: TeamScores = $derived(findStandings(matches.matches, event, teams.teams));
 	let orderedTeamScores = $derived(
-		Object.keys(teamScores).sort((a, b) => teamScores[b] - teamScores[a])
+		Object.keys(teamScores).sort((a, b) => {
+			// First, compare by wins
+			if (teamScores[b].wins !== teamScores[a].wins) {
+				return teamScores[b].wins - teamScores[a].wins;
+			}
+			// If wins are the same, compare by points differential
+			return teamScores[b].pointsDiff - teamScores[a].pointsDiff;
+		})
 	);
 </script>
 
@@ -40,7 +47,7 @@
 						: ''}
 				<Table.Row class={isDefaultTeam}>
 					<Table.Cell>{orderedTeamScores[i]}</Table.Cell>
-					<Table.Cell>{teamScores[orderedTeamScores[i]]}</Table.Cell>
+					<Table.Cell>{teamScores[orderedTeamScores[i]].wins}</Table.Cell>
 				</Table.Row>
 			{/each}
 		</Table.Body>
