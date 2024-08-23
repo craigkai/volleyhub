@@ -79,7 +79,7 @@
 	onOpenChange={() => (open = false)}
 >
 	<AlertDialog.Content>
-		<div class="m-2 flex w-3/4 flex-col">
+		<div class="m-2 flex flex-col items-center justify-center">
 			<Label class="mb-4 text-lg font-semibold">Select Referee:</Label>
 			<Select.Root
 				selected={{
@@ -88,7 +88,8 @@
 				}}
 				onSelectedChange={(event) => (selectedRef = event?.value as number)}
 			>
-				<Select.Trigger class="w-[180px]">
+				<Select.Trigger class="mx-auto w-[180px]">
+					<!-- Add mx-auto for horizontal centering -->
 					<Select.Value placeholder="Select a referee..." />
 				</Select.Trigger>
 				<Select.Content>
