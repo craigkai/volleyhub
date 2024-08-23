@@ -98,7 +98,7 @@
 {/snippet}
 
 {#if match}
-	<div class="m-2 flex w-3/4 flex-col">
+	<div class="m-2 flex flex-col items-center justify-center">
 		{@render editEntity('Home Team', 'team1', 'team1_score')}
 		{@render editEntity('Away Team', 'team2', 'team2_score')}
 		<button class="mt-4 rounded bg-blue-500 px-4 py-2 text-white" onclick={saveMatch}>Save</button>
