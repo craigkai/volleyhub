@@ -97,13 +97,14 @@
 		const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
 			data.matches.databaseService.supabaseClient
 		);
+		const roundValue = rounds;
 
 		for (let i = 0; i < data.tournament.courts; i++) {
 			const newMatch = {
 				team1: undefined,
 				team2: undefined,
-				round: rounds,
-				i,
+				round: roundValue,
+				court: i,
 				event_id: data.tournament.id
 			};
 
@@ -222,13 +223,13 @@
 						</Alert.Description>
 						<div class="flex gap-2">
 							<button
-								class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 dark:text-nord-1"
+								class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 								onclick={generateMatches}
 							>
 								Yes
 							</button>
 							<button
-								class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 dark:text-nord-1"
+								class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 								onclick={() => (showGenerateMatchesAlert = false)}
 							>
 								No
@@ -240,7 +241,7 @@
 
 			<div class="m-2 flex justify-center">
 				<button
-					class="focus:shadow-outline focus:outline-none rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 dark:text-nord-1"
+					class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
 					type="button"
 					onclick={checkGenerateMatches}
 				>

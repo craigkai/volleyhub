@@ -50,7 +50,7 @@
 	closeOnEscape={true}
 >
 	<AlertDialog.Content>
-		<EditMatch matchId={match.id as number} {matches} {teams} />
+		<EditMatch matchId={match.id as number} {matches} {teams} {open} />
 	</AlertDialog.Content>
 </AlertDialog.Root>
 
@@ -58,7 +58,7 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="text-pretty flex place-items-center justify-center"
+		class="flex place-items-center justify-center text-pretty"
 		onclick={() => {
 			if (!readOnly) {
 				open = true;

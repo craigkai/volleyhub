@@ -11,8 +11,12 @@
 	import { Team } from '$lib/team.svelte';
 	import type { Pool } from '$lib/pool/pool.svelte';
 
-	let { matchId, matches, teams }: { matchId: number; matches: Pool | Brackets; teams: Teams } =
-		$props();
+	let {
+		matchId,
+		matches,
+		teams,
+		open
+	}: { matchId: number; matches: Pool | Brackets; teams: Teams; open: boolean } = $props();
 
 	let match = matches?.matches?.find((m) => m.id === matchId) as Match;
 
@@ -45,6 +49,7 @@
 				await match.delete();
 				matches.matches = matches.matches.filter((m: Match) => m.id !== match.id);
 
+				open = false;
 				toast.success('Match deleted successfully');
 			} catch (err) {
 				toast.error('Failed to delete match');
