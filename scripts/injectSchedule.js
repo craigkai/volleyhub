@@ -51,7 +51,7 @@ async function insertMatches(eventId, schedule, teamIdMapping) {
 
 			const matchData = {
 				event_id: eventId,
-				round: roundNumber + 1, // Assuming the round starts from 1
+				round: roundNumber,
 				court: 0, // Assuming one court
 				team1: team1,
 				team2: team2,
