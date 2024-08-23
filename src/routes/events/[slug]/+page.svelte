@@ -12,6 +12,7 @@
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
 	import BorderBeam from '$components/magic-ui/BorderBeam.svelte';
+	import * as Tooltip from '$components/ui/tooltip/index.js';
 
 	let { data = $bindable() } = $props();
 
@@ -83,7 +84,14 @@
 			{/if}
 			<Tabs.Trigger disabled={isCreate} value="matches">Matches</Tabs.Trigger>
 			<Tabs.Trigger disabled={isCreate} value="standings">Standings</Tabs.Trigger>
-			<Tabs.Trigger disabled={true} value="bracket">Bracket</Tabs.Trigger>
+			<Tooltip.Root>
+				<Tooltip.Trigger>
+					<Tabs.Trigger disabled={true} value="bracket">Bracket</Tabs.Trigger>
+				</Tooltip.Trigger>
+				<Tooltip.Content>
+					<p>Coming soon!</p>
+				</Tooltip.Content>
+			</Tooltip.Root>
 		</Tabs.List>
 
 		{#if !readOnly}
