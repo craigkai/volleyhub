@@ -14,17 +14,7 @@
 
 	const scoring = event.scoring;
 
-	let teamScores: TeamScores = $derived(findStandings(matches.matches, teams.teams));
-	let orderedTeamScores = $derived(
-		Object.keys(teamScores).sort((a, b) => {
-			// First, compare by wins
-			if (teamScores[b].wins !== teamScores[a].wins) {
-				return teamScores[b].wins - teamScores[a].wins;
-			}
-			// If wins are the same, compare by points differential
-			return teamScores[b].pointsDiff - teamScores[a].pointsDiff;
-		})
-	);
+	let orderedTeamScores = $derived(findStandings(matches.matches, teams.teams));
 </script>
 
 <div class="mb-2 block text-lg font-bold text-gray-700 dark:text-gray-300">
@@ -40,14 +30,14 @@
 			</Table.Row>
 		</Table.Header>
 		<Table.Body>
-			{#each { length: orderedTeamScores.length } as _, i}
+			{#each orderedTeamScores as team}
 				{@const isDefaultTeam =
-					defaultTeam && defaultTeam === orderedTeamScores[i]
+					defaultTeam && defaultTeam === team.name
 						? 'p-2 border-solid border-2 border-yellow-300 bg-yellow-200 dark:bg-gray-400 dark:border-gray-400'
 						: ''}
 				<Table.Row class={isDefaultTeam}>
-					<Table.Cell>{orderedTeamScores[i]}</Table.Cell>
-					<Table.Cell>{teamScores[orderedTeamScores[i]].wins}</Table.Cell>
+					<Table.Cell>{team.name}</Table.Cell>
+					<Table.Cell>{team.wins}</Table.Cell>
 				</Table.Row>
 			{/each}
 		</Table.Body>
