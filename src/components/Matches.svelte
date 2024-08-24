@@ -37,11 +37,28 @@
 
 	onMount(async () => {
 		if ((data.matches?.matches?.length ?? 0) > 0) await subscribeToMatches();
+
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		window.addEventListener('focus', handleVisibilityChange);
+		window.addEventListener('online', handleVisibilityChange);
 	});
 
 	onDestroy(() => {
 		if (matchesSubscription) matchesSubscription.unsubscribe();
+		document.removeEventListener('visibilitychange', handleVisibilityChange);
+		window.removeEventListener('focus', handleVisibilityChange);
+		window.removeEventListener('online', handleVisibilityChange);
 	});
+
+	async function handleVisibilityChange() {
+		if (
+			!document.hidden &&
+			!data.matches.subscriptionStatus &&
+			matchesSubscription?.state === 'closed'
+		) {
+			subscribeToMatches();
+		}
+	}
 
 	async function subscribeToMatches() {
 		try {
