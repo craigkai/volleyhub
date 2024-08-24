@@ -27,6 +27,8 @@ declare global {
 		[teamName: string]: {
 			wins: number;
 			pointsDiff: number;
+			headToHeadWins: Record<string, number>;
+			totalPoints: number;
 		};
 	}
 

@@ -37,17 +37,10 @@
 
 	onMount(async () => {
 		if ((data.matches?.matches?.length ?? 0) > 0) await subscribeToMatches();
-
-		window.addEventListener('visibilitychange', handleVisibilityChange);
-		window.addEventListener('focus', handleVisibilityChange);
-		window.addEventListener('online', handleVisibilityChange);
 	});
 
 	onDestroy(() => {
 		if (matchesSubscription) matchesSubscription.unsubscribe();
-		window.removeEventListener('visibilitychange', handleVisibilityChange);
-		window.removeEventListener('focus', handleVisibilityChange);
-		window.removeEventListener('online', handleVisibilityChange);
 	});
 
 	async function handleVisibilityChange() {
@@ -157,7 +150,11 @@
 		>
 	</div>
 {:else}
-	<div class="rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-base">
+	<div
+		class="rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-base"
+		onvisibilitychange={handleVisibilityChange}
+		onfocus={handleVisibilityChange}
+	>
 		{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
 			<div class="w-full flex-col">
 				<Table.Root>
