@@ -63,6 +63,7 @@
 	async function subscribeToMatches() {
 		try {
 			matchesSubscription = await data.matches.subscribeToMatches();
+			data.matches.load();
 		} catch (err) {
 			console.error(`Failed to subscribe to matches: ${err as HttpError}`);
 			toast.error('Subscription error!');
