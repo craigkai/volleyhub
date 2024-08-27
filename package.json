@@ -82,5 +82,8 @@
 		"zod": "^3.23.8",
 		"zod-validation-error": "^3.3.1"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@radix-ui/react-collapsible": "^1.1.0"
+	}
 }
