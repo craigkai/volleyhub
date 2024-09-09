@@ -58,11 +58,14 @@
 			toast('Match deletion canceled');
 		}
 	}
+
+	type MatchKeys = 'team1' | 'team2' | 'team1_score' | 'team2_score';
+	type ScoreKeys = 'team1_score' | 'team2_score';
 </script>
 
-{#snippet editEntity(entityType: string, entityId: string, scoreProp?: string)}
+{#snippet editEntity(entityType: string, entityId: MatchKeys, scoreProp?: ScoreKeys)}
 	{@const entity = teams.teams.find((t: Team) => t.id === match[entityId])}
-	<div class="mb-4 flex items-center space-x-4">
+	<div class="mb-4 flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
 		<Label class="min-w-[100px]" for="{entityId}-select">
 			{entityType}: {entity?.name}:
 		</Label>
@@ -74,7 +77,7 @@
 			}}
 			onSelectedChange={(event) => (match[entityId] = event?.value)}
 		>
-			<Select.Trigger class="w-[180px]">
+			<Select.Trigger class="w-full md:w-[180px]">
 				<Select.Value placeholder="{entityType}..." />
 			</Select.Trigger>
 			<Select.Content>
@@ -86,13 +89,15 @@
 		</Select.Root>
 
 		{#if scoreProp}
-			<Label class="ml-4 min-w-[50px]" for="{entityId}-score-input">Score:</Label>
-			<Input
-				class="max-w-16 rounded border border-blue-500 px-3 py-2 text-center leading-tight"
-				id="{entityId}-score-input"
-				type="number"
-				bind:value={match[scoreProp]}
-			/>
+			<div class="flex flex-col md:ml-4 md:flex-row md:items-center">
+				<Label class="min-w-[50px]" for="{entityId}-score-input">Score:</Label>
+				<Input
+					class="mt-2 max-w-[100px] rounded border border-blue-500 px-3 py-2 text-center leading-tight md:ml-2 md:mt-0"
+					id="{entityId}-score-input"
+					type="number"
+					bind:value={match[scoreProp]}
+				/>
+			</div>
 		{/if}
 	</div>
 {/snippet}
@@ -102,6 +107,6 @@
 		{@render editEntity('Home Team', 'team1', 'team1_score')}
 		{@render editEntity('Away Team', 'team2', 'team2_score')}
 		<button class="mt-4 rounded bg-blue-500 px-4 py-2 text-white" onclick={saveMatch}>Save</button>
-		<button onclick={() => deleteMatch()} class="text-red-500"> Delete </button>
+		<button onclick={() => deleteMatch()} class="mt-2 text-red-500">Delete</button>
 	</div>
 {/if}
