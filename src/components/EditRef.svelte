@@ -17,7 +17,14 @@
 
 	// Select the first match in the round as the reference match
 	let match = $state(matchesPerRound ? matchesPerRound[0] : null);
-	let selectedRef: number | null = $state(match?.ref ?? null);
+	let selectedRef = $state({
+		get ref() {
+			return match?.ref ?? null;
+		},
+		set ref(ref: number) {
+			match.ref = ref;
+		}
+	});
 	let open = $state(false);
 
 	// Ref is recalculated whenever match.ref or teams changes
@@ -25,10 +32,10 @@
 
 	// Save the referee for both team1 and team2 in the match
 	async function saveRef() {
-		if (match && selectedRef !== null) {
+		if (match && selectedRef.ref !== null) {
 			try {
 				for (let m of matchesPerRound) {
-					m.ref = selectedRef;
+					m.ref = selectedRef.ref;
 					const updatedMatch = await updateMatch(m);
 
 					if (!updatedMatch) {
@@ -83,10 +90,10 @@
 			<Label class="mb-4 text-lg font-semibold">Select Referee:</Label>
 			<Select.Root
 				selected={{
-					value: selectedRef,
-					label: teams.teams.find((t: Team) => t.id === selectedRef)?.name
+					value: selectedRef.ref,
+					label: teams.teams.find((t: Team) => t.id === selectedRef.ref)?.name
 				}}
-				onSelectedChange={(event) => (selectedRef = event?.value as number)}
+				onSelectedChange={(event) => (selectedRef.ref = event?.value as number)}
 			>
 				<Select.Trigger class="mx-auto w-[180px]">
 					<!-- Add mx-auto for horizontal centering -->
