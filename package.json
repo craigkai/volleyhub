@@ -84,6 +84,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@radix-ui/react-collapsible": "^1.1.0"
+		"@radix-ui/react-collapsible": "^1.1.0",
+		"svelte-kit-bot-block": "^0.0.7"
 	}
 }

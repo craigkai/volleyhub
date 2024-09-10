@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import { createHandler } from 'svelte-kit-bot-block';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { UAParser } from 'ua-parser-js';
@@ -77,4 +78,4 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-export const handle: Handle = sequence(supabase, authGuard);
+export const handle: Handle = sequence(supabase, authGuard, createHandler());
