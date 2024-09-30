@@ -10,15 +10,20 @@
 
 	let newPassword: string = '';
 	async function resetPassword() {
-		await data.supabase.auth
-			.updateUser({ password: newPassword })
-			.then((_) => {
-				toast.success('Password updated successfully');
-				goto('/protected-routes/dashboard');
-			})
-			.catch((err) => {
-				toast.error(err.message);
+		try {
+			const { data: userData, error } = await data.supabase.auth.updateUser({
+				password: newPassword
 			});
+
+			if (error) {
+				throw error;
+			}
+
+			toast.success('Password updated successfully');
+			goto('/protected-routes/dashboard');
+		} catch (err) {
+			toast.error(err.message || 'Failed to update password');
+		}
 	}
 	const whoAmI = data?.user?.email;
 </script>
