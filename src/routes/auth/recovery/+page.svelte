@@ -4,11 +4,38 @@
 	import { Label } from '$components/ui/label/index.js';
 	import { Input } from '$components/ui/input/index.js';
 	import { Button } from '$components/ui/button/index.js';
-	import type { PageData } from '$types';
+	import { onMount } from 'svelte';
 
-	export let data: PageData;
+	let { data } = $props();
+	interface User {
+		email?: string;
+		// Add other properties if needed
+	}
 
-	let newPassword: string = '';
+	let user: User = {};
+
+	onMount(async () => {
+		const hash = window.location.hash.substring(1); // Remove the '#'
+		const params = new URLSearchParams(hash);
+		const type = params.get('type');
+		const accessToken = params.get('access_token');
+
+		if (accessToken && type === 'recovery') {
+			// Authenticate the user with Supabase using the access token
+			const response = await data.supabase.auth.setSession({
+				access_token: accessToken,
+				refresh_token: params.get('refresh_token') || '' // Optional, if available
+			});
+
+			if (response.data.user) {
+				user = response.data.user;
+			}
+
+			console.log('Res', response);
+		}
+	});
+
+	let newPassword: string = $state('');
 	async function resetPassword() {
 		try {
 			const { data: userData, error } = await data.supabase.auth.updateUser({
@@ -25,7 +52,7 @@
 			toast.error(err.message || 'Failed to update password');
 		}
 	}
-	const whoAmI = data?.user?.email;
+	const whoAmI = user?.email;
 </script>
 
 <div class="row flex-center flex justify-center">
