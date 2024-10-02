@@ -12,7 +12,7 @@
 	let password = '';
 	let errorString = '';
 	let message = '';
-	let method = 'magic';
+	let method = 'password';
 
 	const handleSignInOtp = async () => {
 		if (!email) {
