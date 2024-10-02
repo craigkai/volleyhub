@@ -127,7 +127,8 @@
 		<div class="space-y-4">
 			<Button
 				class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-				on:click={() => (method = 'password')}>Already have an account? Sign In With Email</Button
+				on:click={() => (method = 'magic')}
+				>Already have an account and want to use a magic link?</Button
 			>
 		</div>
 		{#if message}
