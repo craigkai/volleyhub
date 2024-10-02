@@ -31,7 +31,7 @@
 				user = response.data.user;
 			}
 
-			console.log('Res', response);
+			console.error('Res', response);
 		}
 	});
 
