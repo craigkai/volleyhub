@@ -125,11 +125,17 @@
 			</div>
 		{/if}
 		<div class="space-y-4">
-			<Button
-				class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-				on:click={() => (method = 'magic')}
-				>Already have an account and want to use a magic link?</Button
-			>
+			{#if method === 'password'}
+				<Button
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					on:click={() => (method = 'magic')}>Use a magic link instead?</Button
+				>
+			{:else}
+				<Button
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					on:click={() => (method = 'password')}>Use a password instead?</Button
+				>
+			{/if}
 		</div>
 		{#if message}
 			<div class="mt-4 text-center text-green-500">{message}</div>
