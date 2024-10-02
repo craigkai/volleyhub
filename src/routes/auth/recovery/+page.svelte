@@ -13,6 +13,7 @@
 	}
 
 	let user: User = {};
+	let whoAmI = $state('');
 
 	onMount(async () => {
 		const hash = window.location.hash.substring(1); // Remove the '#'
@@ -29,9 +30,9 @@
 
 			if (response.data.user) {
 				user = response.data.user;
-			}
 
-			console.error('Res', response);
+				whoAmI = user.email || 'your account';
+			}
 		}
 	});
 
@@ -52,7 +53,6 @@
 			toast.error(err.message || 'Failed to update password');
 		}
 	}
-	const whoAmI = user?.email;
 </script>
 
 <div class="row flex-center flex justify-center">
