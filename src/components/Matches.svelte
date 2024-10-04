@@ -11,6 +11,7 @@
 	import { MatchSupabaseDatabaseService } from '$lib/database/match';
 	import { Match } from '$lib/match.svelte';
 	import * as Table from '$components/ui/table/index.js';
+	import * as Alert from '$components/ui/alert/index.js';
 
 	let {
 		readOnly = false,
@@ -211,9 +212,47 @@
 			</div>
 		{/if}
 
+		{#if showGenerateMatchesAlert}
+			<div class="m-2">
+				<Alert.Root>
+					<Alert.Title>Generate new matches?</Alert.Title>
+					<Alert.Description>
+						You already have some match content, are you sure you want to wipe that?
+					</Alert.Description>
+					<div class="flex gap-2">
+						<button
+							class="focus:shadow-outline text-whit e rounded bg-blue-400 px-4 py-2 font-bold
+text-black hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+							onclick={generateMatches}
+						>
+							Yes
+						</button>
+						<button
+							class="focus:shadow-outline text-whit e rounded bg-blue-400 px-4 py-2 font-bold
+text-black hover:bg-blue-600 focus:outline-none dark:text-nord-1"
+							onclick={() => (showGenerateMatchesAlert = false)}
+						>
+							No
+						</button>
+					</div>
+				</Alert.Root>
+			</div>
+		{/if}
+
+		<div class="m-2 flex justify-center">
+			<button
+				class="focus:shadow-outline focus:outline-n one rounded bg-blue-400 px-4 py-2 font-bold text-white
+hover:bg-blue-600 dark:text-nord-1"
+				type="button"
+				onclick={checkGenerateMatches}
+			>
+				Generate matches
+			</button>
+		</div>
+
 		{#if !readOnly}
 			<div class="text-center">
-				<button onclick={addMatch} class="text-blue-500 cursor-pointer">Add Match</button>
+				<button onclick={addMatch} class="cursor-pointer text-blue-500">Add Match</button>
 			</div>
 		{/if}
 	</div>

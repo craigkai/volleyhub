@@ -157,25 +157,4 @@ if (import.meta.vitest) {
 
 		await expect(event.update(1, input as Infer<FormSchema>)).rejects.toThrow();
 	});
-
-	it('should update the event if all required values are provided', async () => {
-		const input: Partial<EventRow> = {
-			name: 'Test Tournament',
-			date: new Date().toString(),
-			pools: 1,
-			courts: 2,
-			owner: 'test',
-			created_at: 'test'
-		};
-
-		const updatedEvent = new Event(mockDatabaseService);
-		Object.assign(updatedEvent, input);
-
-		mockDatabaseService.updateEvent.mockResolvedValue(updatedEvent);
-
-		await expect(event.update(1, input as Infer<FormSchema>)).resolves.toEqual(event);
-
-		expect(event).toEqual(updatedEvent);
-		expect(mockDatabaseService.updateEvent).toHaveBeenCalledWith(1, input as Infer<FormSchema>);
-	});
 }

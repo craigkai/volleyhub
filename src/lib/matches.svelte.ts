@@ -399,6 +399,8 @@ export class Matches extends Base {
 					matchesThisRound.push(newMatch);
 
 					courtNumber = (courtNumber + 1) % courts;
+
+					// When all courts are used or round ends
 					if (courtNumber === 0) {
 						scheduleRoundNumber++;
 
@@ -425,11 +427,37 @@ export class Matches extends Base {
 							}
 						}
 
+						// Reset matches for next round
 						matchesThisRound = [];
 						teamsPlayingThisRound.clear();
 					}
 				}
 			});
+
+			if (rounds.length > courts) {
+				if (refs === 'teams') {
+					const ref = this.determineReferee(
+						Array.from(teamsPlayingThisRound),
+						teams.map((t) => t.id!).filter((id) => id !== 0),
+						refereeCounts,
+						recentRefs
+					);
+
+					matchesThisRound.forEach((match) => {
+						match.ref = ref;
+					});
+
+					// Update referee counts and recent refs
+					if (ref !== -1) {
+						refereeCounts[ref]++;
+						recentRefs.push(ref);
+
+						if (recentRefs.length > teams.length - 1) {
+							recentRefs.shift();
+						}
+					}
+				}
+			}
 		});
 
 		return matches;
@@ -638,6 +666,30 @@ if (import.meta.vitest) {
 			});
 			Object.keys(matchCounts).forEach((teamId) => {
 				expect(matchCounts[parseInt(teamId)]).toBeGreaterThanOrEqual(3);
+			});
+		});
+
+		it('should set ref event when not all courts are used', async () => {
+			const teams: Team[] = [
+				{ id: 1, name: 'Team 1' },
+				{ id: 2, name: 'Team 2' },
+				{ id: 3, name: 'Team 3' },
+				{ id: 4, name: 'Team 4' },
+				{ id: 4, name: 'Team 5' },
+				{ id: 4, name: 'Team 6' },
+				{ id: 4, name: 'Team 7' },
+				{ id: 4, name: 'Team 8' },
+				{ id: 4, name: 'Team 9' }
+			].map((t) => {
+				const teamInstance = new Team(mockDatabaseService);
+				return Object.assign(teamInstance, t);
+			});
+
+			await matches.create({ pools: 4, courts: 3, refs: 'teams' }, teams);
+
+			// Ensure that no team plays the same opponent twice
+			matches.matches.forEach((match) => {
+				expect(match.ref).toBeDefined();
 			});
 		});
 	});
