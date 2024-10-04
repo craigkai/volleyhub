@@ -77,7 +77,7 @@
 		</div>
 	{/if}
 
-	<Tabs.Root class="w-full lg:w-1/2" value={readOnly ? 'matches' : 'settings'}>
+	<Tabs.Root class="w-full lg:w-2/3" value={readOnly ? 'matches' : 'settings'}>
 		<Tabs.List class="mb-4 grid gap-2 {tabsWidth} dark:bg-gray-700">
 			{#if !readOnly}
 				<Tabs.Trigger value="settings">Settings</Tabs.Trigger>

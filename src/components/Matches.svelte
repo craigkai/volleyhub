@@ -2,7 +2,6 @@
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
-	import * as Alert from '$components/ui/alert/index.js';
 	import type { HttpError } from '@sveltejs/kit';
 	import Zap from 'lucide-svelte/icons/zap';
 	import Zapoff from 'lucide-svelte/icons/zap-off';
@@ -156,28 +155,18 @@
 		onfocus={handleVisibilityChange}
 	>
 		{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
-			<div class="w-full flex-col">
+			<div class="courts-container">
 				<Table.Root>
 					<Table.Header>
-						<Table.Row>
+						<Table.Row class="table-header">
 							{#each Array(data.tournament.courts) as _, i}
 								{@const index = i + 1}
-								<Table.Head
-									class="p-2 text-center {data.tournament.courts < 2
-										? 'text-lg'
-										: 'text-base'} font-bold"
-								>
+								<Table.Head class="p-2 text-center font-bold">
 									Court {index}
 								</Table.Head>
 							{/each}
 							{#if data.tournament.refs === 'teams'}
-								<Table.Head
-									class="p-2 text-center {data.tournament.courts < 2
-										? 'text-lg'
-										: 'text-base'} font-bold"
-								>
-									Ref
-								</Table.Head>
+								<Table.Head class="p-2 text-center font-bold">Ref</Table.Head>
 							{/if}
 						</Table.Row>
 					</Table.Header>
@@ -185,7 +174,9 @@
 					<Table.Body>
 						{#if rounds > 0}
 							{#each Array(rounds) as _, round}
-								<Table.Row class={round % 2 ? 'bg-gray-100 dark:bg-gray-500' : ''}>
+								<Table.Row
+									class={round % 2 ? 'table-row bg-gray-100 dark:bg-gray-500' : 'table-row'}
+								>
 									{#each Array(data.tournament.courts) as _, court}
 										{@const match = data.matches.matches.find(
 											(m: Match) =>
@@ -208,9 +199,7 @@
 										{@const matchesPerRound = data.matches.matches.filter(
 											(m: MatchRow) => m.round.toString() === round.toString()
 										)}
-										<Table.Cell
-											class="text-center {data.tournament.courts < 2 ? 'text-lg' : 'text-base'}"
-										>
+										<Table.Cell class="text-center">
 											<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
 										</Table.Cell>
 									{/if}
@@ -220,48 +209,31 @@
 					</Table.Body>
 				</Table.Root>
 			</div>
-			{#if !readOnly}
-				<div class="text-center">
-					<button onclick={addMatch} class="text-blue-500">Add Match</button>
-				</div>
-			{/if}
 		{/if}
 
 		{#if !readOnly}
-			{#if showGenerateMatchesAlert}
-				<div class="m-2">
-					<Alert.Root>
-						<Alert.Title>Generate new matches?</Alert.Title>
-						<Alert.Description>
-							You already have some match content, are you sure you want to wipe that?
-						</Alert.Description>
-						<div class="flex gap-2">
-							<button
-								class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-								onclick={generateMatches}
-							>
-								Yes
-							</button>
-							<button
-								class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-								onclick={() => (showGenerateMatchesAlert = false)}
-							>
-								No
-							</button>
-						</div>
-					</Alert.Root>
-				</div>
-			{/if}
-
-			<div class="m-2 flex justify-center">
-				<button
-					class="focus:shadow-outline rounded bg-blue-400 px-4 py-2 font-bold text-white hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-					type="button"
-					onclick={checkGenerateMatches}
-				>
-					Generate matches
-				</button>
+			<div class="text-center">
+				<button onclick={addMatch} class="text-blue-500">Add Match</button>
 			</div>
 		{/if}
 	</div>
 {/if}
+
+<style>
+	.courts-container {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 10px;
+	}
+
+	.table-header,
+	.table-row {
+		display: contents;
+	}
+
+	@media (max-width: 768px) {
+		.courts-container {
+			grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		}
+	}
+</style>
