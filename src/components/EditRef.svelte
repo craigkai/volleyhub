@@ -73,7 +73,7 @@
 			{ref?.name}
 		</div>
 	{:else}
-		<button onclick={() => (open = true)}>
+		<button class="cursor-pointer" onclick={() => (open = true)}>
 			{ref?.name}
 		</button>
 	{/if}

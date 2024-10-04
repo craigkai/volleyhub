@@ -182,7 +182,7 @@
 											(m: Match) =>
 												m?.court === court && (m?.round ?? 0).toString() === round?.toString()
 										)}
-										<Table.Cell class="cursor-pointer text-center">
+										<Table.Cell class="text-center">
 											{#if match}
 												<ViewMatch
 													matches={data.matches}
@@ -213,7 +213,7 @@
 
 		{#if !readOnly}
 			<div class="text-center">
-				<button onclick={addMatch} class="text-blue-500">Add Match</button>
+				<button onclick={addMatch} class="text-blue-500 cursor-pointer">Add Match</button>
 			</div>
 		{/if}
 	</div>

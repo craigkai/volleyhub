@@ -9,3 +9,4 @@ vite.config.ts.timestamp-*
 *.local
 .vercel
 .env
+.vscode/
