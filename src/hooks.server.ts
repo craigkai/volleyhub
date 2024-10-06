@@ -71,9 +71,9 @@ const authGuard: Handle = async ({ event, resolve }) => {
 		return redirect(303, '/auth');
 	}
 
-	if (event.locals.session && event.url.pathname === '/auth') {
-		return redirect(303, '/protected-routes/dashboard');
-	}
+	// if (event.locals.session && event.url.pathname === '/auth') {
+	// 	return redirect(303, '/protected-routes/dashboard');
+	// }
 
 	return resolve(event);
 };

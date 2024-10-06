@@ -1,153 +1,168 @@
 <script lang="ts">
-	import type { PageData } from '$types';
-	import { goto } from '$app/navigation';
-	import { Label } from '$components/ui/label/index.js';
-	import { Input } from '$components/ui/input/index.js';
-	import { Button } from '$components/ui/button/index.js';
+	import { superForm, type SuperForm } from 'sveltekit-superforms';
+	import { Control, Field, FieldErrors } from 'formsnap';
+	import { Label } from '$components/ui/label';
+	import { Input } from '$components/ui/input';
+	import toast from 'svelte-french-toast';
 
-	export let data: PageData;
-	let { supabase } = data;
+	let { data } = $props();
 
-	let email = '';
-	let password = '';
-	let errorString = '';
-	let message = '';
-	let method = 'password';
-
-	const handleSignInOtp = async () => {
-		if (!email) {
-			errorString = 'Please enter your email address.';
-			return;
+	const {
+		form: signupForm,
+		enhance: signupEnhance,
+		allErrors: signupErrors
+	}: SuperForm<{ email: string; password: string }> = superForm(data.signupForm, {
+		warnings: {
+			duplicateId: false
 		}
-		try {
-			const { error } = await supabase.auth.signInWithOtp({
-				email,
-				options: {
-					emailRedirectTo: `${data.url}/auth/confirm`
-				}
-			});
-			if (error) throw error;
-			message = 'Check your email for the magic link.';
-		} catch (err) {
-			errorString = err.message;
-		}
-	};
+	});
 
-	const handleForgotPassword = async () => {
-		try {
-			const { error } = await supabase.auth.resetPasswordForEmail(email, {
-				redirectTo: `${data.url}/auth/recovery`
-			});
-			if (error) throw error;
-			message = 'Check your email for the password reset link.';
-		} catch (err) {
-			errorString = err.message;
+	const {
+		form: signInForm,
+		enhance: signInEnhance,
+		allErrors: signInErrors
+	}: SuperForm<{ email: string; password: string }> = superForm(data.signInForm, {
+		warnings: {
+			duplicateId: false
 		}
-	};
+	});
 
-	const handleSignIn = async () => {
-		try {
-			const { error } = await supabase.auth.signInWithPassword({
-				email,
-				password
-			});
-			if (error) throw error;
-			goto('/protected-routes/dashboard');
-		} catch (err) {
-			errorString = err.message;
+	const {
+		form: resetPasswordForm,
+		enhance: resetPasswordEnhance,
+		allErrors: resetPasswordErrors
+	}: SuperForm<{ email: string }> = superForm(data.resetPasswordForm, {
+		warnings: {
+			duplicateId: false
 		}
-	};
+	});
 
-	$: method, ((errorString = ''), (message = ''));
+	let authMode = $state('signin'); // Switch between sign-in and sign-up modes
+
+	let allErrors = $derived([...$signupErrors, ...$signInErrors, ...$resetPasswordErrors]);
+
+	$effect(() => {
+		if (allErrors.length) {
+			for (const error of allErrors) {
+				toast.error(error.messages.join('. '));
+			}
+		}
+	});
 </script>
 
 <svelte:head>
 	<title>User Auth</title>
 </svelte:head>
 
-<div class="flex items-center justify-center bg-gray-100">
+<div class="m-4 flex items-center justify-center rounded bg-gray-100 p-2">
 	<div class="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
 		<h2 class="text-center text-2xl font-bold text-gray-700 dark:text-gray-200">
-			User Authentication
+			{authMode === 'signup' ? 'Sign Up' : 'User Authentication'}
 		</h2>
-		{#if method === 'magic'}
-			<div class="space-y-4">
-				<Label for="email" class="text-gray-700 dark:text-gray-400">Email Address</Label>
-				<Input
-					name="email"
-					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-					bind:value={email}
-				/>
-				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:click={handleSignInOtp}>Send Magic Link</Button
+
+		{#if authMode === 'signup'}
+			<form method="POST" action="?/signup" use:signupEnhance>
+				<div class="form-field">
+					<Field form={signupForm} name="email">
+						<Control let:attrs>
+							<Label class="form-label dark:text-gray-300">Email</Label>
+							<Input
+								{...attrs}
+								bind:value={signupForm.email}
+								class="dark:bg-gray-700 dark:text-gray-200"
+							/>
+						</Control>
+
+						<FieldErrors class="form-errors dark:text-red-400" />
+					</Field>
+				</div>
+				<div class="form-field">
+					<Field form={signupForm} name="password">
+						<Control let:attrs>
+							<Label class="form-label dark:text-gray-300">Password</Label>
+							<Input
+								type="password"
+								{...attrs}
+								bind:value={signupForm.password}
+								class="dark:bg-gray-700 dark:text-gray-200"
+							/>
+						</Control>
+
+						<FieldErrors class="form-errors dark:text-red-400" />
+					</Field>
+				</div>
+
+				<button
+					class="mt-2 w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					type="submit">Sign Up</button
 				>
-			</div>
-		{:else if method === 'password'}
-			<div class="space-y-4">
-				<Label for="email" class="text-gray-700 dark:text-gray-400">Email Address</Label>
-				<Input
-					name="email"
-					id="email"
-					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-					bind:value={email}
-				/>
-				<Label for="password" class="text-gray-700 dark:text-gray-400">Password</Label>
-				<Input
-					type="password"
-					id="password"
-					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-					bind:value={password}
-					placeholder="•••••••••"
-					required
-				/>
-				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:click={handleSignIn}>Sign In</Button
+			</form>
+		{:else if authMode === 'signin'}
+			<form method="POST" action="?/signin" use:signInEnhance>
+				<div class="form-field">
+					<Field form={signInForm} name="email">
+						<Control let:attrs>
+							<Label class="form-label dark:text-gray-300">Email</Label>
+							<Input
+								{...attrs}
+								bind:value={signInForm.email}
+								class="dark:bg-gray-700 dark:text-gray-200"
+							/>
+						</Control>
+
+						<FieldErrors class="form-errors dark:text-red-400" />
+					</Field>
+				</div>
+				<div class="form-field">
+					<Field form={signInForm} name="password">
+						<Control let:attrs>
+							<Label class="form-label dark:text-gray-300">Password</Label>
+							<Input
+								type="password"
+								{...attrs}
+								bind:value={signInForm.password}
+								class="dark:bg-gray-700 dark:text-gray-200"
+							/>
+						</Control>
+
+						<FieldErrors class="form-errors dark:text-red-400" />
+					</Field>
+				</div>
+				<button
+					class="mt-2 w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					type="submit">Sign In</button
 				>
-				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:click={() => (method = 'recovery')}>Forgot your password?</Button
-				>
-			</div>
-		{:else if method === 'recovery'}
-			<div class="space-y-4">
-				<Label for="email" class="text-gray-700 dark:text-gray-400">Email Address</Label>
-				<Input
-					name="email"
-					class="w-full rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-					bind:value={email}
-				/>
-				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:click={handleForgotPassword}>Send Reset Password Instructions</Button
-				>
-			</div>
+			</form>
+		{:else if authMode === 'reset'}
+			<form use:resetPasswordEnhance action="/resetPassword" method="POST">
+				<div class="form-field">
+					<Field form={resetPasswordForm} name="name">
+						<Control let:attrs>
+							<Label class="form-label dark:text-gray-300">Email</Label>
+							<Input
+								{...attrs}
+								bind:value={resetPasswordForm.email}
+								class="dark:bg-gray-700 dark:text-gray-200"
+							/>
+						</Control>
+
+						<FieldErrors class="form-errors dark:text-red-400" />
+					</Field>
+				</div>
+				<button type="submit">Reset Password</button>
+			</form>
 		{/if}
-		<div class="space-y-4">
-			{#if method === 'password'}
-				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:click={() => (method = 'magic')}>Use a magic link instead?</Button
-				>
-			{:else}
-				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:click={() => (method = 'password')}>Use a password instead?</Button
-				>
-			{/if}
-		</div>
-		{#if message}
-			<div class="mt-4 text-center text-green-500">{message}</div>
-		{/if}
-		{#if errorString}
-			<div class="mt-4 text-center text-red-500">{errorString}</div>
-		{/if}
+
+		<!-- Switch between sign-up, sign-in, and password reset -->
+		<button
+			class="mt-2 w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+			onclick={() => (authMode = authMode === 'signin' ? 'signup' : 'signin')}
+		>
+			{authMode === 'signin' ? 'Need an account? Sign Up' : 'Already have an account? Sign In'}
+		</button>
+		<button
+			class="mt-2 w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+			onclick={() => (authMode = 'reset')}>Forgot Password?</button
+		>
 	</div>
 </div>
-
-<style>
-	.text-center {
-		text-align: center;
-	}
-</style>
