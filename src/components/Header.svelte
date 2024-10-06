@@ -16,7 +16,8 @@
 		currentUser = await supabase.auth.getUser();
 	}
 
-	supabase.auth.onAuthStateChange(() => {
+	supabase.auth.onAuthStateChange((event) => {
+		console.log(event);
 		getCurrentUser();
 	});
 </script>
