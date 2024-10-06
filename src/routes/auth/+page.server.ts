@@ -15,7 +15,7 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		return { form, success: true };
+		return message(form, 'Confirmation email sent to your email!');
 	},
 
 	signin: async ({ request, locals: { supabase } }) => {
