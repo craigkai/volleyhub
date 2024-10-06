@@ -1,5 +1,5 @@
 import { signUpSchema, signInSchema, resetPasswordSchema } from './schemas';
-import { setError, superValidate, fail } from 'sveltekit-superforms';
+import { setError, message, superValidate, fail } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 export const actions = {
@@ -35,7 +35,7 @@ export const actions = {
 		return { signInForm: form, success: true };
 	},
 
-	resetPassword: async ({ request, locals: { supabase } }) => {
+	resetpassword: async ({ request, locals: { supabase } }) => {
 		const form = await superValidate(request, zod(resetPasswordSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -49,6 +49,6 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		return { form, success: true };
+		return message(form, 'Password reset email sent');
 	}
 };

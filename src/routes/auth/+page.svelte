@@ -10,7 +10,8 @@
 	const {
 		form: signupForm,
 		enhance: signupEnhance,
-		allErrors: signupErrors
+		errors: signupErrors,
+		message: signupMessages
 	}: SuperForm<{ email: string; password: string }> = superForm(data.signupForm, {
 		warnings: {
 			duplicateId: false
@@ -20,7 +21,8 @@
 	const {
 		form: signInForm,
 		enhance: signInEnhance,
-		allErrors: signInErrors
+		errors: signInErrors,
+		message: signInMessages
 	}: SuperForm<{ email: string; password: string }> = superForm(data.signInForm, {
 		warnings: {
 			duplicateId: false
@@ -30,7 +32,8 @@
 	const {
 		form: resetPasswordForm,
 		enhance: resetPasswordEnhance,
-		allErrors: resetPasswordErrors
+		errors: resetPasswordErrors,
+		message: resetPasswordMessages
 	}: SuperForm<{ email: string }> = superForm(data.resetPasswordForm, {
 		warnings: {
 			duplicateId: false
@@ -39,14 +42,25 @@
 
 	let authMode = $state('signin'); // Switch between sign-in and sign-up modes
 
-	let allErrors = $derived([...$signupErrors, ...$signInErrors, ...$resetPasswordErrors]);
+	$effect(() => {
+		[$signupErrors, $signInErrors, $resetPasswordErrors].forEach((error) => {
+			for (const key in error) {
+				if (error[key]) {
+					for (const message of $state.snapshot(error[key])) {
+						toast.error(message);
+					}
+				}
+			}
+		});
+	});
 
 	$effect(() => {
-		if (allErrors.length) {
-			for (const error of allErrors) {
-				toast.error(error.messages.join('. '));
+		[$signupMessages, $signInMessages, $resetPasswordMessages].forEach((message) => {
+			console.log(message);
+			if (message) {
+				toast.success(message);
 			}
-		}
+		});
 	});
 </script>
 
@@ -134,9 +148,9 @@
 				>
 			</form>
 		{:else if authMode === 'reset'}
-			<form use:resetPasswordEnhance action="/resetPassword" method="POST">
+			<form use:resetPasswordEnhance action="?/resetpassword" method="POST">
 				<div class="form-field">
-					<Field form={resetPasswordForm} name="name">
+					<Field form={resetPasswordForm} name="email">
 						<Control let:attrs>
 							<Label class="form-label dark:text-gray-300">Email</Label>
 							<Input
@@ -149,7 +163,10 @@
 						<FieldErrors class="form-errors dark:text-red-400" />
 					</Field>
 				</div>
-				<button type="submit">Reset Password</button>
+				<button
+					class="mt-2 w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					type="submit">Reset Password</button
+				>
 			</form>
 		{/if}
 
