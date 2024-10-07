@@ -8,9 +8,5 @@ export const load: PageLoad = async ({ url }) => {
 		redirect(303, '/auth/recovery');
 	}
 
-	if (url.searchParams.get('type') === 'signup') {
-		redirect(303, '/protected-routes/dashboard');
-	}
-
 	return {};
 };

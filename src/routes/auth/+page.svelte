@@ -56,7 +56,6 @@
 
 	$effect(() => {
 		[$signupMessages, $signInMessages, $resetPasswordMessages].forEach((message) => {
-			console.log(message);
 			if (message) {
 				toast.success(message);
 			}
