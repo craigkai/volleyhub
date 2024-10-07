@@ -7,6 +7,21 @@
 
 	let { data } = $props();
 
+	let authMode: string | null = $state('signin');
+	$effect(() => {
+		// Get the URL hash (fragment part)
+		const hash = window.location.hash.substring(1); // remove the '#' from the start
+
+		// Create a URLSearchParams object to easily access the parameters
+		const params = new URLSearchParams(hash);
+
+		// Extract the `type` parameter
+		const type = params.get('type');
+		if (type && type === 'invite') {
+			authMode = 'reset';
+		}
+	});
+
 	const {
 		form: signupForm,
 		enhance: signupEnhance,
@@ -39,8 +54,6 @@
 			duplicateId: false
 		}
 	});
-
-	let authMode = $state('signin'); // Switch between sign-in and sign-up modes
 
 	$effect(() => {
 		[$signupErrors, $signInErrors, $resetPasswordErrors].forEach((error) => {
