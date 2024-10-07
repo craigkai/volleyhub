@@ -7,5 +7,10 @@ export const load: PageLoad = async ({ url }) => {
 	if (url.searchParams.get('type') === 'recovery') {
 		redirect(303, '/auth/recovery');
 	}
+
+	if (url.searchParams.get('type') === 'signup') {
+		redirect(303, '/protected-routes/dashboard');
+	}
+
 	return {};
 };
