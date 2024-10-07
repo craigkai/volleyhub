@@ -41,7 +41,7 @@ export class SupabaseDatabaseService extends Base {
 		table: string,
 		filter?: string
 	): Promise<RealtimeChannel> {
-		const channelName = `${self.constructor.name}-${uuidv4()}`;
+		const channelName = `${table}-${self.constructor.name}${filter ? `-${filter}` : ''}`;
 
 		console.debug(
 			'Subscribing to changes for table ' +
