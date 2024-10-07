@@ -11,8 +11,7 @@ export const actions = {
 		const { error } = await supabase.auth.signUp({ email, password });
 
 		if (error) {
-			form.errors = error.message as any;
-			return fail(400, { form });
+			return setError(form, 'email', error.message);
 		}
 
 		return message(form, 'Confirmation email sent to your email!');
