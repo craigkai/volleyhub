@@ -27,15 +27,12 @@ export const actions = {
 		const { error } = await supabase.auth.signInWithPassword({ email, password });
 
 		if (error) {
-			console.log(error);
 			return setError(form, 'email', error.message);
 		}
 
 		// Instead of returning the form directly, redirect or trigger a session update
 		// Option 1: Redirect after signing in
-		return { success: true, redirect: '/protected-routes/dashboard' };
-
-		// Option 2: You could set a session variable or state that the UI listens to
+		return { form, redirect: '/protected-routes/dashboard' };
 	},
 
 	resetpassword: async ({ request, locals: { supabase } }) => {
