@@ -162,12 +162,12 @@
 						<Table.Row class="table-header">
 							{#each Array(data.tournament.courts) as _, i}
 								{@const index = i + 1}
-								<Table.Head class="p-2 text-center font-bold">
+								<Table.Head class="text-center font-bold">
 									Court {index}
 								</Table.Head>
 							{/each}
 							{#if data.tournament.refs === 'teams'}
-								<Table.Head class="p-2 text-center font-bold">Ref</Table.Head>
+								<Table.Head class="text-center font-bold">Ref</Table.Head>
 							{/if}
 						</Table.Row>
 					</Table.Header>
@@ -263,11 +263,6 @@ hover:bg-blue-600 dark:text-nord-1"
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: 10px;
-	}
-
-	.table-header,
-	.table-row {
-		display: contents;
 	}
 
 	@media (max-width: 768px) {

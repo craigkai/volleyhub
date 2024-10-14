@@ -98,7 +98,7 @@
 		{#if !readOnly}
 			<Tabs.Content value="settings">
 				<Card.Root
-					class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
+					class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background dark:bg-gray-700"
 				>
 					<BorderBeam size={150} duration={12} />
 
@@ -114,7 +114,7 @@
 
 			<Tabs.Content value="teams">
 				<Card.Root
-					class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
+					class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background dark:bg-gray-700"
 				>
 					<BorderBeam size={150} duration={12} />
 					<Card.Header>
@@ -132,7 +132,7 @@
 
 		<Tabs.Content value="matches">
 			<Card.Root
-				class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
+				class="relative  flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background dark:bg-gray-700"
 			>
 				<BorderBeam size={150} duration={12} />
 				<Card.Header>
@@ -149,7 +149,7 @@
 
 		<Tabs.Content value="standings">
 			<Card.Root
-				class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background p-7 dark:bg-gray-700"
+				class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background dark:bg-gray-700"
 			>
 				<BorderBeam size={150} duration={12} />
 				<Card.Header>

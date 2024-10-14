@@ -61,8 +61,8 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="flex cursor-pointer place-items-center justify-center text-pretty {courts < 2
-			? 'text-lg'
-			: 'text-base'}"
+			? 'text-md'
+			: 'text-sm'}"
 		onclick={() => {
 			if (!readOnly) {
 				open = true;
@@ -102,7 +102,7 @@
 {/snippet}
 
 <div
-	class="min-w-[100px] rounded rounded-lg {hasDefaultTeam
+	class="rounded rounded-lg {hasDefaultTeam
 		? match.state === 'COMPLETE'
 			? 'flex-1 p-2 ' + rowDivClass
 			: 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 p-2 dark:border-gray-400 dark:bg-gray-400'
