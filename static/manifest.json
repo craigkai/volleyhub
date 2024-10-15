@@ -1,0 +1,17 @@
+{
+	"name": "Volleyhub",
+	"description": "Volleyball tournament management",
+	"short_name": "Volleyhub",
+	"display": "standalone",
+	"start_url": "/",
+	"background_color": "#3b82f6",
+	"theme_color": "#ffffff",
+	"icons": [
+		{
+			"src": "vball.svg",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	]
+}
