@@ -35,22 +35,48 @@
 		}
 	}
 
-	onMount(async () => {
-		if ((data.matches?.matches?.length ?? 0) > 0) await subscribeToMatches();
+	onMount(() => {
+		// Check if there are already matches and subscribe
+		if ((data.matches?.matches?.length ?? 0) > 0) subscribeToMatches();
+
+		// Handle visibility change (when the app comes back into focus)
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		// Handle network status changes (for offline and online handling)
+		window.addEventListener('online', handleOnline);
+		window.addEventListener('offline', handleOffline);
 	});
 
 	onDestroy(() => {
+		// Unsubscribe when component is destroyed
 		if (matchesSubscription) matchesSubscription.unsubscribe();
+
+		// Remove event listeners
+		document.removeEventListener('visibilitychange', handleVisibilityChange);
+		window.removeEventListener('online', handleOnline);
+		window.removeEventListener('offline', handleOffline);
 	});
 
 	async function handleVisibilityChange() {
-		if (
-			!document.hidden &&
-			!data.matches.subscriptionStatus &&
-			matchesSubscription?.state === 'closed'
-		) {
-			subscribeToMatches();
+		if (!document.hidden) {
+			// Check if subscription was lost, and reconnect if necessary
+			if (!data.matches.subscriptionStatus && matchesSubscription?.state === 'closed') {
+				await subscribeToMatches();
+			}
 		}
+	}
+
+	function handleOnline() {
+		// Attempt to resubscribe or reload matches when network comes back online
+		if (matchesSubscription?.state === 'closed') {
+			subscribeToMatches();
+			toast.success('You are back online. Reconnecting...');
+		}
+	}
+
+	function handleOffline() {
+		// Notify user when they go offline
+		toast.error('You are offline. Matches cannot be updated.');
 	}
 
 	async function subscribeToMatches() {
