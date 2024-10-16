@@ -1,4 +1,3 @@
-import { invalidate } from '$app/navigation';
 import { signUpSchema, signInSchema, resetPasswordSchema } from './schemas';
 import { setError, message, superValidate, fail } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -30,10 +29,7 @@ export const actions = {
 			return setError(form, 'email', error.message);
 		}
 
-		invalidate('supabase:auth');
-
 		// Instead of returning the form directly, redirect or trigger a session update
-		// Option 1: Redirect after signing in
 		return { form, redirect: '/protected-routes/dashboard' };
 	},
 

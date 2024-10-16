@@ -1,11 +1,10 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import { Button } from '$components/ui/button/index.js';
 	import { goto } from '$app/navigation';
 	import EventsCards from '$components/eventsCards.svelte';
 
-	export let data: PageData;
-	const events = data?.events;
+	let { data } = $props();
+	let events = data?.events;
 </script>
 
 <svelte:head>
@@ -22,6 +21,9 @@
 	{/if}
 
 	<div class="button-container">
-		<Button on:click={() => goto('/events/create')}>Create</Button>
+		<Button
+			class="rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
+			on:click={() => goto('/events/create')}>Create</Button
+		>
 	</div>
 </div>
