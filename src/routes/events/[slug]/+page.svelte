@@ -5,7 +5,7 @@
 	import * as Select from '$components/ui/select/index.js';
 	import * as Tabs from '$components/ui/tabs/index.js';
 	import * as Card from '$components/ui/card/index.js';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { browser } from '$app/environment';
 	import { pushState } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
@@ -49,12 +49,12 @@
 	{#if readOnly}
 		<div class="select-container">
 			<Select.Root
-				selected={{ value: defaultTeam, label: defaultTeam as unknown as string }}
-				onSelectedChange={(v) => {
+				value={defaultTeam}
+				onValueChange={(v) => {
 					if (v) defaultTeam = v?.value?.toString() ?? '';
 
 					if (browser && historyReady) {
-						const url = new URL($page.url);
+						const url = new URL(page.url);
 						if (defaultTeam) {
 							url.searchParams.set('team', defaultTeam);
 						} else {
@@ -65,14 +65,13 @@
 				}}
 			>
 				<Select.Trigger class="w-[180px]">
-					<Select.Value placeholder="Select a team" />
+					{defaultTeam ? defaultTeam : 'Select a team'}
 				</Select.Trigger>
 				<Select.Content>
 					{#each teamsSelect as team}
 						<Select.Item value={team.value} label={team.name}>{team.name}</Select.Item>
 					{/each}
 				</Select.Content>
-				<Select.Input name="selectedTeam" />
 			</Select.Root>
 		</div>
 	{/if}
@@ -85,20 +84,22 @@
 			{/if}
 			<Tabs.Trigger disabled={isCreate} value="matches">Matches</Tabs.Trigger>
 			<Tabs.Trigger disabled={isCreate} value="standings">Standings</Tabs.Trigger>
-			<Tooltip.Root>
-				<Tooltip.Trigger>
-					<Tabs.Trigger disabled={true} value="bracket">Bracket</Tabs.Trigger>
-				</Tooltip.Trigger>
-				<Tooltip.Content>
-					<p>Coming soon!</p>
-				</Tooltip.Content>
-			</Tooltip.Root>
+			<Tooltip.Provider>
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						<Tabs.Trigger disabled={true} value="bracket">Bracket</Tabs.Trigger>
+					</Tooltip.Trigger>
+					<Tooltip.Content>
+						<p>Coming soon!</p>
+					</Tooltip.Content>
+				</Tooltip.Root>
+			</Tooltip.Provider>
 		</Tabs.List>
 
 		{#if !readOnly}
 			<Tabs.Content value="settings">
 				<Card.Root
-					class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background dark:bg-gray-700"
+					class="bg-background relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 dark:bg-gray-700"
 				>
 					<BorderBeam size={150} duration={12} />
 
@@ -114,7 +115,7 @@
 
 			<Tabs.Content value="teams">
 				<Card.Root
-					class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background dark:bg-gray-700"
+					class="bg-background relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 dark:bg-gray-700"
 				>
 					<BorderBeam size={150} duration={12} />
 					<Card.Header>
@@ -132,7 +133,7 @@
 
 		<Tabs.Content value="matches">
 			<Card.Root
-				class="relative  flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background dark:bg-gray-700"
+				class="bg-background  relative flex-col items-center justify-between rounded-3xl border border-gray-500/70 dark:bg-gray-700"
 			>
 				<BorderBeam size={150} duration={12} />
 				<Card.Header>
@@ -149,7 +150,7 @@
 
 		<Tabs.Content value="standings">
 			<Card.Root
-				class="relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 bg-background dark:bg-gray-700"
+				class="bg-background relative flex flex-col items-center justify-between rounded-3xl border border-gray-500/70 dark:bg-gray-700"
 			>
 				<BorderBeam size={150} duration={12} />
 				<Card.Header>

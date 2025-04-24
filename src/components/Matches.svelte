@@ -4,7 +4,10 @@
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import type { HttpError } from '@sveltejs/kit';
 	import Zap from 'lucide-svelte/icons/zap';
-	import Zapoff from 'lucide-svelte/icons/zap-off';
+	import ZapOff from 'lucide-svelte/icons/zap-off';
+	import RefreshCw from 'lucide-svelte/icons/refresh-cw';
+	import PlusCircle from 'lucide-svelte/icons/plus-circle';
+	import AlertCircle from 'lucide-svelte/icons/alert-circle';
 	import { onDestroy, onMount } from 'svelte';
 	import toast from 'svelte-french-toast';
 	import EditRef from './EditRef.svelte';
@@ -12,6 +15,8 @@
 	import { Match } from '$lib/match.svelte';
 	import * as Table from '$components/ui/table/index.js';
 	import * as Alert from '$components/ui/alert/index.js';
+	import { Button } from '$components/ui/button';
+	import type { MatchRow } from '$lib/types';
 
 	let {
 		readOnly = false,
@@ -36,30 +41,15 @@
 	}
 
 	onMount(() => {
-		// Check if there are already matches and subscribe
 		if ((data.matches?.matches?.length ?? 0) > 0) subscribeToMatches();
-
-		// Handle visibility change (when the app comes back into focus)
-		document.addEventListener('visibilitychange', handleVisibilityChange);
-
-		// Handle network status changes (for offline and online handling)
-		window.addEventListener('online', handleOnline);
-		window.addEventListener('offline', handleOffline);
 	});
 
 	onDestroy(() => {
-		// Unsubscribe when component is destroyed
 		if (matchesSubscription) matchesSubscription.unsubscribe();
-
-		// Remove event listeners
-		document.removeEventListener('visibilitychange', handleVisibilityChange);
-		window.removeEventListener('online', handleOnline);
-		window.removeEventListener('offline', handleOffline);
 	});
 
 	async function handleVisibilityChange() {
-		if (!document.hidden) {
-			// Check if subscription was lost, and reconnect if necessary
+		if (typeof document !== 'undefined' && !document.hidden) {
 			if (!data.matches.subscriptionStatus && matchesSubscription?.state === 'closed') {
 				await subscribeToMatches();
 			}
@@ -67,7 +57,6 @@
 	}
 
 	function handleOnline() {
-		// Attempt to resubscribe or reload matches when network comes back online
 		if (matchesSubscription?.state === 'closed') {
 			subscribeToMatches();
 			toast.success('You are back online. Reconnecting...');
@@ -75,7 +64,6 @@
 	}
 
 	function handleOffline() {
-		// Notify user when they go offline
 		toast.error('You are offline. Matches cannot be updated.');
 	}
 
@@ -93,13 +81,11 @@
 	async function generateMatches(): Promise<void> {
 		try {
 			loading = true;
-			// Unsubscribe from existing subscription if any
 			if (matchesSubscription) {
 				await matchesSubscription.unsubscribe();
 				matchesSubscription = undefined;
 			}
 
-			// Create new matches
 			const res: Matches | undefined = await data.matches.create(
 				data.tournament,
 				$state.snapshot(data.teams.teams)
@@ -109,7 +95,6 @@
 				return;
 			}
 
-			// Resubscribe to matches updates
 			await subscribeToMatches();
 		} catch (err) {
 			toast.error((err as HttpError).toString());
@@ -119,17 +104,10 @@
 		}
 	}
 
-	// Calculate the total number of rounds based on existing matches
 	const rounds = $derived(
-		Math.max.apply(
-			Math,
-			data.matches?.matches?.map(function (m: { round: any }) {
-				return m.round;
-			}) ?? [0]
-		) + 1
+		Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) + 1
 	);
 
-	// Function to add a new match manually
 	async function addMatch() {
 		const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
 			data.matches.databaseService.supabaseClient
@@ -157,43 +135,125 @@
 	}
 </script>
 
-<div class="mb-4 block flex justify-center text-sm font-bold">
-	{#if subscriptionStatus && subscriptionStatus === 'SUBSCRIBED'}
-		<Zap class="fill-green-200 text-green-500" />
-	{:else}
-		<Zapoff class="fill-red-200 text-red-500" />
-	{/if}
-</div>
+<svelte:document onvisibilitychange={handleVisibilityChange} />
+<svelte:window ononline={handleOnline} onoffline={handleOffline} />
 
-{#if loading}
-	<div
-		class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]"
-		role="status"
-	>
-		<span
-			class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
-			>Loading...</span
-		>
+<div class="space-y-6">
+	<div class="flex items-center justify-between">
+		<div class="flex items-center gap-2">
+			<h2 class="text-lg font-semibold text-gray-800 dark:text-white">Tournament Matches</h2>
+			<div
+				class="flex h-6 items-center gap-1 rounded-full px-2 text-xs font-medium"
+				class:bg-emerald-100={subscriptionStatus === 'SUBSCRIBED'}
+				class:text-emerald-700={subscriptionStatus === 'SUBSCRIBED'}
+				class:bg-red-100={subscriptionStatus !== 'SUBSCRIBED'}
+				class:text-red-700={subscriptionStatus !== 'SUBSCRIBED'}
+			>
+				{#if subscriptionStatus && subscriptionStatus === 'SUBSCRIBED'}
+					<Zap class="h-3.5 w-3.5" />
+					<span>Live</span>
+				{:else}
+					<ZapOff class="h-3.5 w-3.5" />
+					<span>Offline</span>
+				{/if}
+			</div>
+		</div>
+
+		<div class="flex gap-2">
+			<Button
+				on:click={checkGenerateMatches}
+				class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700"
+				disabled={loading}
+			>
+				<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+				<span>Generate Matches</span>
+			</Button>
+
+			{#if !readOnly}
+				<Button
+					on:click={addMatch}
+					class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+					disabled={loading}
+				>
+					<PlusCircle class="h-4 w-4" />
+					<span>Add Round</span>
+				</Button>
+			{/if}
+		</div>
 	</div>
-{:else}
-	<div
-		class="rounded-2xl p-2 text-xs dark:bg-gray-800 md:text-base"
-		onvisibilitychange={handleVisibilityChange}
-		onfocus={handleVisibilityChange}
-	>
-		{#if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
-			<div class="courts-container">
+
+	{#if showGenerateMatchesAlert}
+		<Alert.Root
+			class="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
+		>
+			<div class="flex items-start gap-3">
+				<AlertCircle class="h-5 w-5 text-amber-500" />
+				<div class="flex-1">
+					<Alert.Title class="mb-1 text-base font-semibold">Generate new matches?</Alert.Title>
+					<Alert.Description class="text-sm">
+						You already have match data. Generating new matches will delete all existing matches and
+						scores.
+					</Alert.Description>
+					<div class="mt-4 flex gap-2">
+						<Button
+							on:click={generateMatches}
+							class="inline-flex items-center rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500/40 focus:outline-none dark:bg-amber-700 dark:hover:bg-amber-600"
+						>
+							Yes, generate new matches
+						</Button>
+						<Button
+							on:click={() => (showGenerateMatchesAlert = false)}
+							class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+						>
+							Cancel
+						</Button>
+					</div>
+				</div>
+			</div>
+		</Alert.Root>
+	{/if}
+
+	{#if loading}
+		<div
+			class="flex h-40 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+		>
+			<div class="flex flex-col items-center gap-2">
+				<div
+					class="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"
+					role="status"
+				>
+					<span class="sr-only">Loading...</span>
+				</div>
+				<p class="text-sm text-gray-500 dark:text-gray-400">Generating matches...</p>
+			</div>
+		</div>
+	{:else if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
+		<div
+			class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+		>
+			<div class="overflow-x-auto">
 				<Table.Root>
 					<Table.Header>
-						<Table.Row class="table-header">
+						<Table.Row class="bg-gray-50 dark:bg-gray-900">
+							<Table.Head
+								class="w-24 py-3 pl-4 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+							>
+								Round
+							</Table.Head>
 							{#each Array(data.tournament.courts) as _, i}
 								{@const index = i + 1}
-								<Table.Head class="text-center font-bold">
+								<Table.Head
+									class="py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
+								>
 									Court {index}
 								</Table.Head>
 							{/each}
 							{#if data.tournament.refs === 'teams'}
-								<Table.Head class="text-center font-bold">Ref</Table.Head>
+								<Table.Head
+									class="py-3 pr-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
+								>
+									Referee
+								</Table.Head>
 							{/if}
 						</Table.Row>
 					</Table.Header>
@@ -202,32 +262,46 @@
 						{#if rounds > 0}
 							{#each Array(rounds) as _, round}
 								<Table.Row
-									class={round % 2 ? 'table-row bg-gray-100 dark:bg-gray-500' : 'table-row'}
+										class="border-t border-gray-200 dark:border-gray-700 {`
+											border-t border-gray-200 dark:border-gray-700
+											${round % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
+										`}"
 								>
+									<Table.Cell
+										class="py-3 pl-4 text-sm font-medium text-gray-800 dark:text-gray-200"
+									>
+										Round {round + 1}
+									</Table.Cell>
+
 									{#each Array(data.tournament.courts) as _, court}
 										{@const match = data.matches.matches.find(
 											(m: Match) =>
 												m?.court === court && (m?.round ?? 0).toString() === round?.toString()
 										)}
-										<Table.Cell class="text-center">
+										<Table.Cell class="p-2 text-center">
 											{#if match}
-												<ViewMatch
-													matches={data.matches}
-													{match}
-													teams={data.teams}
-													{readOnly}
-													{defaultTeam}
-													courts={data.tournament.courts ?? 1}
-												/>
+												<div class="min-w-[180px]">
+													<ViewMatch
+														matches={data.matches}
+														{match}
+														teams={data.teams}
+														{readOnly}
+														{defaultTeam}
+														courts={data.tournament.courts ?? 1}
+													/>
+												</div>
 											{/if}
 										</Table.Cell>
 									{/each}
+
 									{#if data.tournament.refs === 'teams'}
 										{@const matchesPerRound = data.matches.matches.filter(
 											(m: MatchRow) => m.round.toString() === round.toString()
 										)}
-										<Table.Cell class="text-center">
-											<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
+										<Table.Cell class="p-2 pr-4 text-center">
+											<div class="min-w-[120px]">
+												<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
+											</div>
 										</Table.Cell>
 									{/if}
 								</Table.Row>
@@ -236,64 +310,36 @@
 					</Table.Body>
 				</Table.Root>
 			</div>
-		{/if}
-
-		{#if showGenerateMatchesAlert}
-			<div class="m-2">
-				<Alert.Root>
-					<Alert.Title>Generate new matches?</Alert.Title>
-					<Alert.Description>
-						You already have some match content, are you sure you want to wipe that?
-					</Alert.Description>
-					<div class="flex gap-2">
-						<button
-							class="focus:shadow-outline text-whit e rounded bg-blue-400 px-4 py-2 font-bold
-text-black hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-							onclick={generateMatches}
-						>
-							Yes
-						</button>
-						<button
-							class="focus:shadow-outline text-whit e rounded bg-blue-400 px-4 py-2 font-bold
-text-black hover:bg-blue-600 focus:outline-none dark:text-nord-1"
-							onclick={() => (showGenerateMatchesAlert = false)}
-						>
-							No
-						</button>
-					</div>
-				</Alert.Root>
-			</div>
-		{/if}
-
-		<div class="m-2 flex justify-center">
-			<button
-				class="focus:shadow-outline focus:outline-n one rounded bg-blue-400 px-4 py-2 font-bold text-white
-hover:bg-blue-600 dark:text-nord-1"
-				type="button"
-				onclick={checkGenerateMatches}
-			>
-				Generate matches
-			</button>
 		</div>
-
-		{#if !readOnly}
-			<div class="text-center">
-				<button onclick={addMatch} class="cursor-pointer text-blue-500">Add Match</button>
-			</div>
-		{/if}
-	</div>
-{/if}
+	{:else}
+		<div
+			class="flex h-40 flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+		>
+			<RefreshCw class="mb-2 h-10 w-10 text-gray-400" />
+			<h3 class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+				No matches generated
+			</h3>
+			<p class="text-xs text-gray-500 dark:text-gray-400">
+				Click "Generate Matches" to create the tournament schedule
+			</p>
+		</div>
+	{/if}
+</div>
 
 <style>
-	.courts-container {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: 10px;
+	/* Smooth transitions for hover states */
+	button {
+		transition: all 0.2s ease;
 	}
 
-	@media (max-width: 768px) {
-		.courts-container {
-			grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-		}
+	/* Ensure table is responsive */
+	:global(.courts-container) {
+		overflow-x: auto;
+	}
+
+	/* Focus styles for better accessibility */
+	:global(button:focus-visible) {
+		outline: 2px solid rgb(16 185 129 / 0.5);
+		outline-offset: 2px;
 	}
 </style>

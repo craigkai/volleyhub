@@ -20,6 +20,9 @@ export const actions = {
 	signin: async ({ request, locals: { supabase } }) => {
 		const form = await superValidate(request, zod(signInSchema));
 
+		console.log(form);
+
+
 		if (!form.valid) return fail(400, { form });
 
 		const { email, password } = form.data;

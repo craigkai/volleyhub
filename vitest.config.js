@@ -1,9 +1,10 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import path from 'path';
 import { defineConfig } from 'vitest/config';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-	plugins: [svelte({ hot: !process.env.VITEST })],
+	plugins: [svelte({ hot: !process.env.VITEST }), tailwindcss(),],
 	test: {
 		includeSource: ['src/**/*.{.js,ts}'],
 		globals: true,

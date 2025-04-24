@@ -1,13 +1,13 @@
 <script>
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 </script>
 
 <div class="error-container">
 	<h1 class="status">
-		{$page.status}
+		{page.status}
 	</h1>
 	<p class="message">
-		{$page?.error?.message}
+		{page?.error?.message}
 	</p>
 </div>
 

@@ -55,6 +55,28 @@ export const supabase: Handle = async ({ event, resolve }) => {
 		return { session, user };
 	};
 
+	if (import.meta.env.DEV) {
+		const {
+			data: { session }
+		} = await event.locals.supabase.auth.getSession();
+
+		if (!session) {
+			const email = 'dev@example.com'; // your dev test user
+			const password = 'password'; // test password
+
+			const { data, error } = await event.locals.supabase.auth.signInWithPassword({
+				email,
+				password
+			});
+
+			if (error) {
+				console.warn('Dev auto-login failed:', error.message);
+			} else {
+				console.info(`Auto-logged in as ${email}`);
+			}
+		}
+	}
+
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {
 			return name === 'content-range' || name === 'x-supabase-api-version';

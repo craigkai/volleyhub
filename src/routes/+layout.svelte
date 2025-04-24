@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../app.postcss';
+	import '../app.css';
 	import Header from '$components/Header.svelte';
 	import Footer from '$components/Footer.svelte';
 	import { ModeWatcher } from 'mode-watcher';
@@ -7,7 +7,7 @@
 	import { inject } from '@vercel/analytics';
 	import { goto, invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import toast, { Toaster } from 'svelte-french-toast';
+	import toast, { Toaster } from 'svelte-5-french-toast';
 
 	inject({
 		mode: dev ? 'development' : 'production'
@@ -39,12 +39,12 @@
 		return () => data.subscription.unsubscribe();
 	});
 
-	function handleError(err: string) {
-		toast.error(err);
+	function handleError(event: ErrorEvent) {
+		toast.error(event.message);
 	}
 </script>
 
-<svelte:window on:error={handleError} />
+<svelte:window onerror={handleError} />
 
 <svelte:head>
 	<title>VolleyHub</title>

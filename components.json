@@ -4,14 +4,14 @@
 	"tailwind": {
 		"config": "tailwind.config.js",
 		"css": "src/app.postcss",
-		"baseColor": "slate",
-		"cssVariables": true
+		"baseColor": "slate"
 	},
 	"aliases": {
 		"components": "$components",
 		"utils": "$lib/utils",
 		"ui": "$components/ui",
-		"magicui": "$components/magicui"
+		"hooks": "$lib/hooks"
 	},
-	"typescript": true
+	"typescript": true,
+	"registry": "https://next.shadcn-svelte.com/registry"
 }

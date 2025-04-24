@@ -3,7 +3,11 @@
 	import { Loader } from 'lucide-svelte';
 	import EventsCards from '$components/eventsCards.svelte';
 
-	export let data;
+	interface Props {
+		data: any;
+	}
+
+	let { data }: Props = $props();
 
 	const eventsDatabaseService = new EventSupabaseDatabaseService(data?.supabase);
 	const eventsPromise = eventsDatabaseService.getUpcomingEvents();
