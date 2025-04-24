@@ -161,7 +161,7 @@
 
 		<div class="flex gap-2">
 			<Button
-				on:click={checkGenerateMatches}
+				onclick={checkGenerateMatches}
 				class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700"
 				disabled={loading}
 			>
@@ -171,7 +171,7 @@
 
 			{#if !readOnly}
 				<Button
-					on:click={addMatch}
+					onclick={addMatch}
 					class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
 					disabled={loading}
 				>
@@ -196,13 +196,13 @@
 					</Alert.Description>
 					<div class="mt-4 flex gap-2">
 						<Button
-							on:click={generateMatches}
+							onclick={generateMatches}
 							class="inline-flex items-center rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500/40 focus:outline-none dark:bg-amber-700 dark:hover:bg-amber-600"
 						>
 							Yes, generate new matches
 						</Button>
 						<Button
-							on:click={() => (showGenerateMatchesAlert = false)}
+							onclick={() => (showGenerateMatchesAlert = false)}
 							class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
 						>
 							Cancel

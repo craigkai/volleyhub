@@ -151,7 +151,7 @@
 		{#if totalPages > 1}
 			<div class="mt-8 flex items-center justify-center space-x-2">
 				<button
-					on:click={prevPage}
+					onclick={prevPage}
 					disabled={currentPage === 1}
 					class="inline-flex h-9 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
 					aria-label="Previous page"
@@ -166,7 +166,7 @@
 				</div>
 
 				<button
-					on:click={nextPage}
+					onclick={nextPage}
 					disabled={currentPage === totalPages}
 					class="inline-flex h-9 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
 					aria-label="Next page"
