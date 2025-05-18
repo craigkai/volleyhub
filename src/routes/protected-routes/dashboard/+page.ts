@@ -1,6 +1,6 @@
 // src/routes/protected-routes/dashboard/+page.ts
 import { EventSupabaseDatabaseService } from '$lib/database/event';
-import toast from 'svelte-french-toast';
+import toast from 'svelte-5-french-toast';
 import type { HttpError } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 import type { UserResponse } from '@supabase/supabase-js';

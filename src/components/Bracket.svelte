@@ -9,7 +9,7 @@
 	import { Event } from '$lib/event.svelte';
 	import { onMount } from 'svelte';
 	import * as Alert from '$components/ui/alert/index.js';
-	import toast from 'svelte-french-toast';
+	import toast from 'svelte-5-french-toast';
 
 	let {
 		matches = $bindable(),

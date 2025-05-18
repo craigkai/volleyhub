@@ -4,7 +4,7 @@
 	import { Input } from '$components/ui/input/index.js';
 	import { Button } from '$components/ui/button';
 	import type { Teams } from '$lib/teams.svelte';
-	import toast from 'svelte-french-toast';
+	import toast from 'svelte-5-french-toast';
 	import { Team } from '$lib/team.svelte';
 	import type { Matches } from '$lib/matches.svelte';
 	import UsersIcon from 'lucide-svelte/icons/users';

@@ -12,7 +12,6 @@
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
 	import BorderBeam from '$components/magic-ui/BorderBeam.svelte';
-	import * as Tooltip from '$components/ui/tooltip/index.js';
 	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import UsersIcon from 'lucide-svelte/icons/users';
 	import SettingsIcon from 'lucide-svelte/icons/settings';

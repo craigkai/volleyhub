@@ -9,7 +9,7 @@
 	import PlusCircle from 'lucide-svelte/icons/plus-circle';
 	import AlertCircle from 'lucide-svelte/icons/alert-circle';
 	import { onDestroy, onMount } from 'svelte';
-	import toast from 'svelte-french-toast';
+	import toast from 'svelte-5-french-toast';
 	import EditRef from './EditRef.svelte';
 	import { MatchSupabaseDatabaseService } from '$lib/database/match';
 	import { Match } from '$lib/match.svelte';
@@ -140,8 +140,9 @@
 <svelte:window ononline={handleOnline} onoffline={handleOffline} />
 
 <div class="space-y-6">
-	<div class="flex items-center justify-between">
-		<div class="flex items-center gap-2">
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+		<!-- Left side: Heading + Status -->
+		<div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
 			<h2 class="text-lg font-semibold text-gray-800 dark:text-white">Tournament Matches</h2>
 			<div
 				class="flex h-6 items-center gap-1 rounded-full px-2 text-xs font-medium"
@@ -150,7 +151,7 @@
 				class:bg-red-100={subscriptionStatus !== 'SUBSCRIBED'}
 				class:text-red-700={subscriptionStatus !== 'SUBSCRIBED'}
 			>
-				{#if subscriptionStatus && subscriptionStatus === 'SUBSCRIBED'}
+				{#if subscriptionStatus === 'SUBSCRIBED'}
 					<Zap class="h-3.5 w-3.5" />
 					<span>Live</span>
 				{:else}
@@ -160,7 +161,8 @@
 			</div>
 		</div>
 
-		<div class="flex gap-2">
+		<!-- Right side: Buttons -->
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
 			<Button
 				onclick={checkGenerateMatches}
 				class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700"
@@ -232,8 +234,8 @@
 		<div
 			class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
 		>
-			<div class="overflow-x-auto">
-				<Table.Root>
+			<div class="-mx-4 overflow-x-auto sm:mx-0">
+				<Table.Root class="min-w-full sm:table-fixed">
 					<Table.Header>
 						<Table.Row class="bg-gray-50 dark:bg-gray-900">
 							<Table.Head

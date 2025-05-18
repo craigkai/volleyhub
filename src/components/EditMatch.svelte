@@ -6,7 +6,7 @@
 	import type { Brackets } from '$lib/brackets/brackets.svelte';
 	import type { Teams } from '$lib/teams.svelte';
 	import { error } from '@sveltejs/kit';
-	import toast from 'svelte-french-toast';
+	import toast from 'svelte-5-french-toast';
 	import { Match } from '$lib/match.svelte';
 	import { Team } from '$lib/team.svelte';
 	import type { Pool } from '$lib/pool/pool.svelte';

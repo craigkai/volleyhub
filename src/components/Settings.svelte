@@ -1,5 +1,5 @@
 <script lang="ts">
-	import toast from 'svelte-french-toast';
+	import toast from 'svelte-5-french-toast';
 	import { Input } from '$components/ui/input';
 	import { Field, Label, Control, Description, FieldErrors, Button } from '$components/ui/form';
 	import { Textarea } from '$components/ui/textarea';
@@ -37,7 +37,6 @@
 	import type { PageData } from './$types';
 
 	const { data, eventId } = $props<{ eventId: Number | string; data: PageData }>();
-
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
 		onError({ result }) {
@@ -50,7 +49,7 @@
 		},
 		dataType: 'json'
 	});
-
+	
 	let { form: formData, enhance, delayed } = form;
 
 	const df = new DateFormatter('en-US', {

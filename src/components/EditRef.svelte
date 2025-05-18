@@ -2,7 +2,7 @@
 	import { Label } from '$components/ui/label/index.js';
 	import * as Select from '$components/ui/select/index.js';
 	import { updateMatch } from '$lib/helper.svelte';
-	import toast from 'svelte-french-toast';
+	import toast from 'svelte-5-french-toast';
 	import type { Team } from '$lib/team.svelte';
 	import type { Match } from '$lib/match.svelte';
 	import type { Teams } from '$lib/teams.svelte';

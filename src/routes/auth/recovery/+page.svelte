@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import toast from 'svelte-french-toast';
+	import toast from 'svelte-5-french-toast';
 	import { Label } from '$components/ui/label/index.js';
 	import { Input } from '$components/ui/input/index.js';
 	import { Button } from '$components/ui/button/index.js';

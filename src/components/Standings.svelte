@@ -9,7 +9,6 @@
 		CollapsibleContent,
 		CollapsibleTrigger
 	} from '$components/ui/collapsible/index.js';
-	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import InfoIcon from 'lucide-svelte/icons/info';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import MedalIcon from 'lucide-svelte/icons/medal';

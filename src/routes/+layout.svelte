@@ -50,17 +50,16 @@
 	<title>VolleyHub</title>
 </svelte:head>
 
-<div
-	class="flex min-h-screen flex-col overflow-x-hidden bg-white text-gray-900 dark:bg-slate-800 dark:text-white"
->
+<div class="flex min-h-screen flex-col overflow-x-hidden bg-white text-gray-900 dark:bg-slate-800 dark:text-white">
+	<ModeWatcher defaultMode="light" track={false} />
+	<Toaster position="top-right" />
+	<Header {supabase} {isMobile} />
+
 	<div class="mb-8 flex-grow">
-		<ModeWatcher defaultMode={'light'} track={false}></ModeWatcher>
-		<Header {supabase} {isMobile}></Header>
 		<div class="mx-auto max-w-7xl p-4">
-			<Toaster></Toaster>
+			{@render children()}
 		</div>
-		{@render children()}
 	</div>
 
-	<Footer></Footer>
+	<Footer />
 </div>

@@ -1,6 +1,5 @@
-import { pushState } from '$app/navigation';
 import { error, type HttpError } from '@sveltejs/kit';
-import toast from 'svelte-french-toast';
+import toast from 'svelte-5-french-toast';
 import { EventSupabaseDatabaseService } from '$lib/database/event';
 import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
