@@ -26,10 +26,6 @@
 </script>
 
 <div class="space-y-4">
-	<div class="flex items-center gap-2">
-		<TrophyIcon class="h-5 w-5 text-emerald-600" />
-		<h2 class="text-lg font-semibold text-gray-800 dark:text-white">Tournament Standings</h2>
-	</div>
 
 	<div
 		class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"

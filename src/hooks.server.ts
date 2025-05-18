@@ -61,8 +61,8 @@ export const supabase: Handle = async ({ event, resolve }) => {
 		} = await event.locals.supabase.auth.getSession();
 
 		if (!session) {
-			const email = 'dev@example.com'; // your dev test user
-			const password = 'password'; // test password
+			const email = 'root@ceal.dev'; // your dev test user
+			const password = 'njkdnbkjdbfhjf'; // test password
 
 			const { data, error } = await event.locals.supabase.auth.signInWithPassword({
 				email,

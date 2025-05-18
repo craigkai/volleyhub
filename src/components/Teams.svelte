@@ -90,11 +90,6 @@
 </script>
 
 <div class="space-y-4">
-	<div class="flex items-center gap-2">
-		<UsersIcon class="h-5 w-5 text-emerald-600" />
-		<h2 class="text-lg font-semibold text-gray-800 dark:text-white">Teams Management</h2>
-	</div>
-
 	<div
 		class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
 	>
@@ -105,9 +100,12 @@
 					id="newTeam"
 					class="h-10 rounded-lg border-gray-300 bg-white text-sm placeholder:text-gray-400 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder:text-gray-500"
 					placeholder="Enter new team name"
-					on:keydown={(e) => {
+					onkeydown={(e) => {
 						if (e?.key === 'Enter') {
 							createTeam();
+						} else if (e?.key === 'Escape') {
+							newTeamName = '';
+							if (e.target) (e.target as HTMLElement).blur();
 						}
 					}}
 					bind:value={newTeamName}
@@ -162,7 +160,14 @@
 														if (e?.key === 'Enter') {
 															updateTeam(team);
 														} else if (e?.key === 'Escape') {
+															// Reset to original name if it was changed
+															const originalTeam = teams.teams.find((t) => t.id === team.id);
+															if (originalTeam && originalTeam.name !== team.name) {
+																team.name = originalTeam.name;
+															}
 															editingTeamId = null;
+															e.target.blur();
+															toast.info('Edit canceled');
 														}
 													}}
 												/>
@@ -207,18 +212,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-	/* Smooth transitions for hover states */
-	button,
-	input {
-		transition: all 0.2s ease;
-	}
-
-	/* Focus styles for better accessibility */
-	:global(button:focus-visible),
-	:global(input:focus-visible) {
-		outline: 2px solid rgb(16 185 129 / 0.5);
-		outline-offset: 2px;
-	}
-</style>

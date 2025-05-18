@@ -90,6 +90,7 @@
 				data.tournament,
 				$state.snapshot(data.teams.teams)
 			);
+
 			if (!res) {
 				toast.error('Failed to create matches');
 				return;
@@ -262,7 +263,7 @@
 						{#if rounds > 0}
 							{#each Array(rounds) as _, round}
 								<Table.Row
-										class="border-t border-gray-200 dark:border-gray-700 {`
+									class="border-t border-gray-200 dark:border-gray-700 {`
 											border-t border-gray-200 dark:border-gray-700
 											${round % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
 										`}"

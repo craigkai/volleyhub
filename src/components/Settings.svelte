@@ -33,7 +33,7 @@
 	import CourtIcon from 'lucide-svelte/icons/layout-grid';
 	import UserIcon from 'lucide-svelte/icons/users';
 	import ScoreIcon from 'lucide-svelte/icons/bar-chart-2';
-	// @ts-ignore
+
 	import type { PageData } from './$types';
 
 	const { data, eventId } = $props<{ eventId: Number | string; data: PageData }>();
@@ -45,7 +45,6 @@
 		},
 		async onUpdated({ form }) {
 			if (form.valid) {
-				formData = form.data;
 				toast.success(`Tournament settings updated`);
 			}
 		},
@@ -58,29 +57,12 @@
 		dateStyle: 'long'
 	});
 
-	let dateValue = $derived(formData.date ? parseDateTime(formData.date) : undefined);
-
-	let selectedRefValue = $derived({
-		label: formData.refs,
-		value: formData.refs
-	});
-
-	let scoringValue = $derived({
-		label: formData.scoring,
-		value: formData.scoring
-	});
+	let dateValue = $derived($formData.date ? parseDateTime($formData.date) : undefined);
 
 	const datePlaceholder: DateValue = today(getLocalTimeZone());
 </script>
 
 <div class="mx-auto max-w-4xl">
-	<div class="mb-6 flex items-center gap-3">
-		<TrophyIcon class="h-7 w-7 text-emerald-600" />
-		<h1 class="text-2xl font-bold text-gray-800 dark:text-white">
-			{eventId === 'create' ? 'Create New Tournament' : 'Edit Tournament Settings'}
-		</h1>
-	</div>
-
 	{#if $delayed}
 		<div
 			class="flex items-center justify-center rounded-lg bg-white py-12 shadow-md dark:bg-gray-800"
@@ -99,16 +81,6 @@
 			action="?/{eventId === 'create' ? 'createEvent' : 'updateEvent'}"
 			use:enhance
 		>
-			<!-- Header -->
-			<div
-				class="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900"
-			>
-				<h2 class="text-lg font-medium text-gray-800 dark:text-white">Tournament Information</h2>
-				<p class="text-sm text-gray-500 dark:text-gray-400">
-					Configure the details for your tournament
-				</p>
-			</div>
-
 			<!-- Form Content -->
 			<div class="p-6">
 				<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -160,12 +132,13 @@
 										</PopoverTrigger>
 										<PopoverContent class="w-auto p-0" side="bottom">
 											<Calendar
+												type="single"
 												value={dateValue}
 												placeholder={datePlaceholder}
 												minValue={today(getLocalTimeZone())}
 												calendarLabel="Date of event"
 												initialFocus
-												onValueChange={(v) => (dateValue = v)}
+												onValueChange={(v) => ($formData.date = v.toString())}
 											/>
 										</PopoverContent>
 									</PopoverRoot>
@@ -265,10 +238,7 @@
 											<UserIcon class="h-4 w-4 text-gray-500" />
 											<Label class="font-medium">Referees</Label>
 										</div>
-										<SelectRoot
-											value={selectedRefValue}
-											onValueChange={(v) => v && (formData.refs = v.value)}
-										>
+										<SelectRoot type="single" bind:value={$formData.refs}>
 											<SelectTrigger
 												{...props}
 												class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
@@ -297,10 +267,7 @@
 											<ScoreIcon class="h-4 w-4 text-gray-500" />
 											<Label class="font-medium">Scoring Method</Label>
 										</div>
-										<SelectRoot
-											value={scoringValue}
-											onValueChange={(v) => v && (formData.scoring = v.value)}
-										>
+										<SelectRoot type="single" bind:value={$formData.scoring}>
 											<SelectTrigger
 												{...props}
 												class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
@@ -323,37 +290,35 @@
 						</div>
 					</div>
 				</div>
-
-				<!-- Submit Buttons -->
-				<div
-					class="mt-8 flex flex-col gap-4 border-t border-gray-200 pt-6 sm:flex-row sm:justify-between dark:border-gray-700"
-				>
-					{#if eventId !== 'create'}
-						<form method="POST" action="?/deleteEvent" use:enhance>
-							<Button
-								type="submit"
-								class="w-full rounded-lg border border-red-200 bg-white px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 focus:ring-4 focus:ring-red-100 focus:outline-none sm:w-auto dark:border-red-800 dark:bg-transparent dark:text-red-500 dark:hover:bg-red-900"
-							>
-								Delete Tournament
-							</Button>
-						</form>
-					{:else}
-						<div></div>
-					{/if}
-					<Button
-						type="submit"
-						class="w-full rounded-lg bg-emerald-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 focus:outline-none sm:w-auto dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800"
-					>
-						{eventId === 'create' ? 'Create Tournament' : 'Save Changes'}
-					</Button>
-				</div>
 			</div>
 		</form>
+
+		<div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+			{#if eventId !== 'create'}
+				<form method="POST" action="?/deleteEvent" use:enhance class="sm:flex-1">
+					<Button
+						type="submit"
+						class="w-full rounded-lg border border-red-200 bg-white px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 focus:ring-4 focus:ring-red-100 focus:outline-none sm:w-auto dark:border-red-800 dark:bg-transparent dark:text-red-500 dark:hover:bg-red-900"
+					>
+						Delete Tournament
+					</Button>
+				</form>
+			{/if}
+
+			<!-- Main form -->
+			<form
+				class="flex justify-end sm:flex-1"
+				method="POST"
+				action="?/{eventId === 'create' ? 'createEvent' : 'updateEvent'}"
+				use:enhance
+			>
+				<Button
+					type="submit"
+					class="w-full rounded-lg bg-emerald-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 focus:outline-none sm:w-auto dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800"
+				>
+					{eventId === 'create' ? 'Create Tournament' : 'Save Changes'}
+				</Button>
+			</form>
+		</div>
 	{/if}
 </div>
-
-<style>
-	:global(.dark) {
-		color-scheme: dark;
-	}
-</style>
