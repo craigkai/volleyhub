@@ -9,76 +9,46 @@
 
 	let authMode = $state('signin');
 	$effect(() => {
-		// Get the URL hash (fragment part)
-		const hash = window.location.hash.substring(1); // remove the '#' from the start
-
-		// Create a URLSearchParams object to easily access the parameters
+		const hash = window.location.hash.substring(1);
 		const params = new URLSearchParams(hash);
-
-		// Extract the `type` parameter
-		const type = params.get('type');
-		if (type && type === 'invite') {
+		if (params.get('type') === 'invite') {
 			authMode = 'reset';
 		}
 	});
 
-	const signupForm = superForm(data?.signupForm || {}, {
-		warnings: {
-			duplicateId: false
-		},
-		onResult: (e) => {
-			if (e.result.status !== 200) {
-				if (e.result.data.form.errors) {
-					const errorMessages = Object.values(e.result.data.form.errors).flat();
-					toast.error(errorMessages.join(', '));
-				} else {
-					toast.error('Sign up failed');
-				}
-			}
-			toast.success('Sign up email sent successfully');
-		}
-	});
-
-	// Add loading state
 	let isLoading = $state(false);
 
-	// Update the signin form enhance function
+	function handleFormResult(e: any, successMessage?: string) {
+		if (e.result.status !== 200) {
+			const errors = e.result?.data?.form?.errors;
+			if (errors) {
+				const errorMessages = Object.values(errors).flat();
+				toast.error(errorMessages.join(', '));
+			} else {
+				toast.error('Something went wrong');
+			}
+		} else if (successMessage) {
+			toast.success(successMessage);
+		}
+	}
+
+	const signupForm = superForm(data?.signupForm || {}, {
+		warnings: { duplicateId: false },
+		onResult: (e) => handleFormResult(e, 'Sign up email sent successfully')
+	});
+
 	const signInForm = superForm(data?.signInForm || {}, {
-		warnings: {
-			duplicateId: false
-		},
-		onSubmit: () => {
-			isLoading = true;
-		},
+		warnings: { duplicateId: false },
+		onSubmit: () => (isLoading = true),
 		onResult: (e) => {
 			isLoading = false;
-			if (e.result.status !== 200) {
-				if (e.result.data.form.errors) {
-					const errorMessages = Object.values(e.result.data.form.errors).flat();
-					toast.error(errorMessages.join(', '));
-				} else {
-					toast.error('Sign in failed');
-				}
-			}
+			handleFormResult(e);
 		}
 	});
 
 	const resetPasswordForm = superForm(data?.resetPasswordForm || {}, {
-		warnings: {
-			duplicateId: false
-		},
-		onResult: (e) => {
-			if (e.result.status !== 200) {
-				if (e.result.data.form.errors) {
-					const errorMessages = Object.values(e.result.data.form.errors).flat();
-					toast.error(errorMessages.join(', '));
-				} else {
-					toast.error('Reset password failed');
-				}
-			} else {
-				toast.success('Password reset email sent successfully');
-			}
-		}
+		warnings: { duplicateId: false },
+		onResult: (e) => handleFormResult(e, 'Password reset email sent successfully')
 	});
 
 	function switchAuthMode(mode: string) {
@@ -184,7 +154,7 @@
 						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
 					</Field>
 				</div>
-				<!-- Update the button to show loading state -->
+
 				<button
 					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
 					type="submit"

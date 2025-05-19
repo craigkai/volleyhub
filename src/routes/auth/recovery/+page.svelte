@@ -40,14 +40,6 @@
 		}
 	});
 
-	$effect(() => {
-		[signInForm.message, resetPasswordForm.message].forEach((message) => {
-			if (message) {
-				toast.success(message);
-			}
-		});
-	});
-
 	function switchAuthMode(mode: string) {
 		authMode = mode;
 	}
