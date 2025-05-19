@@ -5,7 +5,6 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { UAParser } from 'ua-parser-js';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 import { PUBLIC_COMMIT_REF, PUBLIC_ADMIN_USER, PUBLIC_ADMIN_USER_PASSWORD } from '$env/static/public';
 
 export const supabase: Handle = async ({ event, resolve }) => {
