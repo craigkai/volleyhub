@@ -43,7 +43,7 @@
 
 	const isCreate = $derived(data?.eventId === 'create');
 
-	const tabsWidth = $derived(readOnly ? 'grid-cols-3' : 'grid-cols-4');
+	const tabsWidth = $derived(readOnly ? 'grid-cols-2' : 'grid-cols-4');
 </script>
 
 <svelte:head>
