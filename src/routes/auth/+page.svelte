@@ -66,6 +66,18 @@
 	const resetPasswordForm = superForm(data?.resetPasswordForm || {}, {
 		warnings: {
 			duplicateId: false
+		},
+		onResult: (e) => {
+			if (e.result.status !== 200) {
+				if (e.result.data.form.errors) {
+					const errorMessages = Object.values(e.result.data.form.errors).flat();
+					toast.error(errorMessages.join(', '));
+				} else {
+					toast.error('Reset password failed');
+				}
+			} else {
+				toast.success('Password reset email sent successfully');
+			}
 		}
 	});
 
