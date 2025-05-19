@@ -23,7 +23,8 @@
 
 	let { data = $bindable() } = $props();
 
-	let defaultTeam = $state(data.defaultTeam);
+	const defaultTeamInitial = data.defaultTeam ?? '';
+	let defaultTeam = $state(defaultTeamInitial);
 	let readOnly = $state(data.readOnly);
 	let teams = $state(data.teams);
 
@@ -33,14 +34,12 @@
 		historyReady = true;
 	});
 
-	const teamsSelect = $derived(
-		data?.teams?.teams
-			.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name))
-			?.map((team: { name: string }) => {
-				return { value: team.name, name: team.name };
-			})
-			.concat([{ value: '', name: 'None' }]) || []
-	);
+	const teamList = data?.teams?.teams ?? [];
+
+	const teamsSelect = teamList
+		.sort((a, b) => a.name.localeCompare(b.name))
+		.map((team) => ({ value: team.name, name: team.name }))
+		.concat([{ value: '', name: 'None' }]);
 
 	const isCreate = $derived(data?.eventId === 'create');
 
@@ -75,9 +74,10 @@
 		<div class="mb-6 flex justify-center">
 			<div class="relative w-full max-w-xs">
 				<Select.Root
+					type="single"
 					value={defaultTeam}
 					onValueChange={(v) => {
-						if (v) defaultTeam = v?.value?.toString() ?? '';
+						if (v) defaultTeam = v ?? '';
 
 						if (browser && historyReady) {
 							const url = new URL(page.url);
@@ -91,33 +91,36 @@
 					}}
 				>
 					<Select.Trigger
-						class="w-full border-gray-300 bg-white py-2 pr-10 pl-3 text-left shadow-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800"
+						class="w-full rounded-md border-2 border-gray-300 bg-white px-4 py-2.5 text-left shadow-sm transition-colors hover:border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-emerald-700 dark:bg-gray-800 dark:text-white dark:hover:border-emerald-600"
 					>
-						<div class="flex items-center gap-2">
-							<UsersIcon class="h-4 w-4 text-gray-500" />
-							<span>{defaultTeam ? defaultTeam : 'Select your team'}</span>
+						<div class="flex items-center justify-between">
+							<div class="flex items-center gap-2">
+								<UsersIcon class="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+								<span class="font-medium">{defaultTeam ? defaultTeam : 'Select your team'}</span>
+							</div>
+							<ChevronDownIcon class="h-4 w-4 text-gray-500 dark:text-gray-400" />
 						</div>
-						<ChevronDownIcon class="h-4 w-4 opacity-50" />
 					</Select.Trigger>
-					<Select.Content class="max-h-[300px] overflow-y-auto">
+					<Select.Content
+						class="max-h-[300px] overflow-y-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+					>
 						{#each teamsSelect as team}
-							<Select.Item value={team.value} label={team.name}>
-								{team.name === 'None' ? 'Clear selection' : team.name}
+							<Select.Item
+								value={team.value}
+								label={team.name}
+								class="cursor-pointer px-4 py-2 text-gray-800 hover:bg-emerald-50 focus:bg-emerald-50 dark:text-white dark:hover:bg-emerald-900/30 dark:focus:bg-emerald-900/30"
+							>
+								<div class="flex items-center gap-2">
+									{#if team.name === 'None'}
+										<span>Clear selection</span>
+									{:else}
+										<span>{team.name}</span>
+									{/if}
+								</div>
 							</Select.Item>
 						{/each}
 					</Select.Content>
 				</Select.Root>
-
-				{#if defaultTeam}
-					<div class="mt-2 text-center">
-						<Badge
-							variant="outline"
-							class="border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
-						>
-							Viewing as: {defaultTeam}
-						</Badge>
-					</div>
-				{/if}
 			</div>
 		</div>
 	{/if}

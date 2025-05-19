@@ -6,12 +6,10 @@
 	import Zap from 'lucide-svelte/icons/zap';
 	import ZapOff from 'lucide-svelte/icons/zap-off';
 	import RefreshCw from 'lucide-svelte/icons/refresh-cw';
-	import PlusCircle from 'lucide-svelte/icons/plus-circle';
 	import AlertCircle from 'lucide-svelte/icons/alert-circle';
 	import { onDestroy, onMount } from 'svelte';
 	import toast from 'svelte-5-french-toast';
 	import EditRef from './EditRef.svelte';
-	import { MatchSupabaseDatabaseService } from '$lib/database/match';
 	import { Match } from '$lib/match.svelte';
 	import * as Table from '$components/ui/table/index.js';
 	import * as Alert from '$components/ui/alert/index.js';
@@ -108,6 +106,20 @@
 	const rounds = $derived(
 		Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) + 1
 	);
+
+	// Function to check if a round contains matches with the default team
+	function roundHasDefaultTeam(roundIndex: number): boolean {
+		if (!defaultTeam) return false;
+
+		return data.matches.matches.some((m: Match) => {
+			if (m.round.toString() !== roundIndex.toString()) return false;
+
+			const team1 = data.teams.teams.find((t: any) => t.id === m.team1);
+			const team2 = data.teams.teams.find((t: any) => t.id === m.team2);
+
+			return team1?.name === defaultTeam || team2?.name === defaultTeam;
+		});
+	}
 </script>
 
 <svelte:document onvisibilitychange={handleVisibilityChange} />
@@ -197,6 +209,19 @@
 		<div
 			class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
 		>
+			{#if defaultTeam}
+				<div
+					class="border-b border-yellow-100 bg-yellow-50 px-4 py-2 dark:border-yellow-900/30 dark:bg-yellow-900/20"
+				>
+					<div class="flex items-center gap-2">
+						<div class="h-3 w-3 rounded-full bg-yellow-300 dark:bg-yellow-500"></div>
+						<p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+							Viewing matches for: <span class="font-semibold">{defaultTeam}</span>
+						</p>
+					</div>
+				</div>
+			{/if}
+
 			<div class="-mx-4 overflow-x-auto sm:mx-0">
 				<Table.Root class="min-w-full sm:table-fixed">
 					<Table.Header>
@@ -227,14 +252,17 @@
 					<Table.Body>
 						{#if rounds > 0}
 							{#each Array(rounds) as _, round}
+								{@const hasDefaultTeam = roundHasDefaultTeam(round)}
 								<Table.Row
 									class="border-t border-gray-200 dark:border-gray-700 {`
-											border-t border-gray-200 dark:border-gray-700
 											${round % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
+											${hasDefaultTeam ? 'default-team-row' : ''}
 										`}"
 								>
 									<Table.Cell
-										class="py-3 pl-4 text-sm font-medium text-gray-800 dark:text-gray-200"
+										class="py-3 pl-4 text-sm font-medium text-gray-800 dark:text-gray-200 {hasDefaultTeam
+											? 'default-team-indicator'
+											: ''}"
 									>
 										Round {round + 1}
 									</Table.Cell>
@@ -307,5 +335,37 @@
 	:global(button:focus-visible) {
 		outline: 2px solid rgb(16 185 129 / 0.5);
 		outline-offset: 2px;
+	}
+
+	/* Default team row highlighting */
+	:global(.default-team-row) {
+		background-color: rgba(253, 224, 71, 0.15) !important; /* Light yellow */
+		border-left: 4px solid rgb(253, 224, 71) !important;
+	}
+
+	:global(.dark .default-team-row) {
+		background-color: rgba(253, 224, 71, 0.05) !important;
+		border-left: 4px solid rgb(202, 179, 57) !important;
+	}
+
+	:global(.default-team-indicator) {
+		position: relative;
+		font-weight: 600 !important;
+		color: rgb(161, 98, 7) !important; /* amber-700 */
+	}
+
+	:global(.dark .default-team-indicator) {
+		color: rgb(252, 211, 77) !important; /* amber-300 */
+	}
+
+	:global(.default-team-indicator::before) {
+		content: '•';
+		color: rgb(251, 191, 36); /* amber-400 */
+		font-size: 1.5rem;
+		line-height: 0;
+		position: absolute;
+		left: -0.5rem;
+		top: 50%;
+		transform: translateY(-40%);
 	}
 </style>
