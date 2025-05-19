@@ -108,32 +108,6 @@
 	const rounds = $derived(
 		Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) + 1
 	);
-
-	async function addMatch() {
-		const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
-			data.matches.databaseService.supabaseClient
-		);
-		const roundValue = rounds;
-
-		for (let i = 0; i < data.tournament.courts; i++) {
-			const newMatch = {
-				team1: undefined,
-				team2: undefined,
-				round: roundValue,
-				court: i,
-				event_id: data.tournament.id
-			};
-
-			const newMatchInstance = new Match(matchSupabaseDatabaseService);
-
-			try {
-				await newMatchInstance.create(newMatch);
-				toast.success('Match added successfully');
-			} catch (err) {
-				toast.error('Failed to add match');
-			}
-		}
-	}
 </script>
 
 <svelte:document onvisibilitychange={handleVisibilityChange} />
@@ -171,17 +145,6 @@
 				<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
 				<span>Generate Matches</span>
 			</Button>
-
-			{#if !readOnly}
-				<Button
-					onclick={addMatch}
-					class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-					disabled={loading}
-				>
-					<PlusCircle class="h-4 w-4" />
-					<span>Add Round</span>
-				</Button>
-			{/if}
 		</div>
 	</div>
 

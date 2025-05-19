@@ -15,27 +15,21 @@
 		readOnly: boolean;
 	}>();
 
-	// Select the first match in the round as the reference match
 	let match = $state(matchesPerRound ? matchesPerRound[0] : null);
-	let selectedRef = $state({
-		get ref() {
-			return match?.ref ?? null;
-		},
-		set ref(ref: number) {
-			match.ref = ref;
-		}
-	});
-	let open = $state(false);
 
-	// Ref is recalculated whenever match.ref or teams changes
-	let ref = $derived(teams.teams.find((t: Team) => t.id === match?.ref));
+	// use string to match Select.Item values
+	let selectedRefId = $derived(match?.ref?.toString() ?? '');
 
-	// Save the referee for both team1 and team2 in the match
+	// derived team from selected ID
+	let refTeam = $derived(teams.teams.find((t: Team) => t.id?.toString() === selectedRefId));
+
 	async function saveRef() {
-		if (match && selectedRef.ref !== null) {
+		const parsedRef = parseInt(selectedRefId, 10);
+
+		if (match && !isNaN(selectedRefId)) {
 			try {
 				for (let m of matchesPerRound) {
-					m.ref = selectedRef.ref;
+					m.ref = parsedRef;
 					const updatedMatch = await updateMatch(m);
 
 					if (!updatedMatch) {
@@ -51,8 +45,6 @@
 
 					toast.success(`Referee updated for match ${team1?.name} vs ${team2?.name}`);
 				}
-
-				open = false;
 			} catch (err) {
 				console.error('Failed to save referee:', err);
 				toast.error('Failed to save referee');
@@ -64,52 +56,69 @@
 </script>
 
 <div
-	class="rounded rounded-lg p-2 {ref?.name === defaultTeam
-		? 'flex-1 border-2 border-solid border-yellow-300 bg-yellow-200 dark:border-gray-400 dark:bg-gray-400'
-		: 'flex-1'}"
+	class="rounded-lg p-3 {refTeam?.name === defaultTeam
+		? 'border-2 border-solid border-yellow-300 bg-yellow-200 dark:border-yellow-600 dark:bg-gray-700 dark:text-white'
+		: 'border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white'}"
 >
 	{#if readOnly}
-		<div>
-			{ref?.name}
+		<div class="text-center font-medium">
+			{refTeam?.name || 'No referee assigned'}
 		</div>
 	{:else}
-		<button class="cursor-pointer" onclick={() => (open = true)}>
-			{ref?.name}
-		</button>
+		<AlertDialog.Root>
+			<AlertDialog.Trigger
+				class="w-full rounded px-2 py-1 text-center font-medium transition-colors hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:hover:bg-gray-700"
+			>
+				{refTeam?.name || 'Assign referee'}
+			</AlertDialog.Trigger>
+
+			<AlertDialog.Content
+				class="w-full max-w-md border bg-white p-0 dark:border-gray-700 dark:bg-gray-800"
+				interactOutsideBehavior="close"
+			>
+				<div class="flex flex-col items-center justify-center p-6">
+					<Label class="mb-6 text-xl font-semibold text-gray-900 dark:text-white"
+						>Select Referee</Label
+					>
+
+					<Select.Root bind:value={selectedRefId} type="single">
+						<Select.Trigger
+							class="w-full border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 md:w-[220px] dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+						>
+							{refTeam?.name || 'Select Referee'}
+						</Select.Trigger>
+
+						<Select.Content
+							class="border border-gray-300 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+						>
+							{#each teams.teams as team}
+								<Select.Item
+									value={team.id.toString()}
+									label={team.name}
+									class="hover:bg-gray-100 dark:hover:bg-gray-700"
+								>
+									{team.name}
+								</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+
+					<div class="mt-8 flex w-full flex-col items-center justify-center gap-4 sm:flex-row">
+						<button
+							class="w-full rounded-md bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-none sm:w-auto"
+							onclick={saveRef}
+						>
+							Save Referee
+						</button>
+
+						<AlertDialog.Cancel
+							class="mt-2 w-full rounded-md bg-gray-200 px-6 py-3 font-medium text-gray-800 transition-colors hover:bg-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-none sm:mt-0 sm:w-auto dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+						>
+							Cancel
+						</AlertDialog.Cancel>
+					</div>
+				</div>
+			</AlertDialog.Content>
+		</AlertDialog.Root>
 	{/if}
 </div>
-
-<AlertDialog.Root
-	bind:open
-	closeOnOutsideClick={true}
-	closeOnEscape={true}
-	onOpenChange={() => (open = false)}
->
-	<AlertDialog.Content>
-		<div class="m-2 flex flex-col items-center justify-center">
-			<Label class="mb-4 text-lg font-semibold">Select Referee:</Label>
-			<Select.Root
-				selected={{
-					value: selectedRef.ref,
-					label: teams.teams.find((t: Team) => t.id === selectedRef.ref)?.name
-				}}
-				onSelectedChange={(event) => (selectedRef.ref = event?.value as number)}
-			>
-				<Select.Trigger class="mx-auto w-[180px]">
-					<!-- Add mx-auto for horizontal centering -->
-					<Select.Value placeholder="Select a referee..." />
-				</Select.Trigger>
-				<Select.Content>
-					{#each teams.teams as team}
-						<Select.Item value={team.id} label={team.name}>{team.name}</Select.Item>
-					{/each}
-				</Select.Content>
-				<Select.Input name="ref-select" />
-			</Select.Root>
-
-			<button class="mt-4 rounded bg-blue-500 px-4 py-2 text-white" onclick={saveRef}>
-				Save Referee
-			</button>
-		</div>
-	</AlertDialog.Content>
-</AlertDialog.Root>

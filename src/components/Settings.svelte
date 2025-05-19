@@ -242,7 +242,7 @@
 												{...props}
 												class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
 											>
-												Select who will be ref'ing
+												{$formData.refs}
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="teams" label="Teams" />
@@ -271,7 +271,7 @@
 												{...props}
 												class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
 											>
-												Seeding based on?
+												{$formData.scoring}
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="points" label="Points" />
