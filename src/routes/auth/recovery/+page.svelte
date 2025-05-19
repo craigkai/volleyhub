@@ -1,71 +1,207 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { superForm } from 'sveltekit-superforms';
+	import { Control, Field, FieldErrors } from 'formsnap';
+	import { Label } from '$components/ui/label';
+	import { Input } from '$components/ui/input';
 	import toast from 'svelte-5-french-toast';
-	import { Label } from '$components/ui/label/index.js';
-	import { Input } from '$components/ui/input/index.js';
-	import { Button } from '$components/ui/button/index.js';
-	import { onMount } from 'svelte';
 
 	let { data } = $props();
-	interface User {
-		email?: string;
-		// Add other properties if needed
-	}
 
-	let user: User = {};
-	let whoAmI = $state('');
+	let authMode = $state('signin');
+	$effect(() => {
+		// Get the URL hash (fragment part)
+		const hash = window.location.hash.substring(1); // remove the '#' from the start
 
-	onMount(async () => {
-		const hash = window.location.hash.substring(1); // Remove the '#'
+		// Create a URLSearchParams object to easily access the parameters
 		const params = new URLSearchParams(hash);
+
+		// Extract the `type` parameter
 		const type = params.get('type');
-		const accessToken = params.get('access_token');
-
-		if (accessToken && type === 'recovery') {
-			// Authenticate the user with Supabase using the access token
-			const response = await data.supabase.auth.setSession({
-				access_token: accessToken,
-				refresh_token: params.get('refresh_token') || '' // Optional, if available
-			});
-
-			if (response.data.user) {
-				user = response.data.user;
-
-				whoAmI = user.email || 'your account';
-			}
+		if (type && type === 'invite') {
+			authMode = 'reset';
 		}
 	});
 
-	let newPassword: string = $state('');
-	async function resetPassword() {
-		try {
-			const { data: userData, error } = await data.supabase.auth.updateUser({
-				password: newPassword
-			});
-
-			if (error) {
-				throw error;
-			}
-
-			toast.success('Password updated successfully');
-			goto('/protected-routes/dashboard');
-		} catch (err) {
-			toast.error(err.message || 'Failed to update password');
+	const signupForm = superForm(data?.signupForm || {}, {
+		warnings: {
+			duplicateId: false
 		}
+	});
+
+	const signInForm = superForm(data?.signInForm || {}, {
+		warnings: {
+			duplicateId: false
+		}
+	});
+
+	const resetPasswordForm = superForm(data?.resetPasswordForm || {}, {
+		warnings: {
+			duplicateId: false
+		}
+	});
+
+	$effect(() => {
+		[signInForm.message, resetPasswordForm.message].forEach((message) => {
+			if (message) {
+				toast.success(message);
+			}
+		});
+	});
+
+	function switchAuthMode(mode: string) {
+		authMode = mode;
 	}
+
+	const signupFormData = signupForm.form;
+	const signInFormData = signInForm.form;
+	const resetPasswordFormData = resetPasswordForm.form;
 </script>
 
-<div class="row flex-center flex justify-center">
-	<div class="col-6 form-widget flex flex-col">
-		<Label for="password" class="mb-2 block">New Password</Label>
-		<Input
-			type="password"
-			bind:value={newPassword}
-			id="password"
-			placeholder="•••••••••"
-			required
-		/>
+<svelte:head>
+	<title>User Auth</title>
+</svelte:head>
 
-		<Button class="m-2 text-gray-400" on:click={resetPassword}>Update Password for {whoAmI}</Button>
+<div class="m-4 flex items-center justify-center rounded bg-gray-100 p-4">
+	<div class="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
+		<h2 class="text-center text-2xl font-bold text-gray-700 dark:text-gray-200">
+			{authMode === 'signup' ? 'Sign Up' : authMode === 'signin' ? 'Sign In' : 'Reset Password'}
+		</h2>
+
+		{#if authMode === 'signup'}
+			<form method="POST" action="?/signup" use:signupForm.enhance class="space-y-4">
+				<div class="space-y-2">
+					<Field form={signupForm} name="email">
+						<Control>
+							{#snippet children({ props })}
+								<Label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+									>Email</Label
+								>
+								<Input
+									{...props}
+									bind:value={$signupFormData.email}
+									class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+								/>
+							{/snippet}
+						</Control>
+
+						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
+					</Field>
+				</div>
+				<div class="space-y-2">
+					<Field form={signupForm} name="password">
+						<Control>
+							{#snippet children({ props })}
+								<Label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+									>Password</Label
+								>
+								<Input
+									type="password"
+									{...props}
+									bind:value={$signupFormData.password}
+									class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+								/>
+							{/snippet}
+						</Control>
+
+						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
+					</Field>
+				</div>
+
+				<button
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+					type="submit">Sign Up</button
+				>
+			</form>
+		{:else if authMode === 'signin'}
+			<form method="POST" action="?/signin" use:signInForm.enhance class="space-y-4">
+				<div class="space-y-2">
+					<Field form={signInForm} name="email">
+						<Control>
+							{#snippet children({ props })}
+								<Label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+									>Email</Label
+								>
+								<Input
+									{...props}
+									bind:value={$signInFormData.email}
+									class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+								/>
+							{/snippet}
+						</Control>
+
+						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
+					</Field>
+				</div>
+				<div class="space-y-2">
+					<Field form={signInForm} name="password">
+						<Control>
+							{#snippet children({ props })}
+								<Label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+									>Password</Label
+								>
+								<Input
+									type="password"
+									{...props}
+									bind:value={$signInFormData.password}
+									class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+								/>
+							{/snippet}
+						</Control>
+
+						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
+					</Field>
+				</div>
+				<button
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+					type="submit">Sign In</button
+				>
+			</form>
+		{:else if authMode === 'reset'}
+			<form use:resetPasswordForm.enhance action="?/resetpassword" method="POST" class="space-y-4">
+				<div class="space-y-2">
+					<Field form={resetPasswordForm} name="email">
+						<Control>
+							{#snippet children({ props })}
+								<Label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+									>Email</Label
+								>
+								<Input
+									{...props}
+									bind:value={$resetPasswordFormData.email}
+									class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+								/>
+							{/snippet}
+						</Control>
+
+						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
+					</Field>
+				</div>
+				<button
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+					type="submit">Reset Password</button
+				>
+			</form>
+		{/if}
+
+		<!-- Auth mode navigation buttons -->
+		<div class="mt-6 space-y-3">
+			{#if authMode !== 'signin' && authMode !== 'signup'}
+				<button
+					class="w-full rounded-md bg-gray-200 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+					onclick={() => switchAuthMode('signin')}>Back to Sign In</button
+				>
+			{:else}
+				<button
+					class="w-full rounded-md bg-gray-200 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+					onclick={() => switchAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
+				>
+					{authMode === 'signin' ? 'Need an account? Sign Up' : 'Already have an account? Sign In'}
+				</button>
+				<button
+					class="w-full rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+					onclick={() => switchAuthMode('reset')}>Forgot Password?</button
+				>
+			{/if}
+		</div>
 	</div>
 </div>

@@ -28,9 +28,19 @@
 		}
 	});
 
+	// Add loading state
+	let isLoading = $state(false);
+
+	// Update the signin form enhance function
 	const signInForm = superForm(data?.signInForm || {}, {
 		warnings: {
 			duplicateId: false
+		},
+		onSubmit: () => {
+			isLoading = true;
+		},
+		onResult: () => {
+			isLoading = false;
 		}
 	});
 
@@ -51,7 +61,6 @@
 	function switchAuthMode(mode: string) {
 		authMode = mode;
 	}
-
 
 	const signupFormData = signupForm.form;
 	const signInFormData = signInForm.form;
@@ -152,10 +161,14 @@
 						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
 					</Field>
 				</div>
+				<!-- Update the button to show loading state -->
 				<button
 					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-					type="submit">Sign In</button
+					type="submit"
+					disabled={isLoading}
 				>
+					{isLoading ? 'Signing In...' : 'Sign In'}
+				</button>
 			</form>
 		{:else if authMode === 'reset'}
 			<form use:resetPasswordForm.enhance action="?/resetpassword" method="POST" class="space-y-4">

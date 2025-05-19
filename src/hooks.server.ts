@@ -5,6 +5,8 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { UAParser } from 'ua-parser-js';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { PUBLIC_COMMIT_REF, PUBLIC_ADMIN_USER, PUBLIC_ADMIN_USER_PASSWORD } from '$env/static/public';
 
 export const supabase: Handle = async ({ event, resolve }) => {
 	const userAgent = event.request.headers.get('user-agent') || '';
@@ -61,8 +63,8 @@ export const supabase: Handle = async ({ event, resolve }) => {
 		} = await event.locals.supabase.auth.getSession();
 
 		if (!session) {
-			const email = 'root@ceal.dev'; // your dev test user
-			const password = 'njkdnbkjdbfhjf'; // test password
+			const email = PUBLIC_ADMIN_USER;
+			const password = PUBLIC_ADMIN_USER_PASSWORD;
 
 			const { data, error } = await event.locals.supabase.auth.signInWithPassword({
 				email,
