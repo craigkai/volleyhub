@@ -98,7 +98,6 @@
 								<UsersIcon class="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
 								<span class="font-medium">{defaultTeam ? defaultTeam : 'Select your team'}</span>
 							</div>
-							<ChevronDownIcon class="h-4 w-4 text-gray-500 dark:text-gray-400" />
 						</div>
 					</Select.Trigger>
 					<Select.Content

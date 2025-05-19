@@ -56,7 +56,7 @@
 </script>
 
 <div
-	class="rounded-lg p-3 {refTeam?.name === defaultTeam
+	class="rounded-lg {refTeam?.name === defaultTeam
 		? 'border-2 border-solid border-yellow-300 bg-yellow-200 dark:border-yellow-600 dark:bg-gray-700 dark:text-white'
 		: 'border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white'}"
 >

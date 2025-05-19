@@ -148,16 +148,18 @@
 		</div>
 
 		<!-- Right side: Buttons -->
-		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-			<Button
-				onclick={checkGenerateMatches}
-				class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700"
-				disabled={loading}
-			>
-				<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-				<span>Generate Matches</span>
-			</Button>
-		</div>
+		{#if !readOnly}
+			<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+				<Button
+					onclick={checkGenerateMatches}
+					class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700"
+					disabled={loading}
+				>
+					<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+					<span>Generate Matches</span>
+				</Button>
+			</div>
+		{/if}
 	</div>
 
 	{#if showGenerateMatchesAlert}
@@ -223,7 +225,7 @@
 			{/if}
 
 			<div class="-mx-4 overflow-x-auto sm:mx-0">
-				<Table.Root class="min-w-full sm:table-fixed">
+				<Table.Root class="min-w-full sm:table-fixed p-2 m-2">
 					<Table.Header>
 						<Table.Row class="bg-gray-50 dark:bg-gray-900">
 							<Table.Head
@@ -264,7 +266,7 @@
 											? 'default-team-indicator'
 											: ''}"
 									>
-										Round {round + 1}
+										{round + 1}
 									</Table.Cell>
 
 									{#each Array(data.tournament.courts) as _, court}
