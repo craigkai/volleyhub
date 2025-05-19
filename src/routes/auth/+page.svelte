@@ -25,6 +25,17 @@
 	const signupForm = superForm(data?.signupForm || {}, {
 		warnings: {
 			duplicateId: false
+		},
+		onResult: (e) => {
+			if (e.result.status !== 200) {
+				if (e.result.data.form.errors) {
+					const errorMessages = Object.values(e.result.data.form.errors).flat();
+					toast.error(errorMessages.join(', '));
+				} else {
+					toast.error('Sign up failed');
+				}
+			}
+			toast.success('Sign up email sent successfully');
 		}
 	});
 
