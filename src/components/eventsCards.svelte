@@ -6,7 +6,6 @@
 	import ChevronLeftIcon from 'lucide-svelte/icons/chevron-left';
 	import ChevronRightIcon from 'lucide-svelte/icons/chevron-right';
 	import ClipboardListIcon from 'lucide-svelte/icons/clipboard-list';
-	import type { EventRow } from '$lib/types';
 
 	// Input prop
 	let { events }: { events: Partial<EventRow>[] } = $props();
@@ -64,36 +63,29 @@
 					<Card.Root
 						class="h-full overflow-hidden border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
 					>
-						{#if event.image_url}
-							<div class="relative h-40 w-full overflow-hidden">
-								<img
-									src={event.image_url || '/placeholder.svg'}
-									alt={event.name || 'Event'}
-									class="h-full w-full object-cover"
-								/>
-								<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+						<div
+							class="relative flex h-40 w-full items-center justify-center overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600"
+						>
+							<div class="absolute inset-0 opacity-10">
+								<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+									<defs>
+										<pattern id="pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+											<path
+												d="M0 20 L40 20 M20 0 L20 40"
+												stroke="white"
+												stroke-width="1"
+												fill="none"
+											/>
+										</pattern>
+									</defs>
+									<rect width="100%" height="100%" fill="url(#pattern)" />
+								</svg>
 							</div>
-						{:else}
-							<div
-								class="relative h-40 w-full overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600"
-							>
-								<div class="absolute inset-0 opacity-10">
-									<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-										<defs>
-											<pattern id="pattern" width="40" height="40" patternUnits="userSpaceOnUse">
-												<path
-													d="M0 20 L40 20 M20 0 L20 40"
-													stroke="white"
-													stroke-width="1"
-													fill="none"
-												/>
-											</pattern>
-										</defs>
-										<rect width="100%" height="100%" fill="url(#pattern)" />
-									</svg>
-								</div>
-							</div>
-						{/if}
+
+							<span class="relative z-10 text-5xl font-bold text-white drop-shadow-md">
+								{event.name?.charAt(0).toUpperCase() || '?'}
+							</span>
+						</div>
 
 						<Card.Header class="p-4 pb-2">
 							<Card.Title class="line-clamp-1 text-lg font-bold text-gray-800 dark:text-white">
@@ -122,21 +114,6 @@
 
 						<div class="border-t border-gray-100 p-4 dark:border-gray-700">
 							<div class="flex items-center justify-between">
-								{#if event.status}
-									<span
-										class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-										class:bg-emerald-100={event.status === 'active'}
-										class:text-emerald-800={event.status === 'active'}
-										class:bg-amber-100={event.status === 'pending'}
-										class:text-amber-800={event.status === 'pending'}
-										class:bg-gray-100={event.status === 'completed'}
-										class:text-gray-800={event.status === 'completed'}
-									>
-										{event.status}
-									</span>
-								{:else}
-									<span></span>
-								{/if}
 								<span class="text-sm font-medium text-emerald-600 dark:text-emerald-400"
 									>View details →</span
 								>
@@ -147,7 +124,6 @@
 			{/each}
 		</div>
 
-		<!-- Pagination Controls -->
 		{#if totalPages > 1}
 			<div class="mt-8 flex items-center justify-center space-x-2">
 				<button

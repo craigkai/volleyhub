@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$components/ui/button/index.js';
 	import { goto } from '$app/navigation';
-	import EventsCards from '$components/eventsCards.svelte';
+	import EventsCards from '$components/EventsCards.svelte';
 
 	let { data } = $props();
 	let events = data?.events;
