@@ -5,7 +5,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { UAParser } from 'ua-parser-js';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { PUBLIC_COMMIT_REF, PUBLIC_ADMIN_USER, PUBLIC_ADMIN_USER_PASSWORD } from '$env/static/public';
+import { PUBLIC_ADMIN_USER, PUBLIC_ADMIN_USER_PASSWORD } from '$env/static/public';
 
 export const supabase: Handle = async ({ event, resolve }) => {
 	const userAgent = event.request.headers.get('user-agent') || '';
@@ -56,7 +56,7 @@ export const supabase: Handle = async ({ event, resolve }) => {
 		return { session, user };
 	};
 
-	if (import.meta.env.DEV) {
+	if (0&& import.meta.env.DEV) {
 		const {
 			data: { session }
 		} = await event.locals.supabase.auth.getSession();

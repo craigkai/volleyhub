@@ -3,7 +3,6 @@
 	import { Control, Field, FieldErrors } from 'formsnap';
 	import { Label } from '$components/ui/label';
 	import { Input } from '$components/ui/input';
-	import toast from 'svelte-5-french-toast';
 
 	let { data } = $props();
 
@@ -48,14 +47,6 @@
 		warnings: {
 			duplicateId: false
 		}
-	});
-
-	$effect(() => {
-		[signInForm.message, resetPasswordForm.message].forEach((message) => {
-			if (message) {
-				toast.success(message);
-			}
-		});
 	});
 
 	function switchAuthMode(mode: string) {
