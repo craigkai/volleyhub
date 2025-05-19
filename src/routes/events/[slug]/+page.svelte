@@ -18,8 +18,6 @@
 	import ListIcon from 'lucide-svelte/icons/list';
 	import BarChartIcon from 'lucide-svelte/icons/bar-chart-2';
 	import GitBranchIcon from 'lucide-svelte/icons/git-branch';
-	import ChevronDownIcon from 'lucide-svelte/icons/chevron-down';
-	import { Badge } from '$components/ui/badge';
 
 	let { data = $bindable() } = $props();
 

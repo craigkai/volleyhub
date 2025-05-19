@@ -3,6 +3,7 @@
 	import { Control, Field, FieldErrors } from 'formsnap';
 	import { Label } from '$components/ui/label';
 	import { Input } from '$components/ui/input';
+	import toast from 'svelte-5-french-toast';
 
 	let { data } = $props();
 
@@ -38,8 +39,16 @@
 		onSubmit: () => {
 			isLoading = true;
 		},
-		onResult: () => {
+		onResult: (e) => {
 			isLoading = false;
+			if (e.result.status !== 200) {
+				if (e.result.data.form.errors) {
+					const errorMessages = Object.values(e.result.data.form.errors).flat();
+					toast.error(errorMessages.join(', '));
+				} else {
+					toast.error('Sign in failed');
+				}
+			}
 		}
 	});
 

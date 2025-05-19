@@ -22,7 +22,7 @@
 
 	<div class="button-container">
 		<Button
-			class="rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
+			class="rounded m-2 cursor-pointer bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
 			onclick={() => goto('/events/create')}>Create</Button
 		>
 	</div>
