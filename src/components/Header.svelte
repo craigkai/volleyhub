@@ -6,26 +6,15 @@
 	import Moon from 'lucide-svelte/icons/moon';
 	import { toggleMode } from 'mode-watcher';
 
-	let { supabase, isMobile }: { supabase: any; isMobile: boolean } = $props();
+	let { supabase, isMobile, user }: { supabase: any; isMobile: boolean; user: any } = $props();
 
 	let open: boolean = $state(!isMobile);
-
-	let currentUser: { data: { user: { aud: string } } } | undefined = $state();
-
-	async function getCurrentUser() {
-		currentUser = await supabase.auth.getUser();
-	}
-
-	supabase.auth.onAuthStateChange(() => {
-		getCurrentUser();
-	});
 </script>
 
 <header class="w-full">
-	<!-- Navigation bar -->
 	<div class="bg-blue-500 p-4 dark:bg-slate-900">
 		<div class="flex w-[300px]">
-			<a href="/">
+			<a href="/" aria-label="Open navigation menu">
 				<svg
 					class="h-20 w-20 p-2 dark:fill-blue-600"
 					fill="#000000"
@@ -62,7 +51,7 @@
 
 		{#if open}
 			<nav
-				class="relative flex w-full items-center justify-between rounded bg-white py-2 text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 dark:bg-gray-800 dark:text-gray-200 md:flex-wrap md:justify-start"
+				class="relative flex w-full items-center justify-between rounded bg-white py-2 text-neutral-600 shadow-lg hover:text-neutral-700 focus:text-neutral-700 md:flex-wrap md:justify-start dark:bg-gray-800 dark:text-gray-200"
 				transition:fade={{ duration: 300 }}
 			>
 				<div class="flex w-full flex-wrap items-center justify-between px-3">
@@ -72,7 +61,7 @@
 							<ul class="mr-auto flex flex-col lg:flex-row" data-te-navbar-nav-ref>
 								<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
 									<a
-										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 lg:p-2 dark:hover:text-white dark:focus:text-white [&.active]:text-black/90"
 										href="/"
 										data-te-nav-link-ref
 										data-te-ripple-init
@@ -80,10 +69,10 @@
 									>
 								</li>
 
-								{#if currentUser?.data?.user?.aud === 'authenticated'}
+								{#if user?.aud === 'authenticated'}
 									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
 										<a
-											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 lg:p-2 dark:hover:text-white dark:focus:text-white [&.active]:text-black/90"
 											href="/protected-routes/dashboard"
 											data-te-nav-link-ref
 											data-te-ripple-init
@@ -94,7 +83,7 @@
 								{:else}
 									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
 										<a
-											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 dark:hover:text-white dark:focus:text-white lg:p-2 [&.active]:text-black/90"
+											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 lg:p-2 dark:hover:text-white dark:focus:text-white [&.active]:text-black/90"
 											href="/auth"
 											data-te-nav-link-ref
 											data-te-ripple-init
@@ -106,10 +95,10 @@
 								<li data-te-nav-item-ref>
 									<Button onclick={toggleMode} variant="outline" size="icon" class="cursor-pointer">
 										<Sun
-											class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+											class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
 										/>
 										<Moon
-											class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+											class="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
 										/>
 										<span class="sr-only">Toggle theme</span>
 									</Button>

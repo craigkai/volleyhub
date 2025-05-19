@@ -55,8 +55,9 @@ declare global {
 			user: User | null;
 			isMobile: boolean;
 		}
-		// interface Platform {}
-
+		interface PageData {
+			session: Session | null;
+		}
 		interface PageState {
 			matchId?: number;
 			type?: string;

@@ -5,7 +5,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
-	import { goto, invalidate } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import toast, { Toaster } from 'svelte-5-french-toast';
 
@@ -15,22 +15,10 @@
 
 	let { data = $bindable(), children } = $props();
 
-	let { session, supabase, isMobile } = data;
+	let { session, supabase, isMobile, user } = $derived(data);
 
 	onMount(() => {
-		const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
-			if (!newSession && event !== 'INITIAL_SESSION') {
-				/**
-				 * Queue this as a task so the navigation won't prevent the
-				 * triggering function from completing
-				 */
-				setTimeout(() => {
-					goto('/', {
-						invalidateAll: true
-					});
-				});
-			}
-
+		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
 			if (newSession?.expires_at !== session?.expires_at) {
 				invalidate('supabase:auth');
 			}
@@ -50,10 +38,12 @@
 	<title>VolleyHub</title>
 </svelte:head>
 
-<div class="flex min-h-screen flex-col overflow-x-hidden bg-white text-gray-900 dark:bg-slate-800 dark:text-white">
+<div
+	class="flex min-h-screen flex-col overflow-x-hidden bg-white text-gray-900 dark:bg-slate-800 dark:text-white"
+>
 	<ModeWatcher defaultMode="light" track={false} />
 	<Toaster position="top-right" />
-	<Header {supabase} {isMobile} />
+	<Header {supabase} {isMobile} {user} />
 
 	<div class="mb-8 flex-grow">
 		<div class="mx-auto max-w-7xl p-4">
