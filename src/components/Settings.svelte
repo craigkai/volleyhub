@@ -49,7 +49,7 @@
 		},
 		dataType: 'json'
 	});
-	
+
 	let { form: formData, enhance, delayed } = form;
 
 	const df = new DateFormatter('en-US', {
@@ -129,7 +129,10 @@
 												: 'Select a date'}
 											<CalendarIcon class="ml-auto h-4 w-4 opacity-50" />
 										</PopoverTrigger>
-										<PopoverContent class="w-auto p-0" side="bottom">
+										<PopoverContent
+											class="z-50 w-auto rounded-md border border-gray-300 bg-white p-0 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+											side="bottom"
+										>
 											<Calendar
 												type="single"
 												value={dateValue}
@@ -137,7 +140,7 @@
 												minValue={today(getLocalTimeZone())}
 												calendarLabel="Date of event"
 												initialFocus
-												onValueChange={(v) => ($formData.date = v.toString())}
+												onValueChange={(v) => {if ( v) { $formData.date = v.toString()}}}
 											/>
 										</PopoverContent>
 									</PopoverRoot>
