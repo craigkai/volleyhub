@@ -242,7 +242,7 @@
 										<SelectRoot type="single" bind:value={$formData.refs}>
 											<SelectTrigger
 												{...props}
-												class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
+												class="mt-1.5 min-w-[8rem] border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
 											>
 												{$formData.refs}
 											</SelectTrigger>
@@ -269,7 +269,7 @@
 										<SelectRoot type="single" bind:value={$formData.scoring}>
 											<SelectTrigger
 												{...props}
-												class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
+												class="mt-1.5 min-w-[8rem] border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
 											>
 												{$formData.scoring}
 											</SelectTrigger>
