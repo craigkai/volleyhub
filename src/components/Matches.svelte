@@ -14,23 +14,25 @@
 	import * as Table from '$components/ui/table/index.js';
 	import * as Alert from '$components/ui/alert/index.js';
 	import { Button } from '$components/ui/button';
+	import ChevronRight from 'lucide-svelte/icons/chevron-right';
+	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 
 	let { readOnly = false, defaultTeam, data } = $props();
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let subscriptionStatus: any | undefined = $derived(data.matches?.subscriptionStatus);
-
-	async function checkGenerateMatches() {
-		if ((data.matches?.matches?.length ?? 0) > 0) {
-			showGenerateMatchesAlert = true;
-		} else {
-			generateMatches();
-		}
-	}
+	let tableContainer: HTMLElement | undefined = $state();
+	let isMobile = $state(false);
 
 	onMount(() => {
 		if ((data.matches?.matches?.length ?? 0) > 0) subscribeToMatches();
+		checkMobileView();
+		window.addEventListener('resize', checkMobileView);
+
+		return () => {
+			window.removeEventListener('resize', checkMobileView);
+		};
 	});
 
 	onDestroy(() => {
@@ -42,6 +44,14 @@
 			if (!data.matches.subscriptionStatus && matchesSubscription?.state === 'closed') {
 				await subscribeToMatches();
 			}
+		}
+	}
+
+	async function checkGenerateMatches() {
+		if ((data.matches?.matches?.length ?? 0) > 0) {
+			showGenerateMatchesAlert = true;
+		} else {
+			generateMatches();
 		}
 	}
 
@@ -98,7 +108,6 @@
 		Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) + 1
 	);
 
-	// Function to check if a round contains matches with the default team
 	function roundHasDefaultTeam(roundIndex: number): boolean {
 		if (!defaultTeam) return false;
 
@@ -112,6 +121,10 @@
 			return team1?.name === defaultTeam || team2?.name === defaultTeam;
 		});
 	}
+
+	function checkMobileView() {
+		isMobile = window.innerWidth < 768;
+	}
 </script>
 
 <svelte:document onvisibilitychange={handleVisibilityChange} />
@@ -119,7 +132,6 @@
 
 <div class="space-y-6">
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-		<!-- Left side: Heading + Status -->
 		<div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
 			<h2 class="text-lg font-semibold text-gray-800 dark:text-white">Tournament Matches</h2>
 			<div
@@ -216,12 +228,29 @@
 				</div>
 			{/if}
 
-			<div class="-mx-4 overflow-x-auto sm:mx-0">
-				<Table.Root class="m-2 min-w-full p-2 sm:table-fixed">
+			{#if isMobile}
+				<div class="relative">
+					<div
+						class="border-b border-gray-200 bg-gray-50 px-4 py-2 text-center text-xs text-gray-500 md:hidden dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-400"
+					>
+						<div class="flex items-center justify-center gap-1">
+							<ChevronLeft class="h-3 w-3" />
+							<span>Swipe to see all courts</span>
+							<ChevronRight class="h-3 w-3" />
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			<div
+				bind:this={tableContainer}
+				class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto"
+			>
+				<Table.Root class="min-w-full p-2 sm:table-fixed">
 					<Table.Header>
-						<Table.Row class="bg-gray-50 dark:bg-gray-900">
+						<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
 							<Table.Head
-								class="w-24 py-3 pl-4 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+								class="sticky left-0 z-10 w-16 bg-gray-50 py-3 pl-4 text-left text-sm font-medium text-gray-700 sm:w-24 dark:bg-gray-900 dark:text-gray-300"
 							>
 								Round
 							</Table.Head>
@@ -249,14 +278,14 @@
 								{@const hasDefaultTeam = roundHasDefaultTeam(round)}
 								<Table.Row
 									class="border-t border-gray-200 dark:border-gray-700 {`
-											${round % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
-											${hasDefaultTeam ? 'default-team-row' : ''}
-										`}"
+										${round % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
+										${hasDefaultTeam ? 'default-team-row' : ''}
+									`}"
 								>
 									<Table.Cell
-										class="py-3 pl-4 text-sm font-medium text-gray-800 dark:text-gray-200 {hasDefaultTeam
-											? 'default-team-indicator'
-											: ''}"
+										class="sticky left-0 z-10 bg-white py-3 pl-4 text-sm font-medium text-gray-800
+	       dark:bg-gray-800 dark:text-gray-200"
+										style="top: 42px;"
 									>
 										{round + 1}
 									</Table.Cell>
@@ -321,7 +350,7 @@
 	}
 
 	/* Focus styles for better accessibility */
-	:global(button:focus-visible) {
+	:global(Button:focus-visible) {
 		outline: 2px solid rgb(16 185 129 / 0.5);
 		outline-offset: 2px;
 	}
@@ -356,5 +385,44 @@
 		left: -0.5rem;
 		top: 50%;
 		transform: translateY(-40%);
+	}
+
+	/* Custom scrollbar for better visibility */
+	.scrollbar-thin::-webkit-scrollbar {
+		height: 6px;
+	}
+
+	.scrollbar-thin::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.scrollbar-thin::-webkit-scrollbar-thumb {
+		background-color: rgb(209, 213, 219); /* gray-300 */
+		border-radius: 20px;
+	}
+
+	.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+		background-color: rgb(75, 85, 99); /* gray-600 */
+	}
+
+	/* Pulse animation for scroll indicators on first load */
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 0.8;
+		}
+		50% {
+			opacity: 0.5;
+		}
+	}
+
+	.pulse-animation {
+		animation: pulse 2s infinite;
+	}
+
+	/* Ensure the Round column stays fixed when scrolling horizontally */
+	.sticky {
+		position: sticky;
+		z-index: 10;
 	}
 </style>

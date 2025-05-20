@@ -85,7 +85,7 @@
 					type="single"
 					value={defaultTeam}
 					onValueChange={(v) => {
-						if (v) defaultTeam = v ?? '';
+						defaultTeam = v ?? '';
 
 						if (browser && historyReady) {
 							const url = new URL(page.url);
@@ -118,7 +118,7 @@
 								class="cursor-pointer px-4 py-2 text-gray-800 hover:bg-emerald-50 focus:bg-emerald-50 dark:text-white dark:hover:bg-emerald-900/30 dark:focus:bg-emerald-900/30"
 							>
 								<div class="flex items-center gap-2">
-									{#if team.name === 'None'}
+									{#if team.name === undefined}
 										<span>Clear selection</span>
 									{:else}
 										<span>{team.name}</span>
