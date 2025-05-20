@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Hamburger } from 'svelte-hamburgers';
-	import { Button } from '$components/ui/Button';
+	import { Button } from '$components/ui/button';
 	import { fade } from 'svelte/transition';
 	import Sun from 'lucide-svelte/icons/sun';
 	import Moon from 'lucide-svelte/icons/moon';
