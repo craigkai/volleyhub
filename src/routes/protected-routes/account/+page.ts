@@ -15,8 +15,9 @@ export const load: PageLoad = async ({ data }) => {
 			email: data?.user?.email ?? '',
 			newPassword: ''
 		},
-		zod(schema)
+		zod(schema),
+		{ errors: false }
 	);
 
-	return { editForm: form };
+	return { form };
 };

@@ -58,7 +58,7 @@ export const actions = {
 		const { error } = await locals.supabase.auth.signInWithOtp({
 			email: form.data.email,
 			options: {
-				emailRedirectTo: 'https://volleyhub.vercel.app/auth/confirm'
+				emailRedirectTo: 'https://volleyhub.vercel.app/auth/confirm?next=/protected-routes/account'
 			}
 		});
 
