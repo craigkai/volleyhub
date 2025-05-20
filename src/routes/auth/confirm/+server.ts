@@ -1,28 +1,18 @@
-import type { EmailOtpType } from '@supabase/supabase-js';
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
+// This is the implicit workflow not the PKCE workflow
 export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
-	const token_hash = url.searchParams.get('token_hash') ?? url.searchParams.get('code'); // support both
-	const type = (url.searchParams.get('type') ?? 'email') as EmailOtpType;
+	const code = url.searchParams.get('code');
 	const next = url.searchParams.get('next') ?? '/protected-routes/dashboard';
 
-	const redirectTo = new URL(url);
-	redirectTo.pathname = next;
-	redirectTo.searchParams.delete('token_hash');
-	redirectTo.searchParams.delete('type');
-	redirectTo.searchParams.delete('code');
-	redirectTo.searchParams.delete('next');
-
-	if (token_hash) {
-		const { error } = await supabase.auth.verifyOtp({ type, token_hash });
-
+	if (code) {
+		const { error } = await supabase.auth.exchangeCodeForSession(code);
 		if (!error) {
-			redirect(303, redirectTo);
+			redirect(303, next);
 		}
 	}
 
-	console.error('Error verifying OTP:', { token_hash, type });
-	redirectTo.pathname = '/auth/error';
-	redirect(303, redirectTo);
+	console.error('Error verifying code:', { code });
+	redirect(303, '/auth/error');
 };
