@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Hamburger } from 'svelte-hamburgers';
-	import { Button } from '$components/ui/button';
+	import { Button } from '$components/ui/Button';
 	import { fade } from 'svelte/transition';
 	import Sun from 'lucide-svelte/icons/sun';
 	import Moon from 'lucide-svelte/icons/moon';
@@ -9,6 +9,9 @@
 	let { supabase, isMobile, user }: { supabase: any; isMobile: boolean; user: any } = $props();
 
 	let open: boolean = $state(!isMobile);
+	let isUserMenuOpen = $state(false);
+
+	let userDropdownRef: HTMLDivElement | null = $state(null);
 </script>
 
 <header class="w-full">
@@ -55,56 +58,122 @@
 				transition:fade={{ duration: 300 }}
 			>
 				<div class="flex w-full flex-wrap items-center justify-between px-3">
-					<div class="flex-row">
-						<!-- Navigation links -->
-						<div class="grow basis-[100%] items-center lg:!flex lg:basis-auto">
-							<ul class="mr-auto flex flex-col lg:flex-row" data-te-navbar-nav-ref>
-								<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-									<a
-										class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 lg:p-2 dark:hover:text-white dark:focus:text-white [&.active]:text-black/90"
-										href="/"
-										data-te-nav-link-ref
-										data-te-ripple-init
-										data-te-ripple-color="light">Home</a
-									>
-								</li>
+					<!-- Left side: Navigation links -->
+					<div class="flex flex-row items-center gap-6">
+						<a class="transition hover:text-neutral-700 dark:hover:text-white" href="/"> Home </a>
+					</div>
 
-								{#if user?.aud === 'authenticated'}
-									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-										<a
-											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 lg:p-2 dark:hover:text-white dark:focus:text-white [&.active]:text-black/90"
-											href="/protected-routes/dashboard"
-											data-te-nav-link-ref
-											data-te-ripple-init
-											data-te-ripple-color="light"
-											>My Dashboard
-										</a>
-									</li>
-								{:else}
-									<li class="mb-4 lg:mb-0 lg:pr-2" data-te-nav-item-ref>
-										<a
-											class="block transition duration-150 ease-in-out hover:text-neutral-700 focus:text-neutral-700 disabled:text-black/30 lg:p-2 dark:hover:text-white dark:focus:text-white [&.active]:text-black/90"
-											href="/auth"
-											data-te-nav-link-ref
-											data-te-ripple-init
-											data-te-ripple-color="light"
-											>Login
-										</a>
-									</li>
+					<!-- Right side: User menu + theme toggle -->
+					<div class="ml-auto flex flex-row items-center gap-4">
+						<Button onclick={toggleMode} variant="outline" size="icon" class="cursor-pointer">
+							<Sun
+								class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
+							/>
+							<Moon
+								class="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
+							/>
+							<span class="sr-only">Toggle theme</span>
+						</Button>
+						{#if user?.aud === 'authenticated'}
+							<!-- User dropdown -->
+							<div class="relative" bind:this={userDropdownRef}>
+								<Button
+									onclick={() => (isUserMenuOpen = !isUserMenuOpen)}
+									variant="ghost"
+									class="flex items-center gap-2 px-3 py-2 text-sm font-medium"
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										class="h-5 w-5"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<circle cx="12" cy="7" r="4" />
+										<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+									</svg>
+									<span class="max-w-[150px] truncate">{user?.email}</span>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										class="h-4 w-4 transition-transform duration-200 {isUserMenuOpen
+											? 'rotate-180'
+											: ''}"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<polyline points="6 9 12 15 18 9" />
+									</svg>
+								</Button>
+
+								{#if isUserMenuOpen}
+									<div
+										transition:fade={{ duration: 150 }}
+										class="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
+									>
+										<ul class="py-1">
+											<li>
+												<a
+													href="/protected-routes/dashboard"
+													class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+												>
+													<svg
+														xmlns="http://www.w3.org/2000/svg"
+														class="h-5 w-5"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+														stroke-width="2"
+													>
+														<rect x="3" y="3" width="7" height="7" />
+														<rect x="14" y="3" width="7" height="7" />
+														<rect x="14" y="14" width="7" height="7" />
+														<rect x="3" y="14" width="7" height="7" />
+													</svg>
+													Dashboard
+												</a>
+											</li>
+
+											<li>
+												<div class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+											</li>
+
+											<li>
+												<form method="POST" action="/auth/signout">
+													<button
+														type="submit"
+														class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+													>
+														<svg
+															xmlns="http://www.w3.org/2000/svg"
+															class="h-5 w-5"
+															fill="none"
+															viewBox="0 0 24 24"
+															stroke="currentColor"
+															stroke-width="2"
+														>
+															<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+															<polyline points="16 17 21 12 16 7" />
+															<line x1="21" y1="12" x2="9" y2="12" />
+														</svg>
+														Sign Out
+													</button>
+												</form>
+											</li>
+										</ul>
+									</div>
 								{/if}
-								<li data-te-nav-item-ref>
-									<Button onclick={toggleMode} variant="outline" size="icon" class="cursor-pointer">
-										<Sun
-											class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
-										/>
-										<Moon
-											class="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
-										/>
-										<span class="sr-only">Toggle theme</span>
-									</Button>
-								</li>
-							</ul>
-						</div>
+							</div>
+						{:else}
+							<a
+								href="/auth"
+								class="text-sm text-neutral-600 hover:text-neutral-800 dark:text-gray-200 dark:hover:text-white"
+							>
+								Login
+							</a>
+						{/if}
 					</div>
 				</div>
 			</nav>

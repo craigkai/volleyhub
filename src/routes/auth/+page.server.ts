@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import { signUpSchema, signInSchema, resetPasswordSchema } from './schemas';
 import { setError, message, superValidate, fail } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
