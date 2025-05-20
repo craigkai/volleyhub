@@ -13,8 +13,14 @@ import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 import { Teams } from '$lib/teams.svelte';
 
 export const load: PageServerLoad = async ({ locals }) => {
+	const { data, error } = await locals.supabase.auth.getUser();
+
+	if (error || !data.user) {
+		throw redirect(302, '/auth');
+	}
+
 	return {
-		user: locals.user
+		user: data.user
 	};
 };
 

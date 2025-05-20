@@ -53,9 +53,9 @@
 		}
 	});
 
-	const resetPasswordForm = superForm(data?.resetPasswordForm || {}, {
+	const magicLinkForm = superForm(data?.magicLinkForm || {}, {
 		warnings: { duplicateId: false },
-		onResult: (e) => handleFormResult(e, 'Password reset email sent successfully')
+		onResult: (e) => handleFormResult(e, 'Magic link email sent successfully')
 	});
 
 	function switchAuthMode(mode: string) {
@@ -64,7 +64,7 @@
 
 	const signupFormData = signupForm.form;
 	const signInFormData = signInForm.form;
-	const resetPasswordFormData = resetPasswordForm.form;
+	const magicLinkFormData = magicLinkForm.form;
 </script>
 
 <svelte:head>
@@ -74,7 +74,7 @@
 <div class="m-4 flex items-center justify-center rounded bg-gray-100 p-4">
 	<div class="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
 		<h2 class="text-center text-2xl font-bold text-gray-700 dark:text-gray-200">
-			{authMode === 'signup' ? 'Sign Up' : authMode === 'signin' ? 'Sign In' : 'Reset Password'}
+			{authMode === 'signup' ? 'Sign Up' : authMode === 'signin' ? 'Sign In' : 'Magic link'}
 		</h2>
 
 		{#if authMode === 'signup'}
@@ -141,8 +141,6 @@
 								/>
 							{/snippet}
 						</Control>
-
-						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
 					</Field>
 				</div>
 				<div class="space-y-2">
@@ -160,8 +158,6 @@
 								/>
 							{/snippet}
 						</Control>
-
-						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
 					</Field>
 				</div>
 
@@ -174,33 +170,31 @@
 				</Button>
 			</form>
 		{:else if authMode === 'reset'}
-			<form use:resetPasswordForm.enhance action="?/resetpassword" method="POST" class="space-y-4">
+			<form method="POST" action="?/magic" use:magicLinkForm.enhance class="space-y-4">
 				<div class="space-y-2">
-					<Field form={resetPasswordForm} name="email">
+					<Field form={magicLinkForm} name="email">
 						<Control>
 							{#snippet children({ props })}
-								<Label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-									>Email</Label
-								>
+								<Label>Email for Magic Link</Label>
 								<Input
+									type="email"
 									{...props}
-									bind:value={$resetPasswordFormData.email}
+									bind:value={$magicLinkFormData.email}
 									class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
 								/>
 							{/snippet}
 						</Control>
-
-						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
 					</Field>
 				</div>
 				<Button
-					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-					type="submit">Reset Password</Button
+					type="submit"
+					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
 				>
+					Send Magic Link
+				</Button>
 			</form>
 		{/if}
 
-		<!-- Auth mode navigation Buttons -->
 		<div class="mt-6 space-y-3">
 			{#if authMode !== 'signin' && authMode !== 'signup'}
 				<Button

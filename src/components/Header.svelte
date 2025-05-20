@@ -135,6 +135,26 @@
 										<ul class="py-1">
 											<li>
 												<a
+													href="/protected-routes/account"
+													class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+												>
+													<svg
+														xmlns="http://www.w3.org/2000/svg"
+														class="h-5 w-5"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+														stroke-width="2"
+													>
+														<path
+															d="M12 4.354a4 4 0 1 1 0 7.292M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"
+														/>
+													</svg>
+													Manage Account
+												</a>
+											</li>
+											<li>
+												<a
 													href="/protected-routes/dashboard"
 													class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
 												>

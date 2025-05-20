@@ -1,5 +1,4 @@
-import { redirect } from '@sveltejs/kit';
-import { signUpSchema, signInSchema, resetPasswordSchema } from './schemas';
+import { signUpSchema, signInSchema, magicLinkSchema } from './schemas';
 import { setError, message, superValidate, fail } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
@@ -36,7 +35,7 @@ export const actions = {
 	},
 
 	resetpassword: async ({ request, locals: { supabase } }) => {
-		const form = await superValidate(request, zod(resetPasswordSchema));
+		const form = await superValidate(request, zod(magicLinkSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const { email } = form.data;
@@ -50,5 +49,26 @@ export const actions = {
 		}
 
 		return message(form, 'Password reset email sent');
+	},
+
+	magic: async ({ request, locals }) => {
+		const form = await superValidate(request, zod(magicLinkSchema));
+		if (!form.valid) return fail(400, { form });
+
+		const { error } = await locals.supabase.auth.signInWithOtp({
+			email: form.data.email,
+			options: {
+				emailRedirectTo: 'https://volleyhub.vercel.app/auth/confirm'
+			}
+		});
+
+		if (error) {
+			return fail(400, {
+				form,
+				message: error.message
+			});
+		}
+
+		return { form, success: true };
 	}
 };
