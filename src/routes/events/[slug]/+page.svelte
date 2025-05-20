@@ -136,6 +136,7 @@
 		{#if tabsReady}
 			{#key data.eventId}
 				<TabsRoot class="w-full" value={readOnly ? 'matches' : 'settings'}>
+											<div class="flex justify-center mb-8">
 					<TabsList class="mb-6 grid gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800 {tabsWidth}">
 						{#if !readOnly}
 							<TabsTrigger
@@ -171,6 +172,7 @@
 							<span>Standings</span>
 						</TabsTrigger>
 					</TabsList>
+				</div>
 
 					{#if !readOnly}
 						<TabsContent value="settings">
