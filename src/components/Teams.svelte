@@ -3,10 +3,8 @@
 	import * as Table from '$components/ui/table';
 	import { Input } from '$components/ui/input/index.js';
 	import { Button } from '$components/ui/button';
-	import type { Teams } from '$lib/teams.svelte';
 	import toast from 'svelte-5-french-toast';
 	import { Team } from '$lib/team.svelte';
-	import type { Matches } from '$lib/matches.svelte';
 	import UsersIcon from 'lucide-svelte/icons/users';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import TrashIcon from 'lucide-svelte/icons/trash-2';
@@ -160,7 +158,9 @@
 															updateTeam(team);
 														} else if (e?.key === 'Escape') {
 															// Reset to original name if it was changed
-															const originalTeam = teams.teams.find((t) => t.id === team.id);
+															const originalTeam = teams.teams.find(
+																(t: { id: any }) => t.id === team.id
+															);
 															if (originalTeam && originalTeam.name !== team.name) {
 																team.name = originalTeam.name;
 															}

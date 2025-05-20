@@ -1,8 +1,5 @@
 <script lang="ts">
-	import { Event } from '$lib/event.svelte';
 	import { findStandings } from '$lib/standings.svelte';
-	import { Matches } from '$lib/matches.svelte';
-	import { Teams } from '$lib/teams.svelte';
 	import * as Table from '$components/ui/table/index.js';
 	import {
 		Collapsible,
@@ -104,7 +101,7 @@
 					{#if orderedTeamScores.length === 0}
 						<Table.Row>
 							<Table.Cell
-								colspan="3"
+								colspan={3}
 								class="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
 							>
 								No team data available

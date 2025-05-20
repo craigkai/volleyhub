@@ -7,7 +7,7 @@ import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Event as EventInstance } from '$lib/event.svelte';
 import { Pool } from '$lib/pool/pool.svelte';
 import { Teams as TeamsInstance } from '$lib/teams.svelte';
-import type { Match } from './match.svelte';
+import type { Match } from '$lib/match.svelte';
 
 export async function updateMatch(match: Match): Promise<Match | undefined> {
 	if (match) {

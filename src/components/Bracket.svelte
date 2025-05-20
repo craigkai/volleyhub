@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Match as MatchType } from '$lib/match.svelte';
+	import type { Match } from '$lib/match.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button } from '$components/ui/button/index.js';
 	import { updateMatch } from '$lib/helper.svelte';
@@ -7,7 +7,6 @@
 	import { onMount } from 'svelte';
 	import * as Alert from '$components/ui/alert/index.js';
 	import toast from 'svelte-5-french-toast';
-	import Match from './Match.svelte';
 
 	let {
 		matches = $bindable(),
@@ -23,14 +22,16 @@
 
 	function determineRounds() {
 		const newRounds: Record<number, Round> = {};
-		bracket?.matches?.forEach((match: MatchType) => {
+		bracket?.matches?.forEach((match: Match) => {
 			if (typeof match.round !== 'number') return;
 			if (!newRounds[match.round]) {
 				newRounds[match.round] = {
+					// @ts-ignore
 					matches: [match],
 					value: match.round
 				};
 			} else {
+				// @ts-ignore
 				newRounds[match.round].matches.push(match);
 			}
 		});

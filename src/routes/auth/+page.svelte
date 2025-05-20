@@ -4,6 +4,7 @@
 	import { Label } from '$components/ui/label';
 	import { Input } from '$components/ui/input';
 	import toast from 'svelte-5-french-toast';
+	import { Button } from '$components/ui/button';
 
 	let { data } = $props();
 
@@ -32,9 +33,15 @@
 		}
 	}
 
+	let signupSuccess = $state(false);
 	const signupForm = superForm(data?.signupForm || {}, {
 		warnings: { duplicateId: false },
-		onResult: (e) => handleFormResult(e, 'Sign up email sent successfully')
+		onResult: (e) => handleFormResult(e, 'Sign-up successful. Please check your email.'),
+		onUpdated: ({ form }) => {
+			if (form.valid) {
+				signupSuccess = true;
+			}
+		}
 	});
 
 	const signInForm = superForm(data?.signInForm || {}, {
@@ -81,6 +88,7 @@
 								>
 								<Input
 									{...props}
+									disabled={signupSuccess}
 									bind:value={$signupFormData.email}
 									class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
 								/>
@@ -99,6 +107,7 @@
 								>
 								<Input
 									type="password"
+									disabled={signupSuccess}
 									{...props}
 									bind:value={$signupFormData.password}
 									class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
@@ -110,9 +119,10 @@
 					</Field>
 				</div>
 
-				<button
+				<Button
+					disabled={signupSuccess}
 					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-					type="submit">Sign Up</button
+					type="submit">Sign Up</Button
 				>
 			</form>
 		{:else if authMode === 'signin'}
@@ -155,13 +165,13 @@
 					</Field>
 				</div>
 
-				<button
+				<Button
 					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
 					type="submit"
 					disabled={isLoading}
 				>
 					{isLoading ? 'Signing In...' : 'Sign In'}
-				</button>
+				</Button>
 			</form>
 		{:else if authMode === 'reset'}
 			<form use:resetPasswordForm.enhance action="?/resetpassword" method="POST" class="space-y-4">
@@ -183,30 +193,30 @@
 						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
 					</Field>
 				</div>
-				<button
+				<Button
 					class="w-full rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-					type="submit">Reset Password</button
+					type="submit">Reset Password</Button
 				>
 			</form>
 		{/if}
 
-		<!-- Auth mode navigation buttons -->
+		<!-- Auth mode navigation Buttons -->
 		<div class="mt-6 space-y-3">
 			{#if authMode !== 'signin' && authMode !== 'signup'}
-				<button
+				<Button
 					class="w-full rounded-md bg-gray-200 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-					onclick={() => switchAuthMode('signin')}>Back to Sign In</button
+					onclick={() => switchAuthMode('signin')}>Back to Sign In</Button
 				>
 			{:else}
-				<button
+				<Button
 					class="w-full rounded-md bg-gray-200 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
 					onclick={() => switchAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
 				>
 					{authMode === 'signin' ? 'Need an account? Sign Up' : 'Already have an account? Sign In'}
-				</button>
-				<button
+				</Button>
+				<Button
 					class="w-full rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-					onclick={() => switchAuthMode('reset')}>Forgot Password?</button
+					onclick={() => switchAuthMode('reset')}>Forgot Password?</Button
 				>
 			{/if}
 		</div>
