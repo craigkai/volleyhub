@@ -1,7 +1,7 @@
 <script lang="ts">
 	import toast from 'svelte-5-french-toast';
 	import { Input } from '$components/ui/input';
-	import { Field, Label, Control, Description, FieldErrors, Button } from '$components/ui/form';
+	import { Field, Label, Control, Description, Button } from '$components/ui/form';
 	import { Textarea } from '$components/ui/textarea';
 	import {
 		Root as SelectRoot,
@@ -17,13 +17,7 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { formSchema } from '$schemas/settingsSchema';
-	import {
-		DateFormatter,
-		getLocalTimeZone,
-		today,
-		parseDate,
-		parseDateTime
-	} from '@internationalized/date';
+	import { DateFormatter, getLocalTimeZone, today, parseDateTime } from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$components/ui/button';
 	import { Calendar } from '$components/ui/calendar';
@@ -111,7 +105,6 @@
 							<Description class="text-xs text-gray-500">
 								This is your public display name for your event.
 							</Description>
-							<FieldErrors class="text-xs text-red-500" />
 						</Field>
 					</div>
 
@@ -163,7 +156,6 @@
 								{/snippet}
 							</Control>
 							<Description class="text-xs text-gray-500">Date of tournament</Description>
-							<FieldErrors class="text-xs text-red-500" />
 						</Field>
 					</div>
 
@@ -186,7 +178,6 @@
 							<Description class="text-xs text-gray-500">
 								Provide details about your tournament for participants
 							</Description>
-							<FieldErrors class="text-xs text-red-500" />
 						</Field>
 					</div>
 				</div>
@@ -217,7 +208,6 @@
 								<Description class="text-xs text-gray-500">
 									Courts available for pool play
 								</Description>
-								<FieldErrors class="text-xs text-red-500" />
 							</Field>
 						</div>
 
@@ -238,7 +228,6 @@
 									{/snippet}
 								</Control>
 								<Description class="text-xs text-gray-500">Games before playoffs</Description>
-								<FieldErrors class="text-xs text-red-500" />
 							</Field>
 						</div>
 
@@ -266,7 +255,6 @@
 									{/snippet}
 								</Control>
 								<Description class="text-xs text-gray-500">Source of referees</Description>
-								<FieldErrors class="text-xs text-red-500" />
 							</Field>
 						</div>
 
@@ -296,7 +284,6 @@
 								<Description class="text-xs text-gray-500">
 									Seeding criteria for playoffs
 								</Description>
-								<FieldErrors class="text-xs text-red-500" />
 							</Field>
 						</div>
 					</div>

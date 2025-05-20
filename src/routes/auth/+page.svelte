@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { superForm } from 'sveltekit-superforms';
-	import { Control, Field, FieldErrors } from 'formsnap';
-	import { Label } from '$components/ui/label';
+	import { Field, Label, Control, Button } from '$components/ui/form';
 	import { Input } from '$components/ui/input';
 	import toast from 'svelte-5-french-toast';
-	import { Button } from '$components/ui/button';
 
 	let { data } = $props();
 
@@ -94,8 +92,6 @@
 								/>
 							{/snippet}
 						</Control>
-
-						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
 					</Field>
 				</div>
 				<div class="space-y-2">
@@ -114,8 +110,6 @@
 								/>
 							{/snippet}
 						</Control>
-
-						<FieldErrors class="text-sm text-red-600 dark:text-red-400" />
 					</Field>
 				</div>
 
