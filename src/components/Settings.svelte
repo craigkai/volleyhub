@@ -22,7 +22,8 @@
 		DateFormatter,
 		getLocalTimeZone,
 		CalendarDate,
-		parseDate
+		parseDate,
+		today
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$components/ui/button';
@@ -55,55 +56,17 @@
 		dateStyle: 'long'
 	});
 
-	// Fix the date handling
-	let dateValue = $state<DateValue | undefined>(
-		$formData.date
-			? (() => {
-					try {
-						// Handle different date formats
-						if (typeof $formData.date === 'string') {
-							// If it's an ISO string, parse just the date part
-							const dateOnly = $formData.date.split('T')[0];
-							return parseDate(dateOnly);
-						} else if ($formData.date instanceof Date) {
-							// If it's a Date object, convert to CalendarDate
-							return new CalendarDate(
-								$formData.date.getFullYear(),
-								$formData.date.getMonth() + 1,
-								$formData.date.getDate()
-							);
-						} else {
-							// If it's already a DateValue, return it
-							return $formData.date as DateValue;
-						}
-					} catch (error) {
-						console.error('Error parsing date:', error);
-						return undefined;
-					}
-				})()
-			: undefined
-	);
+	let dateInputValue = $state($formData.date ? $formData.date.split('T')[0] : '');
 
-	// Add this variable to sync with the Calendar component
-	let selectedDate = $state(dateValue);
-
-	// Keep selectedDate and dateValue in sync
 	$effect(() => {
-		if (selectedDate !== dateValue) {
-			selectedDate = dateValue;
-		}
+		$formData.date = dateInputValue;
 	});
 
-	// Update form data when date changes
-	$effect(() => {
-		if (dateValue) {
-			// Convert DateValue to ISO string for form submission
-			const year = dateValue.year;
-			const month = String(dateValue.month).padStart(2, '0');
-			const day = String(dateValue.day).padStart(2, '0');
-			$formData.date = `${year}-${month}-${day}`;
-		}
-	});
+	// State for popover
+	let datePopoverOpen = $state(false);
+
+	let value = $state(today(getLocalTimeZone()));
+	let contentRef = $state<HTMLElement | null>(null);
 </script>
 
 <div class="mx-auto max-w-4xl">
@@ -125,10 +88,8 @@
 			action="?/{eventId === 'create' ? 'createEvent' : 'updateEvent'}"
 			use:enhance
 		>
-			<!-- Form Content -->
 			<div class="p-6">
 				<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-					<!-- Name -->
 					<div class="space-y-1.5">
 						<Field {form} name="name">
 							<Control>
@@ -151,7 +112,6 @@
 						</Field>
 					</div>
 
-					<!-- Date -->
 					<div class="space-y-1.5">
 						<Field {form} name="date">
 							<Control>
@@ -166,29 +126,22 @@
 											class={cn(
 												buttonVariants({ variant: 'outline' }),
 												'mt-1.5 w-full justify-start border-gray-300 pl-4 text-left font-normal focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600',
-												!dateValue && 'text-gray-500'
+												!dateInputValue && 'text-gray-500'
 											)}
 										>
-											{dateValue
-												? df.format(dateValue.toDate(getLocalTimeZone()))
-												: 'Select a date'}
+											{value ? df.format(value.toDate(getLocalTimeZone())) : 'Pick a date'}
 											<CalendarIcon class="ml-auto h-4 w-4 opacity-50" />
 										</PopoverTrigger>
 										<PopoverContent
+											bind:ref={contentRef}
 											class="z-50 w-auto rounded-md border border-gray-300 bg-white p-0 shadow-lg dark:border-gray-700 dark:bg-gray-900"
 											side="bottom"
 										>
-											<Calendar
-												value={selectedDate}
-												onValueChange={(date) => {
-													selectedDate = date;
-													datePopoverOpen = false;
-												}}
-												initialFocus
-											/>
+											<div class="space-y-3">
+												<Calendar type="single" bind:value class="rounded-md border" />
+											</div>
 										</PopoverContent>
 									</PopoverRoot>
-									<!-- Hidden input for form submission -->
 									<input type="hidden" name={props.name} value={$formData.date || ''} />
 								{/snippet}
 							</Control>
@@ -197,7 +150,6 @@
 						</Field>
 					</div>
 
-					<!-- Description -->
 					<div class="space-y-1.5 md:col-span-2">
 						<Field {form} name="description">
 							<Control>
@@ -222,16 +174,13 @@
 					</div>
 				</div>
 
-				<!-- Divider -->
 				<div class="my-8 border-t border-gray-200 dark:border-gray-700"></div>
 
-				<!-- Tournament Structure Section -->
 				<div class="mb-6">
 					<h3 class="mb-4 text-lg font-medium text-gray-800 dark:text-white">
 						Tournament Structure
 					</h3>
 					<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-						<!-- Courts -->
 						<div class="space-y-1.5">
 							<Field {form} name="courts">
 								<Control>
@@ -255,7 +204,6 @@
 							</Field>
 						</div>
 
-						<!-- Pools -->
 						<div class="space-y-1.5">
 							<Field {form} name="pools">
 								<Control>

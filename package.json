@@ -21,7 +21,6 @@
 		"@jest/globals": "^29.7.0",
 		"@lucide/svelte": "^0.511.0",
 		"@playwright/test": "^1.52.0",
-		"@supabase/auth-helpers-sveltekit": "^0.13.0",
 		"@supabase/auth-ui-shared": "^0.1.8",
 		"@supabase/auth-ui-svelte": "^0.2.9",
 		"@supabase/ssr": "^0.6.1",
@@ -53,7 +52,6 @@
 		"i": "^0.3.7",
 		"jsdom": "^26.1.0",
 		"less": "^4.3.0",
-		"lucide-react": "^0.511.0",
 		"lucide-svelte": "^0.511.0",
 		"mode-watcher": "^1.0.7",
 		"postcss": "^8.5.3",
@@ -89,7 +87,6 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@radix-ui/react-collapsible": "^1.1.10",
 		"@tailwindcss/vite": "^4.1.7",
 		"svelte-5-french-toast": "^2.0.4",
 		"svelte-kit-bot-block": "^0.0.7"

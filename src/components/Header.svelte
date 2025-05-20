@@ -75,12 +75,11 @@
 							<span class="sr-only">Toggle theme</span>
 						</Button>
 						{#if user?.aud === 'authenticated'}
-							<!-- User dropdown -->
 							<div class="relative" bind:this={userDropdownRef}>
 								<Button
 									onclick={() => (isUserMenuOpen = !isUserMenuOpen)}
 									variant="ghost"
-									class="flex items-center gap-2 px-3 py-2 text-sm font-medium"
+									class="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm font-medium"
 								>
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
