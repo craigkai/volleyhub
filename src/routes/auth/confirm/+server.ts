@@ -22,8 +22,6 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 	if (token_hash && type) {
 		const { error } = await supabase.auth.verifyOtp({ type, token_hash });
 		if (!error) {
-			console.error(error);
-
 			redirectTo.searchParams.delete('next');
 			redirect(303, redirectTo);
 		}
