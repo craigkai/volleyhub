@@ -4079,6 +4079,13 @@ form-data@^4.0.0:
     es-set-tostringtag "^2.1.0"
     mime-types "^2.1.12"
 
+formsnap@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/formsnap/-/formsnap-2.0.1.tgz#3bceac3896121ed968403c864e8724ebb3ec69bb"
+  integrity sha512-iJSe4YKd/W6WhLwKDVJU9FQeaJRpEFuolhju7ZXlRpUVyDdqFdMP8AUBICgnVvQPyP41IPAlBa/v0Eo35iE6wQ==
+  dependencies:
+    svelte-toolbelt "^0.5.0"
+
 fraction.js@^4.3.7:
   version "4.3.7"
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.3.7.tgz#06ca0085157e42fda7f9e726e79fefc4068840f7"
@@ -6639,6 +6646,14 @@ svelte-kit-bot-block@^0.0.7:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/svelte-kit-bot-block/-/svelte-kit-bot-block-0.0.7.tgz#e960a37bb93dafd0ae43bb82bba93fc31f8948b8"
   integrity sha512-zFIBNMpzQcnPri+0vTTJQevMLcF55nq4/GENGSoQES2n8qDhY44R+Xg+AO38LzGUHrJ2NaRh1peGQzgcDP29Eg==
+
+svelte-toolbelt@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/svelte-toolbelt/-/svelte-toolbelt-0.5.0.tgz#c5eeec1c29e89a7b8faf35d60868988cd0e7caf0"
+  integrity sha512-t3tenZcnfQoIeRuQf/jBU7bvTeT3TGkcEE+1EUr5orp0lR7NEpprflpuie3x9Dn0W9nOKqs3HwKGJeeN5Ok1sQ==
+  dependencies:
+    clsx "^2.1.1"
+    style-to-object "^1.0.8"
 
 svelte-toolbelt@^0.7.1:
   version "0.7.1"

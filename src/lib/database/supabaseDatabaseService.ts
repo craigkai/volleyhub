@@ -1,7 +1,6 @@
 // Importing necessary types from supabase-js and sveltejs/kit
 import type { User, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { error } from '@sveltejs/kit';
-import { v4 as uuidv4 } from 'uuid';
 import { Base } from '$lib/database/base';
 
 export class SupabaseDatabaseService extends Base {
