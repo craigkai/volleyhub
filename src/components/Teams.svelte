@@ -156,7 +156,7 @@
 													class="h-9 rounded border-gray-300 bg-white text-sm focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
 													type="text"
 													bind:value={team.name}
-													on:keydown={(e) => {
+													onkeydown={(e) => {
 														if (e?.key === 'Enter') {
 															updateTeam(team);
 														} else if (e?.key === 'Escape') {
