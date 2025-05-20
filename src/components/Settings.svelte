@@ -20,7 +20,9 @@
 	import {
 		DateFormatter,
 		getLocalTimeZone,
-		today
+		today,
+		parseDate,
+		parseDateTime
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$components/ui/button';
@@ -41,6 +43,11 @@
 		async onUpdated({ form }) {
 			if (form.valid) {
 				toast.success(`Tournament settings updated`);
+
+				const updatedDate = form.data.date;
+				if (updatedDate) {
+					$formData.date = updatedDate;
+				}
 			}
 		},
 		dataType: 'json'
@@ -52,14 +59,17 @@
 		dateStyle: 'long'
 	});
 
-	let dateInputValue = $state($formData.date ? $formData.date.split('T')[0] : '');
-
-	$effect(() => {
-		$formData.date = dateInputValue;
-	});
-
-	let value = $state(today(getLocalTimeZone()));
 	let contentRef = $state<HTMLElement | null>(null);
+
+	let calendarDate = $derived.by(() => {
+		if ($formData.date) {
+			try {
+				return parseDateTime($formData.date);
+			} catch {
+				return today(getLocalTimeZone());
+			}
+		}
+	});
 </script>
 
 <div class="mx-auto max-w-4xl">
@@ -119,10 +129,12 @@
 											class={cn(
 												buttonVariants({ variant: 'outline' }),
 												'mt-1.5 w-full justify-start border-gray-300 pl-4 text-left font-normal focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600',
-												!dateInputValue && 'text-gray-500'
+												!$formData.date && 'text-gray-500'
 											)}
 										>
-											{value ? df.format(value.toDate(getLocalTimeZone())) : 'Pick a date'}
+											{calendarDate
+												? df.format(calendarDate.toDate(getLocalTimeZone()))
+												: 'Pick a date'}
 											<CalendarIcon class="ml-auto h-4 w-4 opacity-50" />
 										</PopoverTrigger>
 										<PopoverContent
@@ -131,7 +143,19 @@
 											side="bottom"
 										>
 											<div class="space-y-3">
-												<Calendar type="single" bind:value class="rounded-md border" />
+												<Calendar
+													type="single"
+													bind:value={calendarDate}
+													onValueChange={(selected) => {
+														if (selected) {
+															$formData.date = selected
+																.toDate(getLocalTimeZone())
+																.toISOString()
+																.split('T')[0];
+														}
+													}}
+													class="rounded-md border"
+												/>
 											</div>
 										</PopoverContent>
 									</PopoverRoot>
@@ -281,17 +305,6 @@
 		</form>
 
 		<div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-			{#if eventId !== 'create'}
-				<form method="POST" action="?/deleteEvent" use:enhance class="sm:flex-1">
-					<Button
-						type="submit"
-						class="w-full rounded-lg border border-red-200 bg-white px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 focus:ring-4 focus:ring-red-100 focus:outline-none sm:w-auto dark:border-red-800 dark:bg-transparent dark:text-red-500 dark:hover:bg-red-900"
-					>
-						Delete Tournament
-					</Button>
-				</form>
-			{/if}
-
 			<form
 				class="flex justify-end sm:flex-1"
 				method="POST"
@@ -305,6 +318,29 @@
 					{eventId === 'create' ? 'Create Tournament' : 'Save Changes'}
 				</Button>
 			</form>
+			{#if eventId !== 'create'}
+				<form
+					method="POST"
+					action="?/deleteEvent"
+					class="sm:flex-1"
+					onsubmit={(e) => {
+						if (
+							!confirm(
+								'Are you sure you want to delete this tournament? This action cannot be undone.'
+							)
+						) {
+							e.preventDefault();
+						}
+					}}
+				>
+					<Button
+						type="submit"
+						class="w-full rounded-lg border border-red-200 bg-white px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 focus:ring-4 focus:ring-red-100 focus:outline-none sm:w-auto dark:border-red-800 dark:bg-transparent dark:text-red-500 dark:hover:bg-red-900"
+					>
+						Delete Tournament
+					</Button>
+				</form>
+			{/if}
 		</div>
 	{/if}
 </div>
