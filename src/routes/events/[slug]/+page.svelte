@@ -136,43 +136,45 @@
 		{#if tabsReady}
 			{#key data.eventId}
 				<TabsRoot class="w-full" value={readOnly ? 'matches' : 'settings'}>
-											<div class="flex justify-center mb-8">
-					<TabsList class="mb-6 grid gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800 {tabsWidth}">
-						{#if !readOnly}
+					<div class="mb-8 flex justify-center">
+						<TabsList
+							class="mb-6 grid gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800 {tabsWidth}"
+						>
+							{#if !readOnly}
+								<TabsTrigger
+									value="settings"
+									class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
+								>
+									<SettingsIcon class="h-4 w-4" />
+									<span>Settings</span>
+								</TabsTrigger>
+								<TabsTrigger
+									disabled={isCreate}
+									value="teams"
+									class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
+								>
+									<UsersIcon class="h-4 w-4" />
+									<span>Teams</span>
+								</TabsTrigger>
+							{/if}
 							<TabsTrigger
-								value="settings"
+								disabled={isCreate}
+								value="matches"
 								class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 							>
-								<SettingsIcon class="h-4 w-4" />
-								<span>Settings</span>
+								<ListIcon class="h-4 w-4" />
+								<span>Matches</span>
 							</TabsTrigger>
 							<TabsTrigger
 								disabled={isCreate}
-								value="teams"
+								value="standings"
 								class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 							>
-								<UsersIcon class="h-4 w-4" />
-								<span>Teams</span>
+								<BarChartIcon class="h-4 w-4" />
+								<span>Standings</span>
 							</TabsTrigger>
-						{/if}
-						<TabsTrigger
-							disabled={isCreate}
-							value="matches"
-							class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
-						>
-							<ListIcon class="h-4 w-4" />
-							<span>Matches</span>
-						</TabsTrigger>
-						<TabsTrigger
-							disabled={isCreate}
-							value="standings"
-							class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
-						>
-							<BarChartIcon class="h-4 w-4" />
-							<span>Standings</span>
-						</TabsTrigger>
-					</TabsList>
-				</div>
+						</TabsList>
+					</div>
 
 					{#if !readOnly}
 						<TabsContent value="settings">

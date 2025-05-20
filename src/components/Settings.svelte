@@ -34,9 +34,8 @@
 	import CourtIcon from 'lucide-svelte/icons/layout-grid';
 	import UserIcon from 'lucide-svelte/icons/users';
 	import ScoreIcon from 'lucide-svelte/icons/bar-chart-2';
-	import type { PageData } from './$types';
 
-	const { data, eventId } = $props<{ eventId: Number | string; data: PageData }>();
+	const { data, eventId } = $props();
 	let form = superForm(data.form, {
 		validators: zodClient(formSchema),
 		onError({ result }) {
