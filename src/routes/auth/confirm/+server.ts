@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 	const token_hash = url.searchParams.get('token_hash') ?? url.searchParams.get('code'); // support both
-	const type = (url.searchParams.get('type') ?? 'magiclink') as EmailOtpType;
+	const type = (url.searchParams.get('type') ?? 'email') as EmailOtpType;
 	const next = url.searchParams.get('next') ?? '/protected-routes/dashboard';
 
 	const redirectTo = new URL(url);
