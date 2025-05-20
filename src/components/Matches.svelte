@@ -14,7 +14,6 @@
 	import * as Table from '$components/ui/table/index.js';
 	import * as Alert from '$components/ui/alert/index.js';
 	import { Button } from '$components/ui/button';
-	import type { MatchRow } from '$lib/types';
 
 	let {
 		readOnly = false,
@@ -112,7 +111,8 @@
 		if (!defaultTeam) return false;
 
 		return data.matches.matches.some((m: Match) => {
-			if (m.round.toString() !== roundIndex.toString()) return false;
+			if (typeof m.round === 'undefined' || m.round.toString() !== roundIndex.toString())
+				return false;
 
 			const team1 = data.teams.teams.find((t: any) => t.id === m.team1);
 			const team2 = data.teams.teams.find((t: any) => t.id === m.team2);
@@ -225,7 +225,7 @@
 			{/if}
 
 			<div class="-mx-4 overflow-x-auto sm:mx-0">
-				<Table.Root class="min-w-full sm:table-fixed p-2 m-2">
+				<Table.Root class="m-2 min-w-full p-2 sm:table-fixed">
 					<Table.Header>
 						<Table.Row class="bg-gray-50 dark:bg-gray-900">
 							<Table.Head
@@ -323,11 +323,6 @@
 </div>
 
 <style>
-	/* Smooth transitions for hover states */
-	button {
-		transition: all 0.2s ease;
-	}
-
 	/* Ensure table is responsive */
 	:global(.courts-container) {
 		overflow-x: auto;

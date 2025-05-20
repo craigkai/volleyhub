@@ -21,8 +21,8 @@
 		type DateValue,
 		DateFormatter,
 		getLocalTimeZone,
-		today,
-		parseDateTime
+		CalendarDate,
+		parseDate
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$components/ui/button';
@@ -55,9 +55,55 @@
 		dateStyle: 'long'
 	});
 
-	let dateValue = $derived($formData.date ? parseDateTime($formData.date) : undefined);
+	// Fix the date handling
+	let dateValue = $state<DateValue | undefined>(
+		$formData.date
+			? (() => {
+					try {
+						// Handle different date formats
+						if (typeof $formData.date === 'string') {
+							// If it's an ISO string, parse just the date part
+							const dateOnly = $formData.date.split('T')[0];
+							return parseDate(dateOnly);
+						} else if ($formData.date instanceof Date) {
+							// If it's a Date object, convert to CalendarDate
+							return new CalendarDate(
+								$formData.date.getFullYear(),
+								$formData.date.getMonth() + 1,
+								$formData.date.getDate()
+							);
+						} else {
+							// If it's already a DateValue, return it
+							return $formData.date as DateValue;
+						}
+					} catch (error) {
+						console.error('Error parsing date:', error);
+						return undefined;
+					}
+				})()
+			: undefined
+	);
 
-	const datePlaceholder: DateValue = today(getLocalTimeZone());
+	// Add this variable to sync with the Calendar component
+	let selectedDate = $state(dateValue);
+
+	// Keep selectedDate and dateValue in sync
+	$effect(() => {
+		if (selectedDate !== dateValue) {
+			selectedDate = dateValue;
+		}
+	});
+
+	// Update form data when date changes
+	$effect(() => {
+		if (dateValue) {
+			// Convert DateValue to ISO string for form submission
+			const year = dateValue.year;
+			const month = String(dateValue.month).padStart(2, '0');
+			const day = String(dateValue.day).padStart(2, '0');
+			$formData.date = `${year}-${month}-${day}`;
+		}
+	});
 </script>
 
 <div class="mx-auto max-w-4xl">
@@ -133,16 +179,17 @@
 											side="bottom"
 										>
 											<Calendar
-												type="single"
-												value={dateValue}
-												placeholder={datePlaceholder}
-												minValue={today(getLocalTimeZone())}
-												calendarLabel="Date of event"
+												value={selectedDate}
+												onValueChange={(date) => {
+													selectedDate = date;
+													datePopoverOpen = false;
+												}}
 												initialFocus
-												onValueChange={(v) => {if ( v) { $formData.date = v.toString()}}}
 											/>
 										</PopoverContent>
 									</PopoverRoot>
+									<!-- Hidden input for form submission -->
+									<input type="hidden" name={props.name} value={$formData.date || ''} />
 								{/snippet}
 							</Control>
 							<Description class="text-xs text-gray-500">Date of tournament</Description>
@@ -230,7 +277,6 @@
 							</Field>
 						</div>
 
-						<!-- Refs -->
 						<div class="space-y-1.5">
 							<Field {form} name="refs">
 								<Control>
@@ -246,7 +292,7 @@
 											>
 												{$formData.refs}
 											</SelectTrigger>
-											<SelectContent>
+											<SelectContent class="bg-white dark:bg-gray-800">
 												<SelectItem value="teams" label="Teams" />
 												<SelectItem value="provided" label="Provided" />
 											</SelectContent>
@@ -259,7 +305,6 @@
 							</Field>
 						</div>
 
-						<!-- Scoring -->
 						<div class="space-y-1.5">
 							<Field {form} name="scoring">
 								<Control>
@@ -275,7 +320,7 @@
 											>
 												{$formData.scoring}
 											</SelectTrigger>
-											<SelectContent>
+											<SelectContent class="bg-white dark:bg-gray-800">
 												<SelectItem value="points" label="Points" />
 												<SelectItem value="wins" label="Wins" />
 											</SelectContent>
@@ -306,7 +351,6 @@
 				</form>
 			{/if}
 
-			<!-- Main form -->
 			<form
 				class="flex justify-end sm:flex-1"
 				method="POST"

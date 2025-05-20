@@ -34,6 +34,7 @@
 	const teamsForMatch = $derived([team1?.name, team2?.name]);
 
 	const hasDefaultTeam = $derived(defaultTeam ? teamsForMatch.includes(defaultTeam) : false);
+
 	const defaultTeamWin = $derived(
 		team1?.name === defaultTeam
 			? (match.team1_score ?? 0) > (match.team2_score ?? 0)
@@ -70,7 +71,7 @@
 {#if readOnly}
 	<Popover.Root>
 		<Popover.Trigger class="block w-full">
-			<div class="match-card {cardBackgroundClass}">
+			<div class="match-card {cardBackgroundClass} {defaultTeamWin ? 'default-team-won' : ''}">
 				{@render matchContent()}
 			</div>
 		</Popover.Trigger>
@@ -243,7 +244,7 @@
 	}
 
 	/* Special case: default team won */
-	.default-team-card:has(.text-emerald-700.font-semibold:has(+ .text-amber-500)) {
+	.default-team-won {
 		background-color: rgba(16, 185, 129, 0.15);
 		border: 1px solid rgba(16, 185, 129, 0.3);
 	}

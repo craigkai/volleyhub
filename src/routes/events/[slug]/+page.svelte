@@ -3,7 +3,12 @@
 	import Bracket from '$components/Bracket.svelte';
 	import Standings from '$components/Standings.svelte';
 	import * as Select from '$components/ui/select/index.js';
-	import * as Tabs from '$components/ui/tabs/index.js';
+	import {
+		Root as TabsRoot,
+		List as TabsList,
+		Trigger as TabsTrigger,
+		Content as TabsContent
+	} from '$components/ui/tabs';
 	import * as Card from '$components/ui/card/index.js';
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
@@ -21,15 +26,18 @@
 
 	let { data = $bindable() } = $props();
 
-	const defaultTeamInitial = data.defaultTeam ?? '';
+	const defaultTeamInitial = data?.defaultTeam ?? '';
 	let defaultTeam = $state(defaultTeamInitial);
-	let readOnly = $state(data.readOnly);
-	let teams = $state(data.teams);
+	let readOnly = $state(data?.readOnly ?? false);
+	let teams = $state(data?.teams);
 
-	let historyReady = false;
+	let historyReady = $state(false);
+	let mounted = $state(false);
+
 	onMount(async () => {
 		await tick();
 		historyReady = true;
+		mounted = true;
 	});
 
 	const teamList = data?.teams?.teams ?? [];
@@ -39,9 +47,11 @@
 		.map((team) => ({ value: team.name, name: team.name }))
 		.concat([{ value: '', name: 'None' }]);
 
-	const isCreate = $derived(data?.eventId === 'create');
-
+	const isCreate = $derived(data?.eventId ? data.eventId === 'create' : true);
 	const tabsWidth = $derived(readOnly ? 'grid-cols-2' : 'grid-cols-4');
+
+	// Add a derived state to check if everything is ready for tabs
+	const tabsReady = $derived(mounted && data && data.eventId);
 </script>
 
 <svelte:head>
@@ -68,7 +78,7 @@
 		{/if}
 	</div>
 
-	{#if readOnly}
+	{#if readOnly && mounted}
 		<div class="mb-6 flex justify-center">
 			<div class="relative w-full max-w-xs">
 				<Select.Root
@@ -123,241 +133,239 @@
 	{/if}
 
 	<div class="mx-auto max-w-5xl">
-		<Tabs.Root class="w-full" value={readOnly ? 'matches' : 'settings'}>
-			<Tabs.List class="mb-6 grid gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800 {tabsWidth}">
-				{#if !readOnly}
-					<Tabs.Trigger
-						value="settings"
-						class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
-					>
-						<SettingsIcon class="h-4 w-4" />
-						<span>Settings</span>
-					</Tabs.Trigger>
-					<Tabs.Trigger
-						disabled={isCreate}
-						value="teams"
-						class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
-					>
-						<UsersIcon class="h-4 w-4" />
-						<span>Teams</span>
-					</Tabs.Trigger>
-				{/if}
-				<Tabs.Trigger
-					disabled={isCreate}
-					value="matches"
-					class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
-				>
-					<ListIcon class="h-4 w-4" />
-					<span>Matches</span>
-				</Tabs.Trigger>
-				<Tabs.Trigger
-					disabled={isCreate}
-					value="standings"
-					class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
-				>
-					<BarChartIcon class="h-4 w-4" />
-					<span>Standings</span>
-				</Tabs.Trigger>
-				<!-- <Tooltip.Provider>
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<div>
-								<Tabs.Trigger
-									disabled={true}
-									value="bracket"
-									class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
-								>
-									<GitBranchIcon class="h-4 w-4" />
-									<span>Bracket</span>
-								</Tabs.Trigger>
-							</div>
-						</Tooltip.Trigger>
-						<Tooltip.Content
-							side="bottom"
-							class="bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900"
-						>
-							<p class="px-2 py-1 text-sm">Coming soon!</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-				</Tooltip.Provider> -->
-			</Tabs.List>
-
-			{#if !readOnly}
-				<Tabs.Content value="settings">
-					<Card.Root
-						class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
-					>
-						<div class="absolute inset-0 overflow-hidden">
-							<BorderBeam size={150} duration={12} />
-						</div>
-						<div class="relative">
-							<Card.Header
-								class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+		{#if tabsReady}
+			{#key data.eventId}
+				<TabsRoot class="w-full" value={readOnly ? 'matches' : 'settings'}>
+					<TabsList class="mb-6 grid gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800 {tabsWidth}">
+						{#if !readOnly}
+							<TabsTrigger
+								value="settings"
+								class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 							>
-								<div class="flex items-center gap-2">
-									<SettingsIcon class="h-5 w-5 text-emerald-600" />
-									<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
-										>Tournament Settings</Card.Title
-									>
-								</div>
-								<Card.Description class="text-gray-500 dark:text-gray-400">
-									Configure your tournament details and structure
-								</Card.Description>
-							</Card.Header>
-							<Card.Content class="p-6">
-								<Settings eventId={data.eventId as number | 'create'} {data} />
-							</Card.Content>
-						</div>
-					</Card.Root>
-				</Tabs.Content>
-
-				<Tabs.Content value="teams">
-					<Card.Root
-						class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
-					>
-						<div class="absolute inset-0 overflow-hidden">
-							<BorderBeam size={150} duration={12} />
-						</div>
-						<div class="relative">
-							<Card.Header
-								class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+								<SettingsIcon class="h-4 w-4" />
+								<span>Settings</span>
+							</TabsTrigger>
+							<TabsTrigger
+								disabled={isCreate}
+								value="teams"
+								class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 							>
-								<div class="flex items-center gap-2">
-									<UsersIcon class="h-5 w-5 text-emerald-600" />
-									<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
-										>Teams Management</Card.Title
+								<UsersIcon class="h-4 w-4" />
+								<span>Teams</span>
+							</TabsTrigger>
+						{/if}
+						<TabsTrigger
+							disabled={isCreate}
+							value="matches"
+							class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
+						>
+							<ListIcon class="h-4 w-4" />
+							<span>Matches</span>
+						</TabsTrigger>
+						<TabsTrigger
+							disabled={isCreate}
+							value="standings"
+							class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
+						>
+							<BarChartIcon class="h-4 w-4" />
+							<span>Standings</span>
+						</TabsTrigger>
+					</TabsList>
+
+					{#if !readOnly}
+						<TabsContent value="settings">
+							<Card.Root
+								class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
+							>
+								<div class="absolute inset-0 overflow-hidden">
+									<BorderBeam size={150} duration={12} />
+								</div>
+								<div class="relative">
+									<Card.Header
+										class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
 									>
+										<div class="flex items-center gap-2">
+											<SettingsIcon class="h-5 w-5 text-emerald-600" />
+											<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+												>Tournament Settings</Card.Title
+											>
+										</div>
+										<Card.Description class="text-gray-500 dark:text-gray-400">
+											Configure your tournament details and structure
+										</Card.Description>
+									</Card.Header>
+									<Card.Content class="p-6">
+										<Settings eventId={data.eventId as number | 'create'} {data} />
+									</Card.Content>
 								</div>
-								<Card.Description class="text-gray-500 dark:text-gray-400">
-									Add, edit, or remove teams participating in the tournament
-								</Card.Description>
-							</Card.Header>
-							<Card.Content class="p-6">
-								{#if teams}
-									<Teams bind:teams matches={data.matches} />
-								{/if}
-							</Card.Content>
-						</div>
-					</Card.Root>
-				</Tabs.Content>
-			{/if}
+							</Card.Root>
+						</TabsContent>
 
-			<Tabs.Content value="matches">
-				<Card.Root
-					class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
-				>
-					<div class="absolute inset-0 overflow-hidden">
-						<BorderBeam size={150} duration={12} />
-					</div>
-					<div class="relative">
-						<Card.Header
-							class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
-						>
-							<div class="flex items-center gap-2">
-								<ListIcon class="h-5 w-5 text-emerald-600" />
-								<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
-									>Match Schedule</Card.Title
-								>
-							</div>
-							<Card.Description class="text-gray-500 dark:text-gray-400">
-								View and manage tournament matches and results
-							</Card.Description>
-						</Card.Header>
-						<Card.Content class="p-6">
-							{#if data.tournament && data.matches && data.teams}
-								<Matches {defaultTeam} {readOnly} {data} />
-							{:else}
-								<div
-									class="flex h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
-								>
-									<p class="text-sm text-gray-500 dark:text-gray-400">No match data available</p>
+						<TabsContent value="teams">
+							<Card.Root
+								class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
+							>
+								<div class="absolute inset-0 overflow-hidden">
+									<BorderBeam size={150} duration={12} />
 								</div>
-							{/if}
-						</Card.Content>
-					</div>
-				</Card.Root>
-			</Tabs.Content>
+								<div class="relative">
+									<Card.Header
+										class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+									>
+										<div class="flex items-center gap-2">
+											<UsersIcon class="h-5 w-5 text-emerald-600" />
+											<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+												>Teams Management</Card.Title
+											>
+										</div>
+										<Card.Description class="text-gray-500 dark:text-gray-400">
+											Add, edit, or remove teams participating in the tournament
+										</Card.Description>
+									</Card.Header>
+									<Card.Content class="p-6">
+										{#if teams && data.matches}
+											<Teams bind:teams matches={data.matches} />
+										{/if}
+									</Card.Content>
+								</div>
+							</Card.Root>
+						</TabsContent>
+					{/if}
 
-			<Tabs.Content value="standings">
-				<Card.Root
-					class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
-				>
-					<div class="absolute inset-0 overflow-hidden">
-						<BorderBeam size={150} duration={12} />
-					</div>
-					<div class="relative">
-						<Card.Header
-							class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+					<TabsContent value="matches">
+						<Card.Root
+							class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
 						>
-							<div class="flex items-center gap-2">
-								<BarChartIcon class="h-5 w-5 text-emerald-600" />
-								<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
-									>Tournament Standings</Card.Title
-								>
+							<div class="absolute inset-0 overflow-hidden">
+								<BorderBeam size={150} duration={12} />
 							</div>
-							<Card.Description class="text-gray-500 dark:text-gray-400">
-								Current rankings based on match results
-							</Card.Description>
-						</Card.Header>
-						<Card.Content class="p-6">
-							{#if data.tournament && data.matches && teams}
-								<Standings event={data.tournament} matches={data.matches} {defaultTeam} {teams} />
-							{:else}
-								<div
-									class="flex h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+							<div class="relative">
+								<Card.Header
+									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
 								>
-									<p class="text-sm text-gray-500 dark:text-gray-400">
-										No standings data available
-									</p>
-								</div>
-							{/if}
-						</Card.Content>
-					</div>
-				</Card.Root>
-			</Tabs.Content>
+									<div class="flex items-center gap-2">
+										<ListIcon class="h-5 w-5 text-emerald-600" />
+										<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+											>Match Schedule</Card.Title
+										>
+									</div>
+									<Card.Description class="text-gray-500 dark:text-gray-400">
+										View and manage tournament matches and results
+									</Card.Description>
+								</Card.Header>
+								<Card.Content class="p-6">
+									{#if data.tournament && data.matches && data.teams}
+										<Matches {defaultTeam} {readOnly} {data} />
+									{:else}
+										<div
+											class="flex h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+										>
+											<p class="text-sm text-gray-500 dark:text-gray-400">
+												No match data available
+											</p>
+										</div>
+									{/if}
+								</Card.Content>
+							</div>
+						</Card.Root>
+					</TabsContent>
 
-			<Tabs.Content value="bracket">
-				<Card.Root
-					class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
-				>
-					<div class="absolute inset-0 overflow-hidden">
-						<BorderBeam size={150} duration={12} />
-					</div>
-					<div class="relative">
-						<Card.Header
-							class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+					<TabsContent value="standings">
+						<Card.Root
+							class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
 						>
-							<div class="flex items-center gap-2">
-								<GitBranchIcon class="h-5 w-5 text-emerald-600" />
-								<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
-									>Tournament Bracket</Card.Title
-								>
+							<div class="absolute inset-0 overflow-hidden">
+								<BorderBeam size={150} duration={12} />
 							</div>
-							<Card.Description class="text-gray-500 dark:text-gray-400">
-								Single/Double elimination bracket view
-							</Card.Description>
-						</Card.Header>
-						<Card.Content class="p-6">
-							{#if data.tournament && data.matches && teams && data.bracket}
-								<Bracket
-									tournament={data.tournament}
-									matches={data.matches}
-									bracket={data.bracket}
-									{teams}
-									{readOnly}
-								/>
-							{:else}
-								<div
-									class="flex h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+							<div class="relative">
+								<Card.Header
+									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
 								>
-									<p class="text-sm text-gray-500 dark:text-gray-400">Bracket view coming soon</p>
-								</div>
-							{/if}
-						</Card.Content>
-					</div>
-				</Card.Root>
-			</Tabs.Content>
-		</Tabs.Root>
+									<div class="flex items-center gap-2">
+										<BarChartIcon class="h-5 w-5 text-emerald-600" />
+										<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+											>Tournament Standings</Card.Title
+										>
+									</div>
+									<Card.Description class="text-gray-500 dark:text-gray-400">
+										Current rankings based on match results
+									</Card.Description>
+								</Card.Header>
+								<Card.Content class="p-6">
+									{#if data.tournament && data.matches && teams}
+										<Standings
+											event={data.tournament}
+											matches={data.matches}
+											{defaultTeam}
+											{teams}
+										/>
+									{:else}
+										<div
+											class="flex h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+										>
+											<p class="text-sm text-gray-500 dark:text-gray-400">
+												No standings data available
+											</p>
+										</div>
+									{/if}
+								</Card.Content>
+							</div>
+						</Card.Root>
+					</TabsContent>
+
+					<TabsContent value="bracket">
+						<Card.Root
+							class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
+						>
+							<div class="absolute inset-0 overflow-hidden">
+								<BorderBeam size={150} duration={12} />
+							</div>
+							<div class="relative">
+								<Card.Header
+									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+								>
+									<div class="flex items-center gap-2">
+										<GitBranchIcon class="h-5 w-5 text-emerald-600" />
+										<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+											>Tournament Bracket</Card.Title
+										>
+									</div>
+									<Card.Description class="text-gray-500 dark:text-gray-400">
+										Single/Double elimination bracket view
+									</Card.Description>
+								</Card.Header>
+								<Card.Content class="p-6">
+									{#if data.tournament && data.matches && teams && data.bracket}
+										<Bracket
+											tournament={data.tournament}
+											matches={data.matches}
+											bracket={data.bracket}
+											{teams}
+											{readOnly}
+										/>
+									{:else}
+										<div
+											class="flex h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+										>
+											<p class="text-sm text-gray-500 dark:text-gray-400">
+												Bracket view coming soon
+											</p>
+										</div>
+									{/if}
+								</Card.Content>
+							</div>
+						</Card.Root>
+					</TabsContent>
+				</TabsRoot>
+			{/key}
+		{:else}
+			<div class="mx-auto max-w-5xl">
+				<div class="animate-pulse">
+					<div class="mb-6 h-12 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+					<div class="h-96 rounded-xl bg-gray-200 dark:bg-gray-700"></div>
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
