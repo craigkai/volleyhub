@@ -13,21 +13,7 @@
 	import MapPinIcon from 'lucide-svelte/icons/map-pin';
 	import LayersIcon from 'lucide-svelte/icons/layers';
 
-	let {
-		match,
-		teams,
-		readOnly = false,
-		defaultTeam,
-		matches,
-		courts
-	}: {
-		match: Match;
-		teams: Teams;
-		readOnly: boolean;
-		defaultTeam: string;
-		matches: Matches;
-		courts: number;
-	} = $props();
+	let { match, teams, readOnly = false, defaultTeam, matches, courts } = $props();
 
 	const team1 = $derived(teams.teams.find((t: Team) => t.id === match.team1));
 	const team2 = $derived(teams.teams.find((t: Team) => t.id === match.team2));

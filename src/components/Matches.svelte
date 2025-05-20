@@ -15,15 +15,7 @@
 	import * as Alert from '$components/ui/alert/index.js';
 	import { Button } from '$components/ui/button';
 
-	let {
-		readOnly = false,
-		defaultTeam,
-		data
-	} = $props<{
-		readOnly: Boolean;
-		defaultTeam: String | null;
-		data: any;
-	}>();
+	let { readOnly = false, defaultTeam, data } = $props();
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();

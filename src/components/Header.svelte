@@ -6,7 +6,7 @@
 	import Moon from 'lucide-svelte/icons/moon';
 	import { toggleMode } from 'mode-watcher';
 
-	let { supabase, isMobile, user }: { supabase: any; isMobile: boolean; user: any } = $props();
+	let { supabase, isMobile, user } = $props();
 
 	let open: boolean = $state(!isMobile);
 	let isUserMenuOpen = $state(false);

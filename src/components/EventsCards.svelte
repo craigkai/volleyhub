@@ -7,22 +7,17 @@
 	import ChevronRightIcon from 'lucide-svelte/icons/chevron-right';
 	import ClipboardListIcon from 'lucide-svelte/icons/clipboard-list';
 
-	// Input prop
-	let { events }: { events: Partial<EventRow>[] } = $props();
+	let { events } = $props();
 
-	// Pagination states
 	let currentPage = $state(1);
-	let itemsPerPage = 4; // Adjust this to the number of events you want to show per page
+	let itemsPerPage = 4;
 
-	// Calculate total pages
 	let totalPages = $derived(Math.ceil((events?.length || 0) / itemsPerPage));
 
-	// Get events for the current page
 	let paginatedEvents = $derived(
 		events?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) || []
 	);
 
-	// Navigation handlers
 	const nextPage = () => {
 		if (currentPage < totalPages) currentPage++;
 	};
@@ -31,7 +26,6 @@
 		if (currentPage > 1) currentPage--;
 	};
 
-	// Format date nicely
 	function formatDate(dateString: string | undefined): string {
 		if (!dateString) return 'Date not set';
 
@@ -176,13 +170,7 @@
 	.line-clamp-1 {
 		display: -webkit-box;
 		-webkit-line-clamp: 1;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	.line-clamp-2 {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
+		line-clamp: 1;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}

@@ -12,9 +12,8 @@
 	import TrashIcon from 'lucide-svelte/icons/trash-2';
 	import EditIcon from 'lucide-svelte/icons/edit-2';
 	import SaveIcon from 'lucide-svelte/icons/check';
-	import type { TeamRow } from '$lib/types';
 
-	const { teams = $bindable(), matches }: { teams: Teams; matches: Matches } = $props();
+	const { teams = $bindable(), matches } = $props();
 
 	async function createTeam() {
 		if (!newTeamName.trim()) {
@@ -22,7 +21,7 @@
 			return;
 		}
 
-		if (teams.teams.findIndex((team) => team.name === newTeamName) !== -1) {
+		if (teams.teams.findIndex((team: { name: string }) => team.name === newTeamName) !== -1) {
 			toast.error('Team already exists');
 			return;
 		}
@@ -54,7 +53,7 @@
 		try {
 			await team.delete(team);
 			teams.teams.splice(
-				teams.teams.findIndex((t) => t.id === team.id),
+				teams.teams.findIndex((t: { id: number | undefined }) => t.id === team.id),
 				1
 			);
 
@@ -166,8 +165,8 @@
 																team.name = originalTeam.name;
 															}
 															editingTeamId = null;
-															e.target.blur();
-															toast.info('Edit canceled');
+															if (e.target) (e.target as HTMLElement).blur();
+															toast.success('Edit canceled');
 														}
 													}}
 												/>

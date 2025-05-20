@@ -3,19 +3,15 @@
 	import { Input } from '$components/ui/input/index.js';
 	import * as Select from '$components/ui/select/index.js';
 	import { updateMatch } from '$lib/helper.svelte';
-	import type { Brackets } from '$lib/brackets/brackets.svelte';
-	import type { Teams } from '$lib/teams.svelte';
 	import { error } from '@sveltejs/kit';
 	import toast from 'svelte-5-french-toast';
 	import { Match } from '$lib/match.svelte';
 	import { Team } from '$lib/team.svelte';
-	import type { Pool } from '$lib/pool/pool.svelte';
 	import { Button } from './ui/button';
 
-	let { matchId, matches, teams }: { matchId: number; matches: Pool | Brackets; teams: Teams } =
-		$props();
+	let { matchId, matches, teams } = $props();
 
-	let match = matches?.matches?.find((m) => m.id === matchId) as Match;
+	let match = matches?.matches?.find((m: { id: number; }) => m.id === matchId) as Match;
 
 	async function saveMatch() {
 		try {

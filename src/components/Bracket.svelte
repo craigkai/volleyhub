@@ -1,15 +1,13 @@
 <script lang="ts">
-	import { Brackets } from '$lib/brackets/brackets.svelte';
-	import type { Matches } from '$lib/matches.svelte';
-	import type { Teams } from '$lib/teams.svelte';
+	import type { Match as MatchType } from '$lib/match.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import { Button } from '$components/ui/button/index.js';
 	import { updateMatch } from '$lib/helper.svelte';
 	import type { HttpError } from '@sveltejs/kit';
-	import { Event } from '$lib/event.svelte';
 	import { onMount } from 'svelte';
 	import * as Alert from '$components/ui/alert/index.js';
 	import toast from 'svelte-5-french-toast';
+	import Match from './Match.svelte';
 
 	let {
 		matches = $bindable(),
@@ -17,12 +15,6 @@
 		teams = $bindable(),
 		tournament = $bindable(),
 		readOnly = false
-	}: {
-		tournament: Event;
-		matches: Matches;
-		bracket: Brackets;
-		teams: Teams;
-		readOnly: boolean;
 	} = $props();
 
 	let rounds: Record<number, Round> = $state({});
@@ -31,7 +23,8 @@
 
 	function determineRounds() {
 		const newRounds: Record<number, Round> = {};
-		bracket?.matches?.forEach((match) => {
+		bracket?.matches?.forEach((match: MatchType) => {
+			if (typeof match.round !== 'number') return;
 			if (!newRounds[match.round]) {
 				newRounds[match.round] = {
 					matches: [match],
@@ -134,7 +127,7 @@
 															disabled={!team1?.name}
 															class="max-w-8 border-2 border-solid text-center"
 															bind:value={match.team1_score}
-															onchange={() => updateMatch(match, bracket, teams)}
+															onchange={() => updateMatch(match)}
 														/>
 													{/if}
 												</td>
@@ -158,7 +151,7 @@
 															disabled={!team2?.name}
 															class="max-w-8 border-2 border-solid text-center"
 															bind:value={match.team2_score}
-															onchange={() => updateMatch(match, bracket, teams)}
+															onchange={() => updateMatch(match)}
 														/>
 													{/if}
 												</td>

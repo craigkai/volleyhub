@@ -14,18 +14,12 @@
 	import MedalIcon from 'lucide-svelte/icons/medal';
 	import { Badge } from '$components/ui/badge';
 
-	let {
-		event,
-		matches,
-		teams,
-		defaultTeam
-	}: { event: Event; matches: Matches; teams: Teams; defaultTeam: string | null } = $props();
+	let { event, matches, teams, defaultTeam } = $props();
 
 	let orderedTeamScores = $derived(findStandings(matches.matches, teams.teams));
 </script>
 
 <div class="space-y-4">
-
 	<div
 		class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
 	>

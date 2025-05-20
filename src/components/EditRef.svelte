@@ -4,16 +4,9 @@
 	import { updateMatch } from '$lib/helper.svelte';
 	import toast from 'svelte-5-french-toast';
 	import type { Team } from '$lib/team.svelte';
-	import type { Match } from '$lib/match.svelte';
-	import type { Teams } from '$lib/teams.svelte';
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
 
-	let { matchesPerRound, teams, defaultTeam, readOnly } = $props<{
-		defaultTeam: String | null;
-		matchesPerRound: Match[];
-		teams: Teams;
-		readOnly: boolean;
-	}>();
+	let { matchesPerRound, teams, defaultTeam, readOnly } = $props();
 
 	let match = $state(matchesPerRound ? matchesPerRound[0] : null);
 
