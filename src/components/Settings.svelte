@@ -18,11 +18,8 @@
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { formSchema } from '$schemas/settingsSchema';
 	import {
-		type DateValue,
 		DateFormatter,
 		getLocalTimeZone,
-		CalendarDate,
-		parseDate,
 		today
 	} from '@internationalized/date';
 	import { cn } from '$lib/utils';
@@ -60,9 +57,6 @@
 	$effect(() => {
 		$formData.date = dateInputValue;
 	});
-
-	// State for popover
-	let datePopoverOpen = $state(false);
 
 	let value = $state(today(getLocalTimeZone()));
 	let contentRef = $state<HTMLElement | null>(null);

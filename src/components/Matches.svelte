@@ -401,10 +401,6 @@
 		border-radius: 20px;
 	}
 
-	.dark .scrollbar-thin::-webkit-scrollbar-thumb {
-		background-color: rgb(75, 85, 99); /* gray-600 */
-	}
-
 	/* Pulse animation for scroll indicators on first load */
 	@keyframes pulse {
 		0%,
@@ -414,15 +410,5 @@
 		50% {
 			opacity: 0.5;
 		}
-	}
-
-	.pulse-animation {
-		animation: pulse 2s infinite;
-	}
-
-	/* Ensure the Round column stays fixed when scrolling horizontally */
-	.sticky {
-		position: sticky;
-		z-index: 10;
 	}
 </style>

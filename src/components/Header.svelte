@@ -12,6 +12,22 @@
 	let isUserMenuOpen = $state(false);
 
 	let userDropdownRef: HTMLDivElement | null = $state(null);
+
+	function clickOutside(node: HTMLElement, callback: () => void) {
+		const handleClick = (event: MouseEvent) => {
+			if (!node.contains(event.target as Node)) {
+				callback();
+			}
+		};
+
+		document.addEventListener('click', handleClick, true);
+
+		return {
+			destroy() {
+				document.removeEventListener('click', handleClick, true);
+			}
+		};
+	}
 </script>
 
 <header class="w-full">
@@ -75,7 +91,11 @@
 							<span class="sr-only">Toggle theme</span>
 						</Button>
 						{#if user?.aud === 'authenticated'}
-							<div class="relative" bind:this={userDropdownRef}>
+							<div
+								class="relative"
+								bind:this={userDropdownRef}
+								use:clickOutside={() => (isUserMenuOpen = false)}
+							>
 								<Button
 									onclick={() => (isUserMenuOpen = !isUserMenuOpen)}
 									variant="ghost"
