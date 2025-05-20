@@ -6,7 +6,7 @@
 	import { Button } from '$components/ui/button';
 	import toast from 'svelte-5-french-toast';
 	import { zodClient } from 'sveltekit-superforms/adapters';
-	import z from 'zod';
+	import { z } from 'zod';
 
 	let { data } = $props();
 
@@ -52,6 +52,7 @@
 						</div>
 					{/snippet}
 				</Control>
+				<FieldErrors class="mt-1 text-sm text-red-500" />
 			</Field>
 
 			<Field form={editForm} name="newPassword">
@@ -70,6 +71,7 @@
 						</div>
 					{/snippet}
 				</Control>
+				<FieldErrors class="mt-1 text-sm text-red-500" />
 			</Field>
 
 			<div class="pt-2">
