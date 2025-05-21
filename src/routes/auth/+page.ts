@@ -7,5 +7,9 @@ export const load: PageLoad = async ({ url }) => {
 		redirect(303, '/auth/recovery');
 	}
 
+	if (url.searchParams.get('type') === 'magic') {
+		redirect(303, '/auth/confirm');
+	}
+
 	return {};
 };
