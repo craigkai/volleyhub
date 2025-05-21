@@ -40,7 +40,7 @@ export const actions = {
 
 		const { email } = form.data;
 		const { error } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo: '/auth/recovery'
+			redirectTo: '/auth/confirm'
 		});
 
 		if (error) {
