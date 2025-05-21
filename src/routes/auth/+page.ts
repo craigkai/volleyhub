@@ -4,7 +4,7 @@ import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ url }) => {
 	if (url.searchParams.get('type') === 'recovery') {
-		redirect(303, '/auth/recovery');
+		redirect(303, '/auth/confirm');
 	}
 
 	if (url.searchParams.get('type') === 'magic') {
