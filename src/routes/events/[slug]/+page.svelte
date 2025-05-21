@@ -16,7 +16,6 @@
 	import { onMount, tick } from 'svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
-	import BorderBeam from '$components/magic-ui/BorderBeam.svelte';
 	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import UsersIcon from 'lucide-svelte/icons/users';
 	import SettingsIcon from 'lucide-svelte/icons/settings';
@@ -181,9 +180,6 @@
 							<Card.Root
 								class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
 							>
-								<div class="absolute inset-0 overflow-hidden">
-									<BorderBeam size={150} duration={12} />
-								</div>
 								<div class="relative">
 									<Card.Header
 										class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
@@ -209,9 +205,6 @@
 							<Card.Root
 								class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
 							>
-								<div class="absolute inset-0 overflow-hidden">
-									<BorderBeam size={150} duration={12} />
-								</div>
 								<div class="relative">
 									<Card.Header
 										class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
@@ -240,9 +233,6 @@
 						<Card.Root
 							class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
 						>
-							<div class="absolute inset-0 overflow-hidden">
-								<BorderBeam size={150} duration={12} />
-							</div>
 							<div class="relative">
 								<Card.Header
 									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
@@ -278,9 +268,6 @@
 						<Card.Root
 							class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
 						>
-							<div class="absolute inset-0 overflow-hidden">
-								<BorderBeam size={150} duration={12} />
-							</div>
 							<div class="relative">
 								<Card.Header
 									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
@@ -321,9 +308,6 @@
 						<Card.Root
 							class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
 						>
-							<div class="absolute inset-0 overflow-hidden">
-								<BorderBeam size={150} duration={12} />
-							</div>
 							<div class="relative">
 								<Card.Header
 									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
@@ -374,18 +358,11 @@
 </div>
 
 <style>
-	/* Smooth transitions for hover states */
 	:global(.tabs-trigger),
 	:global(.select-trigger) {
 		transition: all 0.2s ease;
 	}
 
-	/* Ensure BorderBeam doesn't overflow */
-	:global(.border-beam-container) {
-		overflow: hidden;
-	}
-
-	/* Focus styles for better accessibility */
 	:global(button:focus-visible),
 	:global(a:focus-visible) {
 		outline: 2px solid rgb(16 185 129 / 0.5);
