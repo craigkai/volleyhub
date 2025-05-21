@@ -6,7 +6,7 @@
 	import Moon from 'lucide-svelte/icons/moon';
 	import { toggleMode } from 'mode-watcher';
 
-	let { supabase, isMobile, user } = $props();
+	let { isMobile, user } = $props();
 
 	let open: boolean = $state(!isMobile);
 	let isUserMenuOpen = $state(false);
@@ -74,12 +74,10 @@
 				transition:fade={{ duration: 300 }}
 			>
 				<div class="flex w-full flex-wrap items-center justify-between px-3">
-					<!-- Left side: Navigation links -->
 					<div class="flex flex-row items-center gap-6">
 						<a class="transition hover:text-neutral-700 dark:hover:text-white" href="/"> Home </a>
 					</div>
 
-					<!-- Right side: User menu + theme toggle -->
 					<div class="ml-auto flex flex-row items-center gap-4">
 						<Button onclick={toggleMode} variant="outline" size="icon" class="cursor-pointer">
 							<Sun

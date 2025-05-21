@@ -44,6 +44,12 @@ export const supabase: Handle = async ({ event, resolve }) => {
 			return { session: null, user: null };
 		}
 
+		/**
+		 * https://github.com/supabase/auth-js/issues/888#issuecomment-2617133616
+		 */
+		// @ts-expect-error
+		event.locals.supabase.auth.suppressGetSessionWarning = true;
+
 		const {
 			data: { user },
 			error

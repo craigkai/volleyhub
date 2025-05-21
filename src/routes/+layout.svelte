@@ -43,7 +43,7 @@
 >
 	<ModeWatcher defaultMode="light" track={false} />
 	<Toaster position="top-right" />
-	<Header {supabase} {isMobile} {user} />
+	<Header {isMobile} {user} />
 
 	<div class="mb-8 flex-grow">
 		<div class="mx-auto max-w-7xl p-4">
