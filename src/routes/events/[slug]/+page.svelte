@@ -144,7 +144,7 @@
 									value="settings"
 									class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 								>
-									<SettingsIcon class="h-4 w-4" />
+									<SettingsIcon class="hidden h-4 w-4 sm:block" />
 									<span>Settings</span>
 								</TabsTrigger>
 								<TabsTrigger
@@ -152,7 +152,7 @@
 									value="teams"
 									class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 								>
-									<UsersIcon class="h-4 w-4" />
+									<UsersIcon class="hidden sm:block h-4 w-4" />
 									<span>Teams</span>
 								</TabsTrigger>
 							{/if}
@@ -161,7 +161,7 @@
 								value="matches"
 								class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 							>
-								<ListIcon class="h-4 w-4" />
+								<ListIcon class="hidden sm:block h-4 w-4" />
 								<span>Matches</span>
 							</TabsTrigger>
 							<TabsTrigger
@@ -169,7 +169,7 @@
 								value="standings"
 								class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 							>
-								<BarChartIcon class="h-4 w-4" />
+								<BarChartIcon class="hidden sm:block h-4 w-4" />
 								<span>Standings</span>
 							</TabsTrigger>
 						</TabsList>
@@ -184,7 +184,7 @@
 									<Card.Header
 										class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
 									>
-										<div class="flex items-center gap-2 m-2 p-2">
+										<div class="m-2 flex items-center gap-2 p-2">
 											<SettingsIcon class="h-5 w-5 text-emerald-600" />
 											<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
 												>Tournament Settings</Card.Title
