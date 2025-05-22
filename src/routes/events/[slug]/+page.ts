@@ -19,11 +19,19 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
 
 		return {
-			// Only logged in users can create events
 			readOnly: !data.user?.id,
 			eventId: params.slug,
 			form,
-			defaultTeam: url.searchParams.get('team')
+			defaultTeam: url.searchParams.get('team'),
+			teams: {
+				eventId: 'create',
+				teams: [],
+				create: async () => {},
+				update: async () => {},
+				delete: async () => {}
+			},
+			matches: null,
+			bracket: null
 		};
 	}
 

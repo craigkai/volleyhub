@@ -46,19 +46,24 @@ export async function initiateEvent(
 
 	const bracket = new Brackets(matchesSupabaseDatabaseService);
 
-	try {
-		await Promise.all([
-			tournament.load(eventId),
-			matches.load(eventId),
-			teams.load(eventId),
-			bracket.load(eventId)
-		]);
-	} catch (err) {
-		console.error('Error loading event data:', err);
-		throw new Error(
-			(err as HttpError)?.body?.message || 'An error occurred while loading the event data.'
-		);
-	}
+	const loadWithFallback = async <T>(
+		label: string,
+		fn: () => Promise<T>
+	): Promise<T | undefined> => {
+		try {
+			return await fn();
+		} catch (err) {
+			console.warn(`[initiateEvent] Failed to load ${label}:`, err);
+			return undefined;
+		}
+	};
+
+	await Promise.all([
+		loadWithFallback('tournament', () => tournament.load(eventId)),
+		loadWithFallback('matches', () => matches.load(eventId)),
+		loadWithFallback('teams', () => teams.load(eventId)),
+		loadWithFallback('bracket', () => bracket.load(eventId))
+	]);
 
 	return { tournament, matches, teams, bracket };
 }
