@@ -27,7 +27,7 @@ export async function updateMatch(match: Match): Promise<Match | undefined> {
 }
 
 export async function initiateEvent(
-	eventId: number,
+	eventId: number | 'create',
 	supabase: supabaseClient
 ): Promise<{
 	tournament: EventInstance;
@@ -45,6 +45,10 @@ export async function initiateEvent(
 	const teams = new TeamsInstance(teamsSupabaseDatabaseService);
 
 	const bracket = new Brackets(matchesSupabaseDatabaseService);
+
+	if (eventId === 'create') {
+		return { tournament, matches, teams, bracket };
+	}
 
 	const loadWithFallback = async <T>(
 		label: string,

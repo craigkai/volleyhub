@@ -10,29 +10,8 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 
 	const eventId = params.slug === 'create' ? 'create' : parseInt(params.slug, 10);
 
-	// Validate eventId
 	if (eventId !== 'create' && (isNaN(eventId) || eventId <= 0)) {
 		error(400, 'Invalid eventId: must be a positive integer or "create".');
-	}
-
-	if (eventId === 'create') {
-		const form: SuperValidated<Infer<FormSchema>> = await superValidate(zod(settingsSchema));
-
-		return {
-			readOnly: !data.user?.id,
-			eventId: params.slug,
-			form,
-			defaultTeam: url.searchParams.get('team'),
-			teams: {
-				eventId: 'create',
-				teams: [],
-				create: async () => {},
-				update: async () => {},
-				delete: async () => {}
-			},
-			matches: null,
-			bracket: null
-		};
 	}
 
 	let res;
@@ -51,7 +30,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 
 	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
 
-	const readOnly = !isOwner;
+	const readOnly = eventId !== 'create' && !isOwner;
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
 		{

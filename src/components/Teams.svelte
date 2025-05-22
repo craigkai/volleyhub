@@ -33,8 +33,7 @@
 			const newTeamInstance = await teams.create(newTeam);
 			if (newTeamInstance) teams.teams.push(newTeamInstance);
 
-			// Clear out matches
-			if (matches) await matches.deleteAllMatches();
+			if (matches?.matches?.length > 0) await matches.deleteAllMatches();
 
 			toast.success(`Team ${newTeamName} created`);
 			newTeamName = '';
@@ -55,8 +54,7 @@
 				1
 			);
 
-			// Clear out matches
-			if (matches) await matches.deleteAllMatches();
+			if (matches?.matches?.length > 0) await matches.deleteAllMatches();
 
 			toast.success(`Team ${team.name} deleted`);
 		} catch (err: any) {

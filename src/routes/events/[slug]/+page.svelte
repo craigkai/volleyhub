@@ -49,7 +49,6 @@
 	const isCreate = $derived(data?.eventId ? data.eventId === 'create' : true);
 	const tabsWidth = $derived(readOnly ? 'grid-cols-2' : 'grid-cols-4');
 
-	// Add a derived state to check if everything is ready for tabs
 	const tabsReady = $derived(mounted && data && data.eventId);
 </script>
 
@@ -220,7 +219,7 @@
 										</Card.Description>
 									</Card.Header>
 									<Card.Content class="p-6">
-										{#if teams && data.matches}
+										{#if teams}
 											<Teams bind:teams matches={data.matches} />
 										{/if}
 									</Card.Content>
