@@ -184,7 +184,7 @@
 									<Card.Header
 										class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
 									>
-										<div class="flex items-center gap-2">
+										<div class="flex items-center gap-2 m-2 p-2">
 											<SettingsIcon class="h-5 w-5 text-emerald-600" />
 											<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
 												>Tournament Settings</Card.Title
