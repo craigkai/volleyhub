@@ -6,7 +6,7 @@
 	import ChevronLeftIcon from 'lucide-svelte/icons/chevron-left';
 	import ChevronRightIcon from 'lucide-svelte/icons/chevron-right';
 	import ClipboardListIcon from 'lucide-svelte/icons/clipboard-list';
-	import Button from './ui/Button/Button.svelte';
+	import Button from '$components/ui/button/button.svelte';
 
 	let { events } = $props();
 
