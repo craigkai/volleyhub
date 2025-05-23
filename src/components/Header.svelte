@@ -5,6 +5,8 @@
 	import Sun from 'lucide-svelte/icons/sun';
 	import Moon from 'lucide-svelte/icons/moon';
 	import { toggleMode } from 'mode-watcher';
+	import { ChevronDown, LayoutDashboard, LogOut, UserCircle, UserCog } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 
 	let { isMobile, user } = $props();
 
@@ -13,12 +15,21 @@
 
 	let userDropdownRef: HTMLDivElement | null = $state(null);
 
-	function clickOutside(node: HTMLElement, callback: () => void) {
-		const handleClick = (event: MouseEvent) => {
+	onMount(() => {
+		const mediaQuery = window.matchMedia('(max-width: 768px)');
+		isMobile = mediaQuery.matches;
+
+		mediaQuery.addEventListener('change', (e) => {
+			isMobile = e.matches;
+		});
+	});
+
+	export function clickOutside(node: HTMLElement, callback: () => void) {
+		function handleClick(event: MouseEvent) {
 			if (!node.contains(event.target as Node)) {
 				callback();
 			}
-		};
+		}
 
 		document.addEventListener('click', handleClick, true);
 
@@ -27,6 +38,10 @@
 				document.removeEventListener('click', handleClick, true);
 			}
 		};
+	}
+
+	function toggleMenu() {
+		if (isMobile) isUserMenuOpen = !isUserMenuOpen;
 	}
 </script>
 
@@ -90,45 +105,33 @@
 						</Button>
 						{#if user?.aud === 'authenticated'}
 							<div
-								class="relative"
 								bind:this={userDropdownRef}
+								class="relative inline-block"
 								use:clickOutside={() => (isUserMenuOpen = false)}
+								onpointerenter={() => {
+									if (!isMobile) isUserMenuOpen = true;
+								}}
+								onpointerleave={() => {
+									if (!isMobile) isUserMenuOpen = false;
+								}}
 							>
 								<Button
-									onclick={() => (isUserMenuOpen = !isUserMenuOpen)}
-									variant="ghost"
+									onclick={toggleMenu}
 									class="flex items-center gap-2 px-3 py-2 text-sm font-medium"
 								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										class="h-5 w-5"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-									>
-										<circle cx="12" cy="7" r="4" />
-										<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-									</svg>
-									<span class="max-w-[150px] truncate">{user?.email}</span>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
+									<UserCircle class="h-5 w-5" />
+									<span class="max-w-[150px] truncate">john@example.com</span>
+									<ChevronDown
 										class="h-4 w-4 transition-transform duration-200 {isUserMenuOpen
 											? 'rotate-180'
 											: ''}"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-									>
-										<polyline points="6 9 12 15 18 9" />
-									</svg>
+									/>
 								</Button>
 
 								{#if isUserMenuOpen}
 									<div
+										class="absolute top-full right-0 z-50 w-56 rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
 										transition:fade={{ duration: 150 }}
-										class="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
 									>
 										<ul class="py-1">
 											<li>
@@ -136,18 +139,7 @@
 													href="/protected-routes/account"
 													class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
 												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														class="h-5 w-5"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														stroke-width="2"
-													>
-														<path
-															d="M12 4.354a4 4 0 1 1 0 7.292M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"
-														/>
-													</svg>
+													<UserCog class="h-5 w-5" />
 													Manage Account
 												</a>
 											</li>
@@ -156,26 +148,12 @@
 													href="/protected-routes/dashboard"
 													class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
 												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														class="h-5 w-5"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														stroke-width="2"
-													>
-														<rect x="3" y="3" width="7" height="7" />
-														<rect x="14" y="3" width="7" height="7" />
-														<rect x="14" y="14" width="7" height="7" />
-														<rect x="3" y="14" width="7" height="7" />
-													</svg>
+													<LayoutDashboard class="h-5 w-5" />
 													Dashboard
 												</a>
 											</li>
 
-											<li>
-												<div class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div>
-											</li>
+											<li><div class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div></li>
 
 											<li>
 												<form method="POST" action="/auth/signout">
@@ -183,18 +161,7 @@
 														type="submit"
 														class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
 													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															class="h-5 w-5"
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke="currentColor"
-															stroke-width="2"
-														>
-															<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-															<polyline points="16 17 21 12 16 7" />
-															<line x1="21" y1="12" x2="9" y2="12" />
-														</svg>
+														<LogOut class="h-5 w-5" />
 														Sign Out
 													</Button>
 												</form>
