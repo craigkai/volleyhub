@@ -38,7 +38,7 @@
 	{:then events}
 		{#if events && events.length > 0}
 			<div class="mx-auto max-w-4xl transition-all duration-300 ease-in-out">
-				<div class="bg-card ring-border/5 rounded-xl p-6 shadow-lg ring-1 dark:bg-gray-800/90">
+				<div class="rounded-xl p-6 shadow-lg dark:bg-gray-800/90">
 					<EventsCards {events} />
 				</div>
 			</div>
