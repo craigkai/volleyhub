@@ -120,7 +120,7 @@
 									class="flex items-center gap-2 px-3 py-2 text-sm font-medium"
 								>
 									<UserCircle class="h-5 w-5" />
-									<span class="max-w-[150px] truncate">john@example.com</span>
+									<span class="max-w-[150px] truncate">{user?.email}</span>
 									<ChevronDown
 										class="h-4 w-4 transition-transform duration-200 {isUserMenuOpen
 											? 'rotate-180'
