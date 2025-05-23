@@ -122,7 +122,7 @@
 {:else}
 	<AlertDialog.Root>
 		<AlertDialog.Trigger class="block w-full">
-			<div class="match-card group cursor-pointer {cardBackgroundClass}">
+			<div class="match-card group {cardBackgroundClass}">
 				{@render matchContent()}
 				<div
 					class="absolute right-1 bottom-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100"

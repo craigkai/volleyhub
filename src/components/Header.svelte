@@ -79,7 +79,7 @@
 					</div>
 
 					<div class="ml-auto flex flex-row items-center gap-4">
-						<Button onclick={toggleMode} variant="outline" size="icon" class="cursor-pointer">
+						<Button onclick={toggleMode} variant="outline" size="icon">
 							<Sun
 								class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
 							/>
@@ -97,7 +97,7 @@
 								<Button
 									onclick={() => (isUserMenuOpen = !isUserMenuOpen)}
 									variant="ghost"
-									class="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm font-medium"
+									class="flex items-center gap-2 px-3 py-2 text-sm font-medium"
 								>
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -179,9 +179,9 @@
 
 											<li>
 												<form method="POST" action="/auth/signout">
-													<button
+													<Button
 														type="submit"
-														class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+														class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
 													>
 														<svg
 															xmlns="http://www.w3.org/2000/svg"
@@ -196,7 +196,7 @@
 															<line x1="21" y1="12" x2="9" y2="12" />
 														</svg>
 														Sign Out
-													</button>
+													</Button>
 												</form>
 											</li>
 										</ul>

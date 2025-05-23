@@ -179,13 +179,13 @@
 						>You already have a bracket, are you sure you want to wipe that?</Alert.Description
 					>
 					<div class="flex gap-2">
-						<button
+						<Button
 							class="focus:shadow-outline dark:text-nord-1 rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
-							onclick={generateBracket}>Yes</button
+							onclick={generateBracket}>Yes</Button
 						>
-						<button
+						<Button
 							class="focus:shadow-outline dark:text-nord-1 rounded bg-blue-400 px-4 py-2 font-bold text-black text-white hover:bg-blue-600 focus:outline-none"
-							onclick={() => (showGenerateBracketAlert = false)}>No</button
+							onclick={() => (showGenerateBracketAlert = false)}>No</Button
 						>
 					</div>
 				</Alert.Root>

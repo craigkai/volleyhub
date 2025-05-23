@@ -6,6 +6,7 @@
 	import ChevronLeftIcon from 'lucide-svelte/icons/chevron-left';
 	import ChevronRightIcon from 'lucide-svelte/icons/chevron-right';
 	import ClipboardListIcon from 'lucide-svelte/icons/clipboard-list';
+	import Button from './ui/Button/Button.svelte';
 
 	let { events } = $props();
 
@@ -120,7 +121,7 @@
 
 		{#if totalPages > 1}
 			<div class="mt-8 flex items-center justify-center space-x-2">
-				<button
+				<Button
 					onclick={prevPage}
 					disabled={currentPage === 1}
 					class="inline-flex h-9 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -128,14 +129,14 @@
 				>
 					<ChevronLeftIcon class="h-4 w-4" />
 					<span class="ml-1">Previous</span>
-				</button>
+				</Button>
 
 				<div class="text-sm text-gray-600 dark:text-gray-400">
 					<span class="font-medium text-gray-900 dark:text-white">{currentPage}</span> of
 					<span>{totalPages}</span>
 				</div>
 
-				<button
+				<Button
 					onclick={nextPage}
 					disabled={currentPage === totalPages}
 					class="inline-flex h-9 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -143,7 +144,7 @@
 				>
 					<span class="mr-1">Next</span>
 					<ChevronRightIcon class="h-4 w-4" />
-				</button>
+				</Button>
 			</div>
 		{/if}
 	{:else}
@@ -158,27 +159,3 @@
 		</div>
 	{/if}
 </div>
-
-<style>
-	/* Smooth transitions for hover states */
-	a,
-	button {
-		transition: all 0.2s ease;
-	}
-
-	/* Line clamp for text truncation */
-	.line-clamp-1 {
-		display: -webkit-box;
-		-webkit-line-clamp: 1;
-		line-clamp: 1;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	/* Focus styles for better accessibility */
-	:global(button:focus-visible),
-	:global(a:focus-visible) {
-		outline: 2px solid rgb(16 185 129 / 0.5);
-		outline-offset: 2px;
-	}
-</style>
