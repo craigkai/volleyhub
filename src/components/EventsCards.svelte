@@ -43,13 +43,8 @@
 </script>
 
 <div class="mx-auto max-w-4xl space-y-6 px-4">
-	<div class="flex items-center gap-2">
-		<ClipboardListIcon class="h-5 w-5 text-emerald-600" />
-		<h2 class="text-xl font-semibold text-gray-800 dark:text-white">Upcoming Events</h2>
-	</div>
-
 	{#if paginatedEvents && paginatedEvents.length > 0}
-		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+		<div class="flex flex-col items-center gap-6">
 			{#each paginatedEvents as event}
 				<a
 					href="/events/{event.id}"
