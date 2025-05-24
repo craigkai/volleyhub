@@ -7,7 +7,7 @@ import { signUpSchema, signInSchema, magicLinkSchema } from './schemas';
 export const load: LayoutServerLoad = async ({ url, locals }) => {
 	const { session } = await locals.safeGetSession();
 
-	if (url.pathname !== '/auth/signout' && session) {
+	if (url.pathname !== '/auth/signout' && url.pathname !== '/auth/results' && session) {
 		redirect(303, '/');
 	}
 
