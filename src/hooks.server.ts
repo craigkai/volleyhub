@@ -62,7 +62,7 @@ export const supabase: Handle = async ({ event, resolve }) => {
 		return { session, user };
 	};
 
-	if (0&&import.meta.env.DEV) {
+	if (import.meta.env.DEV) {
 		const {
 			data: { session }
 		} = await event.locals.supabase.auth.getSession();
