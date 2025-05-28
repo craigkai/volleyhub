@@ -33,6 +33,14 @@
 					badge: 'Email Verification',
 					color: 'from-orange-500 to-red-500'
 				};
+			case 'verify':
+				return {
+					icon: Shield,
+					title: 'Email Not Verified',
+					message: 'You must verify your email address before accessing this part of the app.',
+					badge: 'Verification Required',
+					color: 'from-yellow-500 to-orange-500'
+				};
 			default:
 				return {
 					icon: CheckCircle,
@@ -89,7 +97,7 @@
 				</Card.Description>
 			</Card.Header>
 
-			{#if type === 'magic' || type === 'signup' || type === 'reset'}
+			{#if type === 'magic' || type === 'signup' || type === 'reset' || type === 'verify'}
 				<Card.Content class="space-y-4">
 					<Button
 						href="/auth"

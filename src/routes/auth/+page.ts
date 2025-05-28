@@ -3,12 +3,10 @@ import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ url }) => {
-	if (url.searchParams.get('type') === 'recovery') {
-		redirect(303, '/auth/confirm');
-	}
+	const type = url.searchParams.get('type');
 
-	if (url.searchParams.get('type') === 'magic') {
-		redirect(303, '/auth/confirm');
+	if (type === 'recovery' || type === 'magic' || type === 'verify') {
+		return redirect(303, '/auth/confirm?type=' + type);
 	}
 
 	return {};

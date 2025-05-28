@@ -93,17 +93,23 @@ export const supabase: Handle = async ({ event, resolve }) => {
 
 const authGuard: Handle = async ({ event, resolve }) => {
 	const { session, user } = await event.locals.safeGetSession();
+
+	const isEmailVerified = !!user?.email_confirmed_at;
+
 	event.locals.session = session;
 	event.locals.user = user;
 
-	if (!event.locals.session && event.url.pathname.startsWith('/protected-routes')) {
+	// Protect routes from unauthenticated or unverified users
+	if ((!session || !isEmailVerified) && event.url.pathname.startsWith('/protected-routes')) {
 		return redirect(303, '/auth');
 	}
 
-	if (event.locals.session && event.url.pathname === '/auth') {
+	// Prevent verified users from seeing the login page again
+	if (session && isEmailVerified && event.url.pathname === '/auth') {
 		return redirect(303, '/protected-routes/dashboard');
 	}
 
+	// Allow everything else through
 	return resolve(event);
 };
 

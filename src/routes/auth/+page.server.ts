@@ -15,6 +15,8 @@ export const actions = {
 			setError(form, 'email', error.message);
 			return fail(400, { form });
 		}
+		// Clear possible phantom session
+		await supabase.auth.signOut();
 
 		return redirect(303, '/auth/confirm?type=signup&email=' + encodeURIComponent(email));
 	},
@@ -46,6 +48,8 @@ export const actions = {
 		if (error) {
 			return fail(400, { form: setError(form, 'email', error.message) });
 		}
+		// Clear possible phantom session
+		await supabase.auth.signOut();
 
 		return redirect(303, '/auth/results?type=reset');
 	},
@@ -65,6 +69,8 @@ export const actions = {
 		if (error) {
 			return fail(400, { form: setError(form, 'email', error.message) });
 		}
+		// Clear possible phantom session
+		await supabase.auth.signOut();
 
 		return redirect(303, '/auth/results?type=magic');
 	}

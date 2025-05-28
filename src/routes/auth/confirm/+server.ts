@@ -8,31 +8,37 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 	const refresh_token = url.searchParams.get('refresh_token');
 	const next = url.searchParams.get('next') ?? '/protected-routes/dashboard';
 
-	// Handle OAuth (e.g., Google)
+	// 1. OAuth Flow
 	if (code) {
 		const { error } = await supabase.auth.exchangeCodeForSession(code);
 		if (!error) {
-			throw redirect(303, `/auth/results?type=oauth&next=${encodeURIComponent(next)}`);
+			return redirect(303, `/auth/results?type=oauth&next=${encodeURIComponent(next)}`);
 		}
 	}
 
-	// Handle Magic Link / Password Reset
+	// 2. Magic Link / Password Reset Flow
 	if (access_token && refresh_token) {
-		const { error } = await supabase.auth.setSession({
-			access_token,
-			refresh_token
-		});
+		const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+
 		if (!error) {
-			throw redirect(303, `/auth/results?type=magic&next=${encodeURIComponent(next)}`);
+			// Check if the user is now verified
+			const {
+				data: { user }
+			} = await supabase.auth.getUser();
+			const isVerified = !!user?.email_confirmed_at;
+
+			const resultType = isVerified ? 'magic' : 'verify';
+
+			return redirect(303, `/auth/results?type=${resultType}&next=${encodeURIComponent(next)}`);
 		}
 	}
 
-	// If no tokens present or both flows fail, redirect with error
+	// 3. If nothing works
 	console.error('Error verifying code or tokens:', {
 		code,
 		access_token,
 		refresh_token
 	});
 
-	throw redirect(303, '/auth/results?type=error');
+	return redirect(303, '/auth/results?type=error');
 };
