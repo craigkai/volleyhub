@@ -18,7 +18,7 @@ export const actions = {
 		// Clear possible phantom session
 		await supabase.auth.signOut();
 
-		return redirect(303, '/auth/confirm?type=signup&email=' + encodeURIComponent(email));
+		return redirect(303, '/auth/results?type=signup');
 	},
 
 	signin: async ({ request, locals: { supabase } }) => {
