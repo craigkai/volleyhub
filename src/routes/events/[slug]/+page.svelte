@@ -57,7 +57,6 @@
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-3 py-4 sm:px-6 lg:px-8">
-	<!-- Mobile-optimized header -->
 	<div class="mb-6 text-center">
 		<div class="mb-2 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
 			<TrophyIcon class="h-6 w-6 text-emerald-600 sm:h-8 sm:w-8" />
@@ -77,7 +76,6 @@
 		{/if}
 	</div>
 
-	<!-- Mobile-optimized team selector -->
 	{#if readOnly && mounted}
 		<div class="mb-4 flex justify-center">
 			<div class="relative w-full max-w-sm">
@@ -138,10 +136,8 @@
 		{#if tabsReady}
 			{#key data.eventId}
 				<TabsRoot class="w-full" value={readOnly ? 'matches' : 'settings'}>
-					<div class="mb-6 flex justify-center">
-						<TabsList
-							class="mb-4 grid w-full max-w-md gap-1 rounded-lg bg-gray-100 p-1 sm:mb-6 sm:max-w-none sm:gap-2 dark:bg-gray-800 {tabsWidth}"
-						>
+					<div class="flex justify-center">
+						<TabsList class="w-full">
 							{#if !readOnly}
 								<TabsTrigger
 									value="settings"

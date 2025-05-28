@@ -336,13 +336,22 @@
 		<div
 			class="flex h-32 flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 sm:h-40 dark:border-gray-700 dark:bg-gray-800/50"
 		>
-			<RefreshCw class="mb-2 h-8 w-8 text-gray-400 sm:h-10 sm:w-10" />
-			<h3 class="mb-1 text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300">
-				No matches generated
-			</h3>
-			<p class="text-xs text-gray-500 dark:text-gray-400">
-				Click "Generate Matches" to create the tournament schedule
-			</p>
+			{#if !readOnly}
+				<RefreshCw class="mb-2 h-8 w-8 text-gray-400 sm:h-10 sm:w-10" />
+			{/if}
+			{#if !readOnly}
+				<h3 class="mb-1 text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300">
+					No matches generated
+				</h3>
+
+				<p class="text-xs text-gray-500 dark:text-gray-400">
+					Click "Generate Matches" to create the tournament schedule
+				</p>
+			{:else}
+				<p class="text-xs text-gray-500 dark:text-gray-400">
+					No matches available. Please contact the tournament organizer.
+				</p>
+			{/if}
 		</div>
 	{/if}
 </div>
