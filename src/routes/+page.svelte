@@ -1,7 +1,5 @@
 <script lang="ts">
 	import UpcomingEvents from '$components/UpcomingEvents.svelte';
-	import { TrophyIcon, PlusIcon } from 'lucide-svelte';
-	import { Button } from '$components/ui/button';
 
 	let { data } = $props();
 </script>

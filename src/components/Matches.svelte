@@ -48,6 +48,8 @@
 	}
 
 	function checkGenerateMatches() {
+		if (readOnly) return;
+
 		if ((data.matches?.matches?.length ?? 0) > 0) {
 			showGenerateMatchesAlert = true;
 		} else {
@@ -168,7 +170,7 @@
 		{/if}
 	</div>
 
-	{#if showGenerateMatchesAlert}
+	{#if !readOnly && showGenerateMatchesAlert}
 		<Alert.Root
 			class="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
 		>
