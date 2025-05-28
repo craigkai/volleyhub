@@ -62,21 +62,22 @@
 </script>
 
 {#snippet fields()}
-	<div class="p-6">
-		<div class="p-6">
-			<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+	<div class="p-3 sm:p-6">
+		<div class="space-y-6">
+			<!-- Basic Information Section -->
+			<div class="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
 				<div class="space-y-1.5">
 					<Field {form} name="name">
 						<Control>
 							{#snippet children({ props })}
 								<div class="flex items-center gap-2">
 									<TrophyIcon class="h-4 w-4 text-gray-500" />
-									<Label class="font-medium">Tournament Name</Label>
+									<Label class="text-sm font-medium sm:text-base">Tournament Name</Label>
 								</div>
 								<Input
 									{...props}
 									bind:value={$formData.name}
-									class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
+									class="mt-1.5 border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
 								/>
 							{/snippet}
 						</Control>
@@ -92,14 +93,14 @@
 							{#snippet children({ props })}
 								<div class="flex items-center gap-2">
 									<CalendarIcon class="h-4 w-4 text-gray-500" />
-									<Label class="font-medium">Tournament Date</Label>
+									<Label class="text-sm font-medium sm:text-base">Tournament Date</Label>
 								</div>
 								<PopoverRoot>
 									<PopoverTrigger
 										{...props}
 										class={cn(
 											buttonVariants({ variant: 'outline' }),
-											'mt-1.5 w-full justify-start border-gray-300 pl-4 text-left font-normal focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600',
+											'mt-1.5 w-full justify-start border-gray-300 pl-3 text-left text-sm font-normal focus:border-emerald-500 focus:ring-emerald-500 sm:pl-4 sm:text-base dark:border-gray-600',
 											!$formData.date && 'text-gray-500'
 										)}
 									>
@@ -136,48 +137,50 @@
 						<Description class="text-xs text-gray-500">Date of tournament</Description>
 					</Field>
 				</div>
-
-				<div class="space-y-1.5 md:col-span-2">
-					<Field {form} name="description">
-						<Control>
-							{#snippet children({ props })}
-								<div class="flex items-center gap-2">
-									<ClipboardListIcon class="h-4 w-4 text-gray-500" />
-									<Label class="font-medium">Description</Label>
-								</div>
-								<Textarea
-									{...props}
-									bind:value={$formData.description}
-									rows={3}
-									class="mt-1.5 resize-none border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
-								/>
-							{/snippet}</Control
-						>
-						<Description class="text-xs text-gray-500">
-							Provide details about your tournament for participants
-						</Description>
-					</Field>
-				</div>
 			</div>
 
-			<div class="my-8 border-t border-gray-200 dark:border-gray-700"></div>
+			<div class="space-y-1.5">
+				<Field {form} name="description">
+					<Control>
+						{#snippet children({ props })}
+							<div class="flex items-center gap-2">
+								<ClipboardListIcon class="h-4 w-4 text-gray-500" />
+								<Label class="text-sm font-medium sm:text-base">Description</Label>
+							</div>
+							<Textarea
+								{...props}
+								bind:value={$formData.description}
+								rows={3}
+								class="mt-1.5 resize-none border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
+							/>
+						{/snippet}</Control
+					>
+					<Description class="text-xs text-gray-500">
+						Provide details about your tournament for participants
+					</Description>
+				</Field>
+			</div>
 
-			<div class="mb-6">
-				<h3 class="mb-4 text-lg font-medium text-gray-800 dark:text-white">Tournament Structure</h3>
-				<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+			<div class="border-t border-gray-200 dark:border-gray-700"></div>
+
+			<div>
+				<h3 class="mb-4 text-base font-medium text-gray-800 sm:text-lg dark:text-white">
+					Tournament Structure
+				</h3>
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
 					<div class="space-y-1.5">
 						<Field {form} name="courts">
 							<Control>
 								{#snippet children({ props })}
 									<div class="flex items-center gap-2">
 										<CourtIcon class="h-4 w-4 text-gray-500" />
-										<Label class="font-medium">Number of Courts</Label>
+										<Label class="text-sm font-medium sm:text-base">Number of Courts</Label>
 									</div>
 									<Input
 										type="number"
 										{...props}
 										bind:value={$formData.courts}
-										class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
+										class="mt-1.5 border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
 									/>
 								{/snippet}
 							</Control>
@@ -193,13 +196,14 @@
 								{#snippet children({ props })}
 									<div class="flex items-center gap-2">
 										<CourtIcon class="h-4 w-4 text-gray-500" />
-										<Label class="font-medium">Number of Pool Play Games</Label>
+										<Label class="text-sm font-medium sm:text-base">Number of Pool Play Games</Label
+										>
 									</div>
 									<Input
 										type="number"
 										{...props}
 										bind:value={$formData.pools}
-										class="mt-1.5 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
+										class="mt-1.5 border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
 									/>
 								{/snippet}
 							</Control>
@@ -213,12 +217,12 @@
 								{#snippet children({ props })}
 									<div class="flex items-center gap-2">
 										<UserIcon class="h-4 w-4 text-gray-500" />
-										<Label class="font-medium">Referees</Label>
+										<Label class="text-sm font-medium sm:text-base">Referees</Label>
 									</div>
 									<SelectRoot type="single" bind:value={$formData.refs}>
 										<SelectTrigger
 											{...props}
-											class="mt-1.5 min-w-[8rem] border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
+											class="mt-1.5 min-w-[8rem] border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
 										>
 											{$formData.refs}
 										</SelectTrigger>
@@ -240,12 +244,12 @@
 								{#snippet children({ props })}
 									<div class="flex items-center gap-2">
 										<ScoreIcon class="h-4 w-4 text-gray-500" />
-										<Label class="font-medium">Scoring Method</Label>
+										<Label class="text-sm font-medium sm:text-base">Scoring Method</Label>
 									</div>
 									<SelectRoot type="single" bind:value={$formData.scoring}>
 										<SelectTrigger
 											{...props}
-											class="mt-1.5 min-w-[8rem] border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 dark:border-gray-600"
+											class="mt-1.5 min-w-[8rem] border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
 										>
 											{$formData.scoring}
 										</SelectTrigger>
@@ -269,10 +273,10 @@
 <div class="mx-auto max-w-4xl">
 	{#if $delayed}
 		<div
-			class="flex items-center justify-center rounded-lg bg-white py-12 shadow-md dark:bg-gray-800"
+			class="flex items-center justify-center rounded-lg bg-white py-8 shadow-md sm:py-12 dark:bg-gray-800"
 		>
 			<div
-				class="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"
+				class="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent sm:h-10 sm:w-10"
 				role="status"
 			>
 				<span class="sr-only">Loading...</span>
@@ -285,10 +289,10 @@
 			class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
 		>
 			{@render fields()}
-			<div class="mt-8 flex justify-end px-6 pb-6">
+			<div class="flex justify-end px-3 pb-3 sm:px-6 sm:pb-6">
 				<Button
 					type="submit"
-					class="w-full rounded-lg bg-emerald-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-emerald-700 sm:w-auto dark:bg-emerald-600 dark:hover:bg-emerald-700"
+					class="w-full rounded-lg bg-emerald-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-emerald-700 sm:w-auto sm:px-5 sm:py-2.5 dark:bg-emerald-600 dark:hover:bg-emerald-700"
 				>
 					Create Tournament
 				</Button>
@@ -302,10 +306,10 @@
 			class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
 		>
 			{@render fields()}
-			<div class="mt-8 flex justify-end px-6 pb-6">
+			<div class="flex justify-end px-3 pb-3 sm:px-6 sm:pb-6">
 				<Button
 					type="submit"
-					class="w-full rounded-lg bg-emerald-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-emerald-700 sm:w-auto dark:bg-emerald-600 dark:hover:bg-emerald-700"
+					class="w-full rounded-lg bg-emerald-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-emerald-700 sm:w-auto sm:px-5 sm:py-2.5 dark:bg-emerald-600 dark:hover:bg-emerald-700"
 				>
 					Save Changes
 				</Button>
@@ -315,7 +319,7 @@
 		<form
 			method="POST"
 			action="?/deleteEvent"
-			class="mt-4 sm:flex-1"
+			class="mt-3 sm:mt-4"
 			onsubmit={(e) => {
 				if (
 					!confirm('Are you sure you want to delete this tournament? This action cannot be undone.')
@@ -326,7 +330,7 @@
 		>
 			<Button
 				type="submit"
-				class="w-full rounded-lg border border-red-200 bg-white px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto dark:border-red-800 dark:bg-transparent dark:text-red-500 dark:hover:bg-red-900"
+				class="w-full rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto sm:px-5 sm:py-2.5 dark:border-red-800 dark:bg-transparent dark:text-red-500 dark:hover:bg-red-900"
 			>
 				Delete Tournament
 			</Button>

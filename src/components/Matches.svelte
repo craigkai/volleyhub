@@ -17,7 +17,7 @@
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 
-	let { readOnly = false, defaultTeam, data } = $props();
+	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
@@ -39,15 +39,15 @@
 		if (matchesSubscription) matchesSubscription.unsubscribe();
 	});
 
-	async function handleVisibilityChange() {
+	function handleVisibilityChange() {
 		if (typeof document !== 'undefined' && !document.hidden) {
 			if (!data.matches.subscriptionStatus && matchesSubscription?.state === 'closed') {
-				await subscribeToMatches();
+				subscribeToMatches();
 			}
 		}
 	}
 
-	async function checkGenerateMatches() {
+	function checkGenerateMatches() {
 		if ((data.matches?.matches?.length ?? 0) > 0) {
 			showGenerateMatchesAlert = true;
 		} else {
@@ -127,36 +127,38 @@
 	}
 </script>
 
-<svelte:document onvisibilitychange={handleVisibilityChange} />
-<svelte:window ononline={handleOnline} onoffline={handleOffline} />
+<svelte:document onvisibilitychange={onVisibilityChange ?? handleVisibilityChange} />
+<svelte:window ononline={onOnline ?? handleOnline} onoffline={onOffline ?? handleOffline} />
 
-<div class="space-y-6">
-	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-		<div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-			<h2 class="text-lg font-semibold text-gray-800 dark:text-white">Tournament Matches</h2>
+<div class="space-y-4 p-3 sm:space-y-6 sm:p-0">
+	<!-- Mobile-optimized header -->
+	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+			<h2 class="text-base font-semibold text-gray-800 sm:text-lg dark:text-white">
+				Tournament Matches
+			</h2>
 			<div
-				class="flex h-6 items-center gap-1 rounded-full px-2 text-xs font-medium"
+				class="flex h-5 w-fit items-center gap-1 rounded-full px-2 text-xs font-medium sm:h-6"
 				class:bg-emerald-100={subscriptionStatus === 'SUBSCRIBED'}
 				class:text-emerald-700={subscriptionStatus === 'SUBSCRIBED'}
 				class:bg-red-100={subscriptionStatus !== 'SUBSCRIBED'}
 				class:text-red-700={subscriptionStatus !== 'SUBSCRIBED'}
 			>
 				{#if subscriptionStatus === 'SUBSCRIBED'}
-					<Zap class="h-3.5 w-3.5" />
+					<Zap class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 					<span>Live</span>
 				{:else}
-					<ZapOff class="h-3.5 w-3.5" />
+					<ZapOff class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 					<span>Offline</span>
 				{/if}
 			</div>
 		</div>
 
-		<!-- Right side: Buttons -->
 		{#if !readOnly}
-			<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+			<div class="flex w-full justify-center sm:w-auto sm:justify-end">
 				<Button
 					onclick={checkGenerateMatches}
-					class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700"
+					class="inline-flex w-full items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none sm:w-auto sm:px-4 dark:bg-emerald-600 dark:hover:bg-emerald-700"
 					disabled={loading}
 				>
 					<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -178,16 +180,16 @@
 						You already have match data. Generating new matches will delete all existing matches and
 						scores.
 					</Alert.Description>
-					<div class="mt-4 flex gap-2">
+					<div class="mt-4 flex flex-col gap-2 sm:flex-row">
 						<Button
 							onclick={generateMatches}
-							class="inline-flex items-center rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500/40 focus:outline-none dark:bg-amber-700 dark:hover:bg-amber-600"
+							class="inline-flex items-center justify-center rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500/40 focus:outline-none dark:bg-amber-700 dark:hover:bg-amber-600"
 						>
 							Yes, generate new matches
 						</Button>
 						<Button
 							onclick={() => (showGenerateMatchesAlert = false)}
-							class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+							class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
 						>
 							Cancel
 						</Button>
@@ -199,16 +201,16 @@
 
 	{#if loading}
 		<div
-			class="flex h-40 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+			class="flex h-32 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 sm:h-40 dark:border-gray-700 dark:bg-gray-800"
 		>
 			<div class="flex flex-col items-center gap-2">
 				<div
-					class="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"
+					class="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600 sm:h-10 sm:w-10"
 					role="status"
 				>
 					<span class="sr-only">Loading...</span>
 				</div>
-				<p class="text-sm text-gray-500 dark:text-gray-400">Generating matches...</p>
+				<p class="text-xs text-gray-500 sm:text-sm dark:text-gray-400">Generating matches...</p>
 			</div>
 		</div>
 	{:else if data.matches && data.matches.matches && data.matches?.matches?.length > 0}
@@ -217,11 +219,11 @@
 		>
 			{#if defaultTeam}
 				<div
-					class="border-b border-yellow-100 bg-yellow-50 px-4 py-2 dark:border-yellow-900/30 dark:bg-yellow-900/20"
+					class="border-b border-yellow-100 bg-yellow-50 px-3 py-2 sm:px-4 dark:border-yellow-900/30 dark:bg-yellow-900/20"
 				>
 					<div class="flex items-center gap-2">
-						<div class="h-3 w-3 rounded-full bg-yellow-300 dark:bg-yellow-500"></div>
-						<p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+						<div class="h-2 w-2 rounded-full bg-yellow-300 sm:h-3 sm:w-3 dark:bg-yellow-500"></div>
+						<p class="text-xs font-medium text-yellow-800 sm:text-sm dark:text-yellow-300">
 							Viewing matches for: <span class="font-semibold">{defaultTeam}</span>
 						</p>
 					</div>
@@ -231,7 +233,7 @@
 			{#if isMobile}
 				<div class="relative">
 					<div
-						class="border-b border-gray-200 bg-gray-50 px-4 py-2 text-center text-xs text-gray-500 md:hidden dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-400"
+						class="border-b border-gray-200 bg-gray-50 px-3 py-2 text-center text-xs text-gray-500 md:hidden dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-400"
 					>
 						<div class="flex items-center justify-center gap-1">
 							<ChevronLeft class="h-3 w-3" />
@@ -246,25 +248,25 @@
 				bind:this={tableContainer}
 				class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto"
 			>
-				<Table.Root class="min-w-full p-2 sm:table-fixed">
+				<Table.Root class="min-w-full">
 					<Table.Header>
 						<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
 							<Table.Head
-								class="sticky left-0 z-10 w-16 bg-gray-50 py-3 pl-4 text-left text-sm font-medium text-gray-700 sm:w-24 dark:bg-gray-900 dark:text-gray-300"
+								class="sticky left-0 z-10 w-12 bg-gray-50 py-2 pl-2 text-left text-xs font-medium text-gray-700 sm:w-16 sm:py-3 sm:pl-4 sm:text-sm dark:bg-gray-900 dark:text-gray-300"
 							>
 								Round
 							</Table.Head>
 							{#each Array(data.tournament.courts) as _, i}
 								{@const index = i + 1}
 								<Table.Head
-									class="py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
+									class="py-2 text-center text-xs font-medium text-gray-700 sm:py-3 sm:text-sm dark:text-gray-300"
 								>
 									Court {index}
 								</Table.Head>
 							{/each}
 							{#if data.tournament.refs === 'teams'}
 								<Table.Head
-									class="py-3 pr-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
+									class="py-2 pr-2 text-center text-xs font-medium text-gray-700 sm:py-3 sm:pr-4 sm:text-sm dark:text-gray-300"
 								>
 									Referee
 								</Table.Head>
@@ -283,9 +285,9 @@
 									`}"
 								>
 									<Table.Cell
-										class="sticky left-0 z-10 bg-white py-3 pl-4 text-sm font-medium text-gray-800
+										class="sticky left-0 z-10 bg-white py-2 pl-2 text-xs font-medium text-gray-800 sm:py-3 sm:pl-4 sm:text-sm
 	       dark:bg-gray-800 dark:text-gray-200"
-										style="top: 42px;"
+										style="top: 32px;"
 									>
 										{round + 1}
 									</Table.Cell>
@@ -295,9 +297,9 @@
 											(m: Match) =>
 												m?.court === court && (m?.round ?? 0).toString() === round?.toString()
 										)}
-										<Table.Cell class="p-2 text-center">
+										<Table.Cell class="p-1 text-center sm:p-2">
 											{#if match}
-												<div class="min-w-[180px]">
+												<div class="min-w-[140px] sm:min-w-[180px]">
 													<ViewMatch
 														matches={data.matches}
 														{match}
@@ -315,8 +317,8 @@
 										{@const matchesPerRound = data.matches.matches.filter(
 											(m: MatchRow) => m.round.toString() === round.toString()
 										)}
-										<Table.Cell class="p-2 pr-4 text-center">
-											<div class="min-w-[120px]">
+										<Table.Cell class="p-1 pr-2 text-center sm:p-2 sm:pr-4">
+											<div class="min-w-[100px] sm:min-w-[120px]">
 												<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
 											</div>
 										</Table.Cell>
@@ -330,10 +332,10 @@
 		</div>
 	{:else}
 		<div
-			class="flex h-40 flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+			class="flex h-32 flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 sm:h-40 dark:border-gray-700 dark:bg-gray-800/50"
 		>
-			<RefreshCw class="mb-2 h-10 w-10 text-gray-400" />
-			<h3 class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+			<RefreshCw class="mb-2 h-8 w-8 text-gray-400 sm:h-10 sm:w-10" />
+			<h3 class="mb-1 text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300">
 				No matches generated
 			</h3>
 			<p class="text-xs text-gray-500 dark:text-gray-400">
@@ -344,52 +346,14 @@
 </div>
 
 <style>
-	/* Ensure table is responsive */
-	:global(.courts-container) {
-		overflow-x: auto;
-	}
-
-	/* Focus styles for better accessibility */
-	:global(Button:focus-visible) {
-		outline: 2px solid rgb(16 185 129 / 0.5);
-		outline-offset: 2px;
-	}
-
-	/* Default team row highlighting */
-	:global(.default-team-row) {
-		background-color: rgba(253, 224, 71, 0.15) !important; /* Light yellow */
-		border-left: 4px solid rgb(253, 224, 71) !important;
-	}
-
-	:global(.dark .default-team-row) {
-		background-color: rgba(253, 224, 71, 0.05) !important;
-		border-left: 4px solid rgb(202, 179, 57) !important;
-	}
-
-	:global(.default-team-indicator) {
-		position: relative;
-		font-weight: 600 !important;
-		color: rgb(161, 98, 7) !important; /* amber-700 */
-	}
-
-	:global(.dark .default-team-indicator) {
-		color: rgb(252, 211, 77) !important; /* amber-300 */
-	}
-
-	:global(.default-team-indicator::before) {
-		content: '•';
-		color: rgb(251, 191, 36); /* amber-400 */
-		font-size: 1.5rem;
-		line-height: 0;
-		position: absolute;
-		left: -0.5rem;
-		top: 50%;
-		transform: translateY(-40%);
-	}
-
-	/* Custom scrollbar for better visibility */
 	.scrollbar-thin::-webkit-scrollbar {
-		height: 6px;
+		height: 4px;
+	}
+
+	@media (min-width: 640px) {
+		.scrollbar-thin::-webkit-scrollbar {
+			height: 6px;
+		}
 	}
 
 	.scrollbar-thin::-webkit-scrollbar-track {
@@ -397,18 +361,34 @@
 	}
 
 	.scrollbar-thin::-webkit-scrollbar-thumb {
-		background-color: rgb(209, 213, 219); /* gray-300 */
+		background-color: rgb(209, 213, 219);
 		border-radius: 20px;
 	}
 
-	/* Pulse animation for scroll indicators on first load */
-	@keyframes pulse {
-		0%,
-		100% {
-			opacity: 0.8;
+	:global(.default-team-row) {
+		background-color: rgba(253, 224, 71, 0.15) !important;
+		border-left: 3px solid rgb(253, 224, 71) !important;
+	}
+
+	@media (min-width: 640px) {
+		:global(.default-team-row) {
+			border-left: 4px solid rgb(253, 224, 71) !important;
 		}
-		50% {
-			opacity: 0.5;
+	}
+
+	:global(.dark .default-team-row) {
+		background-color: rgba(253, 224, 71, 0.05) !important;
+		border-left: 3px solid rgb(202, 179, 57) !important;
+	}
+
+	@media (min-width: 640px) {
+		:global(.dark .default-team-row) {
+			border-left: 4px solid rgb(202, 179, 57) !important;
 		}
+	}
+
+	:global(Button:focus-visible) {
+		outline: 2px solid rgb(16 185 129 / 0.5);
+		outline-offset: 2px;
 	}
 </style>

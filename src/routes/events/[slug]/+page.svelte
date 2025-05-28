@@ -56,16 +56,17 @@
 	<title>{data?.tournament?.name || 'Tournament Management'}</title>
 </svelte:head>
 
-<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-	<div class="mb-8 text-center">
-		<div class="mb-2 flex items-center justify-center gap-2">
-			<TrophyIcon class="h-8 w-8 text-emerald-600" />
-			<h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+<div class="mx-auto max-w-7xl px-3 py-4 sm:px-6 lg:px-8">
+	<!-- Mobile-optimized header -->
+	<div class="mb-6 text-center">
+		<div class="mb-2 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+			<TrophyIcon class="h-6 w-6 text-emerald-600 sm:h-8 sm:w-8" />
+			<h1 class="text-xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white">
 				{data?.tournament?.name || 'Tournament Management'}
 			</h1>
 		</div>
 		{#if data?.tournament?.date}
-			<p class="text-sm text-gray-500 dark:text-gray-400">
+			<p class="text-xs text-gray-500 sm:text-sm dark:text-gray-400">
 				{new Date(data.tournament.date).toLocaleDateString('en-US', {
 					weekday: 'long',
 					year: 'numeric',
@@ -76,9 +77,10 @@
 		{/if}
 	</div>
 
+	<!-- Mobile-optimized team selector -->
 	{#if readOnly && mounted}
-		<div class="mb-6 flex justify-center">
-			<div class="relative w-full max-w-xs">
+		<div class="mb-4 flex justify-center">
+			<div class="relative w-full max-w-sm">
 				<Select.Root
 					type="single"
 					value={defaultTeam}
@@ -97,12 +99,14 @@
 					}}
 				>
 					<Select.Trigger
-						class="w-full rounded-md border-2 border-gray-300 bg-white px-4 py-2.5 text-left shadow-sm transition-colors hover:border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-emerald-700 dark:bg-gray-800 dark:text-white dark:hover:border-emerald-600"
+						class="w-full rounded-md border-2 border-gray-300 bg-white px-3 py-2 text-left shadow-sm transition-colors hover:border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none sm:px-4 sm:py-2.5 dark:border-emerald-700 dark:bg-gray-800 dark:text-white dark:hover:border-emerald-600"
 					>
 						<div class="flex items-center justify-between">
 							<div class="flex items-center gap-2">
 								<UsersIcon class="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
-								<span class="font-medium">{defaultTeam ? defaultTeam : 'Select your team'}</span>
+								<span class="text-sm font-medium sm:text-base"
+									>{defaultTeam ? defaultTeam : 'Select your team'}</span
+								>
 							</div>
 						</div>
 					</Select.Trigger>
@@ -134,42 +138,42 @@
 		{#if tabsReady}
 			{#key data.eventId}
 				<TabsRoot class="w-full" value={readOnly ? 'matches' : 'settings'}>
-					<div class="mb-8 flex justify-center">
+					<div class="mb-6 flex justify-center">
 						<TabsList
-							class="mb-6 grid gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800 {tabsWidth}"
+							class="mb-4 grid w-full max-w-md gap-1 rounded-lg bg-gray-100 p-1 sm:mb-6 sm:max-w-none sm:gap-2 dark:bg-gray-800 {tabsWidth}"
 						>
 							{#if !readOnly}
 								<TabsTrigger
 									value="settings"
-									class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
+									class="flex items-center justify-center gap-1 px-2 py-1.5 text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-700 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 								>
-									<SettingsIcon class="hidden h-4 w-4 sm:block" />
-									<span>Settings</span>
+									<SettingsIcon class="h-3 w-3 sm:h-4 sm:w-4" />
+									<span class="xs:inline hidden sm:inline">Settings</span>
 								</TabsTrigger>
 								<TabsTrigger
 									disabled={isCreate}
 									value="teams"
-									class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
+									class="flex items-center justify-center gap-1 px-2 py-1.5 text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-700 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 								>
-									<UsersIcon class="hidden h-4 w-4 sm:block" />
-									<span>Teams</span>
+									<UsersIcon class="h-3 w-3 sm:h-4 sm:w-4" />
+									<span class="xs:inline hidden sm:inline">Teams</span>
 								</TabsTrigger>
 							{/if}
 							<TabsTrigger
 								disabled={isCreate}
 								value="matches"
-								class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
+								class="flex items-center justify-center gap-1 px-2 py-1.5 text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-700 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 							>
-								<ListIcon class="hidden h-4 w-4 sm:block" />
-								<span>Matches</span>
+								<ListIcon class="h-3 w-3 sm:h-4 sm:w-4" />
+								<span class="xs:inline hidden sm:inline">Matches</span>
 							</TabsTrigger>
 							<TabsTrigger
 								disabled={isCreate}
 								value="standings"
-								class="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
+								class="flex items-center justify-center gap-1 px-2 py-1.5 text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-700 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 							>
-								<BarChartIcon class="hidden h-4 w-4 sm:block" />
-								<span>Standings</span>
+								<BarChartIcon class="h-3 w-3 sm:h-4 sm:w-4" />
+								<span class="xs:inline hidden sm:inline">Standings</span>
 							</TabsTrigger>
 						</TabsList>
 					</div>
@@ -181,19 +185,20 @@
 							>
 								<div class="relative">
 									<Card.Header
-										class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+										class="border-b border-gray-200 bg-gray-50 p-3 sm:p-6 dark:border-gray-700 dark:bg-gray-900"
 									>
-										<div class="m-2 flex items-center gap-2 p-2">
-											<SettingsIcon class="h-5 w-5 text-emerald-600" />
-											<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+										<div class="flex items-center gap-2">
+											<SettingsIcon class="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5" />
+											<Card.Title
+												class="text-lg font-semibold text-gray-900 sm:text-xl dark:text-white"
 												>Tournament Settings</Card.Title
 											>
 										</div>
-										<Card.Description class="text-gray-500 dark:text-gray-400">
+										<Card.Description class="text-sm text-gray-500 dark:text-gray-400">
 											Configure your tournament details and structure
 										</Card.Description>
 									</Card.Header>
-									<Card.Content class="p-6">
+									<Card.Content class="p-3 sm:p-6">
 										<Settings eventId={data.eventId as number | 'create'} {data} />
 									</Card.Content>
 								</div>
@@ -206,19 +211,20 @@
 							>
 								<div class="relative">
 									<Card.Header
-										class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+										class="border-b border-gray-200 bg-gray-50 p-3 sm:p-6 dark:border-gray-700 dark:bg-gray-900"
 									>
-										<div class="m-2 flex items-center gap-2 p-2">
-											<UsersIcon class="h-5 w-5 text-emerald-600" />
-											<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+										<div class="flex items-center gap-2">
+											<UsersIcon class="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5" />
+											<Card.Title
+												class="text-lg font-semibold text-gray-900 sm:text-xl dark:text-white"
 												>Teams Management</Card.Title
 											>
 										</div>
-										<Card.Description class="text-gray-500 dark:text-gray-400">
+										<Card.Description class="text-sm text-gray-500 dark:text-gray-400">
 											Add, edit, or remove teams participating in the tournament
 										</Card.Description>
 									</Card.Header>
-									<Card.Content class="p-6">
+									<Card.Content class="p-3 sm:p-6">
 										{#if teams}
 											<Teams bind:teams matches={data.matches} />
 										{/if}
@@ -234,19 +240,20 @@
 						>
 							<div class="relative">
 								<Card.Header
-									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+									class="border-b border-gray-200 bg-gray-50 p-3 sm:p-6 dark:border-gray-700 dark:bg-gray-900"
 								>
-									<div class="m-2 flex items-center gap-2 p-2">
-										<ListIcon class="h-5 w-5 text-emerald-600" />
-										<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+									<div class="flex items-center gap-2">
+										<ListIcon class="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5" />
+										<Card.Title
+											class="text-lg font-semibold text-gray-900 sm:text-xl dark:text-white"
 											>Match Schedule</Card.Title
 										>
 									</div>
-									<Card.Description class="text-gray-500 dark:text-gray-400">
+									<Card.Description class="text-sm text-gray-500 dark:text-gray-400">
 										View and manage tournament matches and results
 									</Card.Description>
 								</Card.Header>
-								<Card.Content class="p-6">
+								<Card.Content class="p-0 sm:p-6">
 									{#if data.tournament && data.matches && data.teams}
 										<Matches {defaultTeam} {readOnly} {data} />
 									{:else}
@@ -269,19 +276,20 @@
 						>
 							<div class="relative">
 								<Card.Header
-									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+									class="border-b border-gray-200 bg-gray-50 p-3 sm:p-6 dark:border-gray-700 dark:bg-gray-900"
 								>
-									<div class="m-2 flex items-center gap-2 p-2">
-										<BarChartIcon class="h-5 w-5 text-emerald-600" />
-										<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
+									<div class="flex items-center gap-2">
+										<BarChartIcon class="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5" />
+										<Card.Title
+											class="text-lg font-semibold text-gray-900 sm:text-xl dark:text-white"
 											>Tournament Standings</Card.Title
 										>
 									</div>
-									<Card.Description class="text-gray-500 dark:text-gray-400">
+									<Card.Description class="text-sm text-gray-500 dark:text-gray-400">
 										Current rankings based on match results
 									</Card.Description>
 								</Card.Header>
-								<Card.Content class="p-6">
+								<Card.Content class="p-3 sm:p-6">
 									{#if data.tournament && data.matches && teams}
 										<Standings
 											event={data.tournament}
@@ -302,54 +310,13 @@
 							</div>
 						</Card.Root>
 					</TabsContent>
-
-					<TabsContent value="bracket">
-						<Card.Root
-							class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
-						>
-							<div class="relative">
-								<Card.Header
-									class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
-								>
-									<div class="m-2 flex items-center gap-2 p-2">
-										<GitBranchIcon class="h-5 w-5 text-emerald-600" />
-										<Card.Title class="text-xl font-semibold text-gray-900 dark:text-white"
-											>Tournament Bracket</Card.Title
-										>
-									</div>
-									<Card.Description class="text-gray-500 dark:text-gray-400">
-										Single/Double elimination bracket view
-									</Card.Description>
-								</Card.Header>
-								<Card.Content class="p-6">
-									{#if data.tournament && data.matches && teams && data.bracket}
-										<Bracket
-											tournament={data.tournament}
-											matches={data.matches}
-											bracket={data.bracket}
-											{teams}
-											{readOnly}
-										/>
-									{:else}
-										<div
-											class="flex h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
-										>
-											<p class="text-sm text-gray-500 dark:text-gray-400">
-												Bracket view coming soon
-											</p>
-										</div>
-									{/if}
-								</Card.Content>
-							</div>
-						</Card.Root>
-					</TabsContent>
 				</TabsRoot>
 			{/key}
 		{:else}
 			<div class="mx-auto max-w-5xl">
 				<div class="animate-pulse">
-					<div class="mb-6 h-12 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
-					<div class="h-96 rounded-xl bg-gray-200 dark:bg-gray-700"></div>
+					<div class="mb-6 h-10 rounded-lg bg-gray-200 sm:h-12 dark:bg-gray-700"></div>
+					<div class="h-80 rounded-xl bg-gray-200 sm:h-96 dark:bg-gray-700"></div>
 				</div>
 			</div>
 		{/if}
@@ -366,5 +333,12 @@
 	:global(a:focus-visible) {
 		outline: 2px solid rgb(16 185 129 / 0.5);
 		outline-offset: 2px;
+	}
+
+	/* Mobile-specific improvements */
+	@media (max-width: 480px) {
+		:global(.xs\:inline) {
+			display: inline;
+		}
 	}
 </style>
