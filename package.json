@@ -22,7 +22,6 @@
 		"@lucide/svelte": "^0.511.0",
 		"@playwright/test": "^1.52.0",
 		"@supabase/auth-ui-shared": "^0.1.8",
-		"@supabase/auth-ui-svelte": "^0.2.9",
 		"@supabase/ssr": "^0.6.1",
 		"@supabase/supabase-js": "^2.49.8",
 		"@sveltejs/adapter-auto": "^6.0.1",
@@ -39,7 +38,7 @@
 		"@vercel/analytics": "^1.5.0",
 		"@vite-pwa/assets-generator": "^1.0.0",
 		"autoprefixer": "^10.4.21",
-		"bits-ui": "^2.2.0",
+		"bits-ui": "^2.3.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"dayjs": "^1.11.13",
@@ -53,7 +52,7 @@
 		"less": "^4.3.0",
 		"lucide-svelte": "^0.511.0",
 		"mode-watcher": "^1.0.7",
-		"postcss": "^8.5.3",
+		"postcss": "^8.5.4",
 		"postcss-load-config": "^6.0.1",
 		"prettier": "^3.5.3",
 		"prettier-plugin-svelte": "^3.4.0",
@@ -61,7 +60,7 @@
 		"radix-svelte": "^0.9.0",
 		"sass": "^1.89.0",
 		"supabase-to-zod": "^1.0.7",
-		"svelte": "^5.33.4",
+		"svelte": "^5.33.10",
 		"svelte-check": "^4.2.1",
 		"svelte-dnd-action": "^0.9.61",
 		"svelte-french-toast": "^1.2.0",
@@ -81,7 +80,7 @@
 		"vite": "^6.3.5",
 		"vite-plugin-pwa": "^1.0.0",
 		"vitest": "^3.1.4",
-		"zod": "^3.25.32",
+		"zod": "^3.25.36",
 		"zod-validation-error": "^3.4.1"
 	},
 	"type": "module",
@@ -92,6 +91,8 @@
 		"svelte-5-french-toast": "^2.0.4",
 		"svelte-kit-bot-block": "^0.0.7",
 		"utf-8-validate": "^6.0.5",
+		"workbox-build": "^7.3.0",
+		"workbox-window": "^7.3.0",
 		"ws": "^8.18.2"
 	}
 }

@@ -2093,11 +2093,6 @@
   resolved "https://registry.yarnpkg.com/@standard-schema/spec/-/spec-1.0.0.tgz#f193b73dc316c4170f2e82a881da0f550d551b9c"
   integrity sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==
 
-"@stitches/core@^1.2.8":
-  version "1.2.8"
-  resolved "https://registry.yarnpkg.com/@stitches/core/-/core-1.2.8.tgz#dce3b8fdc764fbc6dbea30c83b73bfb52cf96173"
-  integrity sha512-Gfkvwk9o9kE9r9XNBmJRfV8zONvXThnm1tcuojL04Uy5uRyqg93DC83lDebl0rocZCfKSjUv+fWYtMQmEDJldg==
-
 "@supabase/auth-js@2.69.1":
   version "2.69.1"
   resolved "https://registry.yarnpkg.com/@supabase/auth-js/-/auth-js-2.69.1.tgz#fcf310d24dfab823ffbf22191e6ceaef933360d8"
@@ -2105,19 +2100,10 @@
   dependencies:
     "@supabase/node-fetch" "^2.6.14"
 
-"@supabase/auth-ui-shared@0.1.8", "@supabase/auth-ui-shared@^0.1.8":
+"@supabase/auth-ui-shared@^0.1.8":
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/@supabase/auth-ui-shared/-/auth-ui-shared-0.1.8.tgz#1ce63c4ac58f29d7c76436b774b0e8809dd08617"
   integrity sha512-ouQ0DjKcEFg+0gZigFIEgu01V3e6riGZPzgVD0MJsCBNsMsiDT74+GgCEIElMUpTGkwSja3xLwdFRFgMNFKcjg==
-
-"@supabase/auth-ui-svelte@^0.2.9":
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/@supabase/auth-ui-svelte/-/auth-ui-svelte-0.2.9.tgz#55b812ba69b1f7519b2ab289cbf2e6c2bc19aee0"
-  integrity sha512-oc+SRS7ykc5FCssoqT0IiK5KF/obwnWko5ePaaMTDwUEQOavv+O8/poAh2lRTKRJCqJMqOOpMS/lUE6pHcma3g==
-  dependencies:
-    "@stitches/core" "^1.2.8"
-    "@supabase/auth-ui-shared" "0.1.8"
-    svelte "^3.55.1"
 
 "@supabase/functions-js@2.4.4":
   version "2.4.4"
@@ -3025,10 +3011,10 @@ bindings@^1.4.0:
   dependencies:
     file-uri-to-path "1.0.0"
 
-bits-ui@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/bits-ui/-/bits-ui-2.2.0.tgz#e99ed48b3b140530a68fdaa190fc690980287873"
-  integrity sha512-Jo3PIWpMMAeT4rs5f3X3S5Qdu1MWyjz3YV5DhTJRtLI3UZn8A5YkZyHbIaPsAkKIxjLMNAqAa2FAMfDJ8DdXjw==
+bits-ui@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/bits-ui/-/bits-ui-2.3.0.tgz#f97ccc19ad50bf3e7391d396ccaa87eac1c0e785"
+  integrity sha512-PgDcs49PdHGRC7T1tTNqWhMrTHgOVE0q/q03K7n64V5MxeB2aMrbAqoW9Wg+43P4u2vMzUn8ifhLBPSfZDNceg==
   dependencies:
     "@floating-ui/core" "^1.7.0"
     "@floating-ui/dom" "^1.7.0"
@@ -5459,7 +5445,7 @@ mute-stream@0.0.8:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
 
-nanoid@^3.3.8:
+nanoid@^3.3.11, nanoid@^3.3.8:
   version "3.3.11"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.11.tgz#4f4f112cefbe303202f2199838128936266d185b"
   integrity sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==
@@ -5809,6 +5795,15 @@ postcss@^8.4.41, postcss@^8.4.49, postcss@^8.5.3:
   integrity sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==
   dependencies:
     nanoid "^3.3.8"
+    picocolors "^1.1.1"
+    source-map-js "^1.2.1"
+
+postcss@^8.5.4:
+  version "8.5.4"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.4.tgz#d61014ac00e11d5f58458ed7247d899bd65f99c0"
+  integrity sha512-QSa9EBe+uwlGTFmHsPKokv3B/oEMQZxfqW0QqNCyhpa6mB1afzulwn8hihglqAb2pOw+BJgNlmXQ8la2VeHB7w==
+  dependencies:
+    nanoid "^3.3.11"
     picocolors "^1.1.1"
     source-map-js "^1.2.1"
 
@@ -6718,15 +6713,10 @@ svelte-writable-derived@^3.1.0, svelte-writable-derived@^3.1.1:
   resolved "https://registry.yarnpkg.com/svelte-writable-derived/-/svelte-writable-derived-3.1.1.tgz#03222b32f8a66ea503e95b3cce8b94bec0810044"
   integrity sha512-w4LR6/bYZEuCs7SGr+M54oipk/UQKtiMadyOhW0PTwAtJ/Ai12QS77sLngEcfBx2q4H8ZBQucc9ktSA5sUGZWw==
 
-svelte@^3.55.1:
-  version "3.59.2"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.59.2.tgz#a137b28e025a181292b2ae2e3dca90bf8ec73aec"
-  integrity sha512-vzSyuGr3eEoAtT/A6bmajosJZIUWySzY2CzB3w2pgPvnkUjGqlDnsNnA0PMO+mMAhuyMul6C2uuZzY6ELSkzyA==
-
-svelte@^5.33.4:
-  version "5.33.4"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.33.4.tgz#5609981a0841da7ee91a0d9672a00784c26d2605"
-  integrity sha512-w2+ksGaZRgZgQdP2dtOjlpkdQwX3ftc8+BH/W9XgX6rP1FZHCeuXQnmyeHPFLbG2Gjj9pp2ak8iIeVure+n7IA==
+svelte@^5.33.10:
+  version "5.33.10"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.33.10.tgz#29424421dc191c4ee88d8fd7414e3f525b8156c2"
+  integrity sha512-/yArPQIBoQS2p86LKnvJywOXkVHeEXnFgrDPSxkEfIAEkykopYuy2bF6UUqHG4IbZlJD6OurLxJT8Kn7kTk9WA==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
@@ -7785,7 +7775,7 @@ zod@^3.22.4, zod@^3.24.2:
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.7.tgz#74184ecfe03ef8c67a62393008117b3b8d9cc48c"
   integrity sha512-YGdT1cVRmKkOg6Sq7vY7IkxdphySKnXhaUmFI4r4FcuFVNgpCb9tZfNwXbT6BPjD5oz0nubFsoo9pIqKrDcCvg==
 
-zod@^3.25.32:
-  version "3.25.32"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.32.tgz#769cc684072df780fc8f38130b0cd9283a8d3818"
-  integrity sha512-OSm2xTIRfW8CV5/QKgngwmQW/8aPfGdaQFlrGoErlgg/Epm7cjb6K6VEyExfe65a3VybUOnu381edLb0dfJl0g==
+zod@^3.25.36:
+  version "3.25.36"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.36.tgz#e5ae0fb7803662b8a21d9a1e282e7d5b8ff57726"
+  integrity sha512-eRFS3i8T0IrpGdL8HQyqFAugGOn7jOjyGgGdtv5NY4Wkhi7lJDk732bNZ609YMIGFbLoaj6J69O1Mura23gfIw==
