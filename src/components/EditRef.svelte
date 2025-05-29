@@ -56,14 +56,14 @@
 >
 	{#if readOnly}
 		<div class="text-center font-medium">
-			{refTeam?.name || 'No referee assigned'}
+			{refTeam?.name || 'TBD'}
 		</div>
 	{:else}
 		<AlertDialog.Root>
 			<AlertDialog.Trigger
 				class="w-full rounded px-2 py-1 text-center font-medium transition-colors hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:hover:bg-gray-700"
 			>
-				{refTeam?.name || 'Assign referee'}
+				{refTeam?.name || 'TBD'}
 			</AlertDialog.Trigger>
 
 			<AlertDialog.Content
