@@ -109,9 +109,8 @@
 				</Card.Content>
 			{:else}
 				<Card.Content class="space-y-4">
-					<!-- Continue and Manage Account buttons for successful logins -->
 					<Button
-						href={next}
+						href={next || '/protected-routes/application'}
 						class="group h-12 w-full bg-gradient-to-r from-emerald-500 to-teal-500 font-semibold text-white shadow-lg transition-all duration-200 hover:from-emerald-600 hover:to-teal-600 hover:shadow-xl"
 					>
 						<span>Continue to Application</span>
