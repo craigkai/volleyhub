@@ -4,9 +4,6 @@
 	import { Button } from '$components/ui/button';
 	import EditMatch from '$components/EditMatch.svelte';
 	import type { Team } from '$lib/team.svelte';
-	import { Teams } from '$lib/teams.svelte';
-	import type { Matches } from '$lib/matches.svelte';
-	import { Match } from '$lib/match.svelte';
 	import EditIcon from 'lucide-svelte/icons/edit-2';
 	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import InfoIcon from 'lucide-svelte/icons/info';
@@ -42,10 +39,9 @@
 	const isComplete = $derived(match.state === 'COMPLETE');
 	const hasScores = $derived(match?.team1_score != null && match?.team2_score != null);
 
-	// Determine card background class based on match state and teams
-	const cardBackgroundClass = $derived(() => {
+	const cardBackgroundClass = $derived.by(() => {
 		if (hasDefaultTeam) {
-			return 'default-team-card';
+			return 'default-team-card bg-red-200';
 		}
 		if (isComplete && hasScores) {
 			return 'completed-match-card';
@@ -352,5 +348,17 @@
 
 	:global(.dark) .meta-item {
 		color: #9ca3af; /* dark:text-gray-400 */
+	}
+
+	.match-card.default-team-card::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 4px;
+		background-color: #facc15; /* Tailwind yellow-400 */
+		border-top-left-radius: 0.5rem;
+		border-bottom-left-radius: 0.5rem;
 	}
 </style>
