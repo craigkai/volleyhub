@@ -16,23 +16,25 @@
 	import { Button } from '$components/ui/button';
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
+	import { MatchSupabaseDatabaseService } from '$lib/database/match';
+	import Plus from 'lucide-svelte/icons/plus';
+	import PlusCircle from 'lucide-svelte/icons/plus-circle';
+	import Calendar from 'lucide-svelte/icons/calendar';
 
 	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
+
+	const matcheSupabaseDatabaseService = new MatchSupabaseDatabaseService(
+		data.tournament.databaseService.supabaseClient
+	);
+	const match = new Match(matcheSupabaseDatabaseService);
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let subscriptionStatus: any | undefined = $derived(data.matches?.subscriptionStatus);
 	let tableContainer: HTMLElement | undefined = $state();
-	let isMobile = $state(false);
 
 	onMount(() => {
 		if ((data.matches?.matches?.length ?? 0) > 0) subscribeToMatches();
-		checkMobileView();
-		window.addEventListener('resize', checkMobileView);
-
-		return () => {
-			window.removeEventListener('resize', checkMobileView);
-		};
 	});
 
 	onDestroy(() => {
@@ -106,7 +108,7 @@
 		}
 	}
 
-	const rounds = $derived(
+	let rounds = $state(
 		Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) + 1
 	);
 
@@ -124,8 +126,49 @@
 		});
 	}
 
-	function checkMobileView() {
-		isMobile = window.innerWidth < 768;
+	function addMatch(round: number, court: number) {
+		const newMatch = {
+			event_id: data.matches.event_id,
+			court,
+			round,
+			state: 'INCOMPLETE'
+		};
+
+		match
+			.create(newMatch)
+			.then(() => toast.success('Match added'))
+			.catch((err: { message: string }) => toast.error('Failed to add match: ' + err.message));
+	}
+
+	let addingRound = $state(false);
+
+	async function addRound() {
+		if (addingRound) return;
+
+		addingRound = true;
+		const newRound = rounds;
+		const numCourts = data.tournament.courts ?? 1;
+
+		try {
+			for (let court = 0; court < numCourts; court++) {
+				await match.create({
+					event_id: data.matches.event_id,
+					round: newRound,
+					court,
+					state: 'INCOMPLETE'
+				});
+			}
+
+			rounds++;
+			await data.matches.load(data.matches.event_id);
+			toast.success(
+				`Added round ${newRound + 1} with ${numCourts} ${numCourts === 1 ? 'court' : 'courts'}`
+			);
+		} catch (err: any) {
+			toast.error('Failed to add round: ' + err.message);
+		} finally {
+			addingRound = false;
+		}
 	}
 </script>
 
@@ -157,10 +200,10 @@
 		</div>
 
 		{#if !readOnly}
-			<div class="flex w-full justify-center sm:w-auto sm:justify-end">
+			<div class="flex justify-center sm:w-auto sm:justify-end">
 				<Button
 					onclick={checkGenerateMatches}
-					class="inline-flex w-full items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none sm:w-auto sm:px-4 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+					class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none sm:w-auto sm:px-4 dark:bg-emerald-600 dark:hover:bg-emerald-700"
 					disabled={loading}
 				>
 					<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -232,25 +275,23 @@
 				</div>
 			{/if}
 
-			{#if isMobile}
-				<div class="relative">
-					<div
-						class="border-b border-gray-200 bg-gray-50 px-3 py-2 text-center text-xs text-gray-500 md:hidden dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-400"
-					>
-						<div class="flex items-center justify-center gap-1">
-							<ChevronLeft class="h-3 w-3" />
-							<span>Swipe to see all courts</span>
-							<ChevronRight class="h-3 w-3" />
-						</div>
+			<div class="relative">
+				<div
+					class="border-b border-gray-200 bg-gray-50 px-3 py-2 text-center text-xs text-gray-500 md:hidden dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-400"
+				>
+					<div class="flex items-center justify-center gap-1">
+						<ChevronLeft class="h-3 w-3" />
+						<span>Swipe to see all courts</span>
+						<ChevronRight class="h-3 w-3" />
 					</div>
 				</div>
-			{/if}
+			</div>
 
 			<div
 				bind:this={tableContainer}
 				class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto"
 			>
-				<Table.Root class="min-w-full">
+				<Table.Root class="">
 					<Table.Header>
 						<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
 							<Table.Head
@@ -301,15 +342,34 @@
 										)}
 										<Table.Cell class="p-1 text-center sm:p-2">
 											{#if match}
-												<div class="min-w-[140px] sm:min-w-[180px]">
-													<ViewMatch
-														matches={data.matches}
-														{match}
-														teams={data.teams}
-														{readOnly}
-														{defaultTeam}
-														courts={data.tournament.courts ?? 1}
-													/>
+												<ViewMatch
+													matches={data.matches}
+													{match}
+													teams={data.teams}
+													{readOnly}
+													{defaultTeam}
+													courts={data.tournament.courts ?? 1}
+												/>
+											{:else if !readOnly}
+												<div class="group relative">
+													<Button
+														size="sm"
+														variant="outline"
+														class="min-h-[60px] w-full border-2 border-dashed border-gray-300 bg-gray-50/50 text-gray-500 transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:border-emerald-400 focus:bg-emerald-50 focus:text-emerald-700 focus:ring-2 focus:ring-emerald-200 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:border-emerald-500 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400"
+														onclick={() => addMatch(round, court)}
+													>
+														<div class="flex flex-col items-center gap-1">
+															<Plus
+																class="h-4 w-4 transition-transform duration-200 group-hover:scale-110"
+															/>
+															<span class="text-xs font-medium">Add Match</span>
+														</div>
+													</Button>
+
+													<!-- Subtle hover effect overlay -->
+													<div
+														class="pointer-events-none absolute inset-0 rounded-md bg-gradient-to-br from-emerald-400/0 to-emerald-600/0 transition-all duration-300 group-hover:from-emerald-400/5 group-hover:to-emerald-600/10"
+													></div>
 												</div>
 											{/if}
 										</Table.Cell>
@@ -320,13 +380,54 @@
 											(m: MatchRow) => m.round.toString() === round.toString()
 										)}
 										<Table.Cell class="p-1 pr-2 text-center sm:p-2 sm:pr-4">
-											<div class="min-w-[100px] sm:min-w-[120px]">
-												<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
-											</div>
+											<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
 										</Table.Cell>
 									{/if}
 								</Table.Row>
 							{/each}
+						{/if}
+						{#if !readOnly}
+							<Table.Row
+								class="border-t-2 border-dashed border-gray-200 bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900/50"
+							>
+								<Table.Cell
+									colspan={data.tournament.courts + (data.tournament.refs === 'teams' ? 2 : 1)}
+									class="p-6"
+								>
+									<div class="flex flex-col items-center gap-3">
+										<div class="group relative">
+											<Button
+												onclick={addRound}
+												size="lg"
+												disabled={addingRound}
+												class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-emerald-600 hover:to-emerald-700 hover:shadow-xl focus:ring-4 focus:ring-emerald-200 focus:outline-none active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 dark:from-emerald-600 dark:to-emerald-700 dark:hover:from-emerald-700 dark:hover:to-emerald-800 {addingRound
+													? 'add-round-loading'
+													: ''}"
+											>
+												<PlusCircle
+													class="plus-circle h-5 w-5 transition-transform duration-200 group-hover:rotate-90 {addingRound
+														? 'animate-spin'
+														: ''}"
+												/>
+												<span>{addingRound ? 'Adding Round...' : 'Add New Round'}</span>
+												{#if !addingRound}
+													<Calendar class="h-4 w-4 opacity-75" />
+												{/if}
+											</Button>
+
+											<!-- Glow effect -->
+											<div
+												class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-600 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-20"
+											></div>
+										</div>
+
+										<p class="max-w-xs text-center text-xs text-gray-500 dark:text-gray-400">
+											Create round {rounds + 1} with {data.tournament.courts}
+											{data.tournament.courts === 1 ? 'court' : 'courts'}
+										</p>
+									</div>
+								</Table.Cell>
+							</Table.Row>
 						{/if}
 					</Table.Body>
 				</Table.Root>
@@ -401,5 +502,50 @@
 	:global(Button:focus-visible) {
 		outline: 2px solid rgb(16 185 129 / 0.5);
 		outline-offset: 2px;
+	}
+
+	/* Enhanced button animations */
+	:global(.group:hover .plus-icon) {
+		transform: scale(1.1) rotate(90deg);
+	}
+
+	/* Subtle pulse animation for add buttons */
+	@keyframes subtle-pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.8;
+		}
+	}
+
+	:global(.add-match-btn:hover) {
+		animation: subtle-pulse 2s ease-in-out infinite;
+	}
+
+	/* Custom focus styles for better accessibility */
+	:global(.add-round-btn:focus-visible) {
+		outline: 3px solid rgb(16 185 129 / 0.5);
+		outline-offset: 2px;
+	}
+
+	/* Loading state for add round button */
+	:global(.add-round-loading) {
+		pointer-events: none;
+		opacity: 0.7;
+	}
+
+	:global(.add-round-loading .plus-circle) {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
 	}
 </style>
