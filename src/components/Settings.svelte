@@ -38,10 +38,7 @@
 		async onUpdated({ form }) {
 			if (form.valid) {
 				toast.success(`Tournament settings updated`);
-				const updatedDate = form.data.date;
-				if (updatedDate) {
-					$formData.date = updatedDate;
-				}
+				$formData = form.data;
 			}
 		},
 		dataType: 'json'
