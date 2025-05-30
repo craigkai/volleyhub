@@ -18,7 +18,8 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
 
 	const sessionRes = await supabase.auth.getSession();
 	const session = sessionRes.data.session;
-	let is_admin = data.is_admin || false;
+	const is_admin = data.is_admin || false;
+	const approved = data.approved || false;
 
 	const {
 		data: { user }
@@ -29,6 +30,7 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
 		session,
 		supabase,
 		is_admin,
+		approved,
 		isMobile: data.isMobile
 	};
 };

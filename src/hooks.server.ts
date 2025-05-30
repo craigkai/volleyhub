@@ -103,6 +103,31 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	event.locals.session = session;
 	event.locals.user = user;
 
+	let is_admin = false;
+	let approved = false;
+
+	if (user) {
+		const { data, error } = await event.locals.supabase
+			.from('users')
+			.select('is_admin, approved')
+			.eq('id', user.id)
+			.single();
+
+		if (error) {
+			console.error('Failed to load extended user info:', error.message);
+		} else {
+			is_admin = data?.is_admin ?? false;
+			approved = data?.approved ?? false;
+		}
+	}
+	event.locals.is_admin = is_admin;
+	event.locals.approved = approved;
+
+	// Go home not admin page if logged in user is not approved
+	if (!approved && user && event.url.pathname.startsWith('/protected-routes')) {
+		redirect(303, '/');
+	}
+
 	// Protect routes from unauthenticated or unverified users
 	if ((!session || !isEmailVerified) && event.url.pathname.startsWith('/protected-routes')) {
 		return redirect(303, '/auth');

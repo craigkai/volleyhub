@@ -15,7 +15,7 @@
 	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
-	let { isMobile, user, is_admin } = $props();
+	let { isMobile, user, is_admin, approved } = $props();
 
 	let open: boolean = $state(!isMobile);
 	let isUserMenuOpen = $state(false);
@@ -141,39 +141,44 @@
 										transition:fade={{ duration: 150 }}
 									>
 										<ul class="py-1">
-											<li>
-												<a
-													href="/protected-routes/account"
-													class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-												>
-													<UserCog class="h-5 w-5" />
-													Manage Account
-												</a>
-											</li>
-											<li>
-												<a
-													href="/protected-routes/dashboard"
-													class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-												>
-													<LayoutDashboard class="h-5 w-5" />
-													Dashboard
-												</a>
-											</li>
-
-											{#if is_admin}
+											{#if !approved}
+												<li class="px-4 py-2 flex items-center justify-center text-sm text-yellow-600 dark:text-yellow-400">
+													⚠️ Pending Approval
+												</li>
+											{:else}
 												<li>
 													<a
-														href="/protected-routes/approvals"
-														class="flex items-center gap-3 px-4 py-3 text-sm text-blue-700 hover:bg-gray-100 dark:text-blue-300 dark:hover:bg-gray-700"
+														href="/protected-routes/account"
+														class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
 													>
-														<ClipboardListIcon class="h-5 w-5" />
-														User Approvals
+														<UserCog class="h-5 w-5" />
+														Manage Account
 													</a>
 												</li>
+												<li>
+													<a
+														href="/protected-routes/dashboard"
+														class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+													>
+														<LayoutDashboard class="h-5 w-5" />
+														Dashboard
+													</a>
+												</li>
+
+												{#if is_admin}
+													<li>
+														<a
+															href="/protected-routes/approvals"
+															class="flex items-center gap-3 px-4 py-3 text-sm text-blue-700 hover:bg-gray-100 dark:text-blue-300 dark:hover:bg-gray-700"
+														>
+															<ClipboardListIcon class="h-5 w-5" />
+															User Approvals
+														</a>
+													</li>
+												{/if}
 											{/if}
 
 											<li><div class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div></li>
-
 											<li>
 												<form method="POST" action="/auth/signout">
 													<Button

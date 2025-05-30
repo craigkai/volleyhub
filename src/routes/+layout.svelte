@@ -15,7 +15,7 @@
 
 	let { data = $bindable(), children } = $props();
 
-	let { session, supabase, isMobile, user, is_admin } = $derived(data);
+	let { session, supabase, isMobile, user, is_admin, approved } = $derived(data);
 
 	onMount(() => {
 		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
@@ -43,7 +43,7 @@
 >
 	<ModeWatcher defaultMode="light" track={false} />
 	<Toaster position="top-right" />
-	<Header {isMobile} {user} {is_admin} />
+	<Header {isMobile} {user} {is_admin} {approved} />
 
 	<div class="mb-8 flex-grow">
 		<div class="mx-auto max-w-7xl p-4">

@@ -54,6 +54,8 @@ declare global {
 			session: Session | null;
 			user: User | null;
 			isMobile: boolean;
+			is_admin: boolean;
+			approved: boolean;
 		}
 		interface PageData {
 			session: Session | null;
