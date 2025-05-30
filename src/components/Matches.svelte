@@ -172,8 +172,8 @@
 	}
 </script>
 
-<svelte:document onvisibilitychange={onVisibilityChange ?? handleVisibilityChange} />
-<svelte:window ononline={onOnline ?? handleOnline} onoffline={onOffline ?? handleOffline} />
+<svelte:document onvisibilitychange={handleVisibilityChange} />
+<svelte:window ononline={handleOnline} onoffline={handleOffline} />
 
 <div class="space-y-4 p-3 sm:space-y-6 sm:p-0">
 	<!-- Mobile-optimized header -->
