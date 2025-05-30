@@ -174,11 +174,11 @@
 	}
 
 	.completed-match-card {
-		background-color: rgba(16, 185, 129, 0.05);
+		background-color: rgba(107, 114, 128, 0.05);
 	}
 
 	:global(.dark) .completed-match-card {
-		background-color: rgba(16, 185, 129, 0.05);
+		background-color: rgba(107, 114, 128, 0.1);
 	}
 
 	.default-team-won {
