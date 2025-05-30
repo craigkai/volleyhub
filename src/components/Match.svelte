@@ -38,9 +38,17 @@
 	const hasScores = $derived(match?.team1_score != null && match?.team2_score != null);
 
 	const cardBackgroundClass = $derived.by(() => {
-		if (hasDefaultTeam) return 'default-team-card';
-		if (isComplete && hasScores) return 'completed-match-card';
-		return '';
+		if (!defaultTeam || !isComplete || !hasScores) return '';
+
+		if (hasDefaultTeam) {
+			if (defaultTeamWin) {
+				return 'default-team-won';
+			} else {
+				return 'default-team-lost';
+			}
+		}
+
+		return 'completed-match-card';
 	});
 </script>
 
@@ -258,6 +266,16 @@
 		text-decoration-color: #10b981;
 		text-decoration-thickness: 2px;
 		text-underline-offset: 2px;
+	}
+
+	.default-team-lost {
+		background-color: rgba(239, 68, 68, 0.15); /* red */
+		border: 1px solid rgba(239, 68, 68, 0.3);
+	}
+
+	:global(.dark) .default-team-lost {
+		background-color: rgba(239, 68, 68, 0.08);
+		border: 1px solid rgba(239, 68, 68, 0.2);
 	}
 
 	.score {

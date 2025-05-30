@@ -131,7 +131,7 @@
 			event_id: data.matches.event_id,
 			court,
 			round,
-			state: 'INCOMPLETE'
+			state: "INCOMPLETE" as "INCOMPLETE"
 		};
 
 		match
