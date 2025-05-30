@@ -55,11 +55,7 @@
 {#if readOnly}
 	<Popover.Root>
 		<Popover.Trigger class="block w-full">
-			<div
-				class="match-card p-2 sm:p-3 {cardBackgroundClass} {defaultTeamWin
-					? 'default-team-won'
-					: ''}"
-			>
+			<div class="match-card p-2 sm:p-3 {cardBackgroundClass}">
 				{@render matchContent()}
 			</div>
 		</Popover.Trigger>
@@ -174,11 +170,11 @@
 	}
 
 	.completed-match-card {
-		background-color: rgba(107, 114, 128, 0.05);
+		background-color: rgba(59, 65, 75, 0.05);
 	}
 
 	:global(.dark) .completed-match-card {
-		background-color: rgba(107, 114, 128, 0.1);
+		background-color: rgba(212, 218, 230, 0.1);
 	}
 
 	.default-team-won {
