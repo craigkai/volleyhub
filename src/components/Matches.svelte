@@ -31,6 +31,7 @@
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let subscriptionStatus: any | undefined = $derived(data.matches?.subscriptionStatus);
+	let tableContainer: HTMLElement | undefined = $state();
 
 	onMount(() => {
 		if ((data.matches?.matches?.length ?? 0) > 0) subscribeToMatches();
