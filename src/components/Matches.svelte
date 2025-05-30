@@ -21,7 +21,7 @@
 	import PlusCircle from 'lucide-svelte/icons/plus-circle';
 	import Calendar from 'lucide-svelte/icons/calendar';
 
-	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
+	let { readOnly = false, defaultTeam, data } = $props();
 
 	const matcheSupabaseDatabaseService = new MatchSupabaseDatabaseService(
 		data.tournament.databaseService.supabaseClient
@@ -31,7 +31,6 @@
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let subscriptionStatus: any | undefined = $derived(data.matches?.subscriptionStatus);
-	let tableContainer: HTMLElement | undefined = $state();
 
 	onMount(() => {
 		if ((data.matches?.matches?.length ?? 0) > 0) subscribeToMatches();

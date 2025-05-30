@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Matches from '$components/Matches.svelte';
-	import Bracket from '$components/Bracket.svelte';
 	import Standings from '$components/Standings.svelte';
 	import * as Select from '$components/ui/select/index.js';
 	import {
@@ -21,7 +20,6 @@
 	import SettingsIcon from 'lucide-svelte/icons/settings';
 	import ListIcon from 'lucide-svelte/icons/list';
 	import BarChartIcon from 'lucide-svelte/icons/bar-chart-2';
-	import GitBranchIcon from 'lucide-svelte/icons/git-branch';
 
 	let { data = $bindable() } = $props();
 
