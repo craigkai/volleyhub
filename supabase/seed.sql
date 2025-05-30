@@ -22,7 +22,7 @@ values
             uuid_generate_v4(),
             'authenticated',
             'authenticated',
-            'root@localhost',
+            'root@ceal.dev',
             crypt ('njkdnbkjdbfhjf', gen_salt ('bf')),
             current_timestamp,
             current_timestamp,
@@ -34,4 +34,13 @@ values
             '',
             '',
             '',
-            '')
+            '');
+
+-- Seed admin user if they exist in auth.users and aren't already in public.users
+INSERT INTO public.users (id, name, is_admin, approved, approved_at)
+SELECT id, 'Root', true, true, now()
+FROM auth.users
+WHERE email = 'root@ceal.dev'
+  AND NOT EXISTS (
+    SELECT 1 FROM public.users WHERE id = auth.users.id
+  );
