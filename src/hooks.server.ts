@@ -124,7 +124,7 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	event.locals.approved = approved;
 
 	// Go home not admin page if logged in user is not approved
-	if (!approved && user && event.url.pathname.startsWith('/protected-routes')) {
+	if (!approved && event.url.pathname.startsWith('/protected-routes')) {
 		redirect(303, '/');
 	}
 
