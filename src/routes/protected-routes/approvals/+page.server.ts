@@ -4,9 +4,9 @@ import { superValidate } from 'sveltekit-superforms/server';
 import { zod } from 'sveltekit-superforms/adapters';
 
 export const actions = {
-	approve: async (event) => {
-		const supabase = event.locals.supabase;
-		const form = await superValidate(event.request, zod(approvalSchema));
+	approve: async ({ request, locals }) => {
+		const supabase = locals.supabase;
+		const form = await superValidate(request, zod(approvalSchema));
 
 		if (!form.valid) return fail(400, { form, message: 'Invalid data' });
 
@@ -22,20 +22,23 @@ export const actions = {
 		return { form, success: true, message: 'User approved.' };
 	},
 
-	reject: async (event) => {
-		const supabase = event.locals.supabase;
-		const form = await superValidate(event.request, zod(approvalSchema));
+	reject: async ({ request, locals }) => {
+		const supabase = locals.supabase;
+		const data = await request.formData();
+		const form = await superValidate(data, zod(approvalSchema));
 
 		if (!form.valid) return fail(400, { form, message: 'Invalid data' });
 
 		const { userId } = form.data;
+		if (!userId) return fail(400, { form, message: 'User ID is required' });
 
-		const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
-		const { error: dbErr } = await supabase.from('users').delete().eq('id', userId);
+		const { error } = await supabase.from('users').update({ rejected: true }).eq('id', userId);
 
-		if (authErr || dbErr)
-			return fail(500, { form, message: 'Rejection failed. Partial cleanup may have occurred.' });
+		if (error) {
+			console.error('Rejection error:', error);
+			return fail(500, { form, message: 'Rejection failed.' });
+		}
 
-		return { form, success: true, message: 'User rejected and removed.' };
+		return { form, success: true, message: 'User marked as rejected.' };
 	}
 };
