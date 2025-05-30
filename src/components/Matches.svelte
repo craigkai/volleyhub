@@ -70,10 +70,15 @@
 		toast.error('You are offline. Matches cannot be updated.');
 	}
 
+	$effect(() => {
+		if (subscriptionStatus === 'SUBSCRIBED') {
+			data.matches.load(data.matches.event_id);
+		}
+	});
+
 	async function subscribeToMatches() {
 		try {
 			matchesSubscription = await data.matches.subscribeToMatches();
-			data.matches.load(data.matches.event_id);
 		} catch (err) {
 			console.error(`Failed to subscribe to matches: ${err as HttpError}`);
 			toast.error('Subscription error!');
@@ -131,7 +136,7 @@
 			event_id: data.matches.event_id,
 			court,
 			round,
-			state: "INCOMPLETE" as "INCOMPLETE"
+			state: 'INCOMPLETE' as 'INCOMPLETE'
 		};
 
 		match
