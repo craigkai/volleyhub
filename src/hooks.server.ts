@@ -62,7 +62,7 @@ export const supabase: Handle = async ({ event, resolve }) => {
 		return { session, user };
 	};
 
-	if (import.meta.env.DEV) {
+	if (0 && import.meta.env.DEV) {
 		const {
 			data: { session }
 		} = await event.locals.supabase.auth.getSession();
@@ -80,6 +80,10 @@ export const supabase: Handle = async ({ event, resolve }) => {
 				console.warn('Dev auto-login failed:', error.message);
 			} else {
 				console.info(`Auto-logged in as ${email}`);
+			}
+
+			if (data.session) {
+				event.locals.supabase.auth.setSession(data.session);
 			}
 		}
 	}

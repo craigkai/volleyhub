@@ -5,10 +5,17 @@
 	import Sun from 'lucide-svelte/icons/sun';
 	import Moon from 'lucide-svelte/icons/moon';
 	import { toggleMode } from 'mode-watcher';
-	import { ChevronDown, LayoutDashboard, LogOut, UserCircle, UserCog } from 'lucide-svelte';
+	import {
+		ChevronDown,
+		ClipboardListIcon,
+		LayoutDashboard,
+		LogOut,
+		UserCircle,
+		UserCog
+	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
-	let { isMobile, user } = $props();
+	let { isMobile, user, is_admin } = $props();
 
 	let open: boolean = $state(!isMobile);
 	let isUserMenuOpen = $state(false);
@@ -152,6 +159,18 @@
 													Dashboard
 												</a>
 											</li>
+
+											{#if is_admin}
+												<li>
+													<a
+														href="/protected-routes/approvals"
+														class="flex items-center gap-3 px-4 py-3 text-sm text-blue-700 hover:bg-gray-100 dark:text-blue-300 dark:hover:bg-gray-700"
+													>
+														<ClipboardListIcon class="h-5 w-5" />
+														User Approvals
+													</a>
+												</li>
+											{/if}
 
 											<li><div class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div></li>
 
