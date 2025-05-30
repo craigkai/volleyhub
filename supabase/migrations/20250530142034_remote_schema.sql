@@ -65,7 +65,7 @@ on "public"."users"
 as permissive
 for select
 to public
-using ((auth.uid() = '55ae0904-16ac-4875-9cb8-6cfad1e50084'::uuid));
+using ((auth.uid() = ''::uuid));
 
 
 create policy "Admin can update non-admin users"
@@ -73,7 +73,7 @@ on "public"."users"
 as permissive
 for update
 to public
-using (((auth.uid() = '55ae0904-16ac-4875-9cb8-6cfad1e50084'::uuid) AND (NOT is_admin)));
+using (((auth.uid() = ''::uuid) AND (NOT is_admin)));
 
 
 create policy "User can read own data"
