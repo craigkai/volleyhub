@@ -3,8 +3,7 @@
 	import { Button } from '$components/ui/button';
 	import * as Card from '$components/ui/card';
 	import { Badge } from '$components/ui/badge';
- import { onMount } from 'svelte';
-	import { supabase } from '$lib/supabaseClient'; // adjust path to your Supabase client
+  import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
 	const { data } = $props();
@@ -16,7 +15,7 @@ onMount(async () => {
 		const code = url.searchParams.get('code');
 
 		if (code) {
-			const { error } = await supabase.auth.exchangeCodeForSession(code);
+			const { error } = await data.supabase.auth.exchangeCodeForSession(code);
 			if (error) {
 				console.error('Session exchange failed:', error.message);
 				// Optionally show an error UI or toast here
