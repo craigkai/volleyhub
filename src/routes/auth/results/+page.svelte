@@ -3,9 +3,30 @@
 	import { Button } from '$components/ui/button';
 	import * as Card from '$components/ui/card';
 	import { Badge } from '$components/ui/badge';
+ import { onMount } from 'svelte';
+	import { supabase } from '$lib/supabaseClient'; // adjust path to your Supabase client
+	import { goto } from '$app/navigation';
 
 	const { data } = $props();
 	const { type, next } = data;
+
+onMount(async () => {
+		// Only attempt session exchange if code is present
+		const url = new URL(window.location.href);
+		const code = url.searchParams.get('code');
+
+		if (code) {
+			const { error } = await supabase.auth.exchangeCodeForSession(code);
+			if (error) {
+				console.error('Session exchange failed:', error.message);
+				// Optionally show an error UI or toast here
+			} else {
+				console.log('Logged in via code exchange.');
+				// Optional: auto-redirect
+				// goto(next || '/protected-routes/application');
+			}
+		}
+	});
 
 	const authConfig = $derived.by(() => {
 		switch (type) {
