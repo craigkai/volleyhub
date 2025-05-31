@@ -3,13 +3,12 @@
 	import { Button } from '$components/ui/button';
 	import * as Card from '$components/ui/card';
 	import { Badge } from '$components/ui/badge';
-  import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	const { data } = $props();
 	const { type, next } = data;
 
-onMount(async () => {
+	onMount(async () => {
 		// Only attempt session exchange if code is present
 		const url = new URL(window.location.href);
 		const code = url.searchParams.get('code');
