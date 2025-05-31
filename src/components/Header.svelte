@@ -10,6 +10,7 @@
 		ClipboardListIcon,
 		LayoutDashboard,
 		LogOut,
+		MessageCircleQuestion,
 		UserCircle,
 		UserCog
 	} from 'lucide-svelte';
@@ -142,7 +143,9 @@
 									>
 										<ul class="py-1">
 											{#if !approved}
-												<li class="px-4 py-2 flex items-center justify-center text-sm text-yellow-600 dark:text-yellow-400">
+												<li
+													class="flex items-center justify-center px-4 py-2 text-sm text-yellow-600 dark:text-yellow-400"
+												>
 													⚠️ Pending Approval
 												</li>
 											{:else}
@@ -162,6 +165,15 @@
 													>
 														<LayoutDashboard class="h-5 w-5" />
 														Dashboard
+													</a>
+												</li>
+												<li>
+													<a
+														href="/faq"
+														class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+													>
+														<MessageCircleQuestion class="h-5 w-5" />
+														FAQ
 													</a>
 												</li>
 

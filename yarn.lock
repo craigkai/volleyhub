@@ -1668,10 +1668,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@lucide/svelte@^0.511.0":
-  version "0.511.0"
-  resolved "https://registry.yarnpkg.com/@lucide/svelte/-/svelte-0.511.0.tgz#943d7c487f157b863570d89ee2de88b69fdc71cb"
-  integrity sha512-aLCSPMUJmHlCuLXzXENXa4Z1NV2mN1iAZAFKk4bEbey+/MdsNlu+/DqwVkgW3Yvj6p8y8Vn5xZ2v9CLmPlA6Vw==
+"@lucide/svelte@^0.482.0":
+  version "0.482.0"
+  resolved "https://registry.yarnpkg.com/@lucide/svelte/-/svelte-0.482.0.tgz#5e8abe1777d0d91ebf47359a1b39115739cac2b4"
+  integrity sha512-n2ycHU9cNcleRDwwpEHBJ6pYzVhHIaL3a+9dQa8kns9hB2g05bY+v2p2KP8v0pZwtNhYTHk/F2o2uZ1bVtQGhw==
 
 "@mapbox/node-pre-gyp@^2.0.0":
   version "2.0.0"

@@ -19,7 +19,7 @@
 		"@eslint/js": "^10.0.0",
 		"@internationalized/date": "^3.8.1",
 		"@jest/globals": "^29.7.0",
-		"@lucide/svelte": "^0.511.0",
+		"@lucide/svelte": "^0.482.0",
 		"@playwright/test": "^1.52.0",
 		"@supabase/auth-ui-shared": "^0.1.8",
 		"@supabase/ssr": "^0.6.1",
