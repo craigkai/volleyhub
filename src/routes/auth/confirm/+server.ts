@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 	if (code) {
 		const { error } = await supabase.auth.exchangeCodeForSession(code);
 		if (!error) {
-			return redirect(303, `/auth/results?type=oauth&next=${encodeURIComponent(next)}`);
+			return redirect(303, `/auth/results?type=verify&next=${encodeURIComponent(next)}`);
 		}
 	}
 
