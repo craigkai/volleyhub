@@ -16,7 +16,8 @@ export const actions = {
 			return fail(400, { form });
 		}
 		// Clear possible phantom session
-		await supabase.auth.signOut();
+		// I don't think we need this since a session is valid without email confirmation.
+		// await supabase.auth.signOut();
 
 		return redirect(303, '/auth/results?type=signup');
 	},
