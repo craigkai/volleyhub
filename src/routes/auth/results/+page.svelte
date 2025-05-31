@@ -56,8 +56,8 @@ onMount(async () => {
 			case 'verify':
 				return {
 					icon: Shield,
-					title: 'Email Not Verified',
-					message: 'You must verify your email address before accessing this part of the app.',
+					title: 'Account Not Verified',
+					message: 'Your account is pending approval by an admin.',
 					badge: 'Verification Required',
 					color: 'from-yellow-500 to-orange-500'
 				};
