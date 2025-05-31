@@ -29,8 +29,7 @@
 				return {
 					icon: UserCheck,
 					title: 'Almost There!',
-					message:
-						'Your account is almost ready — you just need to wait for approval from an admin.',
+					message: 'Your account is almost ready — check your email to confirm your address.',
 					badge: 'Email Verification',
 					color: 'from-orange-500 to-red-500'
 				};

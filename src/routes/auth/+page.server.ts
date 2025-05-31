@@ -9,15 +9,20 @@ export const actions = {
 		if (!form.valid) return fail(400, { form });
 
 		const { email, password } = form.data;
-		const { error } = await supabase.auth.signUp({ email, password });
+		const { data, error } = await supabase.auth.signUp({ email, password });
 
 		if (error) {
 			setError(form, 'email', error.message);
 			return fail(400, { form });
 		}
-		// Clear possible phantom session
-		// I don't think we need this since a session is valid without email confirmation.
-		// await supabase.auth.signOut();
+
+		if (data.session) {
+			// Session is valid — redirect to dashboard or protected area
+			return redirect(303, '/protected-routes/dashboard');
+		} else {
+			// No session — likely needs to confirm email first
+			return redirect(303, '/auth/results?type=signup');
+		}
 
 		return redirect(303, '/auth/results?type=signup');
 	},
