@@ -59,7 +59,7 @@
 	Demo:
 	<div class="mb-6 overflow-hidden rounded-lg shadow">
 		<!-- svelte-ignore a11y_media_has_caption -->
-		<video controls class="w-full rounded-lg" poster="/your-poster-image.jpg">
+		<video controls class="w-full rounded-lg" poster="">
 			<source
 				src="https://bduwlmhqcuslxxozwnjs.supabase.co/storage/v1/object/public/volleyhub%20videos/demo.mov?t=2024-10-02T12%3A29%3A37.572Z"
 				type="video/mp4"
