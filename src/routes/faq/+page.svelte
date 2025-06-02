@@ -47,7 +47,7 @@
 						>
 							{faq.question}
 						</AccordionTrigger>
-						<AccordionContent class="pb-4 whitespace-pre-line text-slate-700 dark:text-slate-300">
+						<AccordionContent class="whitespace-pre-line pb-4 text-slate-700 dark:text-slate-300">
 							{faq.answer}
 						</AccordionContent>
 					</AccordionItem>
@@ -55,4 +55,16 @@
 			</Accordion>
 		</CardContent>
 	</Card>
+
+	Demo:
+	<div class="mb-6 overflow-hidden rounded-lg shadow">
+		<!-- svelte-ignore a11y_media_has_caption -->
+		<video controls class="w-full rounded-lg" poster="/your-poster-image.jpg">
+			<source
+				src="https://bduwlmhqcuslxxozwnjs.supabase.co/storage/v1/object/public/volleyhub%20videos/demo.mov?t=2024-10-02T12%3A29%3A37.572Z"
+				type="video/mp4"
+			/>
+			Your browser does not support the video tag.
+		</video>
+	</div>
 </div>
