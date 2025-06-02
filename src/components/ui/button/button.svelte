@@ -57,7 +57,7 @@
 	<a
 		bind:this={ref}
 		data-slot="button"
-		class={cn(buttonVariants({ variant, size }), 'cursor-pointer', className)}
+		class={cn(buttonVariants({ variant, size }), className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -70,7 +70,7 @@
 	<button
 		bind:this={ref}
 		data-slot="button"
-		class={cn(buttonVariants({ variant, size }), 'cursor-pointer', className)}
+		class={cn(buttonVariants({ variant, size }), className)}
 		{type}
 		{disabled}
 		{...restProps}
