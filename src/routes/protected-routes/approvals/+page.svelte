@@ -5,9 +5,9 @@
 
 <div class="mx-auto max-w-4xl p-4 sm:p-6">
 	<div class="mx-auto">
-		<div class="text-center">
-			<h1 class="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl">User Approvals</h1>
-			<p class="text-sm text-gray-600 sm:text-base">
+		<div class="text-center text-gray-900 dark:text-gray-200">
+			<h1 class="mb-2 text-2xl font-bold sm:text-3xl">User Approvals</h1>
+			<p class="text-sm text-gray-600 sm:text-base dark:text-gray-300">
 				Review and approve pending user registrations
 			</p>
 		</div>
@@ -28,14 +28,18 @@
 					></path>
 				</svg>
 			</div>
-			<h3 class="mb-2 text-base font-medium text-gray-900 sm:text-lg">All caught up!</h3>
-			<p class="text-sm text-gray-500">No users awaiting approval at this time.</p>
+			<h3 class="mb-2 text-base font-medium text-gray-900 sm:text-lg dark:text-gray-300">
+				All caught up!
+			</h3>
+			<p class="text-sm text-gray-500 dark:text-gray-300">
+				No users awaiting approval at this time.
+			</p>
 		</div>
 	{:else}
 		<div class="mb-4 flex items-center justify-between sm:mb-6">
 			<div class="flex items-center gap-2">
 				<span
-					class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800"
+					class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
 				>
 					{data.pendingUsers.length} pending
 				</span>
@@ -45,7 +49,7 @@
 		<div class="space-y-3">
 			{#each data.pendingUsers as user}
 				<div
-					class="rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md"
+					class="rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
 				>
 					<div class="p-4 sm:p-6">
 						<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
@@ -61,14 +65,18 @@
 											.toUpperCase()}
 									</div>
 									<div>
-										<h3 class="text-base font-semibold text-gray-900 sm:text-lg">{user.name}</h3>
-										<p class="text-xs text-gray-500 sm:text-sm">
+										<h3 class="text-base font-semibold text-gray-900 sm:text-lg dark:text-white">
+											{user.name}
+										</h3>
+										<p class="text-xs text-gray-500 sm:text-sm dark:text-gray-400">
 											Registered {user.created_at}
 										</p>
 									</div>
 								</div>
 
-								<div class="flex items-center gap-2 text-xs text-gray-600 sm:text-sm">
+								<div
+									class="flex items-center gap-2 text-xs text-gray-600 sm:text-sm dark:text-gray-400"
+								>
 									<svg
 										class="h-3 w-3 sm:h-4 sm:w-4"
 										fill="none"
