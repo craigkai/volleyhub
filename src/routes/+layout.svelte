@@ -59,7 +59,7 @@
 {/if}
 
 <div
-	class="flex min-h-screen flex-col overflow-x-hidden overflow-y-auto bg-white text-gray-900 dark:bg-slate-800 dark:text-white"
+	class="flex min-h-screen flex-col overflow-x-hidden overflow-y-hidden bg-white text-gray-900 dark:bg-slate-800 dark:text-white"
 >
 	<ModeWatcher defaultMode="light" track={false} />
 	<Toaster position="top-right" />
