@@ -65,7 +65,7 @@
 	<Toaster position="top-right" />
 	<Header {isMobile} {user} {is_admin} {approved} />
 
-	<div class="mb-8 flex-grow">
+	<div class="flex-grow">
 		<div class="mx-auto max-w-7xl p-4">
 			{@render children()}
 		</div>
