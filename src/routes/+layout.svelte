@@ -7,7 +7,9 @@
 	import { inject } from '@vercel/analytics';
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import toast, { Toaster } from 'svelte-5-french-toast';
+	import { writable } from 'svelte/store';
 
 	inject({
 		mode: dev ? 'development' : 'production'
@@ -30,6 +32,13 @@
 	function handleError(event: ErrorEvent) {
 		toast.error(event.message);
 	}
+
+	export const navigating = writable(false);
+
+	onMount(() => {
+		beforeNavigate(() => navigating.set(true));
+		afterNavigate(() => navigating.set(false));
+	});
 </script>
 
 <svelte:window onerror={handleError} />
@@ -37,6 +46,17 @@
 <svelte:head>
 	<title>VolleyHub</title>
 </svelte:head>
+
+{#if $navigating}
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+		<div class="flex flex-col items-center space-y-4">
+			<div
+				class="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"
+			></div>
+			<p class="font-medium text-white">Loading...</p>
+		</div>
+	</div>
+{/if}
 
 <div
 	class="flex min-h-screen flex-col overflow-x-hidden bg-white text-gray-900 dark:bg-slate-800 dark:text-white"
