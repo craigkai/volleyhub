@@ -592,6 +592,34 @@ export class Matches extends Base {
 			}
 		}
 
+		if (roundMatches.length === 0 && this.hasTeamsNeedingGames(teamGames, maxGames)) {
+			const rematchCandidates = allMatchups
+				.filter(([team1, team2]) => {
+					return (
+						!usedTeams.has(team1) &&
+						!usedTeams.has(team2) &&
+						teamGames.get(team1)! < maxGames &&
+						teamGames.get(team2)! < maxGames
+					);
+				})
+				.sort(([a1, a2], [b1, b2]) => {
+					const priorityA = teamGames.get(a1)! + teamGames.get(a2)!;
+					const priorityB = teamGames.get(b1)! + teamGames.get(b2)!;
+					return priorityA - priorityB;
+				});
+
+			for (const [team1, team2] of rematchCandidates) {
+				if (!usedTeams.has(team1) && !usedTeams.has(team2)) {
+					roundMatches.push([team1, team2]);
+					usedTeams.add(team1);
+					usedTeams.add(team2);
+
+					teamGames.set(team1, teamGames.get(team1)! + 1);
+					teamGames.set(team2, teamGames.get(team2)! + 1);
+				}
+			}
+		}
+
 		return roundMatches;
 	}
 
