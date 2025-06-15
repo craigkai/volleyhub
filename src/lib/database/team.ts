@@ -12,11 +12,11 @@ export class TeamSupabaseDatabaseService extends SupabaseDatabaseService {
 	 */
 	async load(id: number): Promise<TeamRow | null> {
 		try {
-			const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<TeamRow | null> = await this.supabaseClient
 				.from('teams')
 				.select('*')
 				.eq('id', id)
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, teamsRowSchema);
 
@@ -35,11 +35,11 @@ export class TeamSupabaseDatabaseService extends SupabaseDatabaseService {
 	 */
 	async create(team: Partial<TeamRow>): Promise<TeamRow | null> {
 		try {
-			const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<TeamRow | null> = await this.supabaseClient
 				.from('teams')
 				.insert({ ...team })
 				.select()
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, teamsRowSchema);
 
@@ -77,12 +77,12 @@ export class TeamSupabaseDatabaseService extends SupabaseDatabaseService {
 			// Validate the team data against the schema
 			const parsedTeam = teamsRowSchema.partial().parse(team);
 
-			const res: PostgrestSingleResponse<TeamRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<TeamRow | null> = await this.supabaseClient
 				.from('teams')
 				.update(parsedTeam)
 				.eq('id', team.id)
 				.select()
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, teamsRowSchema);
 

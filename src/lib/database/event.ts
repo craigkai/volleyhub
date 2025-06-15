@@ -19,11 +19,11 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 			const parsedEvent = eventsRowSchema.partial().parse(input);
 
 			// Insert the new event into the 'events' table
-			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient
 				.from('events')
 				.insert(parsedEvent)
 				.select()
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, eventsRowSchema);
 
@@ -45,11 +45,11 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	async load(event_id: number): Promise<EventRow | null> {
 		try {
 			// Load the event from the 'events' table
-			const res: PostgrestSingleResponse<EventRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient
 				.from('events')
 				.select('*')
 				.eq('id', event_id)
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, eventsRowSchema);
 
@@ -73,12 +73,12 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 			const parsedEvent = eventsUpdateSchema.parse(input);
 
 			// Update the tournament in the 'events' table
-			const res: PostgrestResponse<EventRow> = await this.supabaseClient
+			const res: PostgrestResponse<EventRow | null> = await this.supabaseClient
 				.from('events')
 				.update(parsedEvent)
 				.eq('id', id)
 				.select()
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, eventsRowSchema);
 

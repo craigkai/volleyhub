@@ -17,6 +17,11 @@ export class Base {
 	): T {
 		this.handleDatabaseError(response as PostgrestResponse<T[]> | PostgrestResponse<T[][]>);
 
+		if (response.data == null) {
+			console.error('No data returned from the database.');
+			error(404, 'Not Found: No data returned.');
+		}
+
 		const result = schema.safeParse(response.data);
 		if (!result.success) {
 			const errorResponse = { status: 500, error: result.error } as unknown as PostgrestResponse<T>;
@@ -28,11 +33,8 @@ export class Base {
 
 	// Method to handle database errors
 	handleDatabaseError<T>(response: PostgrestSingleResponse<T> | PostgrestResponse<T>): void {
-		// If there's an error in the response
-		if (response.error) {
-			// Log the status and error message
+		if (response?.error) {
 			console.error(`Failed operation with status ${response.status}: ${response.error.message}`);
-			// Log the error details
 			console.error(response.error);
 			error(response.status as NumericRange<400, 599>, response.error);
 		}

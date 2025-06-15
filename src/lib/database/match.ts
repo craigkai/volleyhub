@@ -12,11 +12,11 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 	 */
 	async load(id: number): Promise<MatchRow | null> {
 		try {
-			const res: PostgrestSingleResponse<MatchRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
 				.from('matches')
 				.select('*')
 				.eq('id', id)
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, matchesRowSchema);
 
@@ -37,11 +37,11 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 			const parsedMatch = matchesInsertSchema.partial().parse(match);
 
 			// Insert the new event into the 'events' table
-			const res: PostgrestSingleResponse<MatchRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
 				.from('matches')
 				.insert(parsedMatch)
 				.select()
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, matchesInsertSchema);
 
@@ -79,11 +79,11 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 		try {
 			const parsedMatch = matchesUpdateSchema.parse(match);
 
-			const res: PostgrestSingleResponse<MatchRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
 				.from('matches')
 				.insert(parsedMatch)
 				.select()
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, matchesRowSchema);
 
@@ -104,12 +104,12 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 		try {
 			const parsedMatch = matchesUpdateSchema.parse(match);
 
-			const res: PostgrestSingleResponse<MatchRow> = await this.supabaseClient
+			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
 				.from('matches')
 				.update(parsedMatch)
 				.eq('id', match.id)
 				.select('*')
-				.single();
+				.maybeSingle();
 
 			this.validateAndHandleErrors(res, matchesRowSchema);
 
