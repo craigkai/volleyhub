@@ -56,12 +56,12 @@
 					matchesSubscription?.unsubscribe();
 					matchesSubscription = await data.matches.subscribeToMatches();
 				}
-			}
 
-			// Events (current round)
-			if (data.tournament?.id && data.tournament?.subscriptionStatus !== 'SUBSCRIBED') {
-				eventSubscription?.unsubscribe();
-				eventSubscription = await data.tournament.subscribeToCurrentRound();
+				// Events (current round)
+				if (data.tournament?.id && data.tournament?.subscriptionStatus !== 'SUBSCRIBED') {
+					eventSubscription?.unsubscribe();
+					eventSubscription = await data.tournament.subscribeToCurrentRound();
+				}
 			}
 		} catch (error) {
 			console.error('Subscription failed:', error);
