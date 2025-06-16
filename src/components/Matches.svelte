@@ -94,16 +94,22 @@
 				matchesSubscription = undefined;
 			}
 
-			const res: Matches | undefined = await data.matches.create(
-				data.tournament,
-				$state.snapshot(data.teams.teams)
-			);
-			data.matches.matches = res?.matches ?? [];
+			const teamsForMatching = data.teams.teams.map((team: { id: any; name: any }) => ({
+				id: team.id,
+				name: team.name
+			}));
+
+			const res: Matches | undefined = await data.matches.create(data.tournament, teamsForMatching);
 
 			if (!res) {
 				toast.error('Failed to create matches');
 				return;
 			}
+			data.matches = await data.matches.load(data.matches.event_id);
+
+			rounds =
+				Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) +
+					1 || 1;
 
 			await subscribeToMatches();
 		} catch (err) {
