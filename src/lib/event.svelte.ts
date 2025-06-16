@@ -109,9 +109,31 @@ export class Event extends Base {
 			this.handleError(500, `Failed to delete event: ${(err as Error).message}`);
 		}
 	}
+
+	/**
+	 * Set the current round for this event.
+	 * @param {number} round - The round number to mark as current.
+	 * @returns {Promise<void>} - Resolves once the round is updated.
+	 */
+	async setCurrentRound(round: number): Promise<void> {
+		if (!this.id) {
+			this.handleError(400, 'Event ID is missing. Cannot set current round.');
+			return;
+		}
+
+		try {
+			const res: EventRow | null = await this.databaseService.setCurrentRound(this.id, round);
+			if (res !== null) {
+				Object.assign(this, res);
+			}
+		} catch (err) {
+			this.handleError(500, `Failed to set current round: ${(err as Error).message}`);
+		}
+	}
 }
 
 // Vitest unit tests
+
 if (import.meta.vitest) {
 	const { vi, it, expect, beforeEach } = import.meta.vitest;
 

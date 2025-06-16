@@ -44,7 +44,6 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 */
 	async load(event_id: number): Promise<EventRow | null> {
 		try {
-			// Load the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient
 				.from('events')
 				.select('*')
@@ -53,10 +52,8 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 
 			this.validateAndHandleErrors(res, eventsRowSchema);
 
-			// Return the loaded event
 			return res.data;
 		} catch (error) {
-			// If an error occurs while loading the event, log it and rethrow it
 			console.error('An error occurred while loading the event:', error);
 			throw error;
 		}
@@ -72,8 +69,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 		try {
 			const parsedEvent = eventsUpdateSchema.parse(input);
 
-			// Update the tournament in the 'events' table
-			const res: PostgrestResponse<EventRow | null> = await this.supabaseClient
+			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient
 				.from('events')
 				.update(parsedEvent)
 				.eq('id', id)
@@ -82,10 +78,8 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 
 			this.validateAndHandleErrors(res, eventsRowSchema);
 
-			// Return the updated tournament
 			return res.data as unknown as EventRow;
 		} catch (error) {
-			// If an error occurs while updating the tournament, log it and rethrow it
 			console.error('An error occurred while updating the tournament:', error);
 			throw error;
 		}
@@ -99,16 +93,13 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 */
 	async delete(event_id: number): Promise<void> {
 		try {
-			// Delete the event from the 'events' table
 			const res: PostgrestSingleResponse<EventRow | null> = await this.supabaseClient
 				.from('events')
 				.delete()
 				.eq('id', event_id);
 
-			// Handle any errors that may have occurred during the database operation
 			this.handleDatabaseError(res);
 		} catch (error) {
-			// If an error occurs while deleting the event, log it and rethrow it
 			console.error('An error occurred while deleting the event:', error);
 			throw error;
 		}
@@ -121,17 +112,14 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 	 * @throws {Error} - Throws an error if there's an issue loading the events.
 	 */
 	async loadEvents(ownerId: string): Promise<EventRow[]> {
-		// Load the events from the 'events' table
 		const res = await this.supabaseClient.from('events').select('*').eq('owner', ownerId);
 
 		this.validateAndHandleErrors(res, EventsRowSchemaArray);
 
-		// Return the loaded events or an empty array if no events were found
 		return res.data ?? [];
 	}
 
 	async getUpcomingEvents(): Promise<EventRow[] | null> {
-		// Get the current date and set the time to the beginning of the day
 		const today = new Date();
 		today.setHours(0, 0, 0, 0); // Set time to 00:00:00.000
 		today.setDate(today.getDate() - 1);
@@ -144,5 +132,20 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.validateAndHandleErrors(res, EventsRowSchemaArray);
 
 		return res.data;
+	}
+
+	async setCurrentRound(eventId: number, round: number): Promise<EventRow | null> {
+		const { data, error } = await this.supabaseClient
+			.from('events')
+			.update({ current_round: round })
+			.eq('id', eventId)
+			.select()
+			.maybeSingle();
+
+		if (error) {
+			throw new Error(`Failed to set current round: ${error.message}`);
+		}
+
+		return data;
 	}
 }

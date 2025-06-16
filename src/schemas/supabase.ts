@@ -24,7 +24,8 @@ export const eventsRowSchema = z.object({
 	owner: z.string(),
 	pools: z.number().nullable(),
 	refs: z.string().nullable(),
-	scoring: z.string().nullable()
+	scoring: z.string().nullable(),
+	current_round: z.number().optional().nullable(),
 });
 
 export const eventsInsertSchema = z.object({
@@ -37,7 +38,8 @@ export const eventsInsertSchema = z.object({
 	pools: z.number().optional().nullable(),
 	refs: z.string().optional().nullable(),
 	scoring: z.string().optional().nullable(),
-	description: z.string().optional()
+	description: z.string().optional(),
+	current_round: z.number().optional().nullable()
 });
 
 export const eventsUpdateSchema = z.object({
@@ -50,7 +52,8 @@ export const eventsUpdateSchema = z.object({
 	description: z.string().optional(),
 	pools: z.number().optional().nullable(),
 	refs: z.string().optional().nullable(),
-	scoring: z.string().optional().nullable()
+	scoring: z.string().optional().nullable(),
+	current_round: z.number().optional().nullable()
 });
 
 export const matchStateSchema = z.union([z.literal('COMPLETE'), z.literal('INCOMPLETE')]);

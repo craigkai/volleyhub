@@ -98,6 +98,7 @@
 				data.tournament,
 				$state.snapshot(data.teams.teams)
 			);
+			data.matches.matches = res?.matches ?? [];
 
 			if (!res) {
 				toast.error('Failed to create matches');
@@ -114,7 +115,7 @@
 	}
 
 	let rounds = $state(
-		Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) + 1
+		Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) + 1 || 1
 	);
 
 	function roundHasDefaultTeam(roundIndex: number): boolean {
@@ -175,13 +176,30 @@
 			addingRound = false;
 		}
 	}
+
+	async function setCurrentRound(round: number) {
+		if (round < 0 || round >= rounds) {
+			toast.error('Invalid round number');
+			return;
+		}
+
+		try {
+			await data.tournament.setCurrentRound(round);
+
+			currentRound = data.tournament.current_round ?? 0;
+			toast.success(`Set current round to ${round + 1}`);
+		} catch (err: any) {
+			toast.error('Failed to set current round: ' + err.message);
+		}
+	}
+
+	let currentRound = $derived(data.tournament.current_round ?? 0);
 </script>
 
 <svelte:document onvisibilitychange={handleVisibilityChange} />
 <svelte:window ononline={handleOnline} onoffline={handleOffline} />
 
 <div class="space-y-4 p-3 sm:space-y-6 sm:p-0">
-	<!-- Mobile-optimized header -->
 	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
 		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
 			<h2 class="text-base font-semibold text-gray-800 sm:text-lg dark:text-white">
@@ -326,6 +344,7 @@
 						{#if rounds > 0}
 							{#each Array(rounds) as _, round}
 								{@const hasDefaultTeam = roundHasDefaultTeam(round)}
+
 								<Table.Row
 									class="border-t border-gray-200 dark:border-gray-700 {`
 										${round % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
@@ -334,10 +353,29 @@
 								>
 									<Table.Cell
 										class="sticky left-0 z-10 bg-white py-2 pl-2 text-xs font-medium text-gray-800 sm:py-3 sm:pl-4 sm:text-sm
-	       dark:bg-gray-800 dark:text-gray-200"
+		dark:bg-gray-800 dark:text-gray-200"
 										style="top: 32px;"
 									>
-										{round + 1}
+										<div class="flex items-center justify-between gap-2">
+											<span>Round {round + 1}</span>
+
+											{#if round === currentRound}
+												<span
+													class="ml-2 inline-block rounded bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
+												>
+													Current
+												</span>
+											{:else if !readOnly && round !== currentRound}
+												<Button
+													variant="ghost"
+													size="sm"
+													class="ml-auto px-1 py-0.5 text-[10px] text-indigo-500 hover:underline"
+													onclick={() => setCurrentRound(round)}
+												>
+													Set Current
+												</Button>
+											{/if}
+										</div>
 									</Table.Cell>
 
 									{#each Array(data.tournament.courts) as _, court}

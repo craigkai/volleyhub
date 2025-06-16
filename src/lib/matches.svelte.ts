@@ -341,84 +341,6 @@ export class Matches extends Base {
 	}
 
 	/**
-	 * Assigns referees to matches using a balanced selection algorithm.
-	 *
-	 * @param {Partial<MatchRow>[]} matches - List of match objects without refs.
-	 * @param {number} courts - Total courts per round.
-	 * @param {number[]} activeTeamIds - Teams eligible to ref.
-	 * @returns {Partial<MatchRow>[]} - Matches with referees assigned.
-	 */
-	private assignBalancedReferees(
-		matches: Partial<MatchRow>[],
-		courts: number,
-		activeTeamIds: number[]
-	): Partial<MatchRow>[] {
-		// Initialize referee tracking
-		const refereeCounts = new Map<number, number>();
-		const teamAvailability = new Map<number, Set<number>>();
-
-		activeTeamIds.forEach((teamId) => {
-			refereeCounts.set(teamId, 0);
-			teamAvailability.set(teamId, new Set());
-		});
-
-		// Calculate when each team is available to referee
-		matches.forEach((match, matchIndex) => {
-			const playingTeams = new Set([match.team1!, match.team2!]);
-
-			activeTeamIds.forEach((teamId) => {
-				if (!playingTeams.has(teamId)) {
-					teamAvailability.get(teamId)!.add(matchIndex);
-				}
-			});
-		});
-
-		// Group matches by rounds for scheduling
-		const roundGroups = this.groupMatchesByRound(matches);
-
-		// Assign referees to each round
-		for (const [round, matchesInRound] of roundGroups.entries()) {
-			const playingTeams = new Set<number>();
-
-			for (const match of matchesInRound) {
-				playingTeams.add(match.team1!);
-				playingTeams.add(match.team2!);
-			}
-
-			const availableRefs = activeTeamIds.filter((teamId) => !playingTeams.has(teamId));
-
-			if (availableRefs.length === 0) {
-				throw new Error(`No available referees for round ${round}`);
-			}
-
-			const selectedRef = this.selectBalancedReferee(availableRefs, refereeCounts);
-
-			for (const match of matchesInRound) {
-				match.ref = selectedRef;
-			}
-
-			refereeCounts.set(selectedRef, refereeCounts.get(selectedRef)! + matchesInRound.length);
-		}
-
-		return this.assignRoundAndCourtNumbers(matches, courts);
-	}
-
-	/**
-	 * Group matches by rounds
-	 */
-	private groupMatchesByRound(matches: Partial<MatchRow>[]): Map<number, Partial<MatchRow>[]> {
-		const roundMap = new Map<number, Partial<MatchRow>[]>();
-
-		for (const match of matches) {
-			if (match.round == null) continue;
-			if (!roundMap.has(match.round)) roundMap.set(match.round, []);
-			roundMap.get(match.round)!.push(match);
-		}
-
-		return roundMap;
-	}
-
-	/**
 	 * Select referee using balanced algorithm
 	 */
 	selectBalancedReferee(
@@ -427,7 +349,6 @@ export class Matches extends Base {
 		round: number,
 		lastRefRound: Map<number, number>
 	): number {
-		// Only try to prevent back-to-back refs if we have enough teams
 		const MIN_TEAMS_FOR_REF_GAP = 5;
 
 		let refsToChoose = availableRefs;
@@ -775,7 +696,11 @@ if (import.meta.vitest) {
 				expect(match.team2).not.undefined;
 
 				if (match.team1 && match.team2) {
-					matchCounts[match.team1] = (matchCounts[match.team1] || 0) + 1;
+					if (typeof match.team1 === 'number') {
+						if (typeof match.team1 === 'number') {
+							matchCounts[match.team1] = (matchCounts[match.team1] || 0) + 1;
+						}
+					}
 					matchCounts[match.team2] = (matchCounts[match.team2] || 0) + 1;
 				}
 			});
@@ -881,7 +806,9 @@ if (import.meta.vitest) {
 
 			const matchCounts: { [key: number]: number } = {};
 			matches.matches.forEach((match) => {
+				// @ts-ignore
 				matchCounts[match.team1] = (matchCounts[match.team1] || 0) + 1;
+				// @ts-ignore
 				matchCounts[match.team2] = (matchCounts[match.team2] || 0) + 1;
 			});
 
