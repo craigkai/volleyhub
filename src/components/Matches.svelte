@@ -30,23 +30,45 @@
 
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
-	let subscriptionStatus: any | undefined = $derived(data.matches?.subscriptionStatus);
+	let eventSubscription: RealtimeChannel | undefined = $state();
+
+	let subscriptionStatus: 'SUBSCRIBED' | 'CLOSED' = $derived.by(() => {
+		const matchStatus = data.matches?.subscriptionStatus;
+		const eventStatus = data.tournament?.subscriptionStatus;
+		return matchStatus === 'SUBSCRIBED' && eventStatus === 'SUBSCRIBED' ? 'SUBSCRIBED' : 'CLOSED';
+	});
 	let tableContainer: HTMLElement | undefined = $state();
 
-	onMount(() => {
-		if ((data.matches?.matches?.length ?? 0) > 0) subscribeToMatches();
+	onMount(async () => {
+		subscribe();
 	});
 
 	onDestroy(() => {
 		if (matchesSubscription) matchesSubscription.unsubscribe();
+		if (eventSubscription) eventSubscription.unsubscribe();
 	});
 
-	function handleVisibilityChange() {
-		if (typeof document !== 'undefined' && !document.hidden) {
-			if (!data.matches.subscriptionStatus && matchesSubscription?.state === 'closed') {
-				subscribeToMatches();
+	async function subscribe(): Promise<void> {
+		try {
+			// Matches
+			if (data.matches?.subscriptionStatus !== 'SUBSCRIBED') {
+				matchesSubscription?.unsubscribe();
+				matchesSubscription = await data.matches.subscribeToMatches();
 			}
+
+			// Events (current round)
+			if (data.tournament?.subscriptionStatus !== 'SUBSCRIBED') {
+				eventSubscription?.unsubscribe();
+				eventSubscription = await data.tournament.subscribeToCurrentRound();
+			}
+		} catch (error) {
+			console.error('Subscription failed:', error);
+			toast.error('Failed to subscribe to tournament data');
 		}
+	}
+
+	function handleVisibilityChange() {
+		subscribe();
 	}
 
 	function checkGenerateMatches() {
@@ -59,11 +81,9 @@
 		}
 	}
 
-	function handleOnline() {
-		if (matchesSubscription?.state === 'closed') {
-			subscribeToMatches();
-			toast.success('You are back online. Reconnecting...');
-		}
+	async function handleOnline() {
+		await subscribe();
+		toast.success('You are back online. Reconnecting...');
 	}
 
 	function handleOffline() {
@@ -75,15 +95,6 @@
 			data.matches.load(data.matches.event_id);
 		}
 	});
-
-	async function subscribeToMatches() {
-		try {
-			matchesSubscription = await data.matches.subscribeToMatches();
-		} catch (err) {
-			console.error(`Failed to subscribe to matches: ${err as HttpError}`);
-			toast.error('Subscription error!');
-		}
-	}
 
 	let loading: boolean = $state(false);
 	async function generateMatches(): Promise<void> {
@@ -111,7 +122,7 @@
 				Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) +
 					1 || 1;
 
-			await subscribeToMatches();
+			await subscribe();
 		} catch (err) {
 			toast.error((err as HttpError).toString());
 		} finally {
@@ -191,15 +202,12 @@
 
 		try {
 			await data.tournament.setCurrentRound(round);
-
-			currentRound = data.tournament.current_round ?? 0;
+			data.tournament.current_round = round;
 			toast.success(`Set current round to ${round + 1}`);
 		} catch (err: any) {
 			toast.error('Failed to set current round: ' + err.message);
 		}
 	}
-
-	let currentRound = $derived(data.tournament.current_round ?? 0);
 </script>
 
 <svelte:document onvisibilitychange={handleVisibilityChange} />
@@ -365,13 +373,13 @@
 										<div class="flex items-center justify-between gap-2">
 											<span>Round {round + 1}</span>
 
-											{#if round === currentRound}
+											{#if round === (data.tournament.current_round ?? 0)}
 												<span
 													class="ml-2 inline-block rounded bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
 												>
 													Current
 												</span>
-											{:else if !readOnly && round !== currentRound}
+											{:else if !readOnly && round !== ( data.tournament.current_round ?? 0 )}
 												<Button
 													variant="ghost"
 													size="sm"

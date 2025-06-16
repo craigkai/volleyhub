@@ -2,6 +2,7 @@ import type { EventSupabaseDatabaseService } from '$lib/database/event';
 import type { Infer } from 'sveltekit-superforms';
 import { Base } from './base';
 import type { FormSchema } from '$schemas/settingsSchema';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 /**
  * The Event class represents a tournament in the application.
@@ -22,6 +23,8 @@ export class Event extends Base {
 	scoring?: string = $state();
 	refs?: string = $state();
 	description?: string;
+	current_round?: number = $state();
+	subscriptionStatus = $state();
 
 	/**
 	 * The constructor for the Event class.
@@ -31,6 +34,52 @@ export class Event extends Base {
 		super();
 
 		this.databaseService = databaseService;
+	}
+
+	/**
+	 * Handles real-time updates for the `events` table.
+	 *
+	 * @param {Event | Tournament} self - Instance managing the current event state.
+	 * @param {RealtimePostgresChangesPayload<{ [key: string]: any }>} payload - Supabase change payload.
+	 * @returns {Promise<void>} - Resolves after handling the update.
+	 */
+	async handleUpdate(
+		self: { id: number; current_round?: number; [key: string]: any },
+		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
+	): Promise<void> {
+		if (!self.id) {
+			throw new Error('Event ID is required to handle updates.');
+		}
+
+		const updated = payload.new as EventRow;
+
+		if (updated.id !== self.id) return;
+
+		console.info(`handleEventUpdate: ${JSON.stringify(payload)}`);
+
+		if (typeof updated.current_round === 'number') {
+			self.current_round = updated.current_round;
+		}
+	}
+
+	/**
+	 * Subscribes to live changes for matches belonging to the current event.
+	 *
+	 * @returns {Promise<RealtimeChannel>} - Promise resolving with the Supabase real-time channel.
+	 */
+	async subscribeToCurrentRound(): Promise<RealtimeChannel> {
+		if (!this.id) {
+			throw new Error('Event ID is required to subscribe to current round.');
+		}
+
+		const channel = await this.databaseService.subscribeToChanges(
+			this,
+			this.handleUpdate,
+			'events',
+			`id=eq.${this.id}`
+		);
+		this.subscriptionStatus = channel.state;
+		return channel;
 	}
 
 	/**
