@@ -50,10 +50,12 @@
 
 	async function subscribe(): Promise<void> {
 		try {
-			// Matches
-			if (data.matches?.subscriptionStatus !== 'SUBSCRIBED') {
-				matchesSubscription?.unsubscribe();
-				matchesSubscription = await data.matches.subscribeToMatches();
+			// Ensure matches exist before subscribing
+			if (data.matches?.event_id && data.matches?.matches?.length > 0) {
+				if (data.matches?.subscriptionStatus !== 'SUBSCRIBED') {
+					matchesSubscription?.unsubscribe();
+					matchesSubscription = await data.matches.subscribeToMatches();
+				}
 			}
 
 			// Events (current round)
@@ -379,7 +381,7 @@
 												>
 													Current
 												</span>
-											{:else if !readOnly && round !== ( data.tournament.current_round ?? 0 )}
+											{:else if !readOnly && round !== (data.tournament.current_round ?? 0)}
 												<Button
 													variant="ghost"
 													size="sm"
