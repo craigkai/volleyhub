@@ -59,7 +59,7 @@
 			}
 
 			// Events (current round)
-			if (data.tournament?.subscriptionStatus !== 'SUBSCRIBED') {
+			if (data.tournament?.id && data.tournament?.subscriptionStatus !== 'SUBSCRIBED') {
 				eventSubscription?.unsubscribe();
 				eventSubscription = await data.tournament.subscribeToCurrentRound();
 			}
