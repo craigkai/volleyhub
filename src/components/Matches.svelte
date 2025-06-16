@@ -31,6 +31,8 @@
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let eventSubscription: RealtimeChannel | undefined = $state();
+	let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+	const HEARTBEAT_INTERVAL_MS = 10000;
 
 	let subscriptionStatus: 'SUBSCRIBED' | 'CLOSED' = $derived.by(() => {
 		const matchStatus = data.matches?.subscriptionStatus;
@@ -39,13 +41,32 @@
 	});
 	let tableContainer: HTMLElement | undefined = $state();
 
+	function heartbeatCheck() {
+		try {
+			const matchState = matchesSubscription?.state;
+			const eventState = eventSubscription?.state;
+
+			const isDisconnected = matchState !== 'joined' || eventState !== 'joined';
+
+			if (isDisconnected) {
+				console.warn('Heartbeat: Detected lost subscription. Attempting to resubscribe...');
+				toast('Reconnecting match data...', { duration: 1500 });
+				subscribe();
+			}
+		} catch (error) {
+			console.error('Heartbeat check error:', error);
+		}
+	}
+
 	onMount(async () => {
 		subscribe();
+		heartbeatInterval = setInterval(heartbeatCheck, HEARTBEAT_INTERVAL_MS);
 	});
 
 	onDestroy(() => {
 		if (matchesSubscription) matchesSubscription.unsubscribe();
 		if (eventSubscription) eventSubscription.unsubscribe();
+		if (heartbeatInterval) clearInterval(heartbeatInterval);
 	});
 
 	async function subscribe(): Promise<void> {
