@@ -1,7 +1,7 @@
 import type { PageLoad } from './$types';
 import { superValidate, type Infer, type SuperValidated } from 'sveltekit-superforms';
 import { formSchema as settingsSchema, type FormSchema } from '$schemas/settingsSchema';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { initiateEvent } from '$lib/helper.svelte';
 import { error } from '@sveltejs/kit';
 
@@ -42,7 +42,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 			scoring: tournament.scoring,
 			refs: tournament.refs
 		},
-		zod(settingsSchema)
+		zod4(settingsSchema)
 	);
 
 	return {

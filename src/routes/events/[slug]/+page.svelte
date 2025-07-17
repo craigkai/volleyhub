@@ -15,6 +15,7 @@
 	import { onMount, tick } from 'svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
+	import ErrorBoundary from '$components/ErrorBoundary.svelte';
 	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import UsersIcon from 'lucide-svelte/icons/users';
 	import SettingsIcon from 'lucide-svelte/icons/settings';
@@ -37,12 +38,19 @@
 		mounted = true;
 	});
 
-	const teamList = data?.teams?.teams ?? [];
+	// Keep data.teams in sync with the local teams state
+	$effect(() => {
+		if (teams && data) {
+			data.teams = teams;
+		}
+	});
 
-	const teamsSelect = teamList
-		.sort((a, b) => a.name.localeCompare(b.name))
-		.map((team) => ({ value: team.name, name: team.name }))
-		.concat([{ value: '', name: 'None' }]);
+	const teamsSelect = $derived(
+		(teams?.teams ?? [])
+			.sort((a, b) => a.name.localeCompare(b.name))
+			.map((team) => ({ value: team.name, name: team.name }))
+			.concat([{ value: '', name: 'None' }])
+	);
 
 	const isCreate = $derived(data?.eventId ? data.eventId === 'create' : true);
 	const tabsWidth = $derived(readOnly ? 'grid-cols-2' : 'grid-cols-4');
@@ -220,7 +228,9 @@
 									</Card.Header>
 									<Card.Content class="p-3 sm:p-6">
 										{#if teams}
-											<Teams bind:teams matches={data.matches} />
+											<ErrorBoundary>
+												<Teams bind:teams matches={data.matches} />
+											</ErrorBoundary>
 										{/if}
 									</Card.Content>
 								</div>
@@ -248,8 +258,10 @@
 									</Card.Description>
 								</Card.Header>
 								<Card.Content class="p-0 sm:p-6">
-									{#if data.tournament && data.matches && data.teams}
-										<Matches {defaultTeam} {readOnly} {data} />
+									{#if data.tournament && data.matches && teams}
+										<ErrorBoundary>
+											<Matches {defaultTeam} {readOnly} {data} />
+										</ErrorBoundary>
 									{:else}
 										<div
 											class="flex h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"

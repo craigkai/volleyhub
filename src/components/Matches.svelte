@@ -106,7 +106,6 @@
 
 	async function handleOnline() {
 		await subscribe();
-		toast.success('You are back online. Reconnecting...');
 	}
 
 	function handleOffline() {
@@ -128,7 +127,18 @@
 				matchesSubscription = undefined;
 			}
 
-			const teamsForMatching = data.teams.teams.map((team: { id: any; name: any }) => ({
+			// Check teams count before generating matches
+			if (data.teams.teams.length < 2) {
+				const teamCount = data.teams.teams.length;
+				const message =
+					teamCount === 0
+						? 'No teams found. Please add teams before generating matches.'
+						: `Only ${teamCount} team found. Need at least 2 teams to generate matches.`;
+				toast.error(message);
+				return;
+			}
+
+			const teamsForMatching = data.teams.teams.map((team: { id: number; name: string }) => ({
 				id: team.id,
 				name: team.name
 			}));
@@ -142,12 +152,15 @@
 			data.matches = await data.matches.load(data.matches.event_id);
 
 			rounds =
-				Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) +
+				Math.max.apply(Math, data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0]) +
 					1 || 1;
 
 			await subscribe();
-		} catch (err) {
-			toast.error((err as HttpError).toString());
+		} catch (err: unknown) {
+			console.error('Match generation failed:', err);
+			const errorMessage =
+				err instanceof Error ? err.message : 'Failed to generate matches. Please try again.';
+			toast.error(errorMessage);
 		} finally {
 			showGenerateMatchesAlert = false;
 			loading = false;
@@ -155,7 +168,8 @@
 	}
 
 	let rounds = $state(
-		Math.max.apply(Math, data.matches?.matches?.map((m: { round: any }) => m.round) ?? [0]) + 1 || 1
+		Math.max.apply(Math, data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0]) +
+			1 || 1
 	);
 
 	function roundHasDefaultTeam(roundIndex: number): boolean {
@@ -165,8 +179,8 @@
 			if (typeof m.round === 'undefined' || m.round.toString() !== roundIndex.toString())
 				return false;
 
-			const team1 = data.teams.teams.find((t: any) => t.id === m.team1);
-			const team2 = data.teams.teams.find((t: any) => t.id === m.team2);
+			const team1 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team1);
+			const team2 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team2);
 
 			return team1?.name === defaultTeam || team2?.name === defaultTeam;
 		});
@@ -210,8 +224,8 @@
 			toast.success(
 				`Added round ${newRound + 1} with ${numCourts} ${numCourts === 1 ? 'court' : 'courts'}`
 			);
-		} catch (err: any) {
-			toast.error('Failed to add round: ' + err.message);
+		} catch (err: unknown) {
+			toast.error('Failed to add round: ' + (err instanceof Error ? err.message : 'Unknown error'));
 		} finally {
 			addingRound = false;
 		}
@@ -227,8 +241,10 @@
 			await data.tournament.setCurrentRound(round);
 			data.tournament.current_round = round;
 			toast.success(`Set current round to ${round + 1}`);
-		} catch (err: any) {
-			toast.error('Failed to set current round: ' + err.message);
+		} catch (err: unknown) {
+			toast.error(
+				'Failed to set current round: ' + (err instanceof Error ? err.message : 'Unknown error')
+			);
 		}
 	}
 </script>
@@ -265,9 +281,10 @@
 					onclick={checkGenerateMatches}
 					class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none sm:w-auto sm:px-4 dark:bg-emerald-600 dark:hover:bg-emerald-700"
 					disabled={loading}
+					aria-label={loading ? 'Generating matches...' : 'Generate tournament matches'}
 				>
 					<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-					<span>Generate Matches</span>
+					<span>{loading ? 'Generating...' : 'Generate Matches'}</span>
 				</Button>
 			</div>
 		{/if}

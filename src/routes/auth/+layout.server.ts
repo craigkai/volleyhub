@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms/server';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { signUpSchema, signInSchema, magicLinkSchema } from './schemas';
 
 export const load: LayoutServerLoad = async ({ url, locals }) => {
@@ -11,9 +11,9 @@ export const load: LayoutServerLoad = async ({ url, locals }) => {
 		redirect(303, '/');
 	}
 
-	const signupForm = await superValidate(zod(signUpSchema));
-	const signInForm = await superValidate(zod(signInSchema));
-	const magicLinkForm = await superValidate(zod(magicLinkSchema));
+	const signupForm = await superValidate(zod4(signUpSchema));
+	const signInForm = await superValidate(zod4(signInSchema));
+	const magicLinkForm = await superValidate(zod4(magicLinkSchema));
 
 	return { signupForm, signInForm, magicLinkForm };
 };

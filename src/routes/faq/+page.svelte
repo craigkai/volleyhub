@@ -47,7 +47,7 @@
 						>
 							{faq.question}
 						</AccordionTrigger>
-						<AccordionContent class="whitespace-pre-line pb-4 text-slate-700 dark:text-slate-300">
+						<AccordionContent class="pb-4 whitespace-pre-line text-slate-700 dark:text-slate-300">
 							{faq.answer}
 						</AccordionContent>
 					</AccordionItem>

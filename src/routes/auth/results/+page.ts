@@ -9,11 +9,11 @@ export const load: PageLoad = async ({ url, parent }) => {
 		next = '/protected-routes/dashboard';
 	}
 
-const { supabase } = await parent();
+	const { supabase } = await parent();
 
 	return {
 		type,
 		next,
-supabase
+		supabase
 	};
 };

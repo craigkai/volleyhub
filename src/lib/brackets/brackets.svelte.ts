@@ -47,7 +47,9 @@ export class Brackets extends Matches {
 	async createBracketMatches(event: Event, teams: Team[], matches: Match[]) {
 		try {
 			if (this.matches && this.matches.length > 0) {
-				await this.databaseService.deleteMatchesByIds(this.matches.map((m) => m.id));
+				await this.databaseService.deleteMatchesByIds(
+					this.matches.map((m) => m.id).filter((id): id is number => id !== undefined)
+				);
 			}
 
 			if (teams.length < 2) {
@@ -57,18 +59,18 @@ export class Brackets extends Matches {
 				);
 			}
 
-			const teamScores: TeamScores = findStandings(matches, event, teams);
-			const orderedTeamScores = Object.keys(teamScores).sort(
-				(a, b) => teamScores[b] - teamScores[a]
-			);
+			const teamScoresArray = findStandings(matches, teams);
+			const orderedTeamNames = teamScoresArray
+				.sort((a, b) => b.wins - a.wins || b.pointsDiff - a.pointsDiff)
+				.map((score) => score.name);
 
 			const matchups: Partial<MatchRow>[] = [];
 			const leftOverTeams: number[] = [];
 
 			// Generate matchups for the initial round of the bracket
-			for (let i = 0; i < orderedTeamScores.length; i += 2) {
-				const team1 = teams.find((t) => t.name === orderedTeamScores[i])?.id;
-				const team2 = teams.find((t) => t.name === orderedTeamScores[i + 1])?.id;
+			for (let i = 0; i < orderedTeamNames.length; i += 2) {
+				const team1 = teams.find((t) => t.name === orderedTeamNames[i])?.id;
+				const team2 = teams.find((t) => t.name === orderedTeamNames[i + 1])?.id;
 
 				if (team1 === undefined || team2 === undefined) {
 					leftOverTeams.push(team1 ?? team2!);
@@ -80,8 +82,10 @@ export class Brackets extends Matches {
 						round: 0,
 						type: 'bracket'
 					};
-					const res = await this.databaseService.insertMatch(matchup as UserMatch);
-					matchups.push(res);
+					const res = await this.databaseService.insertMatches([matchup as Partial<MatchRow>]);
+					if (res.length > 0) {
+						matchups.push(res[0]);
+					}
 				}
 			}
 
@@ -94,8 +98,10 @@ export class Brackets extends Matches {
 					round: 0,
 					type: 'bracket'
 				};
-				const res = await this.databaseService.insertMatch(byeMatchup as UserMatch);
-				matchups.push(res);
+				const res = await this.databaseService.insertMatches([byeMatchup as Partial<MatchRow>]);
+				if (res.length > 0) {
+					matchups.push(res[0]);
+				}
 			}
 
 			await this.generateSubsequentRounds(matchups, teams.length);
@@ -119,19 +125,21 @@ export class Brackets extends Matches {
 					type: 'bracket'
 				};
 
-				const res = await this.databaseService.insertMatch(emptyMatchup as UserMatch);
-				matchups.push(res);
+				const res = await this.databaseService.insertMatches([emptyMatchup as Partial<MatchRow>]);
+				if (res.length > 0) {
+					matchups.push(res[0]);
 
-				const parent1 = parentMatches.pop();
-				const parent2 = parentMatches.pop();
-				if (parent1) parent1.child_id = res.id;
-				if (parent2) parent2.child_id = res.id;
+					const parent1 = parentMatches.pop();
+					const parent2 = parentMatches.pop();
+					if (parent1) parent1.child_id = res[0].id;
+					if (parent2) parent2.child_id = res[0].id;
 
-				await Promise.all(
-					[parent1, parent2].map((parent) =>
-						parent ? this.updateMatch(parent as MatchRow) : Promise.resolve()
-					)
-				);
+					await Promise.all(
+						[parent1, parent2].map((parent) =>
+							parent ? this.updateMatchRow(parent as MatchRow) : Promise.resolve()
+						)
+					);
+				}
 			}
 		}
 	}
@@ -149,12 +157,14 @@ export class Brackets extends Matches {
 				const winnerOfNew = this.getMatchWinner(newMatch);
 				const winnerOfOtherParent = this.getWinnerOfOtherParent(otherParent);
 
-				if (this.childHasCorrectTeams(child, winnerOfNew, winnerOfOtherParent)) {
+				if (child && this.childHasCorrectTeams(child, winnerOfNew, winnerOfOtherParent)) {
 					console.debug('Child match already has the correct teams');
 					return;
 				}
 
-				await this.updateChildMatch(child, winnerOfNew, winnerOfOtherParent);
+				if (child) {
+					await this.updateChildMatch(child, winnerOfNew, winnerOfOtherParent);
+				}
 			} else {
 				console.debug('Parent matches not complete');
 			}
@@ -167,11 +177,7 @@ export class Brackets extends Matches {
 		return otherParent ? otherParent.state === 'COMPLETE' : false;
 	}
 
-	canProceedToNextRound(
-		newMatch: MatchRow,
-		otherParentComplete: boolean,
-		child?: MatchRow
-	): boolean {
+	canProceedToNextRound(newMatch: MatchRow, otherParentComplete: boolean, child?: Match): boolean {
 		return newMatch.state === 'COMPLETE' && otherParentComplete && !!child;
 	}
 
@@ -189,7 +195,7 @@ export class Brackets extends Matches {
 	}
 
 	childHasCorrectTeams(
-		child: MatchRow,
+		child: Match,
 		winnerOfNew: string | null,
 		winnerOfOtherParent: string | null
 	): boolean {
@@ -200,7 +206,7 @@ export class Brackets extends Matches {
 	}
 
 	async updateChildMatch(
-		child: MatchRow,
+		child: Match,
 		winnerOfNew: string | null,
 		winnerOfOtherParent: string | null
 	): Promise<void> {
@@ -209,7 +215,15 @@ export class Brackets extends Matches {
 			child.team2 = winnerOfOtherParent;
 			child.team1_score = 0;
 			child.team2_score = 0;
-			await this.updateMatch(child);
+			await child.update();
+		}
+	}
+
+	async updateMatchRow(matchRow: MatchRow): Promise<void> {
+		const match = this.matches?.find((m) => m.id === matchRow.id);
+		if (match) {
+			Object.assign(match, matchRow);
+			await match.update();
 		}
 	}
 }

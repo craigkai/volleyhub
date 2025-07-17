@@ -1,12 +1,12 @@
 import { fail } from '@sveltejs/kit';
 import { approvalSchema } from '$schemas/approvals';
 import { superValidate } from 'sveltekit-superforms/server';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 
 export const actions = {
 	approve: async ({ request, locals }) => {
 		const supabase = locals.supabase;
-		const form = await superValidate(request, zod(approvalSchema));
+		const form = await superValidate(request, zod4(approvalSchema));
 
 		if (!form.valid) return fail(400, { form, message: 'Invalid data' });
 
@@ -25,7 +25,7 @@ export const actions = {
 	reject: async ({ request, locals }) => {
 		const supabase = locals.supabase;
 		const data = await request.formData();
-		const form = await superValidate(data, zod(approvalSchema));
+		const form = await superValidate(data, zod4(approvalSchema));
 
 		if (!form.valid) return fail(400, { form, message: 'Invalid data' });
 

@@ -2,7 +2,7 @@
 import type { PageLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms/server';
 import { z } from 'zod';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 
 export const load: PageLoad = async ({ data }) => {
 	const schema = z.object({
@@ -15,7 +15,7 @@ export const load: PageLoad = async ({ data }) => {
 			email: data?.user?.email ?? '',
 			newPassword: ''
 		},
-		zod(schema),
+		zod4(schema),
 		{ errors: false }
 	);
 

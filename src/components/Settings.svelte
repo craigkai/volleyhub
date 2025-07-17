@@ -15,7 +15,7 @@
 		Content as PopoverContent
 	} from '$components/ui/popover';
 	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { formSchema } from '$schemas/settingsSchema';
 	import { DateFormatter, getLocalTimeZone, today, parseDateTime } from '@internationalized/date';
 	import { cn } from '$lib/utils';
@@ -31,7 +31,7 @@
 	const { data, eventId } = $props();
 
 	let form = superForm(data.form, {
-		validators: zodClient(formSchema),
+		validators: zod4Client(formSchema),
 		onError({ result }) {
 			toast.error(result.error.message || 'Unknown error');
 		},

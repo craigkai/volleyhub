@@ -2,7 +2,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { formSchema as settingsSchema } from '$schemas/settingsSchema';
 import { formSchema as teamsSchema } from '$schemas/teamsSchema';
 import { eventsUpdateSchema } from '$schemas/supabase';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { Event } from '$lib/event.svelte';
@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
 	updateEvent: async (event) => {
-		const form = await superValidate(event, zod(settingsSchema));
+		const form = await superValidate(event, zod4(settingsSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const eventId = Number(event.params.slug);
@@ -54,7 +54,7 @@ export const actions: Actions = {
 	},
 
 	createEvent: async (event) => {
-		const form = await superValidate(event, zod(settingsSchema));
+		const form = await superValidate(event, zod4(settingsSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(event.locals.supabase);
@@ -107,7 +107,7 @@ export const actions: Actions = {
 	},
 
 	createTeam: async (event) => {
-		const form = await superValidate(event, zod(teamsSchema));
+		const form = await superValidate(event, zod4(teamsSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const eventId = Number(event.params.slug);

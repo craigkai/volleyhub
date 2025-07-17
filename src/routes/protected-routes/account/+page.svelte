@@ -3,7 +3,7 @@
 	import { Field, Label, Control, FieldErrors, Button } from '$components/ui/form';
 	import { Input } from '$components/ui/input';
 	import toast from 'svelte-5-french-toast';
-	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { z } from 'zod';
 
 	let { data } = $props();
@@ -14,7 +14,7 @@
 	});
 
 	const editForm = superForm(data.form, {
-		validators: zodClient(schema),
+		validators: zod4Client(schema),
 		onResult: (e) => {
 			if (e.result.status === 200) {
 				toast.success('Account updated successfully');

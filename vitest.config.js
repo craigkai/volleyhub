@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-	plugins: [svelte({ hot: !process.env.VITEST }), tailwindcss(),],
+	plugins: [svelte({ hot: !process.env.VITEST }), tailwindcss()],
 	test: {
 		includeSource: ['src/**/*.{.js,ts}'],
 		globals: true,

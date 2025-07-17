@@ -25,7 +25,7 @@ export const eventsRowSchema = z.object({
 	pools: z.number().nullable(),
 	refs: z.string().nullable(),
 	scoring: z.string().nullable(),
-	current_round: z.number().optional().nullable(),
+	current_round: z.number().optional().nullable()
 });
 
 export const eventsInsertSchema = z.object({
