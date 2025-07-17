@@ -42,7 +42,7 @@
 	const effectiveTeams = $derived(teams || data?.teams);
 
 	const teamsSelect = $derived(
-		(effectiveTeams?.teams ?? [])
+		[...(effectiveTeams?.teams ?? [])]
 			.sort((a, b) => a.name.localeCompare(b.name))
 			.map((team) => ({ value: team.name, name: team.name }))
 			.concat([{ value: '', name: 'None' }])
