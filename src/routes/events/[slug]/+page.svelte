@@ -38,15 +38,11 @@
 		mounted = true;
 	});
 
-	// Keep data.teams in sync with the local teams state
-	$effect(() => {
-		if (teams && data) {
-			data.teams = teams;
-		}
-	});
+	// Use derived state instead of mutating data.teams directly
+	const effectiveTeams = $derived(teams || data?.teams);
 
 	const teamsSelect = $derived(
-		(teams?.teams ?? [])
+		(effectiveTeams?.teams ?? [])
 			.sort((a, b) => a.name.localeCompare(b.name))
 			.map((team) => ({ value: team.name, name: team.name }))
 			.concat([{ value: '', name: 'None' }])
@@ -227,7 +223,7 @@
 										</Card.Description>
 									</Card.Header>
 									<Card.Content class="p-3 sm:p-6">
-										{#if teams}
+										{#if effectiveTeams}
 											<ErrorBoundary>
 												<Teams bind:teams matches={data.matches} />
 											</ErrorBoundary>
@@ -258,7 +254,7 @@
 									</Card.Description>
 								</Card.Header>
 								<Card.Content class="p-0 sm:p-6">
-									{#if data.tournament && data.matches && teams}
+									{#if data.tournament && data.matches && effectiveTeams}
 										<ErrorBoundary>
 											<Matches {defaultTeam} {readOnly} {data} />
 										</ErrorBoundary>
@@ -296,12 +292,12 @@
 									</Card.Description>
 								</Card.Header>
 								<Card.Content class="p-3 sm:p-6">
-									{#if data.tournament && data.matches && teams}
+									{#if data.tournament && data.matches && effectiveTeams}
 										<Standings
 											event={data.tournament}
 											matches={data.matches}
 											{defaultTeam}
-											{teams}
+											teams={effectiveTeams}
 										/>
 									{:else}
 										<div
