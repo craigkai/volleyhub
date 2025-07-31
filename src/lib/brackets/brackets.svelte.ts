@@ -151,7 +151,6 @@ export class Brackets extends Matches {
 				(m) => m.child_id === newMatch.child_id && m.id !== newMatch.id
 			);
 			const otherParentComplete = this.isOtherParentComplete(otherParent);
-			console.log(otherParent);
 
 			if (this.canProceedToNextRound(newMatch, otherParentComplete, child)) {
 				const winnerOfNew = this.getMatchWinner(newMatch);

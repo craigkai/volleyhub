@@ -36,7 +36,7 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.validateAndHandleErrors(res, MatchesRowSchemaArray);
 
 		// Return the loaded matches
-		return res.data as unknown as MatchRow[];
+		return res.data;
 	}
 
 	async deleteMatchesByEvent(eventId: number): Promise<void> {

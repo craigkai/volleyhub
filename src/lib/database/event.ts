@@ -78,7 +78,7 @@ export class EventSupabaseDatabaseService extends SupabaseDatabaseService {
 
 			this.validateAndHandleErrors(res, eventsRowSchema);
 
-			return res.data as unknown as EventRow;
+			return res.data;
 		} catch (error) {
 			console.error('An error occurred while updating the tournament:', error);
 			throw error;

@@ -40,12 +40,12 @@ export class Event extends Base {
 	 * Handles real-time updates for the `events` table.
 	 *
 	 * @param {Event | Tournament} self - Instance managing the current event state.
-	 * @param {RealtimePostgresChangesPayload<{ [key: string]: any }>} payload - Supabase change payload.
+	 * @param {RealtimePostgresChangesPayload<Record<string, unknown>>} payload - Supabase change payload.
 	 * @returns {Promise<void>} - Resolves after handling the update.
 	 */
 	async handleUpdate(
-		self: { id: number; current_round?: number; [key: string]: any },
-		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
+		self: { id: number; current_round?: number } & Record<string, unknown>,
+		payload: RealtimePostgresChangesPayload<Record<string, unknown>>
 	): Promise<void> {
 		if (!self.id) {
 			throw new Error('Event ID is required to handle updates.');

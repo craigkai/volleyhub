@@ -29,13 +29,11 @@ export class SupabaseDatabaseService extends Base {
 		}
 	}
 
-	async subscribeToChanges(
-		self: any,
+	async subscribeToChanges<T extends Record<string, unknown>>(
+		self: T,
 		callback: (
-			self: any,
-			payload: RealtimePostgresChangesPayload<{
-				[key: string]: any;
-			}>
+			self: T,
+			payload: RealtimePostgresChangesPayload<Record<string, unknown>>
 		) => object,
 		table: string,
 		filter?: string

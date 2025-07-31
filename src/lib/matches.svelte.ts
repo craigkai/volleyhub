@@ -62,12 +62,12 @@ export class Matches extends Base {
 	 * Handles real-time updates from Supabase subscriptions.
 	 *
 	 * @param {Matches | Brackets} self - Instance of Matches or Brackets to update.
-	 * @param {RealtimePostgresChangesPayload<{ [key: string]: any }>} payload - Supabase change payload.
+	 * @param {RealtimePostgresChangesPayload<Record<string, unknown>>} payload - Supabase change payload.
 	 * @returns {Promise<void>} - Resolves after handling the update.
 	 */
 	async handleUpdate(
 		self: Matches | Brackets,
-		payload: RealtimePostgresChangesPayload<{ [key: string]: any }>
+		payload: RealtimePostgresChangesPayload<Record<string, unknown>>
 	): Promise<void> {
 		if (!self.event_id) {
 			throw new Error('Event ID is required to handle updates.');

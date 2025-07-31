@@ -18,7 +18,6 @@ export class Base {
 		this.handleDatabaseError(response as PostgrestResponse<T[]> | PostgrestResponse<T[][]>);
 
 		if (response.data == null) {
-			console.error('No data returned from the database.');
 			error(404, 'Not Found: No data returned.');
 		}
 
