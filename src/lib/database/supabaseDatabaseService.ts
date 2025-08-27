@@ -31,10 +31,7 @@ export class SupabaseDatabaseService extends Base {
 
 	async subscribeToChanges<T extends Record<string, unknown>>(
 		self: T,
-		callback: (
-			self: T,
-			payload: RealtimePostgresChangesPayload<Record<string, unknown>>
-		) => object,
+		callback: (self: T, payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => object,
 		table: string,
 		filter?: string
 	): Promise<RealtimeChannel> {
