@@ -55,20 +55,22 @@
 {#if readOnly}
 	<Popover.Root>
 		<Popover.Trigger class="block w-full">
-			<div class="match-card p-2 sm:p-3 {cardBackgroundClass}">
+			<!-- Increased padding and touch target size for mobile -->
+			<div class="match-card p-3 sm:p-3 {cardBackgroundClass}">
 				{@render matchContent()}
 			</div>
 		</Popover.Trigger>
 		<Popover.Content
-			class="popover-content rounded-lg border border-gray-200 p-0 shadow-lg dark:border-gray-700"
+			class="popover-content w-[90vw] max-w-sm rounded-lg border border-gray-200 p-0 shadow-lg dark:border-gray-700"
 		>
-			<div class="popover-header p-3">
+			<div class="popover-header p-3 sm:p-4">
 				<div class="flex items-center gap-2">
 					<InfoIcon class="h-4 w-4 text-emerald-500" />
 					<h3 class="text-base font-semibold text-gray-900 dark:text-white">Match Details</h3>
 				</div>
 			</div>
-			<div class="p-4">
+			<!-- Enhanced mobile popover content layout -->
+			<div class="p-4 sm:p-4">
 				{#if hasScores}
 					<div class="match-score-card">
 						<div class="team-row {team1IsWinner ? 'winner' : ''}">
@@ -78,7 +80,7 @@
 									>{team1?.name || 'TBD'}</span
 								>
 							</div>
-							<span class="score">{match.team1_score}</span>
+							<span class="score text-xl font-bold">{match.team1_score}</span>
 						</div>
 						<div class="team-row {team2IsWinner ? 'winner' : ''}">
 							<div class="flex items-center gap-2">
@@ -87,12 +89,38 @@
 									>{team2?.name || 'TBD'}</span
 								>
 							</div>
-							<span class="score">{match.team2_score}</span>
+							<span class="score text-xl font-bold">{match.team2_score}</span>
 						</div>
 					</div>
+					<!-- Added match metadata for mobile users -->
+					<div class="mt-3 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+						<div class="flex items-center gap-1">
+							<span class="font-medium">Round:</span>
+							<span>{(match.round ?? 0) + 1}</span>
+						</div>
+						<div class="flex items-center gap-1">
+							<span class="font-medium">Court:</span>
+							<span>{(match.court ?? 0) + 1}</span>
+						</div>
+						{#if match.state === 'COMPLETE'}
+							<div class="flex items-center gap-1">
+								<span class="inline-block h-2 w-2 rounded-full bg-green-400"></span>
+								<span>Complete</span>
+							</div>
+						{:else}
+							<div class="flex items-center gap-1">
+								<span class="inline-block h-2 w-2 rounded-full bg-yellow-400"></span>
+								<span>In Progress</span>
+							</div>
+						{/if}
+					</div>
 				{:else}
-					<div class="py-2 text-center text-sm text-gray-500 dark:text-gray-400">
-						Match not played yet
+					<div class="py-4 text-center">
+						<div class="mb-2 text-4xl">⏱️</div>
+						<div class="text-sm text-gray-500 dark:text-gray-400">Match not played yet</div>
+						<div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+							Round {(match.round ?? 0) + 1} • Court {(match.court ?? 0) + 1}
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -101,13 +129,14 @@
 {:else}
 	<AlertDialog.Root>
 		<AlertDialog.Trigger class="block w-full">
-			<div class="match-card group p-2 sm:p-3 {cardBackgroundClass}">
+			<!-- Enhanced admin match card with better mobile touch targets -->
+			<div class="match-card group p-3 sm:p-3 {cardBackgroundClass}">
 				{@render matchContent()}
 				<div
-					class="absolute right-1 bottom-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+					class="absolute right-2 bottom-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 sm:right-1 sm:bottom-1"
 				>
-					<Button size="sm" variant="ghost" class="h-6 w-6 rounded-full p-0">
-						<EditIcon class="h-3 w-3" /><span class="sr-only">Edit match</span>
+					<Button size="sm" variant="ghost" class="h-7 w-7 rounded-full p-0 sm:h-6 sm:w-6">
+						<EditIcon class="h-3.5 w-3.5 sm:h-3 sm:w-3" /><span class="sr-only">Edit match</span>
 					</Button>
 				</div>
 			</div>
@@ -119,14 +148,15 @@
 {/if}
 
 {#snippet matchContent()}
-	<div class="flex flex-col gap-1 sm:gap-2">
+	<!-- Improved mobile match content layout with better spacing -->
+	<div class="flex flex-col gap-2 sm:gap-2">
 		{#each [team1, team2] as team, i}
 			{@const isWinner = i === 0 ? team1IsWinner : team2IsWinner}
 			{@const score = i === 0 ? match.team1_score : match.team2_score}
 			<div class="flex items-center justify-between text-sm">
-				<span class="flex items-center gap-1 truncate font-medium">
+				<span class="flex items-center gap-1.5 truncate font-medium">
 					<span
-						class="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold
+						class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold sm:h-5 sm:w-5
 						{isWinner && isComplete
 							? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'
 							: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}"
@@ -135,8 +165,10 @@
 					</span>
 					{#if team?.name === defaultTeam}<span class="h-2 w-2 rounded-full bg-yellow-400"
 						></span>{/if}
-					<span>{team?.name ?? 'TBD'}</span>
-					{#if isWinner && isComplete}<TrophyIcon class="h-3 w-3 text-amber-500" />{/if}
+					<span class="text-sm sm:text-sm">{team?.name ?? 'TBD'}</span>
+					{#if isWinner && isComplete}<TrophyIcon
+							class="h-3.5 w-3.5 text-amber-500 sm:h-3 sm:w-3"
+						/>{/if}
 				</span>
 			</div>
 		{/each}
@@ -149,6 +181,16 @@
 		width: 100%;
 		transition: background-color 0.2s ease;
 		border-radius: 0.5rem;
+		/* Improved minimum height for better mobile touch targets */
+		min-height: 60px;
+		display: flex;
+		align-items: center;
+	}
+
+	@media (min-width: 640px) {
+		.match-card {
+			min-height: 50px;
+		}
 	}
 
 	.match-card:hover {
@@ -183,14 +225,17 @@
 	}
 
 	:global(.dark)
-		.default-team-card:has(.dark\:text-emerald-400.font-semibold:has(+ .text-amber-500)) {
+		.default-team-card:has(:global(.dark\:text-emerald-400.font-semibold:has(+ .text-amber-500))) {
 		background-color: rgba(16, 185, 129, 0.15);
 		border: 1px solid rgba(16, 185, 129, 0.3);
 	}
 
+	/* Enhanced popover styles for mobile */
 	:global(.popover-content) {
 		overflow: hidden;
 		background-color: white;
+		max-height: 80vh;
+		overflow-y: auto;
 	}
 
 	:global(.dark .popover-content) {
@@ -210,7 +255,7 @@
 
 	.match-score-card {
 		margin-bottom: 1rem;
-		padding: 0.75rem;
+		padding: 1rem;
 		border-radius: 0.5rem;
 		background-color: #f9fafb;
 		border: 1px solid #e5e7eb;
@@ -225,7 +270,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 0.5rem 0;
+		padding: 0.75rem 0;
 	}
 
 	.team-row:first-child {

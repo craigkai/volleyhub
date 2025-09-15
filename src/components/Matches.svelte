@@ -2,7 +2,6 @@
 	import ViewMatch from './Match.svelte';
 	import { Matches } from '$lib/matches.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
-	import type { HttpError } from '@sveltejs/kit';
 	import Zap from 'lucide-svelte/icons/zap';
 	import ZapOff from 'lucide-svelte/icons/zap-off';
 	import RefreshCw from 'lucide-svelte/icons/refresh-cw';
@@ -21,7 +20,7 @@
 	import PlusCircle from 'lucide-svelte/icons/plus-circle';
 	import Calendar from 'lucide-svelte/icons/calendar';
 
-	let { readOnly = false, defaultTeam, data } = $props();
+	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
 	const matcheSupabaseDatabaseService = new MatchSupabaseDatabaseService(
 		data.tournament.databaseService.supabaseClient
@@ -91,6 +90,7 @@
 	}
 
 	function handleVisibilityChange() {
+		onVisibilityChange?.();
 		subscribe();
 	}
 
@@ -105,10 +105,12 @@
 	}
 
 	async function handleOnline() {
+		onOnline?.();
 		await subscribe();
 	}
 
 	function handleOffline() {
+		onOffline?.();
 		toast.error('You are offline. Matches cannot be updated.');
 	}
 
@@ -276,10 +278,10 @@
 		</div>
 
 		{#if !readOnly}
-			<div class="flex justify-center sm:w-auto sm:justify-end">
+			<div class="w-full sm:w-auto sm:justify-end">
 				<Button
 					onclick={checkGenerateMatches}
-					class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none sm:w-auto sm:px-4 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+					class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none sm:w-auto sm:px-4 sm:py-2 dark:bg-emerald-600 dark:hover:bg-emerald-700"
 					disabled={loading}
 					aria-label={loading ? 'Generating matches...' : 'Generate tournament matches'}
 				>
@@ -354,12 +356,12 @@
 
 			<div class="relative">
 				<div
-					class="border-b border-gray-200 bg-gray-50 px-3 py-2 text-center text-xs text-gray-500 md:hidden dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-400"
+					class="border-b border-gray-200 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 px-3 py-2.5 text-center text-xs text-gray-600 md:hidden dark:border-gray-700 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 dark:text-gray-300"
 				>
-					<div class="flex items-center justify-center gap-1">
-						<ChevronLeft class="h-3 w-3" />
-						<span>Swipe to see all courts</span>
-						<ChevronRight class="h-3 w-3" />
+					<div class="flex items-center justify-center gap-2">
+						<ChevronLeft class="h-3.5 w-3.5 animate-pulse" />
+						<span class="font-medium">Swipe horizontally to see all courts</span>
+						<ChevronRight class="h-3.5 w-3.5 animate-pulse" />
 					</div>
 				</div>
 			</div>
@@ -372,21 +374,21 @@
 					<Table.Header>
 						<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
 							<Table.Head
-								class="sticky left-0 z-10 w-12 bg-gray-50 py-2 pl-2 text-left text-xs font-medium text-gray-700 sm:w-16 sm:py-3 sm:pl-4 sm:text-sm dark:bg-gray-900 dark:text-gray-300"
+								class="sticky left-0 z-10 w-16 bg-gray-50 py-3 pl-3 text-left text-xs font-medium text-gray-700 sm:w-20 sm:py-3 sm:pl-4 sm:text-sm dark:bg-gray-900 dark:text-gray-300"
 							>
 								Round
 							</Table.Head>
 							{#each Array(data.tournament.courts) as _, i}
 								{@const index = i + 1}
 								<Table.Head
-									class="py-2 text-center text-xs font-medium text-gray-700 sm:py-3 sm:text-sm dark:text-gray-300"
+									class="min-w-[120px] py-3 text-center text-xs font-medium text-gray-700 sm:min-w-[140px] sm:py-3 sm:text-sm dark:text-gray-300"
 								>
 									Court {index}
 								</Table.Head>
 							{/each}
 							{#if data.tournament.refs === 'teams'}
 								<Table.Head
-									class="py-2 pr-2 text-center text-xs font-medium text-gray-700 sm:py-3 sm:pr-4 sm:text-sm dark:text-gray-300"
+									class="min-w-[100px] py-3 pr-3 text-center text-xs font-medium text-gray-700 sm:pr-4 sm:text-sm dark:text-gray-300"
 								>
 									Referee
 								</Table.Head>
@@ -406,16 +408,18 @@
 									`}"
 								>
 									<Table.Cell
-										class="sticky left-0 z-10 bg-white py-2 pl-2 text-xs font-medium text-gray-800 sm:py-3 sm:pl-4 sm:text-sm
-		dark:bg-gray-800 dark:text-gray-200"
-										style="top: 32px;"
+										class="sticky left-0 z-10 bg-white py-3 pl-3 text-xs font-medium text-gray-800 sm:py-3 sm:pl-4 sm:text-sm
+			dark:bg-gray-800 dark:text-gray-200"
+										style="top: 48px;"
 									>
-										<div class="flex items-center justify-between gap-2">
-											<span>Round {round + 1}</span>
+										<div
+											class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2"
+										>
+											<span class="font-semibold">Round {round + 1}</span>
 
 											{#if round === (data.tournament.current_round ?? 0)}
 												<span
-													class="ml-2 inline-block rounded bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
+													class="inline-block rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700 sm:px-2 sm:text-xs dark:bg-indigo-900 dark:text-indigo-300"
 												>
 													Current
 												</span>
@@ -423,7 +427,7 @@
 												<Button
 													variant="ghost"
 													size="sm"
-													class="ml-auto px-1 py-0.5 text-[10px] text-indigo-500 hover:underline"
+													class="h-6 px-2 py-0.5 text-[10px] text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 sm:text-xs dark:hover:bg-indigo-900/30"
 													onclick={() => setCurrentRound(round)}
 												>
 													Set Current
@@ -437,7 +441,7 @@
 											(m: Match) =>
 												m?.court === court && (m?.round ?? 0).toString() === round?.toString()
 										)}
-										<Table.Cell class="p-1 text-center sm:p-2">
+										<Table.Cell class="p-2 text-center sm:p-2">
 											{#if match}
 												<ViewMatch
 													matches={data.matches}
@@ -452,7 +456,7 @@
 													<Button
 														size="sm"
 														variant="outline"
-														class="min-h-[60px] w-full border-2 border-dashed border-gray-300 bg-gray-50/50 text-gray-500 transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:border-emerald-400 focus:bg-emerald-50 focus:text-emerald-700 focus:ring-2 focus:ring-emerald-200 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:border-emerald-500 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400"
+														class="min-h-[70px] w-full border-2 border-dashed border-gray-300 bg-gray-50/50 text-gray-500 transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:border-emerald-400 focus:bg-emerald-50 focus:text-emerald-700 focus:ring-2 focus:ring-emerald-200 sm:min-h-[60px] dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:border-emerald-500 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400"
 														onclick={() => addMatch(round, court)}
 													>
 														<div class="flex flex-col items-center gap-1">
@@ -476,7 +480,7 @@
 										{@const matchesPerRound = data.matches.matches.filter(
 											(m: MatchRow) => m.round.toString() === round.toString()
 										)}
-										<Table.Cell class="p-1 pr-2 text-center sm:p-2 sm:pr-4">
+										<Table.Cell class="p-2 pr-3 text-center sm:p-2 sm:pr-4">
 											<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
 										</Table.Cell>
 									{/if}
@@ -489,7 +493,7 @@
 							>
 								<Table.Cell
 									colspan={data.tournament.courts + (data.tournament.refs === 'teams' ? 2 : 1)}
-									class="p-6"
+									class="p-4 sm:p-6"
 								>
 									<div class="flex flex-col items-center gap-3">
 										<div class="group relative">
@@ -497,7 +501,7 @@
 												onclick={addRound}
 												size="lg"
 												disabled={addingRound}
-												class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-emerald-600 hover:to-emerald-700 hover:shadow-xl focus:ring-4 focus:ring-emerald-200 focus:outline-none active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 dark:from-emerald-600 dark:to-emerald-700 dark:hover:from-emerald-700 dark:hover:to-emerald-800 {addingRound
+												class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-emerald-600 hover:to-emerald-700 hover:shadow-xl focus:ring-4 focus:ring-emerald-200 focus:outline-none active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:w-auto dark:from-emerald-600 dark:to-emerald-700 dark:hover:from-emerald-700 dark:hover:to-emerald-800 {addingRound
 													? 'add-round-loading'
 													: ''}"
 											>
@@ -556,12 +560,12 @@
 
 <style>
 	.scrollbar-thin::-webkit-scrollbar {
-		height: 4px;
+		height: 6px;
 	}
 
 	@media (min-width: 640px) {
 		.scrollbar-thin::-webkit-scrollbar {
-			height: 6px;
+			height: 8px;
 		}
 	}
 
@@ -643,6 +647,17 @@
 		}
 		to {
 			transform: rotate(360deg);
+		}
+	}
+
+	/* Enhanced mobile scrollbar visibility */
+	@media (max-width: 768px) {
+		.scrollbar-thin::-webkit-scrollbar {
+			height: 8px;
+		}
+
+		.scrollbar-thin::-webkit-scrollbar-thumb {
+			background-color: rgb(156, 163, 175);
 		}
 	}
 </style>
