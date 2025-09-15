@@ -22,6 +22,9 @@
 	import Calendar from 'lucide-svelte/icons/calendar';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import MoreVertical from 'lucide-svelte/icons/more-vertical';
+	import Grid3X3 from 'lucide-svelte/icons/grid-3x3';
+	import List from 'lucide-svelte/icons/list';
+	import RoundViewer from './RoundViewer.svelte';
 
 	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
@@ -35,6 +38,7 @@
 	let eventSubscription: RealtimeChannel | undefined = $state();
 	let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 	const HEARTBEAT_INTERVAL_MS = 10000;
+	let viewMode = $state<'schedule' | 'rounds'>('schedule');
 
 	let subscriptionStatus: 'SUBSCRIBED' | 'CLOSED' = $derived.by(() => {
 		const matchStatus = data.matches?.subscriptionStatus;
@@ -330,6 +334,36 @@
 					<span>Offline</span>
 				{/if}
 			</div>
+
+			<!-- View Mode Toggle -->
+			<div class="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800">
+				<Button
+					variant="ghost"
+					size="sm"
+					onclick={() => viewMode = 'schedule'}
+					class={`h-6 px-2 text-xs ${
+						viewMode === 'schedule'
+							? 'bg-white shadow-sm text-gray-900 dark:bg-gray-700 dark:text-white'
+							: 'text-gray-600'
+					}`}
+				>
+					<Grid3X3 class="mr-1 h-3 w-3" />
+					Schedule
+				</Button>
+				<Button
+					variant="ghost"
+					size="sm"
+					onclick={() => viewMode = 'rounds'}
+					class={`h-6 px-2 text-xs ${
+						viewMode === 'rounds'
+							? 'bg-white shadow-sm text-gray-900 dark:bg-gray-700 dark:text-white'
+							: 'text-gray-600'
+					}`}
+				>
+					<List class="mr-1 h-3 w-3" />
+					Rounds
+				</Button>
+			</div>
 		</div>
 
 		{#if !readOnly}
@@ -421,11 +455,12 @@
 				</div>
 			</div>
 
-			<div
-				bind:this={tableContainer}
-				class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto"
-			>
-				<Table.Root class="">
+			{#if viewMode === 'schedule'}
+				<div
+					bind:this={tableContainer}
+					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto"
+				>
+					<Table.Root class="">
 					<Table.Header>
 						<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
 							<Table.Head
@@ -620,8 +655,18 @@
 							</Table.Row>
 						{/if}
 					</Table.Body>
-				</Table.Root>
-			</div>
+					</Table.Root>
+				</div>
+			{:else}
+				<RoundViewer
+					{readOnly}
+					{defaultTeam}
+					{data}
+					{deleteRound}
+					{deleteFromRound}
+					{setCurrentRound}
+				/>
+			{/if}
 		</div>
 	{:else}
 		<div
