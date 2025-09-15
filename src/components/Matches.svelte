@@ -13,12 +13,15 @@
 	import * as Table from '$components/ui/table/index.js';
 	import * as Alert from '$components/ui/alert/index.js';
 	import { Button } from '$components/ui/button';
+	import * as Popover from '$components/ui/popover/index.js';
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { MatchSupabaseDatabaseService } from '$lib/database/match';
 	import Plus from 'lucide-svelte/icons/plus';
 	import PlusCircle from 'lucide-svelte/icons/plus-circle';
 	import Calendar from 'lucide-svelte/icons/calendar';
+	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import MoreVertical from 'lucide-svelte/icons/more-vertical';
 
 	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
@@ -169,7 +172,7 @@
 		}
 	}
 
-	let rounds = $state(
+	let rounds = $derived(
 		Math.max.apply(Math, data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0]) +
 			1 || 1
 	);
@@ -247,6 +250,58 @@
 			toast.error(
 				'Failed to set current round: ' + (err instanceof Error ? err.message : 'Unknown error')
 			);
+		}
+	}
+
+	async function deleteRound(round: number) {
+		if (!confirm(`Are you sure you want to delete Round ${round + 1}? This action cannot be undone.`)) {
+			return;
+		}
+
+		try {
+			await data.matches.deleteRound(round);
+
+			// Reload matches data to ensure UI updates
+			data.matches = await data.matches.load(data.matches.event_id);
+
+			toast.success(`Round ${round + 1} deleted successfully`);
+
+			// Update current_round if necessary
+			const currentRound = data.tournament.current_round ?? 0;
+			if (currentRound > round) {
+				await data.tournament.setCurrentRound(currentRound - 1);
+				data.tournament.current_round = currentRound - 1;
+			} else if (currentRound === round && currentRound > 0) {
+				await data.tournament.setCurrentRound(currentRound - 1);
+				data.tournament.current_round = currentRound - 1;
+			}
+		} catch (err: unknown) {
+			toast.error('Failed to delete round: ' + (err instanceof Error ? err.message : 'Unknown error'));
+		}
+	}
+
+	async function deleteFromRound(fromRound: number) {
+		if (!confirm(`Are you sure you want to delete Round ${fromRound + 1} and all following rounds? This action cannot be undone.`)) {
+			return;
+		}
+
+		try {
+			await data.matches.deleteFromRound(fromRound);
+
+			// Reload matches data to ensure UI updates
+			data.matches = await data.matches.load(data.matches.event_id);
+
+			toast.success(`Rounds ${fromRound + 1} and onwards deleted successfully`);
+
+			// Update current_round if necessary
+			const currentRound = data.tournament.current_round ?? 0;
+			if (currentRound >= fromRound) {
+				const newCurrentRound = Math.max(0, fromRound - 1);
+				await data.tournament.setCurrentRound(newCurrentRound);
+				data.tournament.current_round = newCurrentRound;
+			}
+		} catch (err: unknown) {
+			toast.error('Failed to delete rounds: ' + (err instanceof Error ? err.message : 'Unknown error'));
 		}
 	}
 </script>
@@ -417,22 +472,56 @@
 										>
 											<span class="font-semibold">Round {round + 1}</span>
 
-											{#if round === (data.tournament.current_round ?? 0)}
-												<span
-													class="inline-block rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700 sm:px-2 sm:text-xs dark:bg-indigo-900 dark:text-indigo-300"
-												>
-													Current
-												</span>
-											{:else if !readOnly && round !== (data.tournament.current_round ?? 0)}
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-6 px-2 py-0.5 text-[10px] text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 sm:text-xs dark:hover:bg-indigo-900/30"
-													onclick={() => setCurrentRound(round)}
-												>
-													Set Current
-												</Button>
-											{/if}
+											<div class="flex items-center gap-1">
+												{#if round === (data.tournament.current_round ?? 0)}
+													<span
+														class="inline-block rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700 sm:px-2 sm:text-xs dark:bg-indigo-900 dark:text-indigo-300"
+													>
+														Current
+													</span>
+												{:else if !readOnly && round !== (data.tournament.current_round ?? 0)}
+													<Button
+														variant="ghost"
+														size="sm"
+														class="h-6 px-2 py-0.5 text-[10px] text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 sm:text-xs dark:hover:bg-indigo-900/30"
+														onclick={() => setCurrentRound(round)}
+													>
+														Set Current
+													</Button>
+												{/if}
+
+												{#if !readOnly}
+													<Popover.Root>
+														<Popover.Trigger class="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 inline-flex items-center justify-center rounded border-0 bg-transparent">
+															<MoreVertical class="h-3 w-3" />
+														</Popover.Trigger>
+														<Popover.Content class="w-48 p-1" align="end">
+															<div class="space-y-1">
+																<Button
+																	variant="ghost"
+																	size="sm"
+																	class="w-full justify-start text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
+																	onclick={() => deleteRound(round)}
+																>
+																	<Trash2 class="mr-2 h-3 w-3" />
+																	Delete This Round
+																</Button>
+																{#if round < rounds - 1}
+																	<Button
+																		variant="ghost"
+																		size="sm"
+																		class="w-full justify-start text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
+																		onclick={() => deleteFromRound(round)}
+																	>
+																		<Trash2 class="mr-2 h-3 w-3" />
+																		Delete From Here
+																	</Button>
+																{/if}
+															</div>
+														</Popover.Content>
+													</Popover.Root>
+												{/if}
+											</div>
 										</div>
 									</Table.Cell>
 

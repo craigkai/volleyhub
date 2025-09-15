@@ -49,6 +49,24 @@ export class MatchesSupabaseDatabaseService extends SupabaseDatabaseService {
 		this.handleDatabaseError(response);
 	}
 
+	async deleteMatchesByRound(eventId: number, round: number): Promise<void> {
+		const response = await this.supabaseClient
+			.from('matches')
+			.delete()
+			.eq('event_id', eventId)
+			.eq('round', round);
+		this.handleDatabaseError(response);
+	}
+
+	async deleteMatchesFromRound(eventId: number, fromRound: number): Promise<void> {
+		const response = await this.supabaseClient
+			.from('matches')
+			.delete()
+			.eq('event_id', eventId)
+			.gte('round', fromRound);
+		this.handleDatabaseError(response);
+	}
+
 	async insertMatches(matches: Partial<MatchRow>[]): Promise<MatchRow[]> {
 		const parsedMatches = z.array(matchesInsertSchema).parse(matches);
 

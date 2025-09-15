@@ -655,6 +655,38 @@ export class Matches extends Base {
 		await this.databaseService.deleteMatchesByEvent(this.event_id);
 		this.matches = [];
 	}
+
+	/**
+	 * Delete all matches in a specific round.
+	 * @param {number} round - The round number to delete.
+	 */
+	async deleteRound(round: number) {
+		console.info(`deleteRound: ${round}`);
+		if (!this.event_id) {
+			this.handleError(400, 'Event ID is required to delete round.');
+			return;
+		}
+
+		await this.databaseService.deleteMatchesByRound(this.event_id, round);
+		// Remove matches from local state
+		this.matches = this.matches.filter(match => match.round !== round);
+	}
+
+	/**
+	 * Delete all matches from a specific round onwards.
+	 * @param {number} fromRound - The round number to start deleting from (inclusive).
+	 */
+	async deleteFromRound(fromRound: number) {
+		console.info(`deleteFromRound: ${fromRound}`);
+		if (!this.event_id) {
+			this.handleError(400, 'Event ID is required to delete rounds.');
+			return;
+		}
+
+		await this.databaseService.deleteMatchesFromRound(this.event_id, fromRound);
+		// Remove matches from local state
+		this.matches = this.matches.filter(match => (match.round ?? 0) < fromRound);
+	}
 }
 
 // Test cases for the Matches class
