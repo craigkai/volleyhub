@@ -1,7 +1,7 @@
 <script lang="ts">
 	import toast from 'svelte-5-french-toast';
 	import { Input } from '$components/ui/input';
-	import { Field, Label, Control, Description, Button } from '$components/ui/form';
+	import { Field, Label, Control, Description, FieldErrors, Button } from '$components/ui/form';
 	import { Textarea } from '$components/ui/textarea';
 	import {
 		Root as SelectRoot,
@@ -33,18 +33,23 @@
 	let form = superForm(data.form, {
 		validators: zod4Client(formSchema),
 		onError({ result }) {
+			console.error('Form submission error:', result);
 			toast.error(result.error.message || 'Unknown error');
 		},
 		async onUpdated({ form }) {
+			console.log('Form updated:', form.valid, form.errors);
 			if (form.valid) {
 				toast.success(`Tournament settings updated`);
 				$formData = form.data;
+			} else {
+				console.error('Form validation failed:', form.errors);
+				toast.error('Form validation failed. Check the highlighted fields.');
 			}
 		},
 		dataType: 'json'
 	});
 
-	let { form: formData, delayed, enhance } = form;
+	let { form: formData, delayed, enhance, errors } = form;
 	const df = new DateFormatter('en-US', { dateStyle: 'long' });
 	let contentRef = $state<HTMLElement | null>(null);
 	let calendarDate = $derived.by(() => {

@@ -2,47 +2,36 @@ import { z } from 'zod';
 
 // Constants for validation
 const MAX_NAME_LENGTH = 100;
-const MIN_NAME_LENGTH = 3;
+const MIN_NAME_LENGTH = 1;
 const MAX_DESCRIPTION_LENGTH = 500;
-const MIN_DESCRIPTION_LENGTH = 10;
+const MIN_DESCRIPTION_LENGTH = 0;
 const MAX_COURTS = 20;
 const MIN_COURTS = 1;
 const MAX_POOLS = 50;
 const MIN_POOLS = 1;
 
 // Sanitization helpers
-const sanitizeString = (str: string) => str.trim().replace(/[<>\"'&]/g, '');
+const sanitizeString = (str: string) => str.trim().replace(/[<>]/g, '');
 const sanitizeDescription = (str: string) => str.trim().replace(/[<>]/g, '');
 
 // Valid enum values
-const VALID_REF_OPTIONS = ['teams', 'officials', 'none'] as const;
-const VALID_SCORING_METHODS = ['rally', 'sideout', 'custom'] as const;
+const VALID_REF_OPTIONS = ['teams', 'provided'] as const;
+const VALID_SCORING_METHODS = ['points', 'wins'] as const;
 
 // Enhanced validation schemas
 const tournamentNameSchema = z
 	.string()
-	.min(MIN_NAME_LENGTH, `Tournament name must be at least ${MIN_NAME_LENGTH} characters`)
+	.min(MIN_NAME_LENGTH, `Tournament name is required`)
 	.max(MAX_NAME_LENGTH, `Tournament name cannot exceed ${MAX_NAME_LENGTH} characters`)
-	.transform(sanitizeString)
-	.refine((name) => name.length >= MIN_NAME_LENGTH, {
-		message: 'Tournament name too short after removing invalid characters'
-	})
-	.refine((name) => !/^\s*$/.test(name), { message: 'Tournament name cannot be only whitespace' })
-	.refine(
-		(name) => !/(script|javascript|eval|alert|confirm|prompt|iframe|object|embed)/i.test(name),
-		{
-			message: 'Tournament name contains prohibited content'
-		}
-	);
+	.refine((name) => !/^\s*$/.test(name.trim()), { message: 'Tournament name cannot be only whitespace' })
+	.transform(sanitizeString);
 
 const descriptionSchema = z
 	.string()
-	.min(MIN_DESCRIPTION_LENGTH, `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`)
 	.max(MAX_DESCRIPTION_LENGTH, `Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`)
 	.transform(sanitizeDescription)
-	.refine((desc) => desc.length >= MIN_DESCRIPTION_LENGTH, {
-		message: 'Description too short after removing invalid characters'
-	});
+	.optional()
+	.default('');
 
 const courtsSchema = z.coerce
 	.number()

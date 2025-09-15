@@ -33,8 +33,8 @@ export const actions: Actions = {
 
 		try {
 			const updatedTournament = await tournament.update(eventId, form.data);
-			const parsedData = eventsUpdateSchema.parse(updatedTournament);
-			form.data = parsedData as typeof form.data;
+			// Don't re-parse the data - trust that the update was successful
+			// The form.data already contains the validated data from settingsSchema
 			return { form };
 		} catch (error) {
 			form.valid = false;

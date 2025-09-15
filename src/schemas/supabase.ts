@@ -49,7 +49,7 @@ export const eventsUpdateSchema = z.object({
 	id: z.number().optional(),
 	name: z.string().optional(),
 	owner: z.string().optional(),
-	description: z.string().optional(),
+	description: z.string().optional().nullable(),
 	pools: z.number().optional().nullable(),
 	refs: z.string().optional().nullable(),
 	scoring: z.string().optional().nullable(),
