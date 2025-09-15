@@ -444,15 +444,6 @@
 			{/if}
 
 			<div class="relative">
-				<div
-					class="border-b border-gray-200 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 px-3 py-2.5 text-center text-xs text-gray-600 md:hidden dark:border-gray-700 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 dark:text-gray-300"
-				>
-					<div class="flex items-center justify-center gap-2">
-						<ChevronLeft class="h-3.5 w-3.5 animate-pulse" />
-						<span class="font-medium">Swipe horizontally to see all courts</span>
-						<ChevronRight class="h-3.5 w-3.5 animate-pulse" />
-					</div>
-				</div>
 			</div>
 
 			{#if viewMode === 'schedule'}
