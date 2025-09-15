@@ -2,6 +2,7 @@
 	import '../app.css';
 	import Header from '$components/Header.svelte';
 	import Footer from '$components/Footer.svelte';
+	import TournamentSearchFooter from '$components/TournamentSearchFooter.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
@@ -72,4 +73,5 @@
 	</div>
 
 	<Footer />
+	<TournamentSearchFooter />
 </div>

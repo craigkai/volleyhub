@@ -21,6 +21,7 @@
 	import SettingsIcon from 'lucide-svelte/icons/settings';
 	import ListIcon from 'lucide-svelte/icons/list';
 	import BarChartIcon from 'lucide-svelte/icons/bar-chart-2';
+	import MobileTabBar from '$components/MobileTabBar.svelte';
 
 	let { data = $bindable() } = $props();
 
@@ -31,12 +32,28 @@
 
 	let historyReady = $state(false);
 	let mounted = $state(false);
+	let isMobile = $state(false);
+	let currentTab = $state(readOnly ? 'matches' : 'settings');
 
 	onMount(async () => {
 		await tick();
 		historyReady = true;
 		mounted = true;
+
+		// Mobile detection
+		if (browser) {
+			isMobile = window.innerWidth < 768;
+			const handleResize = () => {
+				isMobile = window.innerWidth < 768;
+			};
+			window.addEventListener('resize', handleResize);
+			return () => window.removeEventListener('resize', handleResize);
+		}
 	});
+
+	function handleTabChange(tabId: string) {
+		currentTab = tabId;
+	}
 
 	// Use derived state instead of mutating data.teams directly
 	const effectiveTeams = $derived(teams || data?.teams);
@@ -256,7 +273,23 @@
 								<Card.Content class="p-0 sm:p-6">
 									{#if data.tournament && data.matches && effectiveTeams}
 										<ErrorBoundary>
-											<Matches {defaultTeam} {readOnly} {data} />
+											<Matches
+												{defaultTeam}
+												{readOnly}
+												{data}
+												onTeamChange={(teamName) => {
+													defaultTeam = teamName;
+													if (browser && historyReady) {
+														const url = new URL(page.url);
+														if (teamName) {
+															url.searchParams.set('team', teamName);
+														} else {
+															url.searchParams.delete('team');
+														}
+														pushState(url.href, {});
+													}
+												}}
+											/>
 										</ErrorBoundary>
 									{:else}
 										<div
@@ -313,6 +346,16 @@
 						</Card.Root>
 					</TabsContent>
 				</TabsRoot>
+
+				<!-- Mobile Tab Bar -->
+				{#if isMobile}
+					<MobileTabBar
+						currentTab={currentTab}
+						onTabChange={handleTabChange}
+						{readOnly}
+						{isCreate}
+					/>
+				{/if}
 			{/key}
 		{:else}
 			<div class="mx-auto max-w-5xl">

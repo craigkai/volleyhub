@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ViewMatch from './Match.svelte';
+	import MobileMatches from './MobileMatches.svelte';
 	import { Matches } from '$lib/matches.svelte';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 	import type { HttpError } from '@sveltejs/kit';
@@ -20,8 +21,13 @@
 	import Plus from 'lucide-svelte/icons/plus';
 	import PlusCircle from 'lucide-svelte/icons/plus-circle';
 	import Calendar from 'lucide-svelte/icons/calendar';
+	import { browser } from '$app/environment';
 
-	let { readOnly = false, defaultTeam, data } = $props();
+	let { readOnly = false, defaultTeam, data, onTeamChange } = $props();
+
+	// Detect mobile screen size
+	let isMobile = $state(false);
+	let resizeCleanup: (() => void) | null = null;
 
 	const matcheSupabaseDatabaseService = new MatchSupabaseDatabaseService(
 		data.tournament.databaseService.supabaseClient
@@ -61,12 +67,23 @@
 	onMount(async () => {
 		subscribe();
 		heartbeatInterval = setInterval(heartbeatCheck, HEARTBEAT_INTERVAL_MS);
+
+		// Mobile detection
+		if (browser) {
+			isMobile = window.innerWidth < 768;
+			const handleResize = () => {
+				isMobile = window.innerWidth < 768;
+			};
+			window.addEventListener('resize', handleResize);
+			resizeCleanup = () => window.removeEventListener('resize', handleResize);
+		}
 	});
 
 	onDestroy(() => {
 		if (matchesSubscription) matchesSubscription.unsubscribe();
 		if (eventSubscription) eventSubscription.unsubscribe();
 		if (heartbeatInterval) clearInterval(heartbeatInterval);
+		if (resizeCleanup) resizeCleanup();
 	});
 
 	async function subscribe(): Promise<void> {
@@ -252,7 +269,21 @@
 <svelte:document onvisibilitychange={handleVisibilityChange} />
 <svelte:window ononline={handleOnline} onoffline={handleOffline} />
 
-<div class="space-y-4 p-3 sm:space-y-6 sm:p-0">
+<!-- Mobile View -->
+{#if isMobile}
+	<MobileMatches
+		matches={data.matches}
+		{data}
+		teams={data.teams}
+		tournament={data.tournament}
+		{defaultTeam}
+		{readOnly}
+		{onTeamChange}
+		onGenerateMatches={checkGenerateMatches}
+	/>
+{:else}
+	<!-- Desktop View -->
+	<div class="space-y-4 p-3 sm:space-y-6 sm:p-0">
 	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
 		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
 			<h2 class="text-base font-semibold text-gray-800 sm:text-lg dark:text-white">
@@ -550,9 +581,10 @@
 					No matches available. Please contact the tournament organizer.
 				</p>
 			{/if}
-		</div>
-	{/if}
-</div>
+			</div>
+		{/if}
+	</div>
+{/if}
 
 <style>
 	.scrollbar-thin::-webkit-scrollbar {
