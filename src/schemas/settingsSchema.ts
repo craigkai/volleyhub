@@ -2,9 +2,9 @@ import { z } from 'zod';
 
 // Constants for validation
 const MAX_NAME_LENGTH = 100;
-const MIN_NAME_LENGTH = 3;
+const MIN_NAME_LENGTH = 0;
 const MAX_DESCRIPTION_LENGTH = 500;
-const MIN_DESCRIPTION_LENGTH = 10;
+const MIN_DESCRIPTION_LENGTH = 0;
 const MAX_COURTS = 20;
 const MIN_COURTS = 1;
 const MAX_POOLS = 50;

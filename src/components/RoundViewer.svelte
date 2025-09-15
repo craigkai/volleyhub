@@ -226,6 +226,12 @@
 
 <style>
 	.default-team-highlight {
-		@apply ring-2 ring-blue-200 bg-blue-50 dark:ring-blue-600 dark:bg-blue-900/20;
+		border: 2px solid #e0e7ff;
+		background-color: #eff6ff;
+	}
+
+	:global(.dark) .default-team-highlight {
+		border-color: #4338ca;
+		background-color: rgba(49, 46, 129, 0.2);
 	}
 </style>
