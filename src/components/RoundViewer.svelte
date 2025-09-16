@@ -34,6 +34,15 @@
 		});
 	}
 
+	// Check if round has default team as referee
+	function roundHasDefaultTeamRef(): boolean {
+		if (!defaultTeam) return false;
+		return roundMatches.some((m: any) => {
+			const referee = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.referee_id);
+			return referee?.name === defaultTeam.name;
+		});
+	}
+
 	function jumpToCurrentRound() {
 		currentViewRound = data.tournament.current_round ?? 0;
 	}
@@ -197,6 +206,7 @@
 							{match}
 							teams={data.teams}
 							{readOnly}
+							{defaultTeam}
 						/>
 					</div>
 				{/each}
@@ -225,13 +235,15 @@
 </div>
 
 <style>
+	/* Green highlight for when default team is playing */
 	.default-team-highlight {
-		border: 2px solid #e0e7ff;
-		background-color: #eff6ff;
+		border: 2px solid #d1fae5;
+		background-color: #f0fdf4;
 	}
 
 	:global(.dark) .default-team-highlight {
-		border-color: #4338ca;
-		background-color: rgba(49, 46, 129, 0.2);
+		border-color: #16a34a;
+		background-color: rgba(34, 197, 94, 0.15);
 	}
+
 </style>

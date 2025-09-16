@@ -16,6 +16,9 @@
 
 	const hasDefaultTeam = $derived(defaultTeam ? teamsForMatch.includes(defaultTeam) : false);
 
+	const referee = $derived(teams.teams.find((t: Team) => t.id === match.referee_id));
+	const hasDefaultTeamRef = $derived(defaultTeam && referee ? referee.name === defaultTeam.name : false);
+
 	const defaultTeamWin = $derived(
 		team1?.name === defaultTeam
 			? (match.team1_score ?? 0) > (match.team2_score ?? 0)
@@ -38,17 +41,32 @@
 	const hasScores = $derived(match?.team1_score != null && match?.team2_score != null);
 
 	const cardBackgroundClass = $derived.by(() => {
-		if (!defaultTeam || !isComplete || !hasScores) return '';
+		if (!defaultTeam) return '';
 
-		if (hasDefaultTeam) {
-			if (defaultTeamWin) {
-				return 'default-team-won';
-			} else {
-				return 'default-team-lost';
+		// Handle referee highlighting
+		if (hasDefaultTeamRef && hasDefaultTeam) {
+			// Team is both playing and refereeing
+			if (isComplete && hasScores) {
+				return defaultTeamWin ? 'default-team-won-and-ref' : 'default-team-lost-and-ref';
 			}
+			return 'default-team-playing-and-ref';
+		} else if (hasDefaultTeamRef) {
+			// Team is only refereeing
+			return 'default-team-ref-only';
+		} else if (hasDefaultTeam) {
+			// Team is only playing
+			if (isComplete && hasScores) {
+				return defaultTeamWin ? 'default-team-won' : 'default-team-lost';
+			}
+			return 'default-team-playing';
 		}
 
-		return 'completed-match-card';
+		// Completed match without default team
+		if (isComplete && hasScores) {
+			return 'completed-match-card';
+		}
+
+		return '';
 	});
 </script>
 
@@ -163,7 +181,7 @@
 					>
 						{score ?? '-'}
 					</span>
-					{#if team?.name === defaultTeam}<span class="h-2 w-2 rounded-full bg-yellow-400"
+					{#if team?.name === defaultTeam}<span class="h-2 w-2 rounded-full bg-green-500"
 						></span>{/if}
 					<span class="text-sm sm:text-sm">{team?.name ?? 'TBD'}</span>
 					{#if isWinner && isComplete}<TrophyIcon
@@ -172,6 +190,14 @@
 				</span>
 			</div>
 		{/each}
+		{#if hasDefaultTeamRef}
+			<div class="mt-2 flex items-center justify-center">
+				<span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+					<span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+					Refereeing
+				</span>
+			</div>
+		{/if}
 	</div>
 {/snippet}
 
@@ -201,33 +227,89 @@
 		background-color: rgba(255, 255, 255, 0.02);
 	}
 
-	.default-team-card {
-		background-color: rgba(253, 224, 71, 0.2);
-		border: 1px solid rgba(253, 224, 71, 0.3);
+	/* Green for playing (positive action) */
+	.default-team-playing {
+		background-color: rgba(34, 197, 94, 0.1);
+		border: 1px solid rgba(34, 197, 94, 0.2);
 	}
 
-	:global(.dark) .default-team-card {
-		background-color: rgba(253, 224, 71, 0.1);
-		border: 1px solid rgba(253, 224, 71, 0.2);
+	:global(.dark) .default-team-playing {
+		background-color: rgba(34, 197, 94, 0.08);
+		border: 1px solid rgba(34, 197, 94, 0.15);
+	}
+
+	/* Blue for refereeing (informational) */
+	.default-team-ref-only {
+		background-color: rgba(59, 130, 246, 0.1);
+		border: 1px solid rgba(59, 130, 246, 0.2);
+	}
+
+	:global(.dark) .default-team-ref-only {
+		background-color: rgba(59, 130, 246, 0.08);
+		border: 1px solid rgba(59, 130, 246, 0.15);
+	}
+
+	/* Purple for both playing and refereeing */
+	.default-team-playing-and-ref {
+		background-color: rgba(139, 92, 246, 0.1);
+		border: 1px solid rgba(139, 92, 246, 0.2);
+	}
+
+	:global(.dark) .default-team-playing-and-ref {
+		background-color: rgba(139, 92, 246, 0.08);
+		border: 1px solid rgba(139, 92, 246, 0.15);
 	}
 
 	.completed-match-card {
-		background-color: rgba(59, 65, 75, 0.05);
+		background-color: rgba(156, 163, 175, 0.08);
 	}
 
 	:global(.dark) .completed-match-card {
-		background-color: rgba(212, 218, 230, 0.1);
+		background-color: rgba(156, 163, 175, 0.05);
 	}
 
+	/* Brighter green for wins */
 	.default-team-won {
-		background-color: rgba(16, 185, 129, 0.15);
-		border: 1px solid rgba(16, 185, 129, 0.3);
+		background-color: rgba(34, 197, 94, 0.2);
+		border: 1px solid rgba(34, 197, 94, 0.4);
 	}
 
-	:global(.dark)
-		.default-team-card:has(:global(.dark\:text-emerald-400.font-semibold:has(+ .text-amber-500))) {
-		background-color: rgba(16, 185, 129, 0.15);
-		border: 1px solid rgba(16, 185, 129, 0.3);
+	:global(.dark) .default-team-won {
+		background-color: rgba(34, 197, 94, 0.15);
+		border: 1px solid rgba(34, 197, 94, 0.3);
+	}
+
+	/* Won while refereeing */
+	.default-team-won-and-ref {
+		background-color: rgba(139, 92, 246, 0.2);
+		border: 1px solid rgba(139, 92, 246, 0.4);
+	}
+
+	:global(.dark) .default-team-won-and-ref {
+		background-color: rgba(139, 92, 246, 0.15);
+		border: 1px solid rgba(139, 92, 246, 0.3);
+	}
+
+	/* Red for losses */
+	.default-team-lost {
+		background-color: rgba(239, 68, 68, 0.15);
+		border: 1px solid rgba(239, 68, 68, 0.3);
+	}
+
+	:global(.dark) .default-team-lost {
+		background-color: rgba(239, 68, 68, 0.1);
+		border: 1px solid rgba(239, 68, 68, 0.2);
+	}
+
+	/* Lost while refereeing */
+	.default-team-lost-and-ref {
+		background-color: rgba(239, 68, 68, 0.12);
+		border: 1px solid rgba(239, 68, 68, 0.25);
+	}
+
+	:global(.dark) .default-team-lost-and-ref {
+		background-color: rgba(239, 68, 68, 0.08);
+		border: 1px solid rgba(239, 68, 68, 0.15);
 	}
 
 	/* Enhanced popover styles for mobile */
@@ -307,16 +389,6 @@
 		text-decoration-color: #10b981;
 		text-decoration-thickness: 2px;
 		text-underline-offset: 2px;
-	}
-
-	.default-team-lost {
-		background-color: rgba(239, 68, 68, 0.15); /* red */
-		border: 1px solid rgba(239, 68, 68, 0.3);
-	}
-
-	:global(.dark) .default-team-lost {
-		background-color: rgba(239, 68, 68, 0.08);
-		border: 1px solid rgba(239, 68, 68, 0.2);
 	}
 
 	.score {
