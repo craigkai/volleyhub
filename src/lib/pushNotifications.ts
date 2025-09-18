@@ -61,6 +61,16 @@ export async function sendRoundNotifications(
 			const team2Name = teamMap.get(match.team2);
 			const refName = teamMap.get(match.referee_id);
 
+			console.log('Match notification debug:', {
+				match_id: match.id,
+				team1_id: match.team1,
+				team1Name,
+				team2_id: match.team2,
+				team2Name,
+				referee_id: match.referee_id,
+				refName
+			});
+
 			if (team1Name) {
 				teamsToNotify.add(team1Name);
 			}

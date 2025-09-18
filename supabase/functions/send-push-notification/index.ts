@@ -84,40 +84,31 @@ serve(async (req) => {
       }
     }
 
+    // Import web-push for proper push notifications
+    const webpush = await import('https://esm.sh/web-push@3.6.7')
+
+    // Set VAPID details
+    webpush.setVapidDetails(
+      Deno.env.get('VAPID_SUBJECT') ?? 'mailto:noreply@volleyhub.app',
+      Deno.env.get('VAPID_PUBLIC_KEY') ?? '',
+      Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
+    )
+
     // Send push notifications
     const results = await Promise.allSettled(
       subscriptions.map(async (subscription: PushSubscription) => {
         try {
-          const response = await fetch('https://fcm.googleapis.com/fcm/send', {
-            method: 'POST',
-            headers: {
-              'Authorization': `key=${Deno.env.get('VAPID_PRIVATE_KEY')}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              to: subscription.endpoint.split('/').pop(), // Extract registration token
-              notification: {
-                title: payload.title,
-                body: payload.body,
-                icon: payload.icon,
-                badge: payload.badge,
-                click_action: payload.data?.url
-              },
-              data: payload.data
-            })
-          })
-
-          if (!response.ok) {
-            // If subscription is invalid, remove it
-            if (response.status === 410) {
-              await supabaseClient
-                .from('push_subscriptions')
-                .delete()
-                .eq('id', subscription.id)
-              console.log('Removed invalid subscription:', subscription.id)
-            }
-            throw new Error(`Push failed: ${response.status}`)
+          // Format subscription for web-push
+          const pushSubscription = {
+            endpoint: subscription.endpoint,
+            keys: subscription.keys
           }
+
+          // Send notification using web-push
+          await webpush.sendNotification(
+            pushSubscription,
+            JSON.stringify(payload)
+          )
 
           return { success: true, subscriptionId: subscription.id }
         } catch (error) {

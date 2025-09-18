@@ -42,9 +42,19 @@
 		});
 
 		// Check if push notifications are supported
-		isSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+		const hasServiceWorker = 'serviceWorker' in navigator;
+		const hasPushManager = 'PushManager' in window;
+		const hasNotification = 'Notification' in window;
 
-		console.log('Push notifications supported:', isSupported);
+		isSupported = hasServiceWorker && hasPushManager && hasNotification;
+
+		console.log('Push notification support check:', {
+			hasServiceWorker,
+			hasPushManager,
+			hasNotification,
+			isSupported,
+			userAgent: navigator.userAgent
+		});
 
 		if (!isSupported) {
 			console.log('Push notifications not supported');
@@ -230,11 +240,17 @@
 			</div>
 		{:else if !isSupported}
 			<div
-				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-500"
-				title="Push notifications not supported in this browser"
+				class="inline-flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+				title={navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')
+					? 'Safari: Add to Home Screen first, then enable notifications'
+					: 'Push notifications not supported in this browser'}
 			>
 				<BellOff size={16} />
-				Notifications Not Supported
+				{#if navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')}
+					Add to Home Screen for Notifications
+				{:else}
+					Notifications Not Supported
+				{/if}
 			</div>
 		{:else if isSubscribed}
 			<button
