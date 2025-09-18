@@ -1,11 +1,18 @@
 import { redirect } from '@sveltejs/kit';
-import { signUpSchema, signInSchema, magicLinkSchema } from './schemas';
+import { signInSchema, magicLinkSchema } from './schemas';
 import { setError, superValidate, fail } from 'sveltekit-superforms';
+import { z } from 'zod';
+
+// Simple signup schema without password confirmation
+const simpleSignUpSchema = z.object({
+	email: z.string().email(),
+	password: z.string().min(8)
+});
 import { zod4 } from 'sveltekit-superforms/adapters';
 
 export const actions = {
 	signup: async ({ request, locals: { supabase } }) => {
-		const form = await superValidate(request, zod4(signUpSchema));
+		const form = await superValidate(request, zod4(simpleSignUpSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const { email, password } = form.data;
