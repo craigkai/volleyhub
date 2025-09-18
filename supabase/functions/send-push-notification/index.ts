@@ -12,12 +12,12 @@ serve(async (req) => {
 	}
 
 	try {
-		const { eventId, teamName, round, action, isRef = false } = await req.json();
+		const { eventId, teamId, teamName, round, action, isRef = false } = await req.json();
 
-		console.log('Sending push notifications for:', { eventId, teamName, round, action, isRef });
+		console.log('Sending push notifications for:', { eventId, teamId, teamName, round, action, isRef });
 
-		if (!eventId || !teamName) {
-			throw new Error('Missing required parameters: eventId and teamName');
+		if (!eventId || !teamId) {
+			throw new Error('Missing required parameters: eventId and teamId');
 		}
 
 		// Use OneSignal instead of managing subscriptions directly
@@ -51,7 +51,7 @@ serve(async (req) => {
 			filters: [
 				{ field: 'tag', key: 'eventId', relation: '=', value: eventId.toString() },
 				{ operator: 'AND' },
-				{ field: 'tag', key: 'selectedTeam', relation: '=', value: teamName }
+				{ field: 'tag', key: 'selectedTeam', relation: '=', value: teamId.toString() }
 			],
 			web_url: `${Deno.env.get('SITE_URL') || 'https://volleyhub.app'}/events/${eventId}?team=${encodeURIComponent(teamName)}`,
 			chrome_web_icon: '/pwa-192x192.png',

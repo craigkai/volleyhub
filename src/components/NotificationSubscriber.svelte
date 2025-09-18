@@ -15,9 +15,12 @@
 
 	let isSupported = $state(false);
 	let isInitialized = $state(false);
+	let subscriptionState = $state(0); // Force reactivity trigger
 
 	// Derive subscription status from localStorage and permissions
 	let isSubscribed = $derived.by(() => {
+		// Access subscriptionState to make this reactive to manual updates
+		subscriptionState;
 		if (!isInitialized || !selectedTeam) return false;
 		const stored = localStorage.getItem(getStorageKey());
 		const hasPermission = 'Notification' in window && Notification.permission === 'granted';
@@ -101,17 +104,20 @@
 					applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
 				});
 
-				// Store subscription preference locally
-				localStorage.setItem(getStorageKey(), 'true');
-
 				// Register with notification service via our API
 				await registerWithNotificationService(pushSubscription);
 
+				// Only store locally if API call succeeds
+				localStorage.setItem(getStorageKey(), 'true');
+				subscriptionState++; // Trigger reactivity
 				toast.success(`Notifications enabled for ${selectedTeam}!`);
 			}
 		} catch (error) {
 			console.error('Error subscribing to notifications:', error);
-			toast.error('Failed to enable notifications');
+			toast.error(`Failed to enable notifications: ${error.message}`);
+			// Make sure localStorage is not set on failure
+			localStorage.removeItem(getStorageKey());
+			subscriptionState++; // Trigger reactivity
 		}
 	}
 
@@ -119,6 +125,7 @@
 		try {
 			// Remove subscription preference
 			localStorage.removeItem(getStorageKey());
+			subscriptionState++; // Trigger reactivity
 
 			// Unregister from notification service
 			await unregisterFromNotificationService();
@@ -131,33 +138,34 @@
 	}
 
 	async function registerWithNotificationService(pushSubscription: PushSubscription) {
-		try {
-			// Get or create a unique user ID for this browser/team combination
-			const userId = getUserId();
+		// Get or create a unique user ID for this browser/team combination
+		const userId = getUserId();
 
-			// Call our backend to register this user with OneSignal
-			const response = await fetch('/api/notifications/subscribe', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					userId,
-					eventId,
-					selectedTeam,
-					pushSubscription: {
-						endpoint: pushSubscription.endpoint,
-						keys: pushSubscription.toJSON().keys
-					}
-				})
-			});
+		// Call our backend to register this user with OneSignal
+		const response = await fetch('/api/notifications/subscribe', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				userId,
+				eventId,
+				selectedTeam,
+				pushSubscription: {
+					endpoint: pushSubscription.endpoint,
+					keys: pushSubscription.toJSON().keys
+				}
+			})
+		});
 
-			if (!response.ok) {
-				console.error('Failed to register with notification service');
-			}
-		} catch (error) {
-			console.error('Notification registration failed:', error);
-			// Don't throw - local subscription still works
+		if (!response.ok) {
+			const errorData = await response.text();
+			throw new Error(`Server error: ${errorData}`);
+		}
+
+		const result = await response.json();
+		if (!result.success) {
+			throw new Error(`Registration failed: ${result.error}`);
 		}
 	}
 
