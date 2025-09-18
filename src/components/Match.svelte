@@ -17,7 +17,9 @@
 	const hasDefaultTeam = $derived(defaultTeam ? teamsForMatch.includes(defaultTeam) : false);
 
 	const referee = $derived(teams.teams.find((t: Team) => t.id === match.referee_id));
-	const hasDefaultTeamRef = $derived(defaultTeam && referee ? referee.name === defaultTeam.name : false);
+	const hasDefaultTeamRef = $derived(
+		defaultTeam && referee ? referee.name === defaultTeam.name : false
+	);
 
 	const defaultTeamWin = $derived(
 		team1?.name === defaultTeam
@@ -192,7 +194,9 @@
 		{/each}
 		{#if hasDefaultTeamRef}
 			<div class="mt-2 flex items-center justify-center">
-				<span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+				<span
+					class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+				>
 					<span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
 					Refereeing
 				</span>

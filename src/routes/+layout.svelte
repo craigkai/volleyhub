@@ -2,6 +2,7 @@
 	import '../app.css';
 	import Header from '$components/Header.svelte';
 	import Footer from '$components/Footer.svelte';
+	import PWAInstallPrompt from '$lib/components/PWAInstallPrompt.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
@@ -10,9 +11,14 @@
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import toast, { Toaster } from 'svelte-5-french-toast';
 	import { writable } from 'svelte/store';
+	import { registerSW } from '$lib/pwa';
 
 	inject({
 		mode: dev ? 'development' : 'production'
+	});
+
+	onMount(() => {
+		registerSW();
 	});
 
 	let { data = $bindable(), children } = $props();
@@ -73,3 +79,5 @@
 
 	<Footer />
 </div>
+
+<PWAInstallPrompt />

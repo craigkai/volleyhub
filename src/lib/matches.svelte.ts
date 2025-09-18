@@ -670,7 +670,7 @@ export class Matches extends Base {
 
 		await this.databaseService.deleteMatchesByRound(this.event_id, round);
 		// Remove matches from local state
-		this.matches = this.matches.filter(match => match.round !== round);
+		this.matches = this.matches.filter((match) => match.round !== round);
 	}
 
 	/**
@@ -686,7 +686,7 @@ export class Matches extends Base {
 
 		await this.databaseService.deleteMatchesFromRound(this.event_id, fromRound);
 		// Remove matches from local state
-		this.matches = this.matches.filter(match => (match.round ?? 0) < fromRound);
+		this.matches = this.matches.filter((match) => (match.round ?? 0) < fromRound);
 	}
 }
 

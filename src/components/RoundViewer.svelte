@@ -10,13 +10,21 @@
 	import MoreVertical from 'lucide-svelte/icons/more-vertical';
 	import toast from 'svelte-5-french-toast';
 
-	let { readOnly = false, defaultTeam, data, deleteRound, deleteFromRound, setCurrentRound } = $props();
+	let {
+		readOnly = false,
+		defaultTeam,
+		data,
+		deleteRound,
+		deleteFromRound,
+		setCurrentRound
+	} = $props();
 
 	let currentViewRound = $state(data.tournament.current_round ?? 0);
 
 	// Calculate total rounds from matches
 	let totalRounds = $derived(
-		Math.max.apply(Math, data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0]) + 1 || 1
+		Math.max.apply(Math, data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0]) +
+			1 || 1
 	);
 
 	// Get matches for current viewing round
@@ -38,7 +46,9 @@
 	function roundHasDefaultTeamRef(): boolean {
 		if (!defaultTeam) return false;
 		return roundMatches.some((m: any) => {
-			const referee = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.referee_id);
+			const referee = data.teams.teams.find(
+				(t: { id: number; name: string }) => t.id === m.referee_id
+			);
 			return referee?.name === defaultTeam.name;
 		});
 	}
@@ -78,7 +88,9 @@
 
 <div class="space-y-4">
 	<!-- Round Navigation Header -->
-	<div class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+	<div
+		class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+	>
 		<div class="flex items-center gap-3">
 			<Button
 				variant="outline"
@@ -113,7 +125,9 @@
 		<div class="flex items-center gap-2">
 			<!-- Current Round Badge/Button -->
 			{#if currentViewRound === (data.tournament.current_round ?? 0)}
-				<span class="inline-block rounded bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+				<span
+					class="inline-block rounded bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
+				>
 					Current
 				</span>
 			{:else}
@@ -131,7 +145,9 @@
 			<!-- Round Actions Menu -->
 			{#if !readOnly}
 				<Popover.Root>
-					<Popover.Trigger class="h-8 w-8 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 inline-flex items-center justify-center rounded border-0 bg-transparent">
+					<Popover.Trigger
+						class="inline-flex h-8 w-8 items-center justify-center rounded border-0 bg-transparent p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+					>
 						<MoreVertical class="h-4 w-4" />
 					</Popover.Trigger>
 					<Popover.Content class="w-48 p-1" align="end">
@@ -180,8 +196,8 @@
 		class:default-team-highlight={roundHasDefaultTeam()}
 	>
 		{#if roundMatches.length === 0}
-			<div class="text-center py-8 text-gray-500 dark:text-gray-400">
-				<Calendar class="mx-auto h-12 w-12 mb-2 opacity-50" />
+			<div class="py-8 text-center text-gray-500 dark:text-gray-400">
+				<Calendar class="mx-auto mb-2 h-12 w-12 opacity-50" />
 				<p class="text-sm">No matches in this round</p>
 			</div>
 		{:else}
@@ -201,13 +217,7 @@
 								{/if}
 							{/if}
 						</div>
-						<ViewMatch
-							matches={data.matches}
-							{match}
-							teams={data.teams}
-							{readOnly}
-							{defaultTeam}
-						/>
+						<ViewMatch matches={data.matches} {match} teams={data.teams} {readOnly} {defaultTeam} />
 					</div>
 				{/each}
 			</div>
@@ -219,15 +229,19 @@
 		<div class="flex gap-1">
 			{#each Array(totalRounds) as _, index}
 				<button
-					onclick={() => currentViewRound = index}
+					onclick={() => (currentViewRound = index)}
 					aria-label="Jump to round {index + 1}"
 					class="h-2 w-8 rounded-full transition-colors duration-200"
 					class:bg-indigo-500={index === currentViewRound}
-					class:bg-indigo-200={index === (data.tournament.current_round ?? 0) && index !== currentViewRound}
-					class:bg-gray-200={index !== currentViewRound && index !== (data.tournament.current_round ?? 0)}
+					class:bg-indigo-200={index === (data.tournament.current_round ?? 0) &&
+						index !== currentViewRound}
+					class:bg-gray-200={index !== currentViewRound &&
+						index !== (data.tournament.current_round ?? 0)}
 					class:dark:bg-indigo-400={index === currentViewRound}
-					class:dark:bg-indigo-700={index === (data.tournament.current_round ?? 0) && index !== currentViewRound}
-					class:dark:bg-gray-600={index !== currentViewRound && index !== (data.tournament.current_round ?? 0)}
+					class:dark:bg-indigo-700={index === (data.tournament.current_round ?? 0) &&
+						index !== currentViewRound}
+					class:dark:bg-gray-600={index !== currentViewRound &&
+						index !== (data.tournament.current_round ?? 0)}
 				></button>
 			{/each}
 		</div>
@@ -245,5 +259,4 @@
 		border-color: #16a34a;
 		background-color: rgba(34, 197, 94, 0.15);
 	}
-
 </style>
