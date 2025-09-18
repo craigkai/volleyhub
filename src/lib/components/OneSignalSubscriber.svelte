@@ -3,6 +3,7 @@
 	import { Bell, BellOff } from 'lucide-svelte';
 	import toast from 'svelte-5-french-toast';
 	import { dev } from '$app/environment';
+	import { PUBLIC_ONESIGNAL_APP_ID } from '$env/static/public';
 
 	let {
 		selectedTeam = '',
@@ -17,7 +18,7 @@
 	let isInitialized = $state(false);
 
 	// OneSignal configuration
-	const ONESIGNAL_APP_ID = 'YOUR_ONESIGNAL_APP_ID'; // You'll need to replace this
+	const ONESIGNAL_APP_ID = PUBLIC_ONESIGNAL_APP_ID;
 
 	onMount(async () => {
 		console.log('OneSignalSubscriber mounted:', {
@@ -41,10 +42,20 @@
 	});
 
 	async function initializeOneSignal() {
-		// Dynamically import OneSignal
-		const OneSignal = (await import('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js')).default;
+		// Load OneSignal SDK script
+		if (!window.OneSignal) {
+			const script = document.createElement('script');
+			script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+			script.defer = true;
+			document.head.appendChild(script);
 
-		await OneSignal.init({
+			// Wait for script to load
+			await new Promise((resolve) => {
+				script.onload = resolve;
+			});
+		}
+
+		await window.OneSignal.init({
 			appId: ONESIGNAL_APP_ID,
 			safari_web_id: 'web.onesignal.auto.18be6cbb-f3eb-4a7c-9319-a9c9b9f0c2dc', // Optional
 			notifyButton: {
@@ -53,12 +64,12 @@
 			allowLocalhostAsSecureOrigin: true
 		});
 
-		isSupported = await OneSignal.Notifications.isPushSupported();
+		isSupported = await window.OneSignal.Notifications.isPushSupported();
 		isInitialized = true;
 
 		if (isSupported) {
 			// Check current subscription status
-			const permission = await OneSignal.Notifications.getPermissionState();
+			const permission = await window.OneSignal.Notifications.getPermissionState();
 			isSubscribed = permission === 'granted';
 
 			console.log('OneSignal initialized:', {
