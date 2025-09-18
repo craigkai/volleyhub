@@ -1,30 +1,9 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
-
-interface PushPayload {
-	title: string;
-	body: string;
-	icon?: string;
-	badge?: string;
-	data?: any;
-}
-
-interface PushSubscription {
-	id: string;
-	user_id: string;
-	endpoint: string;
-	keys: {
-		p256dh: string;
-		auth: string;
-	};
-	selected_team: string;
-	event_id: string;
-}
 
 serve(async (req) => {
 	// Handle CORS preflight requests
@@ -33,12 +12,6 @@ serve(async (req) => {
 	}
 
 	try {
-		// Create Supabase client
-		const supabaseClient = createClient(
-			Deno.env.get('SUPABASE_URL') ?? '',
-			Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-		);
-
 		const { eventId, teamName, round, action, isRef = false } = await req.json();
 
 		console.log('Sending push notifications for:', { eventId, teamName, round, action, isRef });
@@ -74,12 +47,9 @@ serve(async (req) => {
 				isRef,
 				url: `/events/${eventId}?team=${encodeURIComponent(teamName)}`
 			},
-			// Target users based on tags
-			filters: [
-				{ field: 'tag', key: 'eventId', relation: '=', value: eventId.toString() },
-				{ operator: 'AND' },
-				{ field: 'tag', key: 'selectedTeam', relation: '=', value: teamName }
-			],
+			// Send to all subscribed users for now
+			// In the future, we can add more sophisticated targeting
+			included_segments: ['Subscribed Users'],
 			web_url: `${Deno.env.get('SITE_URL') || 'https://volleyhub.app'}/events/${eventId}?team=${encodeURIComponent(teamName)}`,
 			chrome_web_icon: '/pwa-192x192.png',
 			chrome_web_badge: '/pwa-64x64.png'

@@ -21,8 +21,8 @@
 	import SettingsIcon from 'lucide-svelte/icons/settings';
 	import ListIcon from 'lucide-svelte/icons/list';
 	import BarChartIcon from 'lucide-svelte/icons/bar-chart-2';
-	import ShareButton from '$lib/components/ShareButton.svelte';
-	import OneSignalSubscriber from '$lib/components/OneSignalSubscriber.svelte';
+	import ShareButton from '$components/ShareButton.svelte';
+	import NotificationSubscriber from '$components/NotificationSubscriber.svelte';
 
 	let { data = $bindable() } = $props();
 
@@ -146,7 +146,11 @@
 
 		{#if defaultTeam}
 			<div class="mb-4 flex justify-center">
-				<OneSignalSubscriber selectedTeam={defaultTeam} eventId={data.eventId} />
+				<NotificationSubscriber
+					selectedTeam={defaultTeam}
+					eventId={data.eventId}
+					supabase={data.supabase}
+				/>
 			</div>
 		{/if}
 	{/if}

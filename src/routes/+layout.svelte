@@ -2,7 +2,7 @@
 	import '../app.css';
 	import Header from '$components/Header.svelte';
 	import Footer from '$components/Footer.svelte';
-	import PWAInstallPrompt from '$lib/components/PWAInstallPrompt.svelte';
+	import PWAInstallPrompt from '$components/PWAInstallPrompt.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';

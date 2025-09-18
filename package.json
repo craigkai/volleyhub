@@ -85,7 +85,6 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@onesignal/node-onesignal": "^5.2.1-beta1",
 		"@tailwindcss/vite": "^4.1.13",
 		"bufferutil": "^4.0.9",
 		"formsnap": "^2.0.1",
