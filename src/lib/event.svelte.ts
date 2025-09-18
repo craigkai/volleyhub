@@ -55,7 +55,9 @@ export class Event extends Base {
 
 		if (updated.id !== self.id) return;
 
-		console.info(`handleEventUpdate: ${JSON.stringify(payload)}`);
+		if (import.meta.env.DEV) {
+			console.info(`handleEventUpdate: ${JSON.stringify(payload)}`);
+		}
 
 		// Update all tournament settings that can change
 		if (typeof updated.current_round === 'number') {

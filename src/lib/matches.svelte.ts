@@ -91,7 +91,9 @@ export class Matches extends Base {
 			return;
 		}
 
-		console.info(`handleUpdate: ${JSON.stringify(payload)}`);
+		if (import.meta.env.DEV) {
+			console.info(`handleUpdate: ${JSON.stringify(payload)}`);
+		}
 
 		if (self.type === 'bracket') {
 			await self.load(self.event_id);
