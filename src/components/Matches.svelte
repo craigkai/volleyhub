@@ -166,13 +166,17 @@
 				toast.error('Failed to create matches');
 				return;
 			}
-			data.matches = await data.matches.load(data.matches.event_id);
-
-			rounds =
-				Math.max.apply(Math, data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0]) +
-					1 || 1;
-
+			// Let realtime subscription handle showing new matches, but ensure subscription is active
 			await subscribe();
+
+			// Safety reload after a short delay to ensure all matches were received via realtime
+			setTimeout(async () => {
+				const currentMatchCount = data.matches?.matches?.length ?? 0;
+				if (currentMatchCount === 0) {
+					console.warn('No matches received via realtime, doing safety reload');
+					data.matches = await data.matches.load(data.matches.event_id);
+				}
+			}, 2000);
 		} catch (err: unknown) {
 			console.error('Match generation failed:', err);
 			const errorMessage =
