@@ -45,31 +45,28 @@ export async function sendRoundNotifications(
 		});
 
 		// Collect unique teams that need notifications
-		const teamsToNotify = new Set<string>();
-		const refsToNotify = new Set<string>();
+		const teamsToNotify = new Set<number>();
+		const refsToNotify = new Set<number>();
 
 		matches.forEach((match) => {
-			const team1Name = teamMap.get(match.team1);
-			const team2Name = teamMap.get(match.team2);
-			const refName = teamMap.get(match.ref);
-
-			if (team1Name) {
-				teamsToNotify.add(team1Name);
+			if (match.team1) {
+				teamsToNotify.add(match.team1);
 			}
-			if (team2Name) {
-				teamsToNotify.add(team2Name);
+			if (match.team2) {
+				teamsToNotify.add(match.team2);
 			}
-			if (refName) {
-				refsToNotify.add(refName);
+			if (match.ref) {
+				refsToNotify.add(match.ref);
 			}
 		});
 
 		// Send notifications for playing teams
-		const teamNotifications = Array.from(teamsToNotify).map((teamName) =>
+		const teamNotifications = Array.from(teamsToNotify).map((teamId) =>
 			supabase.functions.invoke('send-push-notification', {
 				body: {
 					eventId,
-					teamName,
+					teamId,
+					teamName: teamMap.get(teamId),
 					round,
 					action: 'round_assigned',
 					isRef: false
@@ -78,11 +75,12 @@ export async function sendRoundNotifications(
 		);
 
 		// Send notifications for referees
-		const refNotifications = Array.from(refsToNotify).map((refName) =>
+		const refNotifications = Array.from(refsToNotify).map((refId) =>
 			supabase.functions.invoke('send-push-notification', {
 				body: {
 					eventId,
-					teamName: refName,
+					teamId: refId,
+					teamName: teamMap.get(refId),
 					round,
 					action: 'ref_assigned',
 					isRef: true
