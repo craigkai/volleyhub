@@ -62,8 +62,16 @@
 	});
 
 	async function checkSubscriptionStatus() {
-		if (!user?.id || !isSupported) return;
+		if (!isSupported || !selectedTeam) return;
 
+		// For anonymous users, check localStorage for subscription status
+		if (!user?.id) {
+			const localKey = `push_subscription_${eventId}_${selectedTeam}`;
+			isSubscribed = !!localStorage.getItem(localKey);
+			return;
+		}
+
+		// For logged-in users, check database
 		try {
 			const { data, error } = await supabase
 				.from('push_subscriptions')
@@ -107,11 +115,6 @@
 	}
 
 	async function subscribeToPush() {
-		if (!user?.id) {
-			toast.error('Please log in to enable notifications');
-			return;
-		}
-
 		const hasPermission = await requestPermission();
 		if (!hasPermission) return;
 
@@ -123,16 +126,33 @@
 				applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
 			});
 
-			// Save subscription to database
-			const { error } = await supabase.from('push_subscriptions').upsert({
-				user_id: user.id,
-				endpoint: subscription.endpoint,
-				keys: subscription.toJSON().keys,
-				selected_team: selectedTeam || null,
-				event_id: eventId || null
-			});
+			if (user?.id) {
+				// Save subscription to database for logged-in users
+				const { error } = await supabase.from('push_subscriptions').upsert({
+					user_id: user.id,
+					endpoint: subscription.endpoint,
+					keys: subscription.toJSON().keys,
+					selected_team: selectedTeam || null,
+					event_id: eventId || null
+				});
 
-			if (error) throw error;
+				if (error) throw error;
+			} else {
+				// Save subscription locally for anonymous users
+				const { error } = await supabase.from('push_subscriptions').upsert({
+					user_id: null,
+					endpoint: subscription.endpoint,
+					keys: subscription.toJSON().keys,
+					selected_team: selectedTeam || null,
+					event_id: eventId || null
+				});
+
+				if (error) throw error;
+
+				// Also store in localStorage for quick checking
+				const localKey = `push_subscription_${eventId}_${selectedTeam}`;
+				localStorage.setItem(localKey, 'true');
+			}
 
 			isSubscribed = true;
 			toast.success(`Notifications enabled${selectedTeam ? ` for ${selectedTeam}` : ''}!`);
@@ -143,18 +163,37 @@
 	}
 
 	async function unsubscribeFromPush() {
-		if (!user?.id) return;
-
 		try {
-			// Remove from database
-			const { error } = await supabase
-				.from('push_subscriptions')
-				.delete()
-				.eq('user_id', user.id)
-				.eq('selected_team', selectedTeam || '')
-				.eq('event_id', eventId || '');
+			if (user?.id) {
+				// Remove from database for logged-in users
+				const { error } = await supabase
+					.from('push_subscriptions')
+					.delete()
+					.eq('user_id', user.id)
+					.eq('selected_team', selectedTeam || '')
+					.eq('event_id', eventId || '');
 
-			if (error) throw error;
+				if (error) throw error;
+			} else {
+				// Remove from database for anonymous users
+				const registration = await navigator.serviceWorker.ready;
+				const subscription = await registration.pushManager.getSubscription();
+
+				if (subscription) {
+					const { error } = await supabase
+						.from('push_subscriptions')
+						.delete()
+						.eq('endpoint', subscription.endpoint)
+						.eq('selected_team', selectedTeam || '')
+						.eq('event_id', eventId || '');
+
+					if (error) throw error;
+				}
+
+				// Remove from localStorage
+				const localKey = `push_subscription_${eventId}_${selectedTeam}`;
+				localStorage.removeItem(localKey);
+			}
 
 			// Unsubscribe from browser
 			const registration = await navigator.serviceWorker.ready;
@@ -173,13 +212,13 @@
 
 	// Update subscription when selectedTeam changes
 	$effect(() => {
-		if (user?.id && isSupported) {
+		if (isSupported && selectedTeam) {
 			checkSubscriptionStatus();
 		}
 	});
 </script>
 
-{#if user}
+{#if selectedTeam}
 	<div class="flex items-center">
 		{#if dev}
 			<div
