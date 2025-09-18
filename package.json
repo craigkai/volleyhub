@@ -91,6 +91,7 @@
 		"svelte-5-french-toast": "^2.0.6",
 		"svelte-kit-bot-block": "^0.0.7",
 		"utf-8-validate": "^6.0.5",
+		"web-push": "^3.6.7",
 		"workbox-build": "^7.3.0",
 		"workbox-window": "^7.3.0",
 		"ws": "^8.18.3"

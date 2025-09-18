@@ -22,6 +22,7 @@
 	import ListIcon from 'lucide-svelte/icons/list';
 	import BarChartIcon from 'lucide-svelte/icons/bar-chart-2';
 	import ShareButton from '$lib/components/ShareButton.svelte';
+	import PushNotificationSubscriber from '$lib/components/PushNotificationSubscriber.svelte';
 
 	let { data = $bindable() } = $props();
 
@@ -142,6 +143,17 @@
 				</Select.Root>
 			</div>
 		</div>
+
+		{#if defaultTeam}
+			<div class="mb-4 flex justify-center">
+				<PushNotificationSubscriber
+					supabase={data.supabase}
+					user={data.user}
+					selectedTeam={defaultTeam}
+					eventId={data.eventId}
+				/>
+			</div>
+		{/if}
 	{/if}
 
 	<div class="mx-auto max-w-5xl">

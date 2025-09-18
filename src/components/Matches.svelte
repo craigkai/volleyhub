@@ -23,6 +23,7 @@
 	import Grid3X3 from 'lucide-svelte/icons/grid-3x3';
 	import List from 'lucide-svelte/icons/list';
 	import RoundViewer from './RoundViewer.svelte';
+	import { sendRoundNotifications } from '$lib/pushNotifications';
 
 	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
@@ -267,6 +268,22 @@
 			await data.tournament.setCurrentRound(round);
 			data.tournament.current_round = round;
 			toast.success(`Set current round to ${round + 1}`);
+
+			// Send push notifications for this round
+			try {
+				const result = await sendRoundNotifications(
+					data.supabase,
+					data.eventId,
+					round
+				);
+				if (result.success) {
+					console.log('Round notifications sent:', result.message);
+				} else {
+					console.warn('Round notifications failed:', result.message);
+				}
+			} catch (error) {
+				console.error('Error sending round notifications:', error);
+			}
 		} catch (err: unknown) {
 			toast.error(
 				'Failed to set current round: ' + (err instanceof Error ? err.message : 'Unknown error')
