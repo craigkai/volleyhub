@@ -59,13 +59,22 @@
 		if (!user?.id || !isSupported) return;
 
 		try {
-			const { data } = await supabase
+			const { data, error } = await supabase
 				.from('push_subscriptions')
 				.select('id')
 				.eq('user_id', user.id)
 				.eq('selected_team', selectedTeam || '')
 				.eq('event_id', eventId || '')
 				.maybeSingle();
+
+			if (error) {
+				console.error('Push subscriptions table error:', error);
+				// Table probably doesn't exist - show a warning
+				if (error.code === '42P01') {
+					console.warn('push_subscriptions table not found. Run database migrations.');
+				}
+				return;
+			}
 
 			isSubscribed = !!data;
 		} catch (error) {
