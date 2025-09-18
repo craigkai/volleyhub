@@ -9,7 +9,7 @@
 
 	let { matchesPerRound, teams, defaultTeam, readOnly } = $props();
 
-	let match = $state(matchesPerRound ? matchesPerRound[0] : null);
+	let match = $derived(matchesPerRound ? matchesPerRound[0] : null);
 
 	// use string to match Select.Item values
 	let selectedRefId = $derived(match?.ref?.toString() ?? '');
