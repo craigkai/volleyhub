@@ -13,9 +13,16 @@
 		supabase: any;
 	}>();
 
-	let isSubscribed = $state(false);
 	let isSupported = $state(false);
 	let isInitialized = $state(false);
+
+	// Derive subscription status from localStorage and permissions
+	let isSubscribed = $derived.by(() => {
+		if (!isInitialized || !selectedTeam) return false;
+		const stored = localStorage.getItem(getStorageKey());
+		const hasPermission = 'Notification' in window && Notification.permission === 'granted';
+		return stored === 'true' && hasPermission;
+	});
 
 	// Local storage key for subscription preference
 	const getStorageKey = () => `notify_${eventId}_${selectedTeam}`;
@@ -55,13 +62,6 @@
 
 		isSupported = hasServiceWorker && hasPushManager && hasNotification;
 
-		// Check if user has subscribed for this team
-		if (isSupported && selectedTeam) {
-			const stored = localStorage.getItem(getStorageKey());
-			const hasPermission = 'Notification' in window && Notification.permission === 'granted';
-			isSubscribed = stored === 'true' && hasPermission;
-		}
-
 		isInitialized = true;
 	});
 
@@ -94,7 +94,8 @@
 				await navigator.serviceWorker.ready;
 
 				// Subscribe to push notifications with VAPID key
-				const vapidPublicKey = 'BEETJnh6HFQcfifDAkd_j87tFK380FDeXHHCAJgpQws7lEzUl_ZZWjYipszSOQ5MU2u0aGpk3975FK9hyFwlrqg';
+				const vapidPublicKey =
+					'BEETJnh6HFQcfifDAkd_j87tFK380FDeXHHCAJgpQws7lEzUl_ZZWjYipszSOQ5MU2u0aGpk3975FK9hyFwlrqg';
 				const pushSubscription = await registration.pushManager.subscribe({
 					userVisibleOnly: true,
 					applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
@@ -102,7 +103,6 @@
 
 				// Store subscription preference locally
 				localStorage.setItem(getStorageKey(), 'true');
-				isSubscribed = true;
 
 				// Register with notification service via our API
 				await registerWithNotificationService(pushSubscription);
@@ -119,7 +119,6 @@
 		try {
 			// Remove subscription preference
 			localStorage.removeItem(getStorageKey());
-			isSubscribed = false;
 
 			// Unregister from notification service
 			await unregisterFromNotificationService();
@@ -183,15 +182,6 @@
 			// Don't throw - local unsubscription still works
 		}
 	}
-
-	// Update subscription when selectedTeam changes
-	$effect(() => {
-		if (isInitialized && selectedTeam) {
-			const stored = localStorage.getItem(getStorageKey());
-			const hasPermission = 'Notification' in window && Notification.permission === 'granted';
-			isSubscribed = stored === 'true' && hasPermission;
-		}
-	});
 </script>
 
 {#if selectedTeam}
