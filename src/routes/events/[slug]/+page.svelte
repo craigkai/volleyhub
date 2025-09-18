@@ -146,10 +146,7 @@
 
 		{#if defaultTeam}
 			<div class="mb-4 flex justify-center">
-				<OneSignalSubscriber
-					selectedTeam={defaultTeam}
-					eventId={data.eventId}
-				/>
+				<OneSignalSubscriber selectedTeam={defaultTeam} eventId={data.eventId} />
 			</div>
 		{/if}
 	{/if}

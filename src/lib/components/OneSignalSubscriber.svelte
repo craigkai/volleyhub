@@ -5,10 +5,7 @@
 	import { dev } from '$app/environment';
 	import { PUBLIC_ONESIGNAL_APP_ID } from '$env/static/public';
 
-	let {
-		selectedTeam = '',
-		eventId
-	} = $props<{
+	let { selectedTeam = '', eventId } = $props<{
 		selectedTeam?: string;
 		eventId?: string;
 	}>();
@@ -16,7 +13,6 @@
 	let isSubscribed = $state(false);
 	let isSupported = $state(false);
 	let isInitialized = $state(false);
-	let isStandalone = $state(false);
 
 	// OneSignal configuration
 	const ONESIGNAL_APP_ID = PUBLIC_ONESIGNAL_APP_ID;
@@ -27,10 +23,6 @@
 			eventId,
 			dev
 		});
-
-		// Check if running in standalone mode (added to home screen)
-		isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-						(window.navigator as any).standalone === true;
 
 		// Skip in development
 		if (dev) {
@@ -168,16 +160,10 @@
 		{:else if !isSupported}
 			<div
 				class="inline-flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-				title={navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && !isStandalone
-					? 'Safari: Add to Home Screen first, then enable notifications'
-					: 'Push notifications not supported in this browser'}
+				title="Push notifications not supported in this browser"
 			>
 				<BellOff size={16} />
-				{#if navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && !isStandalone}
-					Add to Home Screen for Notifications
-				{:else}
-					Notifications Not Supported
-				{/if}
+				Notifications Not Supported
 			</div>
 		{:else if !isInitialized}
 			<div
@@ -189,7 +175,7 @@
 		{:else if isSubscribed}
 			<button
 				onclick={unsubscribeFromNotifications}
-				class="inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+				class="inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
 				title="Disable notifications for {selectedTeam || 'this tournament'}"
 			>
 				<Bell size={16} />
@@ -198,7 +184,7 @@
 		{:else}
 			<button
 				onclick={subscribeToNotifications}
-				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
 				title="Get notified when {selectedTeam || 'your team'} plays or refs"
 			>
 				<BellOff size={16} />

@@ -115,9 +115,7 @@ export async function sendRoundNotifications(
 		const successful = results.filter((result) => result.status === 'fulfilled').length;
 		const failed = results.length - successful;
 
-		console.log(
-			`Round ${round + 1} notifications: ${successful} successful, ${failed} failed`
-		);
+		console.log(`Round ${round + 1} notifications: ${successful} successful, ${failed} failed`);
 
 		return {
 			success: failed === 0,
@@ -142,11 +140,13 @@ export async function sendMatchStartNotification(
 		// Get match details
 		const { data: match, error: matchError } = await supabase
 			.from('matches')
-			.select(`
+			.select(
+				`
 				*,
 				team1_info:teams!matches_team1_fkey(name),
 				team2_info:teams!matches_team2_fkey(name)
-			`)
+			`
+			)
 			.eq('id', matchId)
 			.single();
 

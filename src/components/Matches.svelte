@@ -271,11 +271,7 @@
 
 			// Send push notifications for this round
 			try {
-				const result = await sendRoundNotifications(
-					data.supabase,
-					data.eventId,
-					round
-				);
+				const result = await sendRoundNotifications(data.supabase, data.eventId, round);
 				if (result.success) {
 					console.log('Round notifications sent:', result.message);
 				} else {
