@@ -106,9 +106,8 @@ export class Matches extends Base {
 		let updatedMatch = self.matches.find((m: Match) => m.id === old.id);
 
 		if (updatedMatch && updatedMatch.id) {
-			// Existing match, update it
-			await updatedMatch.load(updatedMatch.id);
-			updatedMatch = updatedMatch;
+			// Update match directly from realtime payload
+			Object.assign(updatedMatch, updated);
 		} else {
 			self.handleError(
 				400,
