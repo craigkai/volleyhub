@@ -34,14 +34,17 @@
 	}
 
 	onMount(async () => {
-		// Don't initialize in development mode
-		if (dev) {
-			console.log('Push notifications: Skipped in development mode');
-			return;
-		}
+		console.log('PushNotificationSubscriber mounted:', {
+			user: !!user,
+			selectedTeam,
+			eventId,
+			dev
+		});
 
 		// Check if push notifications are supported
 		isSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+		console.log('Push notifications supported:', isSupported);
 
 		if (!isSupported) {
 			console.log('Push notifications not supported');
@@ -50,9 +53,12 @@
 
 		// Get current permission status
 		permission = Notification.permission;
+		console.log('Current permission:', permission);
 
-		// Check if user is already subscribed
-		await checkSubscriptionStatus();
+		// Only check subscription status in production
+		if (!dev && user) {
+			await checkSubscriptionStatus();
+		}
 	});
 
 	async function checkSubscriptionStatus() {
