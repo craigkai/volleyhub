@@ -57,8 +57,30 @@ export class Event extends Base {
 
 		console.info(`handleEventUpdate: ${JSON.stringify(payload)}`);
 
+		// Update all tournament settings that can change
 		if (typeof updated.current_round === 'number') {
 			self.current_round = updated.current_round;
+		}
+		if (updated.refs !== undefined) {
+			self.refs = updated.refs;
+		}
+		if (updated.name !== undefined) {
+			self.name = updated.name;
+		}
+		if (updated.description !== undefined) {
+			self.description = updated.description;
+		}
+		if (typeof updated.courts === 'number') {
+			self.courts = updated.courts;
+		}
+		if (typeof updated.pools === 'number') {
+			self.pools = updated.pools;
+		}
+		if (updated.scoring !== undefined) {
+			self.scoring = updated.scoring;
+		}
+		if (updated.date !== undefined) {
+			self.date = updated.date;
 		}
 	}
 
