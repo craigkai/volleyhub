@@ -14,8 +14,6 @@
 	import * as Alert from '$components/ui/alert/index.js';
 	import { Button } from '$components/ui/button';
 	import * as Popover from '$components/ui/popover/index.js';
-	import ChevronRight from 'lucide-svelte/icons/chevron-right';
-	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { MatchSupabaseDatabaseService } from '$lib/database/match';
 	import Plus from 'lucide-svelte/icons/plus';
 	import PlusCircle from 'lucide-svelte/icons/plus-circle';
