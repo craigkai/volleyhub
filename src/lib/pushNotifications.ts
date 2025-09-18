@@ -14,15 +14,10 @@ export async function sendRoundNotifications(
 	round: number
 ): Promise<{ success: boolean; message: string }> {
 	try {
-		// Get all matches for this round with team and referee info
+		// Get all matches for this round
 		const { data: matches, error: matchesError } = await supabase
 			.from('matches')
-			.select(`
-				*,
-				team1_info:teams!matches_team1_fkey(name),
-				team2_info:teams!matches_team2_fkey(name),
-				referee_info:teams!matches_referee_id_fkey(name)
-			`)
+			.select('*')
 			.eq('event_id', eventId)
 			.eq('round', round);
 
@@ -34,19 +29,46 @@ export async function sendRoundNotifications(
 			return { success: false, message: 'No matches found for this round' };
 		}
 
+		// Get team info separately
+		const teamIds = new Set<number>();
+		matches.forEach((match) => {
+			if (match.team1) teamIds.add(match.team1);
+			if (match.team2) teamIds.add(match.team2);
+			if (match.referee_id) teamIds.add(match.referee_id);
+		});
+
+		const { data: teams, error: teamsError } = await supabase
+			.from('teams')
+			.select('id, name')
+			.in('id', Array.from(teamIds));
+
+		if (teamsError) {
+			throw teamsError;
+		}
+
+		// Create a map for quick team lookup
+		const teamMap = new Map();
+		teams?.forEach((team) => {
+			teamMap.set(team.id, team.name);
+		});
+
 		// Collect unique teams that need notifications
 		const teamsToNotify = new Set<string>();
 		const refsToNotify = new Set<string>();
 
 		matches.forEach((match) => {
-			if (match.team1_info?.name) {
-				teamsToNotify.add(match.team1_info.name);
+			const team1Name = teamMap.get(match.team1);
+			const team2Name = teamMap.get(match.team2);
+			const refName = teamMap.get(match.referee_id);
+
+			if (team1Name) {
+				teamsToNotify.add(team1Name);
 			}
-			if (match.team2_info?.name) {
-				teamsToNotify.add(match.team2_info.name);
+			if (team2Name) {
+				teamsToNotify.add(team2Name);
 			}
-			if (match.referee_info?.name) {
-				refsToNotify.add(match.referee_info.name);
+			if (refName) {
+				refsToNotify.add(refName);
 			}
 		});
 
