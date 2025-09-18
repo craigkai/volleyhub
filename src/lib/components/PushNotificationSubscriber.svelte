@@ -164,9 +164,25 @@
 	});
 </script>
 
-{#if isSupported && user && !dev}
+{#if user}
 	<div class="flex items-center">
-		{#if isSubscribed}
+		{#if dev}
+			<div
+				class="inline-flex items-center gap-2 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm font-medium text-yellow-700 dark:border-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
+				title="Push notifications are disabled in development mode"
+			>
+				<BellOff size={16} />
+				Notifications (Dev Mode)
+			</div>
+		{:else if !isSupported}
+			<div
+				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-500"
+				title="Push notifications not supported in this browser"
+			>
+				<BellOff size={16} />
+				Notifications Not Supported
+			</div>
+		{:else if isSubscribed}
 			<button
 				onclick={unsubscribeFromPush}
 				class="inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
