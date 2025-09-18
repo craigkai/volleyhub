@@ -2,6 +2,7 @@ import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
 import { Base } from './base';
 import { TeamSupabaseDatabaseService } from './database/team';
 import { Team } from './team.svelte';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 /**
  * The Teams class is responsible for managing team-related operations.
@@ -11,6 +12,7 @@ export class Teams extends Base {
 	private databaseService: TeamsSupabaseDatabaseService;
 	eventId?: number;
 	teams = $state<Team[]>([]);
+	subscriptionStatus = $state();
 
 	/**
 	 * The constructor for the Teams class.
@@ -86,6 +88,69 @@ export class Teams extends Base {
 			this.handleError(500, `Failed to create team: ${(err as Error).message}`);
 			return undefined;
 		}
+	}
+
+	/**
+	 * Handles real-time updates for the teams table.
+	 */
+	async handleUpdate(
+		self: Teams,
+		payload: RealtimePostgresChangesPayload<Record<string, unknown>>
+	): Promise<void> {
+		if (!self.eventId) {
+			throw new Error('Event ID is required to handle team updates.');
+		}
+
+		const updated = payload.new as TeamRow;
+		const old = payload.old as TeamRow;
+
+		if (import.meta.env.DEV) {
+			console.info(`handleTeamUpdate: ${JSON.stringify(payload)}`);
+		}
+
+		if (payload.eventType === 'INSERT') {
+			const teamSupabaseDatabaseService = new TeamSupabaseDatabaseService(
+				self.databaseService.supabaseClient
+			);
+			const newTeam = new Team(teamSupabaseDatabaseService);
+			Object.assign(newTeam, updated);
+			self.teams.push(newTeam);
+			return;
+		}
+
+		if (payload.eventType === 'UPDATE') {
+			const teamToUpdate = self.teams.find((t: Team) => t.id === old.id);
+			if (teamToUpdate) {
+				Object.assign(teamToUpdate, updated);
+			}
+			return;
+		}
+
+		if (payload.eventType === 'DELETE') {
+			const index = self.teams.findIndex((t: Team) => t.id === old.id);
+			if (index > -1) {
+				self.teams.splice(index, 1);
+			}
+			return;
+		}
+	}
+
+	/**
+	 * Subscribes to live changes for teams belonging to the current event.
+	 */
+	async subscribeToTeams(): Promise<RealtimeChannel> {
+		if (!this.eventId) {
+			throw new Error('Event ID is required to subscribe to teams.');
+		}
+
+		const channel = await this.databaseService.subscribeToChanges(
+			this,
+			this.handleUpdate,
+			'teams',
+			`event_id=eq.${this.eventId}`
+		);
+		this.subscriptionStatus = channel.state;
+		return channel;
 	}
 }
 

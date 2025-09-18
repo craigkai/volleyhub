@@ -34,6 +34,7 @@
 	let showGenerateMatchesAlert = $state(false);
 	let matchesSubscription: RealtimeChannel | undefined = $state();
 	let eventSubscription: RealtimeChannel | undefined = $state();
+	let teamsSubscription: RealtimeChannel | undefined = $state();
 	let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 	const HEARTBEAT_INTERVAL_MS = 10000;
 	let viewMode = $state<'schedule' | 'rounds'>('schedule');
@@ -41,7 +42,8 @@
 	let subscriptionStatus: 'SUBSCRIBED' | 'CLOSED' = $derived.by(() => {
 		const matchStatus = data.matches?.subscriptionStatus;
 		const eventStatus = data.tournament?.subscriptionStatus;
-		return matchStatus === 'SUBSCRIBED' && eventStatus === 'SUBSCRIBED' ? 'SUBSCRIBED' : 'CLOSED';
+		const teamsStatus = data.teams?.subscriptionStatus;
+		return matchStatus === 'SUBSCRIBED' && eventStatus === 'SUBSCRIBED' && teamsStatus === 'SUBSCRIBED' ? 'SUBSCRIBED' : 'CLOSED';
 	});
 	let tableContainer: HTMLElement | undefined = $state();
 
@@ -49,8 +51,9 @@
 		try {
 			const matchState = matchesSubscription?.state;
 			const eventState = eventSubscription?.state;
+			const teamsState = teamsSubscription?.state;
 
-			const isDisconnected = matchState !== 'joined' || eventState !== 'joined';
+			const isDisconnected = matchState !== 'joined' || eventState !== 'joined' || teamsState !== 'joined';
 
 			if (isDisconnected) {
 				console.warn('Heartbeat: Detected lost subscription. Attempting to resubscribe...');
@@ -70,6 +73,7 @@
 	onDestroy(() => {
 		if (matchesSubscription) matchesSubscription.unsubscribe();
 		if (eventSubscription) eventSubscription.unsubscribe();
+		if (teamsSubscription) teamsSubscription.unsubscribe();
 		if (heartbeatInterval) clearInterval(heartbeatInterval);
 	});
 
@@ -86,6 +90,12 @@
 				if (data.tournament?.id && data.tournament?.subscriptionStatus !== 'SUBSCRIBED') {
 					eventSubscription?.unsubscribe();
 					eventSubscription = await data.tournament.subscribeToCurrentRound();
+				}
+
+				// Teams
+				if (data.teams?.teams?.length > 0 && data.teams?.subscriptionStatus !== 'SUBSCRIBED') {
+					teamsSubscription?.unsubscribe();
+					teamsSubscription = await data.teams.subscribeToTeams();
 				}
 			}
 		} catch (error) {
