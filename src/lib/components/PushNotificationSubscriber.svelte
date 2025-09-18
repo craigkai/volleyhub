@@ -133,7 +133,7 @@
 					endpoint: subscription.endpoint,
 					keys: subscription.toJSON().keys,
 					selected_team: selectedTeam || null,
-					event_id: eventId || null
+					event_id: eventId ? parseInt(eventId.toString()) : null
 				});
 
 				if (error) throw error;
@@ -144,7 +144,7 @@
 					endpoint: subscription.endpoint,
 					keys: subscription.toJSON().keys,
 					selected_team: selectedTeam || null,
-					event_id: eventId || null
+					event_id: eventId ? parseInt(eventId.toString()) : null
 				});
 
 				if (error) throw error;
