@@ -273,7 +273,6 @@
 			try {
 				const result = await sendRoundNotifications(data.supabase, data.eventId, round);
 				if (result.success) {
-					console.log('Round notifications sent:', result.message);
 				} else {
 					console.warn('Round notifications failed:', result.message);
 				}

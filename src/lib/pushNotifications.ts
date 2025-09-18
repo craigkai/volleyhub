@@ -61,16 +61,6 @@ export async function sendRoundNotifications(
 			const team2Name = teamMap.get(match.team2);
 			const refName = teamMap.get(match.ref);
 
-			console.log('Match notification debug:', {
-				match_id: match.id,
-				team1_id: match.team1,
-				team1Name,
-				team2_id: match.team2,
-				team2Name,
-				ref_id: match.ref,
-				refName
-			});
-
 			if (team1Name) {
 				teamsToNotify.add(team1Name);
 			}
@@ -114,8 +104,6 @@ export async function sendRoundNotifications(
 
 		const successful = results.filter((result) => result.status === 'fulfilled').length;
 		const failed = results.length - successful;
-
-		console.log(`Round ${round + 1} notifications: ${successful} successful, ${failed} failed`);
 
 		return {
 			success: failed === 0,
