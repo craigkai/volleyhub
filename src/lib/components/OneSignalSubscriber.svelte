@@ -64,6 +64,39 @@
 		isSupported = await window.OneSignal.Notifications.isPushSupported();
 		isInitialized = true;
 
+		// Debug information
+		const userAgent = navigator.userAgent;
+		const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+							(window.navigator as any).standalone === true;
+		const hasServiceWorker = 'serviceWorker' in navigator;
+		const hasPushManager = 'PushManager' in window;
+		const hasNotification = 'Notification' in window;
+
+		console.log('OneSignal browser check:', {
+			userAgent,
+			isStandalone,
+			hasServiceWorker,
+			hasPushManager,
+			hasNotification,
+			oneSignalSupported: isSupported
+		});
+
+		// Debug alert for mobile
+		alert(`Browser Check:
+Standalone: ${isStandalone}
+ServiceWorker: ${hasServiceWorker}
+PushManager: ${hasPushManager}
+Notification: ${hasNotification}
+OneSignal Says: ${isSupported}
+User Agent: ${userAgent.substring(0, 50)}...`);
+
+		// Override OneSignal's detection for known working cases
+		if (!isSupported && hasServiceWorker && hasPushManager && hasNotification) {
+			console.log('Overriding OneSignal support detection - browser appears capable');
+			alert('Overriding OneSignal - browser appears capable!');
+			isSupported = true;
+		}
+
 		if (isSupported) {
 			// Check current subscription status
 			const permission = await window.OneSignal.Notifications.getPermissionState();
