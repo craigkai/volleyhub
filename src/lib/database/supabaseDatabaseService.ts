@@ -37,16 +37,18 @@ export class SupabaseDatabaseService extends Base {
 	): Promise<RealtimeChannel> {
 		const channelName = `${table}-${self.constructor.name}${filter ? `-${filter}` : ''}`;
 
-		console.debug(
-			'Subscribing to changes for table ' +
-				table +
-				' with filter ' +
-				filter +
-				' constructor ' +
-				self.constructor.name +
-				' channel ' +
-				channelName
-		);
+		if (import.meta.env.DEV) {
+			console.debug(
+				'Subscribing to changes for table ' +
+					table +
+					' with filter ' +
+					filter +
+					' constructor ' +
+					self.constructor.name +
+					' channel ' +
+					channelName
+			);
+		}
 
 		return this.supabaseClient
 			.channel(channelName)

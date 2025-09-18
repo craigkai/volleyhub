@@ -166,7 +166,7 @@
 				toast.error('Failed to create matches');
 				return;
 			}
-			// Let realtime subscription handle showing new matches, but ensure subscription is active
+			// Ensure all subscriptions are active for realtime updates
 			await subscribe();
 
 			// Safety reload after a short delay to ensure all matches were received via realtime
