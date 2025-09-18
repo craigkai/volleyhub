@@ -47,9 +47,12 @@ serve(async (req) => {
 				isRef,
 				url: `/events/${eventId}?team=${encodeURIComponent(teamName)}`
 			},
-			// Send to all subscribed users for now
-			// In the future, we can add more sophisticated targeting
-			included_segments: ['Subscribed Users'],
+			// Target users based on tags - only users with matching eventId and selectedTeam
+			filters: [
+				{ field: 'tag', key: 'eventId', relation: '=', value: eventId.toString() },
+				{ operator: 'AND' },
+				{ field: 'tag', key: 'selectedTeam', relation: '=', value: teamName }
+			],
 			web_url: `${Deno.env.get('SITE_URL') || 'https://volleyhub.app'}/events/${eventId}?team=${encodeURIComponent(teamName)}`,
 			chrome_web_icon: '/pwa-192x192.png',
 			chrome_web_badge: '/pwa-64x64.png'

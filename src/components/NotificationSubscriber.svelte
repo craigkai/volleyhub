@@ -20,6 +20,18 @@
 	// Local storage key for subscription preference
 	const getStorageKey = () => `notify_${eventId}_${selectedTeam}`;
 
+	// Get or create a unique user ID for this browser
+	const getUserId = () => {
+		const key = 'volleyhub_user_id';
+		let userId = localStorage.getItem(key);
+		if (!userId) {
+			// Create a unique ID for this browser
+			userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+			localStorage.setItem(key, userId);
+		}
+		return userId;
+	};
+
 	onMount(async () => {
 		// Clear any old service workers first
 		await clearOldServiceWorkers();
@@ -98,6 +110,9 @@
 
 	async function registerWithNotificationService() {
 		try {
+			// Get or create a unique user ID for this browser/team combination
+			const userId = getUserId();
+
 			// Call our backend to register this user with OneSignal
 			const response = await fetch('/api/notifications/subscribe', {
 				method: 'POST',
@@ -105,9 +120,9 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
+					userId,
 					eventId,
 					selectedTeam,
-					// We could include user ID if authenticated
 					tags: {
 						eventId: eventId?.toString(),
 						selectedTeam
