@@ -65,7 +65,9 @@ export class SupabaseDatabaseService extends Base {
 			)
 			.subscribe((status) => {
 				self.subscriptionStatus = status;
-				console.debug('Realtime status', status);
+				if (import.meta.env.DEV) {
+					console.debug('Realtime status', status);
+				}
 			});
 	}
 }
