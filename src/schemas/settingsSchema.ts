@@ -80,21 +80,17 @@ const dateSchema = z
 		message: 'Tournament date cannot be more than 1 day in the past'
 	});
 
+// Simplified schema for sveltekit-superforms compatibility
 export const formSchema = z.object({
-	name: tournamentNameSchema,
-	description: descriptionSchema,
-	courts: courtsSchema,
-	pools: poolsSchema,
-	refs: refsSchema,
-	scoring: scoringSchema,
-	date: dateSchema,
-	id: z.coerce
-		.number()
-		.int('ID must be an integer')
-		.positive('ID must be positive')
-		.max(2147483647, 'ID is too large')
-		.optional(),
-	owner: z.string().uuid('Owner must be a valid UUID').optional()
+	name: z.string().min(1, 'Tournament name is required').max(100, 'Tournament name too long'),
+	description: z.string().max(500, 'Description too long'),
+	courts: z.coerce.number().int().min(1).max(20),
+	pools: z.coerce.number().int().min(1).max(50),
+	refs: z.enum(['teams', 'provided']),
+	scoring: z.enum(['points', 'wins']),
+	date: z.string().optional(),
+	id: z.coerce.number().int().positive().optional(),
+	owner: z.string().uuid().optional()
 });
 
 export type FormSchema = typeof formSchema;

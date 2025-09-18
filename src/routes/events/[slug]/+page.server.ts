@@ -115,7 +115,7 @@ export const actions: Actions = {
 		const teams = new Teams(teamsSupabaseDatabaseService);
 
 		try {
-			const newTeam: Partial<TeamRow> = {
+			const newTeam = {
 				name: form.data.name,
 				event_id: eventId
 			};
