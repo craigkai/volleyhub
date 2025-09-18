@@ -16,6 +16,7 @@
 	let isSubscribed = $state(false);
 	let isSupported = $state(false);
 	let isInitialized = $state(false);
+	let isStandalone = $state(false);
 
 	// OneSignal configuration
 	const ONESIGNAL_APP_ID = PUBLIC_ONESIGNAL_APP_ID;
@@ -26,6 +27,10 @@
 			eventId,
 			dev
 		});
+
+		// Check if running in standalone mode (added to home screen)
+		isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+						(window.navigator as any).standalone === true;
 
 		// Skip in development
 		if (dev) {
@@ -163,12 +168,12 @@
 		{:else if !isSupported}
 			<div
 				class="inline-flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-				title={navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')
+				title={navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && !isStandalone
 					? 'Safari: Add to Home Screen first, then enable notifications'
 					: 'Push notifications not supported in this browser'}
 			>
 				<BellOff size={16} />
-				{#if navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')}
+				{#if navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && !isStandalone}
 					Add to Home Screen for Notifications
 				{:else}
 					Notifications Not Supported
