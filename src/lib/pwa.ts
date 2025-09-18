@@ -1,8 +1,15 @@
 import { Workbox } from 'workbox-window';
+import { dev } from '$app/environment';
 
 let wb: Workbox | null = null;
 
 export function registerSW() {
+	// Don't register service worker in development mode
+	if (dev) {
+		console.log('PWA: Skipping service worker registration in development mode');
+		return;
+	}
+
 	if ('serviceWorker' in navigator) {
 		wb = new Workbox('/sw.js');
 
