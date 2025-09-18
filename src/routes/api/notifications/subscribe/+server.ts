@@ -5,13 +5,37 @@ import { env } from '$env/dynamic/private';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const { userId, eventId, selectedTeam } = await request.json();
+		const { userId, eventId, selectedTeam, pushSubscription } = await request.json();
 
 		if (!PUBLIC_ONESIGNAL_APP_ID || !env.ONESIGNAL_API_KEY) {
 			throw new Error('OneSignal credentials not configured');
 		}
 
-		// Create or update user in OneSignal with tags
+		// Create or update user in OneSignal with tags and push subscription
+		const oneSignalPayload = {
+			identity: {
+				external_id: userId
+			},
+			properties: {
+				tags: {
+					eventId: eventId?.toString(),
+					selectedTeam: selectedTeam
+				}
+			}
+		};
+
+		// Add push subscription if provided
+		if (pushSubscription) {
+			oneSignalPayload.subscriptions = [
+				{
+					type: 'webPush',
+					token: pushSubscription.endpoint,
+					web_auth: pushSubscription.keys.auth,
+					web_p256: pushSubscription.keys.p256dh
+				}
+			];
+		}
+
 		const oneSignalResponse = await fetch(
 			`https://onesignal.com/api/v1/apps/${PUBLIC_ONESIGNAL_APP_ID}/users`,
 			{
@@ -20,17 +44,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					'Content-Type': 'application/json',
 					Authorization: `Basic ${env.ONESIGNAL_API_KEY}`
 				},
-				body: JSON.stringify({
-					identity: {
-						external_id: userId
-					},
-					properties: {
-						tags: {
-							eventId: eventId?.toString(),
-							selectedTeam: selectedTeam
-						}
-					}
-				})
+				body: JSON.stringify(oneSignalPayload)
 			}
 		);
 

@@ -32,6 +32,18 @@
 		return userId;
 	};
 
+	// Convert VAPID key for push subscription
+	function urlBase64ToUint8Array(base64String: string) {
+		const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+		const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+		const rawData = atob(base64);
+		const outputArray = new Uint8Array(rawData.length);
+		for (let i = 0; i < rawData.length; ++i) {
+			outputArray[i] = rawData.charCodeAt(i);
+		}
+		return outputArray;
+	}
+
 	onMount(async () => {
 		// Clear any old service workers first
 		await clearOldServiceWorkers();
@@ -77,12 +89,23 @@
 					return;
 				}
 
+				// Register service worker and get push subscription
+				const registration = await navigator.serviceWorker.register('/sw.js');
+				await navigator.serviceWorker.ready;
+
+				// Subscribe to push notifications with VAPID key
+				const vapidPublicKey = 'BEETJnh6HFQcfifDAkd_j87tFK380FDeXHHCAJgpQws7lEzUl_ZZWjYipszSOQ5MU2u0aGpk3975FK9hyFwlrqg';
+				const pushSubscription = await registration.pushManager.subscribe({
+					userVisibleOnly: true,
+					applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+				});
+
 				// Store subscription preference locally
 				localStorage.setItem(getStorageKey(), 'true');
 				isSubscribed = true;
 
 				// Register with notification service via our API
-				await registerWithNotificationService();
+				await registerWithNotificationService(pushSubscription);
 
 				toast.success(`Notifications enabled for ${selectedTeam}!`);
 			}
@@ -108,7 +131,7 @@
 		}
 	}
 
-	async function registerWithNotificationService() {
+	async function registerWithNotificationService(pushSubscription: PushSubscription) {
 		try {
 			// Get or create a unique user ID for this browser/team combination
 			const userId = getUserId();
@@ -123,6 +146,10 @@
 					userId,
 					eventId,
 					selectedTeam,
+					pushSubscription: {
+						endpoint: pushSubscription.endpoint,
+						keys: pushSubscription.toJSON().keys
+					},
 					tags: {
 						eventId: eventId?.toString(),
 						selectedTeam
