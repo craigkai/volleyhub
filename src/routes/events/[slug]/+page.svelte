@@ -21,6 +21,7 @@
 	import SettingsIcon from 'lucide-svelte/icons/settings';
 	import ListIcon from 'lucide-svelte/icons/list';
 	import BarChartIcon from 'lucide-svelte/icons/bar-chart-2';
+	import ShareButton from '$lib/components/ShareButton.svelte';
 
 	let { data = $bindable() } = $props();
 
@@ -65,6 +66,15 @@
 			<h1 class="text-xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white">
 				{data?.tournament?.name || 'Tournament Management'}
 			</h1>
+		</div>
+		<div class="mb-3 flex justify-center">
+			<ShareButton
+				title={data?.tournament?.name || 'Tournament'}
+				text="Check out this volleyball tournament!"
+				url={typeof window !== 'undefined' ? window.location.href : ''}
+				variant="outline"
+				size="sm"
+			/>
 		</div>
 		{#if data?.tournament?.date}
 			<p class="text-xs text-gray-500 sm:text-sm dark:text-gray-400">
