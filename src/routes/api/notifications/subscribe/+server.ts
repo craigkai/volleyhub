@@ -28,15 +28,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (pushSubscription) {
 			oneSignalPayload.subscriptions = [
 				{
-					type: 'webPush',
+					type: 'ChromePush',
 					token: pushSubscription.endpoint,
 					web_auth: pushSubscription.keys.auth,
 					web_p256: pushSubscription.keys.p256dh
 				}
 			];
 		}
-
-		console.log('OneSignal payload:', JSON.stringify(oneSignalPayload, null, 2));
 
 		const oneSignalResponse = await fetch(
 			`https://onesignal.com/api/v1/apps/${PUBLIC_ONESIGNAL_APP_ID}/users`,
@@ -50,11 +48,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		);
 
-		const responseData = await oneSignalResponse.json();
-		console.log('OneSignal response:', responseData);
-
 		if (!oneSignalResponse.ok) {
-			console.error('OneSignal user creation failed:', responseData);
+			const error = await oneSignalResponse.text();
+			console.error('OneSignal user creation failed:', error);
 			// Don't throw - we can still track locally
 		}
 

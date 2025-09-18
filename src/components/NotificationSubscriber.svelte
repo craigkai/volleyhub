@@ -136,36 +136,28 @@
 			// Get or create a unique user ID for this browser/team combination
 			const userId = getUserId();
 
-			const payload = {
-				userId,
-				eventId,
-				selectedTeam,
-				pushSubscription: {
-					endpoint: pushSubscription.endpoint,
-					keys: pushSubscription.toJSON().keys
-				}
-			};
-
 			// Call our backend to register this user with OneSignal
 			const response = await fetch('/api/notifications/subscribe', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(payload)
+				body: JSON.stringify({
+					userId,
+					eventId,
+					selectedTeam,
+					pushSubscription: {
+						endpoint: pushSubscription.endpoint,
+						keys: pushSubscription.toJSON().keys
+					}
+				})
 			});
 
-			const result = await response.json();
-
 			if (!response.ok) {
-				toast.error(`Registration failed: ${result.error || 'Unknown error'}`);
-				throw new Error('Failed to register with notification service');
-			} else {
-				toast.success('Successfully registered for notifications!');
+				console.error('Failed to register with notification service');
 			}
 		} catch (error) {
 			console.error('Notification registration failed:', error);
-			toast.error('Registration failed - check connection');
 			// Don't throw - local subscription still works
 		}
 	}
