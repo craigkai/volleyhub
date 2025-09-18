@@ -34,7 +34,7 @@ export async function sendRoundNotifications(
 		matches.forEach((match) => {
 			if (match.team1) teamIds.add(match.team1);
 			if (match.team2) teamIds.add(match.team2);
-			if (match.referee_id) teamIds.add(match.referee_id);
+			if (match.ref) teamIds.add(match.ref);
 		});
 
 		const { data: teams, error: teamsError } = await supabase
@@ -59,7 +59,7 @@ export async function sendRoundNotifications(
 		matches.forEach((match) => {
 			const team1Name = teamMap.get(match.team1);
 			const team2Name = teamMap.get(match.team2);
-			const refName = teamMap.get(match.referee_id);
+			const refName = teamMap.get(match.ref);
 
 			console.log('Match notification debug:', {
 				match_id: match.id,
@@ -67,7 +67,7 @@ export async function sendRoundNotifications(
 				team1Name,
 				team2_id: match.team2,
 				team2Name,
-				referee_id: match.referee_id,
+				ref_id: match.ref,
 				refName
 			});
 

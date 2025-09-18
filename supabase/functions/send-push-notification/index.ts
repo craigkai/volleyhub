@@ -84,32 +84,85 @@ serve(async (req) => {
       }
     }
 
-    // Import web-push for proper push notifications
-    const webpush = await import('https://esm.sh/web-push@3.6.7')
+    // Use native Web Push Protocol
+    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY') ?? ''
+    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
 
-    // Set VAPID details
-    webpush.setVapidDetails(
-      Deno.env.get('VAPID_SUBJECT') ?? 'mailto:noreply@volleyhub.app',
-      Deno.env.get('VAPID_PUBLIC_KEY') ?? '',
-      Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
-    )
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      throw new Error('VAPID keys not configured')
+    }
+
+    // Helper function to send web push notification
+    async function sendWebPushNotification(subscription: PushSubscription, payload: string) {
+      const endpoint = new URL(subscription.endpoint)
+      const audience = `${endpoint.protocol}//${endpoint.host}`
+
+      // Create JWT for VAPID authentication
+      const header = {
+        typ: 'JWT',
+        alg: 'ES256'
+      }
+
+      const jwtPayload = {
+        aud: audience,
+        exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60, // 12 hours
+        sub: 'mailto:noreply@volleyhub.app'
+      }
+
+      // Import private key for signing
+      const privateKeyBuffer = new Uint8Array(
+        atob(vapidPrivateKey.replace(/-/g, '+').replace(/_/g, '/'))
+          .split('')
+          .map(c => c.charCodeAt(0))
+      )
+
+      const cryptoKey = await crypto.subtle.importKey(
+        'pkcs8',
+        privateKeyBuffer,
+        { name: 'ECDSA', namedCurve: 'P-256' },
+        false,
+        ['sign']
+      )
+
+      // Create JWT
+      const headerB64 = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+      const payloadB64 = btoa(JSON.stringify(jwtPayload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+      const unsignedToken = `${headerB64}.${payloadB64}`
+
+      const signature = await crypto.subtle.sign(
+        { name: 'ECDSA', hash: 'SHA-256' },
+        cryptoKey,
+        new TextEncoder().encode(unsignedToken)
+      )
+
+      const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+        .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+
+      const jwt = `${unsignedToken}.${signatureB64}`
+
+      // Send the push notification
+      const response = await fetch(subscription.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'Authorization': `vapid t=${jwt}, k=${vapidPublicKey}`,
+          'TTL': '86400'
+        },
+        body: payload
+      })
+
+      if (!response.ok) {
+        throw new Error(`Push service responded with ${response.status}: ${response.statusText}`)
+      }
+
+      return response
+    }
 
     // Send push notifications
     const results = await Promise.allSettled(
       subscriptions.map(async (subscription: PushSubscription) => {
         try {
-          // Format subscription for web-push
-          const pushSubscription = {
-            endpoint: subscription.endpoint,
-            keys: subscription.keys
-          }
-
-          // Send notification using web-push
-          await webpush.sendNotification(
-            pushSubscription,
-            JSON.stringify(payload)
-          )
-
+          await sendWebPushNotification(subscription, JSON.stringify(payload))
           return { success: true, subscriptionId: subscription.id }
         } catch (error) {
           console.error('Failed to send push to subscription:', subscription.id, error)
