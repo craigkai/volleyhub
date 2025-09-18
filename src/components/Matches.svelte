@@ -93,7 +93,7 @@
 				}
 
 				// Teams
-				if (data.teams?.teams?.length > 0 && data.teams?.subscriptionStatus !== 'SUBSCRIBED') {
+				if (data.teams?.eventId && data.teams?.subscriptionStatus !== 'SUBSCRIBED') {
 					teamsSubscription?.unsubscribe();
 					teamsSubscription = await data.teams.subscribeToTeams();
 				}
