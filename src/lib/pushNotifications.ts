@@ -1,13 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-interface NotificationPayload {
-	eventId: string;
-	teamName: string;
-	round: number;
-	action: 'round_assigned' | 'ref_assigned';
-	isRef?: boolean;
-}
-
 export async function sendRoundNotifications(
 	supabase: SupabaseClient,
 	eventId: string,

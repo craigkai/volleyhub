@@ -1,34 +1,38 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { ONESIGNAL_APP_ID, ONESIGNAL_API_KEY } from '$env/static/private';
+import { PUBLIC_ONESIGNAL_APP_ID } from '$env/static/public';
+import { env } from '$env/dynamic/private';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const { userId, eventId, selectedTeam, tags } = await request.json();
+		const { userId, eventId, selectedTeam } = await request.json();
 
-		if (!ONESIGNAL_APP_ID || !ONESIGNAL_API_KEY) {
+		if (!PUBLIC_ONESIGNAL_APP_ID || !env.ONESIGNAL_API_KEY) {
 			throw new Error('OneSignal credentials not configured');
 		}
 
 		// Create or update user in OneSignal with tags
-		const oneSignalResponse = await fetch(`https://onesignal.com/api/v1/apps/${ONESIGNAL_APP_ID}/users`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Basic ${ONESIGNAL_API_KEY}`
-			},
-			body: JSON.stringify({
-				identity: {
-					external_id: userId
+		const oneSignalResponse = await fetch(
+			`https://onesignal.com/api/v1/apps/${PUBLIC_ONESIGNAL_APP_ID}/users`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Basic ${env.ONESIGNAL_API_KEY}`
 				},
-				properties: {
-					tags: {
-						eventId: eventId?.toString(),
-						selectedTeam: selectedTeam
+				body: JSON.stringify({
+					identity: {
+						external_id: userId
+					},
+					properties: {
+						tags: {
+							eventId: eventId?.toString(),
+							selectedTeam: selectedTeam
+						}
 					}
-				}
-			})
-		});
+				})
+			}
+		);
 
 		if (!oneSignalResponse.ok) {
 			const error = await oneSignalResponse.text();
@@ -43,9 +47,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 	} catch (error) {
 		console.error('Subscription error:', error);
-		return json(
-			{ error: 'Failed to subscribe' },
-			{ status: 500 }
-		);
+		return json({ error: 'Failed to subscribe' }, { status: 500 });
 	}
 };
