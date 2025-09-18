@@ -47,33 +47,25 @@ serve(async (req) => {
       throw new Error('Missing required parameters: eventId and teamName')
     }
 
-    // Get subscriptions for users with this team selected
-    const { data: subscriptions, error: subscriptionsError } = await supabaseClient
-      .from('push_subscriptions')
-      .select('*')
-      .eq('event_id', eventId)
-      .eq('selected_team', teamName)
+    // Use OneSignal instead of managing subscriptions directly
+    const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID')
+    const oneSignalApiKey = Deno.env.get('ONESIGNAL_API_KEY')
 
-    if (subscriptionsError) {
-      throw subscriptionsError
+    if (!oneSignalAppId || !oneSignalApiKey) {
+      throw new Error('OneSignal credentials not configured')
     }
 
-    if (!subscriptions || subscriptions.length === 0) {
-      console.log('No subscriptions found for team:', teamName)
-      return new Response(
-        JSON.stringify({ message: 'No subscriptions found', count: 0 }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Prepare push notification payload
-    const payload: PushPayload = {
-      title: '🏐 VolleyHub Tournament Update',
-      body: isRef
-        ? `You're refereeing round ${round + 1}! Check your schedule.`
-        : `${teamName} plays in round ${round + 1}! Get ready!`,
-      icon: '/pwa-192x192.png',
-      badge: '/pwa-64x64.png',
+    // Send OneSignal notification
+    const notification = {
+      app_id: oneSignalAppId,
+      headings: {
+        en: '🏐 VolleyHub Tournament Update'
+      },
+      contents: {
+        en: isRef
+          ? `You're refereeing round ${round + 1}! Check your schedule.`
+          : `${teamName} plays in round ${round + 1}! Get ready!`
+      },
       data: {
         eventId,
         teamName,
@@ -81,111 +73,44 @@ serve(async (req) => {
         action,
         isRef,
         url: `/events/${eventId}?team=${encodeURIComponent(teamName)}`
-      }
+      },
+      // Target users based on tags
+      filters: [
+        { field: 'tag', key: 'eventId', relation: '=', value: eventId.toString() },
+        { operator: 'AND' },
+        { field: 'tag', key: 'selectedTeam', relation: '=', value: teamName }
+      ],
+      web_url: `${Deno.env.get('SITE_URL') || 'https://volleyhub.app'}/events/${eventId}?team=${encodeURIComponent(teamName)}`,
+      chrome_web_icon: '/pwa-192x192.png',
+      chrome_web_badge: '/pwa-64x64.png'
     }
 
-    // Use native Web Push Protocol
-    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY') ?? ''
-    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
+    console.log('Sending OneSignal notification:', JSON.stringify(notification, null, 2))
 
-    if (!vapidPublicKey || !vapidPrivateKey) {
-      throw new Error('VAPID keys not configured')
+    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${oneSignalApiKey}`
+      },
+      body: JSON.stringify(notification)
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      console.error('OneSignal error:', result)
+      throw new Error(`OneSignal API error: ${result.errors?.[0] || 'Unknown error'}`)
     }
 
-    // Helper function to send web push notification
-    async function sendWebPushNotification(subscription: PushSubscription, payload: string) {
-      const endpoint = new URL(subscription.endpoint)
-      const audience = `${endpoint.protocol}//${endpoint.host}`
-
-      // Create JWT for VAPID authentication
-      const header = {
-        typ: 'JWT',
-        alg: 'ES256'
-      }
-
-      const jwtPayload = {
-        aud: audience,
-        exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60, // 12 hours
-        sub: 'mailto:noreply@volleyhub.app'
-      }
-
-      // Import private key for signing
-      const privateKeyBuffer = new Uint8Array(
-        atob(vapidPrivateKey.replace(/-/g, '+').replace(/_/g, '/'))
-          .split('')
-          .map(c => c.charCodeAt(0))
-      )
-
-      const cryptoKey = await crypto.subtle.importKey(
-        'pkcs8',
-        privateKeyBuffer,
-        { name: 'ECDSA', namedCurve: 'P-256' },
-        false,
-        ['sign']
-      )
-
-      // Create JWT
-      const headerB64 = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-      const payloadB64 = btoa(JSON.stringify(jwtPayload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-      const unsignedToken = `${headerB64}.${payloadB64}`
-
-      const signature = await crypto.subtle.sign(
-        { name: 'ECDSA', hash: 'SHA-256' },
-        cryptoKey,
-        new TextEncoder().encode(unsignedToken)
-      )
-
-      const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
-        .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-
-      const jwt = `${unsignedToken}.${signatureB64}`
-
-      // Send the push notification
-      const response = await fetch(subscription.endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-          'Authorization': `vapid t=${jwt}, k=${vapidPublicKey}`,
-          'TTL': '86400'
-        },
-        body: payload
-      })
-
-      if (!response.ok) {
-        throw new Error(`Push service responded with ${response.status}: ${response.statusText}`)
-      }
-
-      return response
-    }
-
-    // Send push notifications
-    const results = await Promise.allSettled(
-      subscriptions.map(async (subscription: PushSubscription) => {
-        try {
-          await sendWebPushNotification(subscription, JSON.stringify(payload))
-          return { success: true, subscriptionId: subscription.id }
-        } catch (error) {
-          console.error('Failed to send push to subscription:', subscription.id, error)
-          return { success: false, subscriptionId: subscription.id, error: error.message }
-        }
-      })
-    )
-
-    const successful = results.filter(result =>
-      result.status === 'fulfilled' && result.value.success
-    ).length
-
-    const failed = results.length - successful
-
-    console.log(`Push notifications sent: ${successful} successful, ${failed} failed`)
+    console.log('OneSignal response:', result)
 
     return new Response(
       JSON.stringify({
-        message: 'Push notifications processed',
-        total: subscriptions.length,
-        successful,
-        failed,
-        payload
+        message: 'Push notification sent via OneSignal',
+        oneSignalId: result.id,
+        recipients: result.recipients || 0,
+        result
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
