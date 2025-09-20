@@ -65,7 +65,30 @@
 
 		isSupported = hasServiceWorker && hasPushManager && hasNotification;
 
-		// No need for complex reload handling - user can just click again after reload
+		// Check if we have a pending subscription after page reload
+		const pendingSubscription = sessionStorage.getItem('pending_subscription');
+		const wasRegistering = sessionStorage.getItem('sw_registering');
+
+		if (wasRegistering && pendingSubscription) {
+			try {
+				const subscription = JSON.parse(pendingSubscription);
+				// Check if this matches our current context and is recent (within 30 seconds)
+				if (subscription.eventId === eventId &&
+					subscription.selectedTeam === selectedTeam &&
+					Date.now() - subscription.timestamp < 30000) {
+
+					console.log('Resuming subscription after service worker registration...');
+					// Small delay to ensure page is fully loaded
+					setTimeout(() => {
+						subscribeToNotifications();
+					}, 1000);
+				}
+			} catch (error) {
+				console.error('Error parsing pending subscription:', error);
+				sessionStorage.removeItem('pending_subscription');
+				sessionStorage.removeItem('sw_registering');
+			}
+		}
 
 		isInitialized = true;
 	});
@@ -83,61 +106,80 @@
 		}
 	}
 
-	function subscribeToNotifications() {
+	async function subscribeToNotifications() {
 		console.log('subscribeToNotifications called');
 
-		// Wrap everything in immediate try-catch to prevent page reload
-		setTimeout(async () => {
-			try {
-				console.log('Starting async subscription process');
+		try {
+			console.log('Starting subscription process');
 
-				// Request notification permission
-				if ('Notification' in window) {
-					console.log('Requesting notification permission');
-					const permission = await Notification.requestPermission();
-					console.log('Permission result:', permission);
+			// Request notification permission first
+			if ('Notification' in window) {
+				console.log('Requesting notification permission');
+				const permission = await Notification.requestPermission();
+				console.log('Permission result:', permission);
 
 				if (permission !== 'granted') {
 					toast.error('Notification permission denied');
 					return;
 				}
-
-				// Get or register service worker (page may reload)
-				console.log('Getting service worker registration...');
-				let registration = await navigator.serviceWorker.getRegistration();
-
-				if (!registration) {
-					console.log('Registering service worker (page may reload)...');
-					registration = await navigator.serviceWorker.register('/sw.js');
-				}
-
-				await navigator.serviceWorker.ready;
-				console.log('Service worker ready, proceeding with subscription...');
-
-				// Subscribe to push notifications with VAPID key
-				const vapidPublicKey =
-					'BEETJnh6HFQcfifDAkd_j87tFK380FDeXHHCAJgpQws7lEzUl_ZZWjYipszSOQ5MU2u0aGpk3975FK9hyFwlrqg';
-				const pushSubscription = await registration.pushManager.subscribe({
-					userVisibleOnly: true,
-					applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-				});
-
-				// Register with notification service via our API
-				await registerWithNotificationService(pushSubscription);
-
-				// Only store locally if API call succeeds
-				localStorage.setItem(getStorageKey(), 'true');
-				subscriptionState++; // Trigger reactivity
-				toast.success(`Notifications enabled for ${selectedTeam}!`);
 			}
-			} catch (error) {
-				console.error('Error subscribing to notifications:', error);
-				toast.error(`Failed to enable notifications: ${error.message}`);
-				// Make sure localStorage is not set on failure
-				localStorage.removeItem(getStorageKey());
-				subscriptionState++; // Trigger reactivity
+
+			// Check if we already have a service worker registration
+			console.log('Checking for existing service worker...');
+			let registration = await navigator.serviceWorker.getRegistration();
+
+			if (!registration) {
+				console.log('No existing service worker, registering new one...');
+				// Set a flag to indicate we're in the middle of registration
+				sessionStorage.setItem('sw_registering', 'true');
+				sessionStorage.setItem('pending_subscription', JSON.stringify({
+					eventId,
+					selectedTeam,
+					timestamp: Date.now()
+				}));
+
+				registration = await navigator.serviceWorker.register('/sw.js');
+
+				// If we get here without a page reload, continue immediately
+				console.log('Service worker registered without page reload');
 			}
-		}, 0);
+
+			// Clear any registration flags
+			sessionStorage.removeItem('sw_registering');
+			sessionStorage.removeItem('pending_subscription');
+
+			// Wait for service worker to be ready
+			await navigator.serviceWorker.ready;
+			console.log('Service worker ready, creating push subscription...');
+
+			// Subscribe to push notifications with VAPID key
+			const vapidPublicKey =
+				'BEETJnh6HFQcfifDAkd_j87tFK380FDeXHHCAJgpQws7lEzUl_ZZWjYipszSOQ5MU2u0aGpk3975FK9hyFwlrqg';
+
+			const pushSubscription = await registration.pushManager.subscribe({
+				userVisibleOnly: true,
+				applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+			});
+
+			console.log('Push subscription created successfully');
+
+			// Register with notification service via our API
+			await registerWithNotificationService(pushSubscription);
+
+			// Only store locally if API call succeeds
+			localStorage.setItem(getStorageKey(), 'true');
+			subscriptionState++; // Trigger reactivity
+			toast.success(`Notifications enabled for ${selectedTeam}!`);
+
+		} catch (error) {
+			console.error('Error subscribing to notifications:', error);
+			toast.error(`Failed to enable notifications: ${error.message}`);
+			// Make sure localStorage is not set on failure
+			localStorage.removeItem(getStorageKey());
+			sessionStorage.removeItem('sw_registering');
+			sessionStorage.removeItem('pending_subscription');
+			subscriptionState++; // Trigger reactivity
+		}
 	}
 
 	async function unsubscribeFromNotifications() {
@@ -160,6 +202,13 @@
 		// Get or create a unique user ID for this browser/team combination
 		const userId = getUserId();
 
+		console.log('Registering with notification service...', {
+			userId,
+			eventId,
+			selectedTeam,
+			endpoint: pushSubscription.endpoint.substring(0, 50) + '...'
+		});
+
 		// Call our backend to register this user with OneSignal
 		const response = await fetch('/api/notifications/subscribe', {
 			method: 'POST',
@@ -179,13 +228,18 @@
 
 		if (!response.ok) {
 			const errorData = await response.text();
-			throw new Error(`Server error: ${errorData}`);
+			console.error('Server registration failed:', errorData);
+			throw new Error(`Server error (${response.status}): ${errorData}`);
 		}
 
 		const result = await response.json();
+		console.log('Registration response:', result);
+
 		if (!result.success) {
-			throw new Error(`Registration failed: ${result.error}`);
+			throw new Error(`Registration failed: ${result.error || 'Unknown error'}`);
 		}
+
+		console.log('Successfully registered with notification service');
 	}
 
 	async function unregisterFromNotificationService() {

@@ -19,10 +19,12 @@ export const POST: RequestHandler = async ({ request }) => {
 			properties: {
 				tags: {
 					eventId: eventId?.toString(),
-					selectedTeam: selectedTeam
+					selectedTeam: selectedTeam?.toString()
 				}
 			}
 		};
+
+		console.log('Creating OneSignal user with payload:', JSON.stringify(oneSignalPayload, null, 2));
 
 		// Add push subscription if provided
 		if (pushSubscription) {
@@ -31,7 +33,8 @@ export const POST: RequestHandler = async ({ request }) => {
 					type: 'ChromePush',
 					token: pushSubscription.endpoint,
 					web_auth: pushSubscription.keys.auth,
-					web_p256: pushSubscription.keys.p256dh
+					web_p256: pushSubscription.keys.p256dh,
+					enabled: true
 				}
 			];
 		}
@@ -51,8 +54,11 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (!oneSignalResponse.ok) {
 			const error = await oneSignalResponse.text();
 			console.error('OneSignal user creation failed:', error);
-			// Don't throw - we can still track locally
+			throw new Error(`OneSignal registration failed: ${error}`);
 		}
+
+		const oneSignalResult = await oneSignalResponse.json();
+		console.log('OneSignal user created/updated:', oneSignalResult);
 
 		return json({
 			success: true,
