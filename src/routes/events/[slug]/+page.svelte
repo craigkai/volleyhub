@@ -149,9 +149,9 @@
 			</div>
 		</div>
 
-		{#if defaultTeam}
+		{#if defaultTeam && effectiveTeams?.teams}
 			<div class="mb-4 flex justify-center">
-				{@const selectedTeamData = effectiveTeams?.teams?.find(t => t.name === defaultTeam)}
+				{@const selectedTeamData = effectiveTeams.teams.find(t => t.name === defaultTeam)}
 				<NotificationSubscriber
 					selectedTeam={selectedTeamData?.id?.toString() || ''}
 					selectedTeamName={defaultTeam}
