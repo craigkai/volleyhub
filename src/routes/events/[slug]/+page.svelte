@@ -28,16 +28,30 @@
 
 	const defaultTeamInitial = data?.defaultTeam ?? '';
 	let defaultTeam = $state(defaultTeamInitial);
+	let isInitialLoad = $state(true);
 	let readOnly = $state(data?.readOnly ?? false);
 	let teams = $state(data?.teams);
 
 	let historyReady = $state(false);
 	let mounted = $state(false);
+	let lastNavigationUpdate = $state('');
 
 	onMount(async () => {
 		await tick();
 		historyReady = true;
 		mounted = true;
+		isInitialLoad = false;
+	});
+
+	// Prevent reactive loops from data changes
+	$effect(() => {
+		if (!isInitialLoad && data?.defaultTeam !== undefined && data.defaultTeam !== defaultTeam) {
+			console.log('Data defaultTeam changed:', { dataTeam: data.defaultTeam, currentTeam: defaultTeam });
+			// Only update if it's different and we're not in initial load
+			if (data.defaultTeam !== defaultTeam) {
+				defaultTeam = data.defaultTeam;
+			}
+		}
 	});
 
 	// Use derived state instead of mutating data.teams directly
@@ -97,6 +111,14 @@
 					value={defaultTeam}
 					onValueChange={(v) => {
 						const newTeam = v ?? '';
+						console.log('onValueChange triggered:', { from: defaultTeam, to: newTeam });
+
+						// Prevent setting the same value (which can cause loops)
+						if (newTeam === defaultTeam) {
+							console.log('Same value, skipping update');
+							return;
+						}
+
 						defaultTeam = newTeam;
 
 						if (browser && historyReady) {
@@ -106,7 +128,16 @@
 							} else {
 								url.searchParams.delete('team');
 							}
-							pushState(url.href, {});
+
+							// Prevent rapid navigation updates
+							const newHref = url.href;
+							if (newHref !== lastNavigationUpdate) {
+								console.log('Navigation update:', newHref);
+								lastNavigationUpdate = newHref;
+								pushState(newHref, {});
+							} else {
+								console.log('Duplicate navigation prevented:', newHref);
+							}
 						}
 					}}
 				>

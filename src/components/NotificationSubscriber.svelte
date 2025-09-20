@@ -91,6 +91,16 @@
 		}
 
 		isInitialized = true;
+
+		// Check for existing subscriptions after initialization
+		checkExistingSubscription();
+	});
+
+	// Check subscription when team changes
+	$effect(() => {
+		if (selectedTeam) {
+			checkExistingSubscription();
+		}
 	});
 
 	async function clearOldServiceWorkers() {
@@ -252,6 +262,30 @@
 				throw new Error('Registration timed out - please try again');
 			}
 			throw fetchError;
+		}
+	}
+
+	// Check subscription status on mount/team change
+	async function checkExistingSubscription() {
+		if (!isInitialized || !selectedTeam || !isSupported) return;
+
+		try {
+			const registration = await navigator.serviceWorker.getRegistration();
+			if (!registration) return;
+
+			const subscription = await registration.pushManager.getSubscription();
+			if (!subscription) return;
+
+			// Check if we have local storage indicating subscription for this team
+			const stored = localStorage.getItem(getStorageKey());
+			const hasPermission = 'Notification' in window && Notification.permission === 'granted';
+
+			if (stored === 'true' && hasPermission) {
+				console.log('Found existing subscription for team:', selectedTeam);
+				subscriptionState++; // Trigger reactivity to update UI
+			}
+		} catch (error) {
+			console.error('Error checking existing subscription:', error);
 		}
 	}
 
