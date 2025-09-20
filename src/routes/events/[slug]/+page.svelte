@@ -58,6 +58,13 @@
 	const tabsWidth = $derived(readOnly ? 'grid-cols-2' : 'grid-cols-4');
 
 	const tabsReady = $derived(mounted && data && data.eventId);
+
+	// Find selected team data for notifications
+	const selectedTeamData = $derived(
+		defaultTeam && effectiveTeams?.teams
+			? effectiveTeams.teams.find(t => t.name === defaultTeam)
+			: null
+	);
 </script>
 
 <svelte:head>
@@ -149,11 +156,10 @@
 			</div>
 		</div>
 
-		{#if defaultTeam && effectiveTeams?.teams}
+		{#if defaultTeam && selectedTeamData}
 			<div class="mb-4 flex justify-center">
-				{@const selectedTeamData = effectiveTeams.teams.find(t => t.name === defaultTeam)}
 				<NotificationSubscriber
-					selectedTeam={selectedTeamData?.id?.toString() || ''}
+					selectedTeam={selectedTeamData.id.toString()}
 					selectedTeamName={defaultTeam}
 					eventId={data.eventId}
 					supabase={data.supabase}
