@@ -151,8 +151,10 @@
 
 		{#if defaultTeam}
 			<div class="mb-4 flex justify-center">
+				{@const selectedTeamData = effectiveTeams?.teams?.find(t => t.name === defaultTeam)}
 				<NotificationSubscriber
-					selectedTeam={defaultTeam}
+					selectedTeam={selectedTeamData?.id?.toString() || ''}
+					selectedTeamName={defaultTeam}
 					eventId={data.eventId}
 					supabase={data.supabase}
 				/>

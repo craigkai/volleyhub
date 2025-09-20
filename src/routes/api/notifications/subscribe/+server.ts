@@ -25,6 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		};
 
 		console.log('Creating OneSignal user with payload:', JSON.stringify(oneSignalPayload, null, 2));
+		console.log('Input parameters:', { userId, eventId, selectedTeam });
 
 		// Add push subscription if provided
 		if (pushSubscription) {

@@ -4,11 +4,13 @@
 	import toast from 'svelte-5-french-toast';
 
 	let {
-		selectedTeam = '',
+		selectedTeam = '', // This is now the team ID
+		selectedTeamName = '',
 		eventId,
 		supabase
 	} = $props<{
 		selectedTeam?: string;
+		selectedTeamName?: string;
 		eventId?: string;
 		supabase: any;
 	}>();
@@ -109,7 +111,7 @@
 			// Mark as subscribed
 			localStorage.setItem(getStorageKey(), 'true');
 			isSubscribed = true;
-			toast.success(`Notifications enabled for ${selectedTeam}!`);
+			toast.success(`Notifications enabled for ${selectedTeamName}!`);
 
 		} catch (error) {
 			console.error('Subscription error:', error);
@@ -245,7 +247,7 @@
 				onclick={unsubscribeFromNotifications}
 				type="button"
 				class="inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
-				title="Disable notifications for {selectedTeam}"
+				title="Disable notifications for {selectedTeamName}"
 			>
 				<Bell size={16} />
 				Notifications On
@@ -255,7 +257,7 @@
 				onclick={subscribeToNotifications}
 				type="button"
 				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-				title="Get notified when {selectedTeam} plays or refs"
+				title="Get notified when {selectedTeamName} plays or refs"
 			>
 				<BellOff size={16} />
 				Enable Notifications
