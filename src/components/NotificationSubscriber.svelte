@@ -65,6 +65,8 @@
 
 		isSupported = hasServiceWorker && hasPushManager && hasNotification;
 
+		// No need for complex reload handling - user can just click again after reload
+
 		isInitialized = true;
 	});
 
@@ -81,20 +83,36 @@
 		}
 	}
 
-	async function subscribeToNotifications() {
-		try {
-			// Request notification permission
-			if ('Notification' in window) {
-				const permission = await Notification.requestPermission();
+	function subscribeToNotifications() {
+		console.log('subscribeToNotifications called');
+
+		// Wrap everything in immediate try-catch to prevent page reload
+		setTimeout(async () => {
+			try {
+				console.log('Starting async subscription process');
+
+				// Request notification permission
+				if ('Notification' in window) {
+					console.log('Requesting notification permission');
+					const permission = await Notification.requestPermission();
+					console.log('Permission result:', permission);
 
 				if (permission !== 'granted') {
 					toast.error('Notification permission denied');
 					return;
 				}
 
-				// Register service worker and get push subscription
-				const registration = await navigator.serviceWorker.register('/sw.js');
+				// Get or register service worker (page may reload)
+				console.log('Getting service worker registration...');
+				let registration = await navigator.serviceWorker.getRegistration();
+
+				if (!registration) {
+					console.log('Registering service worker (page may reload)...');
+					registration = await navigator.serviceWorker.register('/sw.js');
+				}
+
 				await navigator.serviceWorker.ready;
+				console.log('Service worker ready, proceeding with subscription...');
 
 				// Subscribe to push notifications with VAPID key
 				const vapidPublicKey =
@@ -112,13 +130,14 @@
 				subscriptionState++; // Trigger reactivity
 				toast.success(`Notifications enabled for ${selectedTeam}!`);
 			}
-		} catch (error) {
-			console.error('Error subscribing to notifications:', error);
-			toast.error(`Failed to enable notifications: ${error.message}`);
-			// Make sure localStorage is not set on failure
-			localStorage.removeItem(getStorageKey());
-			subscriptionState++; // Trigger reactivity
-		}
+			} catch (error) {
+				console.error('Error subscribing to notifications:', error);
+				toast.error(`Failed to enable notifications: ${error.message}`);
+				// Make sure localStorage is not set on failure
+				localStorage.removeItem(getStorageKey());
+				subscriptionState++; // Trigger reactivity
+			}
+		}, 0);
 	}
 
 	async function unsubscribeFromNotifications() {
@@ -212,6 +231,7 @@
 		{:else if isSubscribed}
 			<button
 				onclick={unsubscribeFromNotifications}
+				type="button"
 				class="inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
 				title="Disable notifications for {selectedTeam}"
 			>
@@ -221,6 +241,7 @@
 		{:else}
 			<button
 				onclick={subscribeToNotifications}
+				type="button"
 				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
 				title="Get notified when {selectedTeam} plays or refs"
 			>
