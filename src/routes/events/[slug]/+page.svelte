@@ -96,12 +96,13 @@
 					type="single"
 					value={defaultTeam}
 					onValueChange={(v) => {
-						defaultTeam = v ?? '';
+						const newTeam = v ?? '';
+						defaultTeam = newTeam;
 
 						if (browser && historyReady) {
 							const url = new URL(page.url);
-							if (defaultTeam) {
-								url.searchParams.set('team', defaultTeam);
+							if (newTeam) {
+								url.searchParams.set('team', newTeam);
 							} else {
 								url.searchParams.delete('team');
 							}
