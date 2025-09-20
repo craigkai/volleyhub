@@ -209,37 +209,50 @@
 			endpoint: pushSubscription.endpoint.substring(0, 50) + '...'
 		});
 
-		// Call our backend to register this user with OneSignal
-		const response = await fetch('/api/notifications/subscribe', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				userId,
-				eventId,
-				selectedTeam,
-				pushSubscription: {
-					endpoint: pushSubscription.endpoint,
-					keys: pushSubscription.toJSON().keys
-				}
-			})
-		});
+		// Call our backend to register this user with OneSignal (with timeout)
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-		if (!response.ok) {
-			const errorData = await response.text();
-			console.error('Server registration failed:', errorData);
-			throw new Error(`Server error (${response.status}): ${errorData}`);
+		try {
+			const response = await fetch('/api/notifications/subscribe', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					userId,
+					eventId,
+					selectedTeam,
+					pushSubscription: {
+						endpoint: pushSubscription.endpoint,
+						keys: pushSubscription.toJSON().keys
+					}
+				}),
+				signal: controller.signal
+			});
+			clearTimeout(timeoutId);
+
+			if (!response.ok) {
+				const errorData = await response.text();
+				console.error('Server registration failed:', errorData);
+				throw new Error(`Server error (${response.status}): ${errorData}`);
+			}
+
+			const result = await response.json();
+			console.log('Registration response:', result);
+
+			if (!result.success) {
+				throw new Error(`Registration failed: ${result.error || 'Unknown error'}`);
+			}
+
+			console.log('Successfully registered with notification service');
+		} catch (fetchError) {
+			clearTimeout(timeoutId);
+			if (fetchError.name === 'AbortError') {
+				throw new Error('Registration timed out - please try again');
+			}
+			throw fetchError;
 		}
-
-		const result = await response.json();
-		console.log('Registration response:', result);
-
-		if (!result.success) {
-			throw new Error(`Registration failed: ${result.error || 'Unknown error'}`);
-		}
-
-		console.log('Successfully registered with notification service');
 	}
 
 	async function unregisterFromNotificationService() {
