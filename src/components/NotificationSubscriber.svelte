@@ -22,9 +22,22 @@
 		// Access subscriptionState to make this reactive to manual updates
 		subscriptionState;
 		if (!isInitialized || !selectedTeam) return false;
-		const stored = localStorage.getItem(getStorageKey());
+		const storageKey = getStorageKey();
+		const stored = localStorage.getItem(storageKey);
 		const hasPermission = 'Notification' in window && Notification.permission === 'granted';
-		return stored === 'true' && hasPermission;
+		const result = stored === 'true' && hasPermission;
+
+		console.log('isSubscribed check:', {
+			storageKey,
+			stored,
+			hasPermission,
+			result,
+			selectedTeam,
+			eventId,
+			isInitialized
+		});
+
+		return result;
 	});
 
 	// Local storage key for subscription preference
@@ -177,8 +190,17 @@
 			await registerWithNotificationService(pushSubscription);
 
 			// Only store locally if API call succeeds
-			localStorage.setItem(getStorageKey(), 'true');
+			const storageKey = getStorageKey();
+			localStorage.setItem(storageKey, 'true');
 			subscriptionState++; // Trigger reactivity
+
+			console.log('Subscription completed successfully:', {
+				storageKey,
+				stored: localStorage.getItem(storageKey),
+				subscriptionState,
+				selectedTeam
+			});
+
 			toast.success(`Notifications enabled for ${selectedTeam}!`);
 
 		} catch (error) {
