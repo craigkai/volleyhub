@@ -58,7 +58,10 @@ serve(async (req) => {
 			chrome_web_badge: '/pwa-64x64.png'
 		};
 
+		console.log('=== NOTIFICATION DEBUG ===');
+		console.log('Input parameters:', { eventId, teamId, teamName, round, action, isRef });
 		console.log('Sending OneSignal notification:', JSON.stringify(notification, null, 2));
+		console.log('==========================');
 
 		const response = await fetch('https://onesignal.com/api/v1/notifications', {
 			method: 'POST',
