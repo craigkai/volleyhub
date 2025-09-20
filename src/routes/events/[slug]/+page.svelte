@@ -43,16 +43,6 @@
 		isInitialLoad = false;
 	});
 
-	// Prevent reactive loops from data changes
-	$effect(() => {
-		if (!isInitialLoad && data?.defaultTeam !== undefined && data.defaultTeam !== defaultTeam) {
-			console.log('Data defaultTeam changed:', { dataTeam: data.defaultTeam, currentTeam: defaultTeam });
-			// Only update if it's different and we're not in initial load
-			if (data.defaultTeam !== defaultTeam) {
-				defaultTeam = data.defaultTeam;
-			}
-		}
-	});
 
 	// Use derived state instead of mutating data.teams directly
 	const effectiveTeams = $derived(teams || data?.teams);
@@ -111,14 +101,6 @@
 					value={defaultTeam}
 					onValueChange={(v) => {
 						const newTeam = v ?? '';
-						console.log('onValueChange triggered:', { from: defaultTeam, to: newTeam });
-
-						// Prevent setting the same value (which can cause loops)
-						if (newTeam === defaultTeam) {
-							console.log('Same value, skipping update');
-							return;
-						}
-
 						defaultTeam = newTeam;
 
 						if (browser && historyReady) {
@@ -128,16 +110,7 @@
 							} else {
 								url.searchParams.delete('team');
 							}
-
-							// Prevent rapid navigation updates
-							const newHref = url.href;
-							if (newHref !== lastNavigationUpdate) {
-								console.log('Navigation update:', newHref);
-								lastNavigationUpdate = newHref;
-								pushState(newHref, {});
-							} else {
-								console.log('Duplicate navigation prevented:', newHref);
-							}
+							pushState(url.href, {});
 						}
 					}}
 				>

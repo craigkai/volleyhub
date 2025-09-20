@@ -15,30 +15,8 @@
 
 	let isSupported = $state(false);
 	let isInitialized = $state(false);
-	let subscriptionState = $state(0); // Force reactivity trigger
-
-	// Derive subscription status from localStorage and permissions
-	let isSubscribed = $derived.by(() => {
-		// Access subscriptionState to make this reactive to manual updates
-		subscriptionState;
-		if (!isInitialized || !selectedTeam) return false;
-		const storageKey = getStorageKey();
-		const stored = localStorage.getItem(storageKey);
-		const hasPermission = 'Notification' in window && Notification.permission === 'granted';
-		const result = stored === 'true' && hasPermission;
-
-		console.log('isSubscribed check:', {
-			storageKey,
-			stored,
-			hasPermission,
-			result,
-			selectedTeam,
-			eventId,
-			isInitialized
-		});
-
-		return result;
-	});
+	let isSubscribed = $state(false);
+	let isSubscribing = $state(false);
 
 	// Local storage key for subscription preference
 	const getStorageKey = () => `notify_${eventId}_${selectedTeam}`;
@@ -68,161 +46,86 @@
 	}
 
 	onMount(async () => {
-		// Clear any old service workers first
-		await clearOldServiceWorkers();
-
 		// Check browser support
 		const hasServiceWorker = 'serviceWorker' in navigator;
 		const hasPushManager = 'PushManager' in window;
 		const hasNotification = 'Notification' in window;
 
 		isSupported = hasServiceWorker && hasPushManager && hasNotification;
-
-		// Check if we have a pending subscription after page reload
-		const pendingSubscription = sessionStorage.getItem('pending_subscription');
-		const wasRegistering = sessionStorage.getItem('sw_registering');
-
-		if (wasRegistering && pendingSubscription) {
-			try {
-				const subscription = JSON.parse(pendingSubscription);
-				// Check if this matches our current context and is recent (within 30 seconds)
-				if (subscription.eventId === eventId &&
-					subscription.selectedTeam === selectedTeam &&
-					Date.now() - subscription.timestamp < 30000) {
-
-					console.log('Resuming subscription after service worker registration...');
-					// Small delay to ensure page is fully loaded
-					setTimeout(() => {
-						subscribeToNotifications();
-					}, 1000);
-				}
-			} catch (error) {
-				console.error('Error parsing pending subscription:', error);
-				sessionStorage.removeItem('pending_subscription');
-				sessionStorage.removeItem('sw_registering');
-			}
-		}
-
 		isInitialized = true;
 
-		// Check for existing subscriptions after initialization
-		checkExistingSubscription();
+		// Check existing subscription
+		checkSubscriptionStatus();
 	});
 
 	// Check subscription when team changes
 	$effect(() => {
-		if (selectedTeam) {
-			checkExistingSubscription();
+		if (selectedTeam && isInitialized) {
+			checkSubscriptionStatus();
 		}
 	});
 
-	async function clearOldServiceWorkers() {
-		if ('serviceWorker' in navigator) {
-			try {
-				const registrations = await navigator.serviceWorker.getRegistrations();
-				for (const registration of registrations) {
-					await registration.unregister();
-				}
-			} catch (error) {
-				console.error('Error clearing service workers:', error);
-			}
+	function checkSubscriptionStatus() {
+		if (!selectedTeam || !isInitialized) {
+			isSubscribed = false;
+			return;
 		}
+
+		const stored = localStorage.getItem(getStorageKey());
+		const hasPermission = 'Notification' in window && Notification.permission === 'granted';
+		isSubscribed = stored === 'true' && hasPermission;
 	}
 
+
 	async function subscribeToNotifications() {
-		console.log('subscribeToNotifications called');
+		if (isSubscribing) return;
+		isSubscribing = true;
 
 		try {
-			console.log('Starting subscription process');
-
-			// Request notification permission first
-			if ('Notification' in window) {
-				console.log('Requesting notification permission');
-				const permission = await Notification.requestPermission();
-				console.log('Permission result:', permission);
-
-				if (permission !== 'granted') {
-					toast.error('Notification permission denied');
-					return;
-				}
+			// Request notification permission
+			const permission = await Notification.requestPermission();
+			if (permission !== 'granted') {
+				toast.error('Notification permission denied');
+				return;
 			}
 
-			// Check if we already have a service worker registration
-			console.log('Checking for existing service worker...');
+			// Get or register service worker
 			let registration = await navigator.serviceWorker.getRegistration();
-
 			if (!registration) {
-				console.log('No existing service worker, registering new one...');
-				// Set a flag to indicate we're in the middle of registration
-				sessionStorage.setItem('sw_registering', 'true');
-				sessionStorage.setItem('pending_subscription', JSON.stringify({
-					eventId,
-					selectedTeam,
-					timestamp: Date.now()
-				}));
-
 				registration = await navigator.serviceWorker.register('/sw.js');
-
-				// If we get here without a page reload, continue immediately
-				console.log('Service worker registered without page reload');
 			}
-
-			// Clear any registration flags
-			sessionStorage.removeItem('sw_registering');
-			sessionStorage.removeItem('pending_subscription');
-
-			// Wait for service worker to be ready
 			await navigator.serviceWorker.ready;
-			console.log('Service worker ready, creating push subscription...');
 
-			// Subscribe to push notifications with VAPID key
-			const vapidPublicKey =
-				'BEETJnh6HFQcfifDAkd_j87tFK380FDeXHHCAJgpQws7lEzUl_ZZWjYipszSOQ5MU2u0aGpk3975FK9hyFwlrqg';
-
+			// Create push subscription
+			const vapidPublicKey = 'BEETJnh6HFQcfifDAkd_j87tFK380FDeXHHCAJgpQws7lEzUl_ZZWjYipszSOQ5MU2u0aGpk3975FK9hyFwlrqg';
 			const pushSubscription = await registration.pushManager.subscribe({
 				userVisibleOnly: true,
 				applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
 			});
 
-			console.log('Push subscription created successfully');
-
-			// Register with notification service via our API
+			// Register with API
 			await registerWithNotificationService(pushSubscription);
 
-			// Only store locally if API call succeeds
-			const storageKey = getStorageKey();
-			localStorage.setItem(storageKey, 'true');
-			subscriptionState++; // Trigger reactivity
-
-			console.log('Subscription completed successfully:', {
-				storageKey,
-				stored: localStorage.getItem(storageKey),
-				subscriptionState,
-				selectedTeam
-			});
-
+			// Mark as subscribed
+			localStorage.setItem(getStorageKey(), 'true');
+			isSubscribed = true;
 			toast.success(`Notifications enabled for ${selectedTeam}!`);
 
 		} catch (error) {
-			console.error('Error subscribing to notifications:', error);
+			console.error('Subscription error:', error);
 			toast.error(`Failed to enable notifications: ${error.message}`);
-			// Make sure localStorage is not set on failure
 			localStorage.removeItem(getStorageKey());
-			sessionStorage.removeItem('sw_registering');
-			sessionStorage.removeItem('pending_subscription');
-			subscriptionState++; // Trigger reactivity
+			isSubscribed = false;
+		} finally {
+			isSubscribing = false;
 		}
 	}
 
 	async function unsubscribeFromNotifications() {
 		try {
-			// Remove subscription preference
 			localStorage.removeItem(getStorageKey());
-			subscriptionState++; // Trigger reactivity
-
-			// Unregister from notification service
+			isSubscribed = false;
 			await unregisterFromNotificationService();
-
 			toast.success('Notifications disabled');
 		} catch (error) {
 			console.error('Error unsubscribing:', error);
@@ -287,29 +190,6 @@
 		}
 	}
 
-	// Check subscription status on mount/team change
-	async function checkExistingSubscription() {
-		if (!isInitialized || !selectedTeam || !isSupported) return;
-
-		try {
-			const registration = await navigator.serviceWorker.getRegistration();
-			if (!registration) return;
-
-			const subscription = await registration.pushManager.getSubscription();
-			if (!subscription) return;
-
-			// Check if we have local storage indicating subscription for this team
-			const stored = localStorage.getItem(getStorageKey());
-			const hasPermission = 'Notification' in window && Notification.permission === 'granted';
-
-			if (stored === 'true' && hasPermission) {
-				console.log('Found existing subscription for team:', selectedTeam);
-				subscriptionState++; // Trigger reactivity to update UI
-			}
-		} catch (error) {
-			console.error('Error checking existing subscription:', error);
-		}
-	}
 
 	async function unregisterFromNotificationService() {
 		try {
@@ -351,6 +231,15 @@
 				<BellOff size={16} />
 				Initializing...
 			</div>
+		{:else if isSubscribing}
+			<button
+				disabled
+				type="button"
+				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm font-medium text-gray-500 cursor-not-allowed"
+			>
+				<div class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+				Subscribing...
+			</button>
 		{:else if isSubscribed}
 			<button
 				onclick={unsubscribeFromNotifications}
