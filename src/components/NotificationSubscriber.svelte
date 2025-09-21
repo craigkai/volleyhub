@@ -106,6 +106,7 @@
 			});
 
 			// Register with API
+			console.log('Registering subscription with team ID:', selectedTeam, 'for team name:', selectedTeamName);
 			await registerWithNotificationService(pushSubscription);
 
 			// Mark as subscribed
