@@ -27,19 +27,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Add push subscription if provided
 		if (pushSubscription) {
-			// Detect device/browser type from endpoint and user agent
-			const userAgent = request.headers.get('user-agent') || '';
-			const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+			// Detect browser type from endpoint (for web push, all use ChromePush except Firefox)
 			const isFirefox = pushSubscription.endpoint.includes('mozilla.com');
-
-			let subscriptionType;
-			if (isIOS) {
-				subscriptionType = 'iOS';
-			} else if (isFirefox) {
-				subscriptionType = 'FirefoxPush';
-			} else {
-				subscriptionType = 'ChromePush';
-			}
+			const subscriptionType = isFirefox ? 'FirefoxPush' : 'ChromePush';
 
 			oneSignalPayload.subscriptions = [
 				{
