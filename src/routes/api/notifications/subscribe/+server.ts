@@ -36,9 +36,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Add subscription if provided
 		if (pushSubscription) {
+			// Detect browser type from endpoint
+			const isFirefox = pushSubscription.endpoint.includes('mozilla.com');
+			const subscriptionType = isFirefox ? 'FirefoxPush' : 'ChromePush';
+
 			userRequest.subscriptions = [
 				{
-					type: 'webPush',
+					type: subscriptionType,
 					token: pushSubscription.endpoint,
 					web_auth: pushSubscription.keys.auth,
 					web_p256: pushSubscription.keys.p256dh,
