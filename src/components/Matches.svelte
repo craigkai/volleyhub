@@ -138,6 +138,7 @@
 	$effect(() => {
 		if (subscriptionStatus === 'SUBSCRIBED') {
 			data.matches.load(data.matches.event_id);
+			data.tournament.load(data.tournament.id);
 		}
 	});
 
