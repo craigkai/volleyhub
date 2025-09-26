@@ -6,7 +6,7 @@ import * as OneSignal from '@onesignal/node-onesignal';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const { userId, eventId, selectedTeam, pushSubscription } = await request.json();
+		const { userId, eventId, selectedTeam } = await request.json();
 
 		if (!PUBLIC_ONESIGNAL_APP_ID || !env.ONESIGNAL_API_KEY) {
 			throw new Error('OneSignal credentials not configured');
@@ -18,50 +18,34 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 		const client = new OneSignal.DefaultApi(configuration);
 
-		// Prepare user properties
-		const userProperties = {
-			tags: {
-				eventId: eventId?.toString(),
-				selectedTeam: selectedTeam?.toString()
+		// Update user tags for targeting
+		// With Web SDK, the subscription is handled client-side
+		// We just need to update user tags on the server for targeting
+		const userRequest = {
+			properties: {
+				tags: {
+					eventId: eventId?.toString(),
+					selectedTeam: selectedTeam?.toString(),
+					subscription_type: 'team_notifications'
+				}
 			}
 		};
 
-		// Create user request
-		const userRequest = {
-			identity: {
-				external_id: userId
-			},
-			properties: userProperties
-		};
-
-		// Add subscription if provided
-		if (pushSubscription) {
-			// Detect browser type from endpoint
-			const isFirefox = pushSubscription.endpoint.includes('mozilla.com');
-			const subscriptionType = isFirefox ? 'FirefoxPush' : 'ChromePush';
-
-			userRequest.subscriptions = [
-				{
-					type: subscriptionType,
-					token: pushSubscription.endpoint,
-					web_auth: pushSubscription.keys.auth,
-					web_p256: pushSubscription.keys.p256dh,
-					enabled: true
-				}
-			];
+		try {
+			// Try to update existing user by external_id
+			await client.updateUser(PUBLIC_ONESIGNAL_APP_ID, userId, userRequest);
+		} catch (updateError) {
+			// If user doesn't exist, this is OK - Web SDK will handle user creation
+			console.log('User not found in OneSignal, will be created by Web SDK:', userId);
 		}
-
-		// Create/update user in OneSignal
-		const result = await client.createUser(PUBLIC_ONESIGNAL_APP_ID, userRequest);
 
 		return json({
 			success: true,
-			message: 'Subscribed to notifications',
-			userId,
-			oneSignalUserId: result.identity?.onesignal_id
+			message: 'User tags updated for notifications',
+			userId
 		});
 	} catch (error) {
 		console.error('Subscription error:', error);
-		return json({ error: 'Failed to subscribe' }, { status: 500 });
+		return json({ error: 'Failed to update user tags' }, { status: 500 });
 	}
 };
