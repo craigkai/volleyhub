@@ -28,6 +28,7 @@ export async function initializeOneSignal(): Promise<any> {
           window.OneSignal.init({
             appId: "4327f5d8-8fdc-47cd-88e4-4f29cb648f21",
             allowLocalhostAsSecureOrigin: true,
+            serviceWorkerPath: 'OneSignalSDKWorker.js'
           }).then(() => {
             oneSignalInitialized = true;
             resolve(window.OneSignal);
@@ -43,6 +44,7 @@ export async function initializeOneSignal(): Promise<any> {
               await OneSignal.init({
                 appId: "4327f5d8-8fdc-47cd-88e4-4f29cb648f21",
                 allowLocalhostAsSecureOrigin: true,
+                serviceWorkerPath: 'OneSignalSDKWorker.js'
               });
               oneSignalInitialized = true;
             }
@@ -72,23 +74,31 @@ export async function initializeOneSignal(): Promise<any> {
 }
 
 export async function subscribeToNotifications(userId: string, eventId: string, teamId: string): Promise<void> {
+  console.log('subscribeToNotifications called with:', { userId, eventId, teamId });
   const OneSignal = await initializeOneSignal();
 
+  console.log('Requesting notification permission...');
   // Request permission
   const permission = await OneSignal.Notifications.requestPermission();
+  console.log('Permission result:', permission);
+
   if (!permission) {
     throw new Error('Notification permission denied');
   }
 
+  console.log('Logging in user:', userId);
   // Set external user ID for targeting
   await OneSignal.login(userId);
 
+  console.log('Adding tags:', { eventId, selectedTeam: teamId, subscription_type: 'team_notifications' });
   // Add tags for targeting specific teams/events (matching existing system)
   await OneSignal.User.addTags({
     eventId: eventId,
     selectedTeam: teamId,
     subscription_type: 'team_notifications'
   });
+
+  console.log('OneSignal subscription completed successfully');
 }
 
 export async function unsubscribeFromNotifications(): Promise<void> {
