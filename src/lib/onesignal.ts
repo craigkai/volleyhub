@@ -43,10 +43,10 @@ export async function subscribeToNotifications(userId: string, eventId: string, 
   // Set external user ID for targeting
   await OneSignal.login(userId);
 
-  // Add tags for targeting specific teams/events
+  // Add tags for targeting specific teams/events (matching existing system)
   await OneSignal.User.addTags({
-    event_id: eventId,
-    team_id: teamId,
+    eventId: eventId,
+    selectedTeam: teamId,
     subscription_type: 'team_notifications'
   });
 }
@@ -54,9 +54,9 @@ export async function subscribeToNotifications(userId: string, eventId: string, 
 export async function unsubscribeFromNotifications(): Promise<void> {
   const OneSignal = await initializeOneSignal();
 
-  // Remove all tags
-  await OneSignal.User.removeTag('event_id');
-  await OneSignal.User.removeTag('team_id');
+  // Remove all tags (matching existing system)
+  await OneSignal.User.removeTag('eventId');
+  await OneSignal.User.removeTag('selectedTeam');
   await OneSignal.User.removeTag('subscription_type');
 
   // Optionally logout user
