@@ -31,7 +31,9 @@
 			};
 
 			const newTeamInstance = await teams.create(newTeam);
-			if (newTeamInstance) teams.teams.push(newTeamInstance);
+			if (newTeamInstance) {
+				teams.teams = [...teams.teams, newTeamInstance];
+			}
 
 			if (matches?.matches?.length > 0) await matches.deleteAllMatches();
 
@@ -49,10 +51,7 @@
 	async function deleteTeam(team: Team) {
 		try {
 			await team.delete(team);
-			teams.teams.splice(
-				teams.teams.findIndex((t: { id: number | undefined }) => t.id === team.id),
-				1
-			);
+			teams.teams = teams.teams.filter((t: { id: number | undefined }) => t.id !== team.id);
 
 			if (matches?.matches?.length > 0) await matches.deleteAllMatches();
 
@@ -81,7 +80,9 @@
 
 	let newTeamName = $state('');
 	let editingTeamId = $state<string | number | null>(null);
-	let currentTeams = $state(teams.teams ?? []);
+
+	// Use a derived state that properly tracks teams.teams changes
+	let currentTeams = $derived(teams?.teams ?? []);
 </script>
 
 <div class="space-y-4">
