@@ -29,8 +29,9 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 	const { tournament, matches, teams, bracket } = res;
 
 	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
+	const isAdmin = data.user?.is_admin === true;
 
-	const readOnly = eventId !== 'create' && !isOwner;
+	const readOnly = eventId !== 'create' && !isOwner && !isAdmin;
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
 		{
