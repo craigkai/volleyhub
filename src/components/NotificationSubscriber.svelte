@@ -26,9 +26,34 @@
 	let isSubscribed = $state(false);
 	let isSubscribing = $state(false);
 	let isIOSNotStandalone = $state(false);
+	let currentSubscribedTeam = $state<string | null>(null);
 
-	// Local storage key for subscription preference
-	const getStorageKey = () => `notify_${eventId}_${selectedTeam}`;
+	// Local storage key for subscription preference (now event-based)
+	const getStorageKey = () => `notify_${eventId}`;
+	const getTeamStorageKey = (teamId: string) => `notify_${eventId}_${teamId}`;
+
+	// Helper to clear all team subscriptions for this event
+	const clearAllTeamSubscriptions = () => {
+		// Find and remove all team-specific keys for this event
+		const keysToRemove = [];
+		for (let i = 0; i < localStorage.length; i++) {
+			const key = localStorage.key(i);
+			if (key && key.startsWith(`notify_${eventId}_`)) {
+				keysToRemove.push(key);
+			}
+		}
+		keysToRemove.forEach(key => localStorage.removeItem(key));
+	};
+
+	// Helper to get currently subscribed team for this event
+	const getCurrentSubscribedTeam = () => {
+		return localStorage.getItem(getStorageKey());
+	};
+
+	// Helper to set current subscribed team
+	const setCurrentSubscribedTeam = (teamId: string) => {
+		localStorage.setItem(getStorageKey(), teamId);
+	};
 
 	// Get or create a unique user ID for this browser
 	const getUserId = () => {
@@ -103,11 +128,13 @@
 
 		try {
 			const hasPermission = await checkSubscriptionStatus();
-			const stored = localStorage.getItem(getStorageKey());
-			isSubscribed = stored === 'true' && hasPermission;
+			currentSubscribedTeam = getCurrentSubscribedTeam();
+			// User is subscribed if they have permission AND the currently selected team is the subscribed team
+			isSubscribed = hasPermission && currentSubscribedTeam === selectedTeam;
 		} catch (error) {
 			console.error('Error checking subscription status:', error);
 			isSubscribed = false;
+			currentSubscribedTeam = null;
 		}
 	}
 
@@ -132,15 +159,28 @@
 				throw new Error('Failed to update server');
 			}
 
-			// Mark as subscribed locally
-			localStorage.setItem(getStorageKey(), 'true');
+			// Check if switching from another team
+			const previousSubscribedTeam = getCurrentSubscribedTeam();
+			const isSwitching = previousSubscribedTeam && previousSubscribedTeam !== selectedTeam;
+
+			// Clear any previous team subscriptions for this event
+			clearAllTeamSubscriptions();
+
+			// Mark current team as subscribed
+			setCurrentSubscribedTeam(selectedTeam);
+			currentSubscribedTeam = selectedTeam;
 			isSubscribed = true;
-			toast.success(`Notifications enabled for ${selectedTeamName}!`);
+
+			if (isSwitching) {
+				toast.success(`Switched notifications to ${selectedTeamName}!`);
+			} else {
+				toast.success(`Notifications enabled for ${selectedTeamName}!`);
+			}
 
 		} catch (error) {
 			console.error('Subscription error:', error);
 			toast.error(`Failed to enable notifications: ${error.message}`);
-			localStorage.removeItem(getStorageKey());
+			clearAllTeamSubscriptions();
 			isSubscribed = false;
 		} finally {
 			isSubscribing = false;
@@ -165,7 +205,9 @@
 				console.warn('Failed to update server, but local unsubscribe succeeded');
 			}
 
-			localStorage.removeItem(getStorageKey());
+			// Clear all team subscriptions for this event
+			clearAllTeamSubscriptions();
+			currentSubscribedTeam = null;
 			isSubscribed = false;
 			toast.success('Notifications disabled');
 		} catch (error) {
@@ -222,15 +264,27 @@
 				Notifications On
 			</button>
 		{:else}
-			<button
-				onclick={subscribeToNotificationsHandler}
-				type="button"
-				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-				title="Get notified when {selectedTeamName} plays or refs"
-			>
-				<BellOff size={16} />
-				Enable Notifications
-			</button>
+			{#if currentSubscribedTeam && currentSubscribedTeam !== selectedTeam}
+				<button
+					onclick={subscribeToNotificationsHandler}
+					type="button"
+					class="inline-flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none dark:border-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+					title="Switch notifications from current team to {selectedTeamName}"
+				>
+					<Bell size={16} />
+					Switch to This Team
+				</button>
+			{:else}
+				<button
+					onclick={subscribeToNotificationsHandler}
+					type="button"
+					class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+					title="Get notified when {selectedTeamName} plays or refs"
+				>
+					<BellOff size={16} />
+					Enable Notifications
+				</button>
+			{/if}
 		{/if}
 	</div>
 {/if}

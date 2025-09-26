@@ -90,7 +90,13 @@ export async function subscribeToNotifications(userId: string, eventId: string, 
   // Set external user ID for targeting
   await OneSignal.login(userId);
 
-  console.log('Adding tags:', { eventId, selectedTeam: teamId, subscription_type: 'team_notifications' });
+  console.log('Clearing previous subscription tags for event:', eventId);
+  // First, clear any existing team subscription for this event
+  // This ensures only one team subscription per user per event
+  await OneSignal.User.removeTag('selectedTeam');
+  await OneSignal.User.removeTag('subscription_type');
+
+  console.log('Adding new tags:', { eventId, selectedTeam: teamId, subscription_type: 'team_notifications' });
   // Add tags for targeting specific teams/events (matching existing system)
   await OneSignal.User.addTags({
     eventId: eventId,

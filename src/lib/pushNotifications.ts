@@ -6,6 +6,19 @@ export async function sendRoundNotifications(
 	round: number
 ): Promise<{ success: boolean; message: string }> {
 	try {
+		// Get tournament name
+		const { data: tournamentData, error: tournamentError } = await supabase
+			.from('events')
+			.select('name')
+			.eq('id', eventId)
+			.single();
+
+		if (tournamentError) {
+			console.warn('Could not fetch tournament name:', tournamentError);
+		}
+
+		const tournamentName = tournamentData?.name;
+
 		// Get all matches for this round
 		const { data: matches, error: matchesError } = await supabase
 			.from('matches')
@@ -67,6 +80,7 @@ export async function sendRoundNotifications(
 					eventId,
 					teamId,
 					teamName: teamMap.get(teamId),
+					tournamentName,
 					round,
 					action: 'round_assigned',
 					isRef: false
@@ -81,6 +95,7 @@ export async function sendRoundNotifications(
 					eventId,
 					teamId: refId,
 					teamName: teamMap.get(refId),
+					tournamentName,
 					round,
 					action: 'ref_assigned',
 					isRef: true
@@ -115,6 +130,19 @@ export async function sendMatchStartNotification(
 	minutesUntilStart: number = 15
 ): Promise<{ success: boolean; message: string }> {
 	try {
+		// Get tournament name
+		const { data: tournamentData, error: tournamentError } = await supabase
+			.from('events')
+			.select('name')
+			.eq('id', eventId)
+			.single();
+
+		if (tournamentError) {
+			console.warn('Could not fetch tournament name:', tournamentError);
+		}
+
+		const tournamentName = tournamentData?.name;
+
 		// Get match details
 		const { data: match, error: matchError } = await supabase
 			.from('matches')
@@ -140,7 +168,9 @@ export async function sendMatchStartNotification(
 				supabase.functions.invoke('send-push-notification', {
 					body: {
 						eventId,
+						teamId: match.team1,
 						teamName: match.team1_info.name,
+						tournamentName,
 						round: match.round,
 						action: 'match_starting',
 						minutesUntilStart
@@ -154,7 +184,9 @@ export async function sendMatchStartNotification(
 				supabase.functions.invoke('send-push-notification', {
 					body: {
 						eventId,
+						teamId: match.team2,
 						teamName: match.team2_info.name,
+						tournamentName,
 						round: match.round,
 						action: 'match_starting',
 						minutesUntilStart

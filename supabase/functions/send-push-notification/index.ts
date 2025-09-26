@@ -12,9 +12,9 @@ serve(async (req) => {
 	}
 
 	try {
-		const { eventId, teamId, teamName, round, action, isRef = false } = await req.json();
+		const { eventId, teamId, teamName, round, action, isRef = false, tournamentName } = await req.json();
 
-		console.log('Sending push notifications for:', { eventId, teamId, teamName, round, action, isRef });
+		console.log('Sending push notifications for:', { eventId, teamId, teamName, round, action, isRef, tournamentName });
 
 		if (!eventId || !teamId) {
 			throw new Error('Missing required parameters: eventId and teamId');
@@ -32,7 +32,7 @@ serve(async (req) => {
 		const notification = {
 			app_id: oneSignalAppId,
 			headings: {
-				en: '🏐 VolleyHub Tournament Update'
+				en: tournamentName ? `🏐 ${tournamentName}` : '🏐 VolleyHub Tournament Update'
 			},
 			contents: {
 				en: isRef
@@ -42,6 +42,7 @@ serve(async (req) => {
 			data: {
 				eventId,
 				teamName,
+				tournamentName,
 				round,
 				action,
 				isRef,

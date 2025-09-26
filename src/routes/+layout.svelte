@@ -11,15 +11,11 @@
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import toast, { Toaster } from 'svelte-5-french-toast';
 	import { writable } from 'svelte/store';
-	import { registerSW } from '$lib/pwa';
 
 	inject({
 		mode: dev ? 'development' : 'production'
 	});
 
-	onMount(() => {
-		registerSW();
-	});
 
 	let { data = $bindable(), children } = $props();
 
