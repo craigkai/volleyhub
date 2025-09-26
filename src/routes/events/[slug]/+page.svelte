@@ -21,6 +21,7 @@
 	import SettingsIcon from 'lucide-svelte/icons/settings';
 	import ListIcon from 'lucide-svelte/icons/list';
 	import BarChartIcon from 'lucide-svelte/icons/bar-chart-2';
+	import BellIcon from 'lucide-svelte/icons/bell';
 	import ShareButton from '$components/ShareButton.svelte';
 	import NotificationSubscriber from '$components/NotificationSubscriber.svelte';
 
@@ -50,8 +51,8 @@
 	const teamsSelect = $derived(
 		[...(effectiveTeams?.teams ?? [])]
 			.sort((a, b) => a.name.localeCompare(b.name))
-			.map((team) => ({ value: team.name, name: team.name }))
-			.concat([{ value: '', name: 'None' }])
+			.map((team) => ({ value: team.name, name: team.name, id: team.id }))
+			.concat([{ value: '', name: 'None', id: null }])
 	);
 
 	const isCreate = $derived(data?.eventId ? data.eventId === 'create' : true);
@@ -65,6 +66,43 @@
 			? effectiveTeams.teams.find(t => t.name === defaultTeam)
 			: null
 	);
+
+	// Helper to check which team has notifications enabled
+	const getSubscribedTeamId = () => {
+		if (!browser || !data?.eventId) return null;
+		const storageKey = `notify_${data.eventId}`;
+		return localStorage.getItem(storageKey);
+	};
+
+	// Get subscribed team info for display
+	let subscribedTeamId = $state<string | null>(null);
+	const subscribedTeamData = $derived(
+		subscribedTeamId && effectiveTeams?.teams
+			? effectiveTeams.teams.find(t => t.id.toString() === subscribedTeamId)
+			: null
+	);
+
+	// Update subscribed team when storage changes
+	onMount(() => {
+		// Initial check
+		subscribedTeamId = getSubscribedTeamId();
+
+		const updateSubscribedTeam = () => {
+			const newSubscribedTeamId = getSubscribedTeamId();
+			subscribedTeamId = newSubscribedTeamId;
+		};
+
+		// Listen for storage changes (when subscription changes)
+		window.addEventListener('storage', updateSubscribedTeam);
+
+		// Also check periodically in case changes happen in same tab
+		const interval = setInterval(updateSubscribedTeam, 1000);
+
+		return () => {
+			window.removeEventListener('storage', updateSubscribedTeam);
+			clearInterval(interval);
+		};
+	});
 </script>
 
 <svelte:head>
@@ -142,11 +180,16 @@
 								label={team.name}
 								class="cursor-pointer px-4 py-2 text-gray-800 hover:bg-emerald-50 focus:bg-emerald-50 dark:text-white dark:hover:bg-emerald-900/30 dark:focus:bg-emerald-900/30"
 							>
-								<div class="flex items-center gap-2">
-									{#if team.name === undefined}
-										<span>Clear selection</span>
-									{:else}
-										<span>{team.name}</span>
+								<div class="flex items-center justify-between gap-2 w-full">
+									<div class="flex items-center gap-2">
+										{#if team.name === undefined}
+											<span>Clear selection</span>
+										{:else}
+											<span>{team.name}</span>
+										{/if}
+									</div>
+									{#if team.id && subscribedTeamId && team.id.toString() === subscribedTeamId}
+										<BellIcon class="h-4 w-4 text-emerald-600 dark:text-emerald-400" title="Notifications enabled" />
 									{/if}
 								</div>
 							</Select.Item>
