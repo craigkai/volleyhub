@@ -29,7 +29,16 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 	const { tournament, matches, teams, bracket } = res;
 
 	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
-	const isAdmin = data.user?.is_admin === true;
+	const isAdmin = data.is_admin === true;
+
+	console.log('Access Control Debug:', {
+		eventId,
+		userId: data.user?.id,
+		tournamentOwner: tournament?.owner,
+		isOwner,
+		isAdmin: data.is_admin,
+		readOnly: eventId !== 'create' && !isOwner && !isAdmin
+	});
 
 	const readOnly = eventId !== 'create' && !isOwner && !isAdmin;
 
