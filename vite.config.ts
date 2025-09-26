@@ -6,9 +6,15 @@ export default defineConfig({
 	plugins: [
 		sveltekit(),
 		VitePWA({
-			registerType: 'autoUpdate',
+			registerType: 'prompt', // Change from autoUpdate to prompt to reduce interruptions
+			injectRegister: false, // Let OneSignal handle service worker registration
+			strategies: 'injectManifest',
+			srcDir: 'static',
+			filename: 'OneSignalSDKWorker.js', // Use OneSignal service worker
 			workbox: {
 				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+				// Don't cache OneSignal worker files to prevent conflicts
+				globIgnores: ['**/OneSignalSDKWorker.js', '**/sw.js'],
 				runtimeCaching: [
 					{
 						urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
@@ -70,7 +76,7 @@ export default defineConfig({
 				]
 			},
 			devOptions: {
-				enabled: true
+				enabled: false // Disable PWA in development to reduce update prompts
 			}
 		})
 	],
