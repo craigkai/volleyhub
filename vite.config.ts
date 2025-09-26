@@ -6,42 +6,8 @@ export default defineConfig({
 	plugins: [
 		sveltekit(),
 		VitePWA({
-			registerType: 'prompt', // Change from autoUpdate to prompt to reduce interruptions
+			registerType: 'prompt',
 			injectRegister: false, // Let OneSignal handle service worker registration
-			strategies: 'injectManifest',
-			srcDir: 'static',
-			filename: 'OneSignalSDKWorker.js', // Use OneSignal service worker
-			workbox: {
-				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-				// Don't cache OneSignal worker files to prevent conflicts
-				globIgnores: ['**/OneSignalSDKWorker.js', '**/sw.js'],
-				runtimeCaching: [
-					{
-						urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
-						handler: 'NetworkFirst',
-						options: {
-							cacheName: 'api-cache',
-							networkTimeoutSeconds: 10,
-							expiration: {
-								maxEntries: 100,
-								maxAgeSeconds: 60 * 60 * 24 // 24 hours
-							}
-						}
-					},
-					{
-						urlPattern: ({ request }) => request.destination === 'image',
-						handler: 'CacheFirst',
-						options: {
-							cacheName: 'images-cache',
-							expiration: {
-								maxEntries: 60,
-								maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-							}
-						}
-					}
-				]
-			},
-			includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'maskable-icon-512x512.png'],
 			manifest: {
 				name: 'Volleyhub',
 				short_name: 'Volleyhub',
