@@ -36,8 +36,8 @@ serve(async (req) => {
 			},
 			contents: {
 				en: isRef
-					? `You're refereeing round ${round + 1}${court !== undefined ? ` on court ${court}` : ''}! Check your schedule.`
-					: `${teamName} plays in round ${round + 1}${court !== undefined ? ` on court ${court}` : ''}! Get ready!`
+					? `You're refereeing round ${round + 1}${court !== undefined ? ` on court ${court + 1}` : ''}! Check your schedule.`
+					: `${teamName} plays in round ${round + 1}${court !== undefined ? ` on court ${court + 1}` : ''}! Get ready!`
 			},
 			data: {
 				eventId,

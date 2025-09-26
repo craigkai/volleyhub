@@ -215,8 +215,8 @@
 							<span class="text-xs font-medium text-gray-500 dark:text-gray-400">
 								Court {(match.court ?? 0) + 1}
 							</span>
-							{#if match.referee_id}
-								{@const referee = data.teams.teams.find((t: any) => t.id === match.referee_id)}
+							{#if match.ref}
+								{@const referee = data.teams.teams.find((t: any) => t.id === match.ref)}
 								{#if referee}
 									<span class="text-xs text-gray-500 dark:text-gray-400">
 										Ref: {referee.name}
