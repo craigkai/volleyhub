@@ -31,15 +31,6 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
 	const isAdmin = is_admin === true;
 
-	console.log('Access Control Debug:', {
-		eventId,
-		userId: data.user?.id,
-		tournamentOwner: tournament?.owner,
-		isOwner,
-		isAdmin: is_admin,
-		readOnly: eventId !== 'create' && !isOwner && !isAdmin
-	});
-
 	const readOnly = eventId !== 'create' && !isOwner && !isAdmin;
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
