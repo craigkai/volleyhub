@@ -25,6 +25,7 @@
 	let isInitialized = $state(false);
 	let isSubscribed = $state(false);
 	let isSubscribing = $state(false);
+	let isIOSNotStandalone = $state(false);
 
 	// Local storage key for subscription preference
 	const getStorageKey = () => `notify_${eventId}_${selectedTeam}`;
@@ -47,18 +48,42 @@
 		const hasPushManager = 'PushManager' in window;
 		const hasNotification = 'Notification' in window;
 
+		// iOS specific checks
+		const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+		const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
+			(window.navigator as any).standalone === true;
+
+		console.log('Browser support check:', {
+			hasServiceWorker,
+			hasPushManager,
+			hasNotification,
+			isIOS,
+			isInStandaloneMode,
+			userAgent: navigator.userAgent
+		});
+
 		isSupported = hasServiceWorker && hasPushManager && hasNotification;
+
+		// On iOS, require standalone mode for push notifications
+		if (isIOS && !isInStandaloneMode) {
+			console.log('iOS detected but not in standalone mode - notifications not available');
+			isSupported = false;
+			isIOSNotStandalone = true;
+		}
 
 		if (isSupported) {
 			try {
+				console.log('Attempting to initialize OneSignal...');
 				await initializeOneSignal();
+				console.log('OneSignal initialized successfully');
 				isInitialized = true;
 				await updateSubscriptionStatus();
 			} catch (error) {
 				console.error('OneSignal initialization failed:', error);
-				isInitialized = true; // Still allow UI to show
+				isInitialized = true; // Still allow UI to show with error state
 			}
 		} else {
+			console.log('Browser not supported or iOS not in standalone mode');
 			isInitialized = true;
 		}
 	});
@@ -153,13 +178,23 @@
 {#if selectedTeam}
 	<div class="flex items-center">
 		{#if !isSupported}
-			<div
-				class="inline-flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-				title="Push notifications not supported in this browser"
-			>
-				<BellOff size={16} />
-				Notifications Not Supported
-			</div>
+			{#if isIOSNotStandalone}
+				<div
+					class="inline-flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 dark:border-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+					title="On iOS, add this app to your home screen first to enable notifications"
+				>
+					<BellOff size={16} />
+					Add to Home Screen First
+				</div>
+			{:else}
+				<div
+					class="inline-flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+					title="Push notifications not supported in this browser"
+				>
+					<BellOff size={16} />
+					Notifications Not Supported
+				</div>
+			{/if}
 		{:else if !isInitialized}
 			<div
 				class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-500"

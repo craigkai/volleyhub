@@ -13,21 +13,61 @@ export async function initializeOneSignal(): Promise<any> {
     return window.OneSignal;
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    // Check if OneSignal script is loaded
+    if (typeof window === 'undefined') {
+      reject(new Error('Window not available'));
+      return;
+    }
+
+    // Wait for OneSignal to be available
+    const checkOneSignal = () => {
+      if (window.OneSignal) {
+        // OneSignal is already loaded, initialize directly
+        if (!oneSignalInitialized) {
+          window.OneSignal.init({
+            appId: "4327f5d8-8fdc-47cd-88e4-4f29cb648f21",
+            allowLocalhostAsSecureOrigin: true,
+          }).then(() => {
+            oneSignalInitialized = true;
+            resolve(window.OneSignal);
+          }).catch(reject);
+        } else {
+          resolve(window.OneSignal);
+        }
+      } else if (window.OneSignalDeferred) {
+        // OneSignal script is loading, use deferred
+        window.OneSignalDeferred.push(async function(OneSignal: any) {
+          try {
+            if (!oneSignalInitialized) {
+              await OneSignal.init({
+                appId: "4327f5d8-8fdc-47cd-88e4-4f29cb648f21",
+                allowLocalhostAsSecureOrigin: true,
+              });
+              oneSignalInitialized = true;
+            }
+            resolve(OneSignal);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      } else {
+        // OneSignal script hasn't loaded yet, wait a bit
+        setTimeout(checkOneSignal, 100);
+      }
+    };
+
+    // Initialize OneSignalDeferred if it doesn't exist
     if (!window.OneSignalDeferred) {
       window.OneSignalDeferred = [];
     }
 
-    window.OneSignalDeferred.push(async function(OneSignal: any) {
-      if (!oneSignalInitialized) {
-        await OneSignal.init({
-          appId: "4327f5d8-8fdc-47cd-88e4-4f29cb648f21",
-          allowLocalhostAsSecureOrigin: true, // For development
-        });
-        oneSignalInitialized = true;
-      }
-      resolve(OneSignal);
-    });
+    checkOneSignal();
+
+    // Timeout after 10 seconds
+    setTimeout(() => {
+      reject(new Error('OneSignal initialization timeout'));
+    }, 10000);
   });
 }
 
