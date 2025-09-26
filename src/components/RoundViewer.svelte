@@ -47,11 +47,18 @@
 		if (!defaultTeam) return false;
 		return roundMatches.some((m: any) => {
 			const referee = data.teams.teams.find(
-				(t: { id: number; name: string }) => t.id === m.referee_id
+				(t: { id: number; name: string }) => t.id === m.ref
 			);
 			return referee?.name === defaultTeam.name;
 		});
 	}
+
+	// Get referee for the round (assuming all matches in a round have the same ref)
+	let roundReferee = $derived(() => {
+		if (roundMatches.length === 0) return null;
+		const refId = roundMatches[0].ref;
+		return data.teams.teams.find((t: any) => t.id === refId);
+	});
 
 	function jumpToCurrentRound() {
 		currentViewRound = data.tournament.current_round ?? 0;
