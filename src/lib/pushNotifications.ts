@@ -74,34 +74,42 @@ export async function sendRoundNotifications(
 		});
 
 		// Send notifications for playing teams
-		const teamNotifications = Array.from(teamsToNotify).map((teamId) =>
-			supabase.functions.invoke('send-push-notification', {
+		const teamNotifications = Array.from(teamsToNotify).map((teamId) => {
+			// Find the match for this team to get court info
+			const match = matches.find(m => m.team1 === teamId || m.team2 === teamId);
+
+			return supabase.functions.invoke('send-push-notification', {
 				body: {
 					eventId,
 					teamId,
 					teamName: teamMap.get(teamId),
 					tournamentName,
 					round,
+					court: match?.court,
 					action: 'round_assigned',
 					isRef: false
 				}
-			})
-		);
+			});
+		});
 
 		// Send notifications for referees
-		const refNotifications = Array.from(refsToNotify).map((refId) =>
-			supabase.functions.invoke('send-push-notification', {
+		const refNotifications = Array.from(refsToNotify).map((refId) => {
+			// Find the match this team is refereeing to get court info
+			const match = matches.find(m => m.ref === refId);
+
+			return supabase.functions.invoke('send-push-notification', {
 				body: {
 					eventId,
 					teamId: refId,
 					teamName: teamMap.get(refId),
 					tournamentName,
 					round,
+					court: match?.court,
 					action: 'ref_assigned',
 					isRef: true
 				}
-			})
-		);
+			});
+		});
 
 		// Execute all notifications
 		const allNotifications = [...teamNotifications, ...refNotifications];
@@ -172,6 +180,7 @@ export async function sendMatchStartNotification(
 						teamName: match.team1_info.name,
 						tournamentName,
 						round: match.round,
+						court: match.court,
 						action: 'match_starting',
 						minutesUntilStart
 					}
@@ -188,6 +197,7 @@ export async function sendMatchStartNotification(
 						teamName: match.team2_info.name,
 						tournamentName,
 						round: match.round,
+						court: match.court,
 						action: 'match_starting',
 						minutesUntilStart
 					}

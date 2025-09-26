@@ -12,9 +12,9 @@ serve(async (req) => {
 	}
 
 	try {
-		const { eventId, teamId, teamName, round, action, isRef = false, tournamentName } = await req.json();
+		const { eventId, teamId, teamName, round, action, isRef = false, tournamentName, court } = await req.json();
 
-		console.log('Sending push notifications for:', { eventId, teamId, teamName, round, action, isRef, tournamentName });
+		console.log('Sending push notifications for:', { eventId, teamId, teamName, round, action, isRef, tournamentName, court });
 
 		if (!eventId || !teamId) {
 			throw new Error('Missing required parameters: eventId and teamId');
@@ -36,14 +36,15 @@ serve(async (req) => {
 			},
 			contents: {
 				en: isRef
-					? `You're refereeing round ${round + 1}! Check your schedule.`
-					: `${teamName} plays in round ${round + 1}! Get ready!`
+					? `You're refereeing round ${round + 1}${court !== undefined ? ` on court ${court}` : ''}! Check your schedule.`
+					: `${teamName} plays in round ${round + 1}${court !== undefined ? ` on court ${court}` : ''}! Get ready!`
 			},
 			data: {
 				eventId,
 				teamName,
 				tournamentName,
 				round,
+				court,
 				action,
 				isRef,
 				url: `/events/${eventId}?team=${encodeURIComponent(teamName)}`
