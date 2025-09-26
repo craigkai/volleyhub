@@ -6,7 +6,7 @@ import { initiateEvent } from '$lib/helper.svelte';
 import { error } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ params, parent, url, data }) => {
-	const { supabase } = await parent();
+	const { supabase, is_admin } = await parent();
 
 	const eventId = params.slug === 'create' ? 'create' : parseInt(params.slug, 10);
 
@@ -29,14 +29,14 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 	const { tournament, matches, teams, bracket } = res;
 
 	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
-	const isAdmin = data.is_admin === true;
+	const isAdmin = is_admin === true;
 
 	console.log('Access Control Debug:', {
 		eventId,
 		userId: data.user?.id,
 		tournamentOwner: tournament?.owner,
 		isOwner,
-		isAdmin: data.is_admin,
+		isAdmin: is_admin,
 		readOnly: eventId !== 'create' && !isOwner && !isAdmin
 	});
 
