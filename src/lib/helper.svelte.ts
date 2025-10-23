@@ -3,10 +3,14 @@ import toast from 'svelte-5-french-toast';
 import { EventSupabaseDatabaseService } from '$lib/database/event';
 import { MatchesSupabaseDatabaseService } from '$lib/database/matches';
 import { TeamsSupabaseDatabaseService } from '$lib/database/teams';
+import { PlayersSupabaseDatabaseService } from '$lib/database/players';
+import { PlayerStatsSupabaseDatabaseService } from '$lib/database/playerStats';
 import { Brackets } from '$lib/brackets/brackets.svelte';
 import { Event as EventInstance } from '$lib/event.svelte';
 import { Pool } from '$lib/pool/pool.svelte';
 import { Teams as TeamsInstance } from '$lib/teams.svelte';
+import { Players as PlayersInstance } from '$lib/players.svelte';
+import { PlayerStats as PlayerStatsInstance } from '$lib/playerStats.svelte';
 import type { Match } from '$lib/match.svelte';
 
 export async function updateMatch(match: Match): Promise<Match | undefined> {
@@ -34,6 +38,8 @@ export async function initiateEvent(
 	matches: Pool;
 	teams: TeamsInstance;
 	bracket: Brackets;
+	players: PlayersInstance;
+	playerStats: PlayerStatsInstance;
 }> {
 	const eventSupabaseDatabaseService = new EventSupabaseDatabaseService(supabase);
 	const tournament = new EventInstance(eventSupabaseDatabaseService);
@@ -46,8 +52,14 @@ export async function initiateEvent(
 
 	const bracket = new Brackets(matchesSupabaseDatabaseService);
 
+	const playersSupabaseDatabaseService = new PlayersSupabaseDatabaseService(supabase);
+	const players = new PlayersInstance(playersSupabaseDatabaseService);
+
+	const playerStatsSupabaseDatabaseService = new PlayerStatsSupabaseDatabaseService(supabase);
+	const playerStats = new PlayerStatsInstance(playerStatsSupabaseDatabaseService);
+
 	if (eventId === 'create') {
-		return { tournament, matches, teams, bracket };
+		return { tournament, matches, teams, bracket, players, playerStats };
 	}
 
 	const loadWithFallback = async <T>(
@@ -66,8 +78,10 @@ export async function initiateEvent(
 		loadWithFallback('tournament', () => tournament.load(eventId)),
 		loadWithFallback('matches', () => matches.load(eventId)),
 		loadWithFallback('teams', () => teams.load(eventId)),
-		loadWithFallback('bracket', () => bracket.load(eventId))
+		loadWithFallback('bracket', () => bracket.load(eventId)),
+		loadWithFallback('players', () => players.load(eventId)),
+		loadWithFallback('playerStats', () => playerStats.loadByEvent(eventId))
 	]);
 
-	return { tournament, matches, teams, bracket };
+	return { tournament, matches, teams, bracket, players, playerStats };
 }
