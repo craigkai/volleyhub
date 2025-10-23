@@ -8,6 +8,11 @@ import type {
 	teamsRowSchema,
 	matchStateSchema
 } from '$schemas/supabase';
+import type {
+	playerRowSchema,
+	playerStatsRowSchema,
+	playerTeamRowSchema
+} from '$schemas/playerSchema';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -15,6 +20,9 @@ declare global {
 	type TeamRow = z.infer<typeof teamsRowSchema>;
 	type EventRow = z.infer<typeof eventsRowSchema>;
 	type MatchRow = z.infer<typeof matchesRowSchema>;
+	type PlayerRow = z.infer<typeof playerRowSchema>;
+	type PlayerStatsRow = z.infer<typeof playerStatsRowSchema>;
+	type PlayerTeamRow = z.infer<typeof playerTeamRowSchema>;
 
 	type MatchState = z.infer<typeof matchStateSchema>;
 
