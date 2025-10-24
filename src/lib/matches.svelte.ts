@@ -264,6 +264,7 @@ export class Matches extends Base {
 					// Matches are distributed evenly across courts: for each round, all courts are used in parallel.
 					// Each group of 'courts' matches forms one round. For example, with 3 courts:
 					// matches 0,1,2 are round 1; matches 3,4,5 are round 2; etc.
+					// Court assignment cycles: match 0 → court 0, match 1 → court 1, ..., match N → court N%courts
 					const round = Math.floor(matchIndex / courts) + 1;
 					const court = matchIndex % courts;
 
