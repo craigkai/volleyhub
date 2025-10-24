@@ -299,18 +299,5 @@ export class PairingGenerator extends Base {
 		return teams;
 	}
 
-	/**
-	 * Track which players have played together to avoid repeating partnerships.
-	 * (Future enhancement)
-	 *
-	 * @param {number} playerId - The player ID
-	 * @param {Match[]} previousMatches - Previous matches played
-	 * @returns {Set<number>} - Set of player IDs this player has partnered with
-	 */
-	private getPartnerHistory(playerId: number, previousMatches: any[]): Set<number> {
-		const partners = new Set<number>();
-		// TODO: Implement partner history tracking
-		// This would query player_teams to find all players who have been on the same team
-		return partners;
-	}
+	
 }
