@@ -35,7 +35,7 @@ export const actions: Actions = {
 			// Check if tournament_type is changing
 			const currentTournament = await tournament.load(eventId);
 			const tournamentTypeChanged =
-				currentTournament?.tournament_type !== form.data.tournament_type;
+				currentTournament && currentTournament.tournament_type !== form.data.tournament_type;
 
 			// If tournament type changed, clean up all teams and matches
 			if (tournamentTypeChanged && currentTournament) {
