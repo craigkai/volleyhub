@@ -44,7 +44,12 @@
 				}
 
 				// Delete existing player_stats for this match from database
-				await supabase.from('player_stats').delete().eq('match_id', updatedMatch.id);
+				const { error: deleteError } = await supabase.from('player_stats').delete().eq('match_id', updatedMatch.id);
+				if (deleteError) {
+					console.error('Failed to delete existing player_stats for match:', deleteError);
+					toast.error('Failed to update match: could not clear old player stats');
+					return;
+				}
 
 				// Get players for team1
 				const { data: team1Players } = await supabase
