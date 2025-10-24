@@ -322,7 +322,7 @@
 					await data.matches.create(data.tournament, allCreatedTeams);
 				} else {
 					console.warn(`Not enough teams (${allCreatedTeams.length}) to create matches`);
-					toast.error(`Not enough teams (${allCreatedTeams.length}) to create matches. Match generation failed.`);
+					toast.error(`Failed to create matches: need at least 2 teams, got ${allCreatedTeams.length}`);
 				}
 
 				// Reload teams to update the UI
