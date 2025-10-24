@@ -3,7 +3,16 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { execSync } from 'child_process';
 import path from 'path';
 
-process.env.VITE_COMMIT_REF = execSync('git rev-parse HEAD').toString().trim();
+// Get commit ref from Vercel environment variable or git command
+// Vercel provides VERCEL_GIT_COMMIT_SHA during builds
+try {
+	process.env.VITE_COMMIT_REF =
+		process.env.VERCEL_GIT_COMMIT_SHA || execSync('git rev-parse HEAD').toString().trim();
+} catch (error) {
+	// Fallback for environments without git (e.g., some CI/CD systems)
+	process.env.VITE_COMMIT_REF = 'unknown';
+	console.warn('Could not determine git commit ref:', error.message);
+}
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
