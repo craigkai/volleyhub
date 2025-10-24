@@ -54,6 +54,19 @@
 			: 'CLOSED';
 	});
 	let tableContainer: HTMLElement | undefined = $state();
+	let showScrollIndicator = $state(false);
+
+	// Check if table needs horizontal scroll
+	$effect(() => {
+		if (tableContainer) {
+			const checkScroll = () => {
+				showScrollIndicator = tableContainer.scrollWidth > tableContainer.clientWidth;
+			};
+			checkScroll();
+			window.addEventListener('resize', checkScroll);
+			return () => window.removeEventListener('resize', checkScroll);
+		}
+	});
 
 	function heartbeatCheck() {
 		try {
@@ -675,10 +688,25 @@
 			<div class="relative"></div>
 
 			{#if viewMode === 'schedule'}
+			{#if showScrollIndicator}
+				<div class="mb-2 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 sm:hidden">
+					<svg class="h-4 w-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+					</svg>
+					<span>Scroll right to see more courts</span>
+					<svg class="h-4 w-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+					</svg>
+				</div>
+			{/if}
 				<div
 					bind:this={tableContainer}
-					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto"
-				>
+				class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 relative overflow-x-auto"
+			>
+				<!-- Scroll gradient indicator -->
+				{#if showScrollIndicator}
+					<div class="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-white to-transparent dark:from-gray-800 sm:hidden"></div>
+				{/if}
 					<Table.Root>
 						<Table.Header>
 							<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
