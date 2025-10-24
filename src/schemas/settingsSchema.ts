@@ -22,7 +22,9 @@ export const formSchema = z.object({
 	refs: z.enum(['teams', 'provided']),
 	scoring: z.enum(['points', 'wins']),
 	date: z.string().optional(),
-	tournament_type: z.enum(['fixed-teams', 'mix-and-match', 'king-and-queen']).default('fixed-teams'),
+	tournament_type: z
+		.enum(['fixed-teams', 'mix-and-match', 'king-and-queen'])
+		.default('fixed-teams'),
 	team_size: z.coerce.number().int().min(2).max(6).default(2),
 	id: z.coerce.number().int().positive().optional(),
 	owner: z.uuid().optional()

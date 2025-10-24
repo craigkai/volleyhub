@@ -182,91 +182,145 @@
 					return;
 				}
 
-			// Generate teams and matches for ALL rounds based on pools setting
-			const teamSize = data.tournament?.team_size || 2;
-			const numRounds = data.tournament?.pools || 1;
-			const standings = calculateIndividualStandings(
-				data.players.players,
-				data.playerStats?.stats ?? []
-			);
+				// Generate teams and matches for ALL rounds based on pools setting
+				const teamSize = data.tournament?.team_size || 2;
+				const numRounds = data.tournament?.pools || 1;
+				const standings = calculateIndividualStandings(
+					data.players.players,
+					data.playerStats?.stats ?? []
+				);
 
-			const pairingGenerator = new PairingGenerator();
-			const playerTeamsService = new PlayerTeamsSupabaseDatabaseService(
-				data.tournament.databaseService.supabaseClient
-			);
+				const pairingGenerator = new PairingGenerator();
+				const playerTeamsService = new PlayerTeamsSupabaseDatabaseService(
+					data.tournament.databaseService.supabaseClient
+				);
 
-			// Generate teams and matches for each round
-			for (let roundNum = 1; roundNum <= numRounds; roundNum++) {
-				let generatedTeams: Array<{ team: Partial<TeamRow>; playerIds: number[] }>;
+				// Clean up existing temporary teams and their matches before generating new ones
+				console.log('Cleaning up existing temporary teams and matches...');
+				const supabase = data.tournament.databaseService.supabaseClient;
 
-				// Use king-and-queen pairing by default for king-and-queen tournaments
-				if (data.tournament?.tournament_type === 'king-and-queen') {
-					generatedTeams = await pairingGenerator.generateKingQueenPairings(
-						data.players.players,
-						data.tournament.id,
-						roundNum,
-						standings,
-						teamSize
-					);
-				} else {
-					// For mix-and-match, use snake draft by default
-					generatedTeams = await pairingGenerator.generateSnakeDraftPairings(
-						data.players.players,
-						data.tournament.id,
-						roundNum,
-						standings,
-						teamSize
-					);
-				}
+				// First, get all temporary team IDs for this event
+				const { data: tempTeams, error: tempTeamsError } = await supabase
+					.from('teams')
+					.select('id')
+					.eq('event_id', data.tournament.id)
+					.eq('is_temporary', true);
 
-				console.log(`Round ${roundNum}: Generated ${generatedTeams.length} team templates`);
+				if (tempTeamsError) {
+					console.error('Error fetching temporary teams:', tempTeamsError);
+				} else if (tempTeams && tempTeams.length > 0) {
+					const tempTeamIds = tempTeams.map((t) => t.id);
+					console.log(`Found ${tempTeamIds.length} temporary teams to clean up`);
 
-				const createdTeamsForRound: Array<{ id: number; name: string; round?: number }> = [];
+					// Delete matches where team1 or team2 is a temporary team
+					const { error: matchesError } = await supabase
+						.from('matches')
+						.delete()
+						.or(`team1.in.(${tempTeamIds.join(',')}),team2.in.(${tempTeamIds.join(',')})`);
 
-				// Create teams for this round
-				for (const { team: teamData, playerIds } of generatedTeams) {
-					const createdTeam = await data.teams.create(teamData);
+					if (matchesError) {
+						console.error('Error deleting matches:', matchesError);
+					}
 
-					if (createdTeam && createdTeam.id) {
-						createdTeamsForRound.push({
-							id: createdTeam.id,
-							name: createdTeam.name,
-							round: createdTeam.round
-						});
+					// Delete player_teams records for temporary teams
+					const { error: playerTeamsError } = await supabase
+						.from('player_teams')
+						.delete()
+						.in('team_id', tempTeamIds);
 
-						const playerTeamRecords = playerIds.map((playerId) => ({
-							team_id: createdTeam.id,
-							player_id: playerId,
-							position: null
-						}));
+					if (playerTeamsError) {
+						console.error('Error deleting player_teams:', playerTeamsError);
+					}
 
-						await playerTeamsService.createMany(playerTeamRecords);
+					// Delete temporary teams
+					const { error: teamsError } = await supabase
+						.from('teams')
+						.delete()
+						.eq('event_id', data.tournament.id)
+						.eq('is_temporary', true);
+
+					if (teamsError) {
+						console.error('Error deleting temporary teams:', teamsError);
+					} else {
+						console.log('Successfully cleaned up temporary teams and matches');
 					}
 				}
 
-				console.log(`Round ${roundNum}: Created ${createdTeamsForRound.length} teams in database`);
+				// Generate and create all teams for all rounds first
+				const allCreatedTeams: Array<{ id: number; name: string; round?: number }> = [];
 
-				// Create matches for this round's teams
-				if (createdTeamsForRound.length >= 2) {
-					await data.matches.create(data.tournament, createdTeamsForRound);
-				} else {
-					console.warn(`Round ${roundNum}: Not enough teams (${createdTeamsForRound.length}) to create matches`);
+				for (let roundNum = 1; roundNum <= numRounds; roundNum++) {
+					let generatedTeams: Array<{ team: Partial<TeamRow>; playerIds: number[] }>;
+
+					// Use king-and-queen pairing by default for king-and-queen tournaments
+					if (data.tournament?.tournament_type === 'king-and-queen') {
+						generatedTeams = await pairingGenerator.generateKingQueenPairings(
+							data.players.players,
+							data.tournament.id,
+							roundNum,
+							standings,
+							teamSize
+						);
+					} else {
+						// For mix-and-match, use snake draft by default
+						generatedTeams = await pairingGenerator.generateSnakeDraftPairings(
+							data.players.players,
+							data.tournament.id,
+							roundNum,
+							standings,
+							teamSize
+						);
+					}
+
+					console.log(`Round ${roundNum}: Generated ${generatedTeams.length} team templates`);
+
+					// Create teams for this round
+					for (const { team: teamData, playerIds } of generatedTeams) {
+						const createdTeam = await data.teams.create(teamData);
+
+						if (createdTeam && createdTeam.id) {
+							allCreatedTeams.push({
+								id: createdTeam.id,
+								name: createdTeam.name,
+								round: createdTeam.round
+							});
+
+							const playerTeamRecords = playerIds.map((playerId) => ({
+								team_id: createdTeam.id,
+								player_id: playerId,
+								position: null
+							}));
+
+							await playerTeamsService.createMany(playerTeamRecords);
+						}
+					}
+
+					console.log(`Round ${roundNum}: Created ${generatedTeams.length} teams in database`);
 				}
-			}
 
-			// Reload teams to update the UI
-			const loadedTeams = await data.teams.load(data.tournament.id);
-			if (loadedTeams) {
-				data.teams.teams = loadedTeams;
-			}
+				// Now create all matches at once (this will only delete matches once)
+				if (allCreatedTeams.length >= 2) {
+					console.log(
+						`Creating matches for ${allCreatedTeams.length} total teams across ${numRounds} rounds`
+					);
+					await data.matches.create(data.tournament, allCreatedTeams);
+				} else {
+					console.warn(`Not enough teams (${allCreatedTeams.length}) to create matches`);
+				}
 
-			// Reload matches to update the UI
-			await data.matches.load(data.tournament.id);
+				// Reload teams to update the UI
+				const loadedTeams = await data.teams.load(data.tournament.id);
+				if (loadedTeams) {
+					data.teams.teams = loadedTeams;
+				}
 
-			toast.success(`Generated ${numRounds} rounds of matches`);
+				// Reload matches to update the UI
+				await data.matches.load(data.tournament.id);
 
-			// Skip the normal match creation below since we already created matches for each round
-			teamsForMatching = [];
+				toast.success(`Generated ${numRounds} rounds of matches`);
+
+				// Skip the normal match creation below since we already created matches for each round
+				teamsForMatching = [];
 			} else {
 				// For fixed-teams tournaments, use all teams
 				// Check teams count before generating matches
@@ -280,17 +334,22 @@
 					return;
 				}
 
-				teamsForMatching = data.teams.teams.map((team: { id: number; name: string; round?: number }) => ({
-					id: team.id,
-					name: team.name,
-					round: team.round
-				}));
+				teamsForMatching = data.teams.teams.map(
+					(team: { id: number; name: string; round?: number }) => ({
+						id: team.id,
+						name: team.name,
+						round: team.round
+					})
+				);
 			}
 
 			// Only create matches if we have teams (for fixed-teams tournaments)
 			// For mix-and-match, we already created matches in the loop above
 			if (teamsForMatching.length > 0) {
-				const res: Matches | undefined = await data.matches.create(data.tournament, teamsForMatching);
+				const res: Matches | undefined = await data.matches.create(
+					data.tournament,
+					teamsForMatching
+				);
 
 				if (!res) {
 					toast.error('Failed to create matches');
@@ -720,8 +779,7 @@
 
 										{#each Array(data.tournament.courts) as _, court}
 											{@const match = data.matches.matches.find(
-												(m: Match) =>
-													m?.court === court && (m?.round ?? 0) === (round + 1)
+												(m: Match) => m?.court === court && (m?.round ?? 0) === round + 1
 											)}
 											<Table.Cell class="p-2 text-center sm:p-2">
 												{#if match}
@@ -732,6 +790,7 @@
 														{readOnly}
 														{defaultTeam}
 														courts={data.tournament.courts ?? 1}
+														playerStats={data.playerStats}
 													/>
 												{:else if !readOnly}
 													<div class="group relative">
@@ -760,7 +819,7 @@
 
 										{#if data.tournament.refs === 'teams'}
 											{@const matchesPerRound = data.matches.matches.filter(
-												(m: MatchRow) => m.round === (round + 1)
+												(m: MatchRow) => m.round === round + 1
 											)}
 											<Table.Cell class="p-2 pr-3 text-center sm:p-2 sm:pr-4">
 												<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />

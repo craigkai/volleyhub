@@ -8,7 +8,7 @@
 	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import InfoIcon from 'lucide-svelte/icons/info';
 
-	let { match, teams, readOnly = false, defaultTeam, matches, courts } = $props();
+	let { match, teams, readOnly = false, defaultTeam, matches, courts, playerStats } = $props();
 
 	const team1 = $derived.by(() => {
 		return teams?.teams?.find((t: Team) => t.id === match.team1);
@@ -178,7 +178,7 @@
 			</div>
 		</AlertDialog.Trigger>
 		<AlertDialog.Content interactOutsideBehavior="close">
-			<EditMatch matchId={match.id as number} {matches} {teams} />
+			<EditMatch matchId={match.id as number} {matches} {teams} {playerStats} />
 		</AlertDialog.Content>
 	</AlertDialog.Root>
 {/if}

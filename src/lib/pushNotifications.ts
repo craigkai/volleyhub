@@ -76,7 +76,7 @@ export async function sendRoundNotifications(
 		// Send notifications for playing teams
 		const teamNotifications = Array.from(teamsToNotify).map((teamId) => {
 			// Find the match for this team to get court info
-			const match = matches.find(m => m.team1 === teamId || m.team2 === teamId);
+			const match = matches.find((m) => m.team1 === teamId || m.team2 === teamId);
 
 			return supabase.functions.invoke('send-push-notification', {
 				body: {
@@ -95,7 +95,7 @@ export async function sendRoundNotifications(
 		// Send notifications for referees
 		const refNotifications = Array.from(refsToNotify).map((refId) => {
 			// Find the match this team is refereeing to get court info
-			const match = matches.find(m => m.ref === refId);
+			const match = matches.find((m) => m.ref === refId);
 
 			return supabase.functions.invoke('send-push-notification', {
 				body: {

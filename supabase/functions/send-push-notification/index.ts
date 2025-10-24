@@ -12,9 +12,27 @@ serve(async (req) => {
 	}
 
 	try {
-		const { eventId, teamId, teamName, round, action, isRef = false, tournamentName, court } = await req.json();
+		const {
+			eventId,
+			teamId,
+			teamName,
+			round,
+			action,
+			isRef = false,
+			tournamentName,
+			court
+		} = await req.json();
 
-		console.log('Sending push notifications for:', { eventId, teamId, teamName, round, action, isRef, tournamentName, court });
+		console.log('Sending push notifications for:', {
+			eventId,
+			teamId,
+			teamName,
+			round,
+			action,
+			isRef,
+			tournamentName,
+			court
+		});
 
 		if (!eventId || !teamId) {
 			throw new Error('Missing required parameters: eventId and teamId');
@@ -59,7 +77,6 @@ serve(async (req) => {
 			chrome_web_icon: '/pwa-192x192.png',
 			chrome_web_badge: '/pwa-64x64.png'
 		};
-
 
 		const response = await fetch('https://onesignal.com/api/v1/notifications', {
 			method: 'POST',

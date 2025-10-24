@@ -16,7 +16,6 @@
 		mode: dev ? 'development' : 'production'
 	});
 
-
 	let { data = $bindable(), children } = $props();
 
 	let { session, supabase, isMobile, user, is_admin, approved } = $derived(data);
@@ -26,7 +25,10 @@
 			// When session changes, validate it by calling getUser() before invalidating
 			if (newSession?.expires_at !== session?.expires_at) {
 				// Validate the session by calling getUser() to ensure JWT is authentic
-				const { data: { user }, error } = await supabase.auth.getUser();
+				const {
+					data: { user },
+					error
+				} = await supabase.auth.getUser();
 				if (!error && user) {
 					invalidate('supabase:auth');
 				} else if (error) {

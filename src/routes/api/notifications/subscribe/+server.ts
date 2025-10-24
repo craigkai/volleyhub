@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Initialize OneSignal client
 		const configuration = OneSignal.createConfiguration({
-			restApiKey: env.ONESIGNAL_API_KEY,
+			restApiKey: env.ONESIGNAL_API_KEY
 		});
 		const client = new OneSignal.DefaultApi(configuration);
 

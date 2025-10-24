@@ -14,7 +14,10 @@
 		isIOS.set(iOS);
 
 		// Check if app is already installed
-		if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
+		if (
+			window.matchMedia('(display-mode: standalone)').matches ||
+			(window.navigator as any).standalone === true
+		) {
 			isInstalled.set(true);
 			return;
 		}
@@ -122,9 +125,7 @@
 	>
 		<div class="flex items-start justify-between">
 			<div class="flex-1">
-				<h3 class="font-semibold flex items-center gap-2">
-					📱 Install VolleyHub
-				</h3>
+				<h3 class="flex items-center gap-2 font-semibold">📱 Install VolleyHub</h3>
 				<p class="mt-1 text-sm text-blue-100">
 					Add to your home screen for the best experience and push notifications!
 				</p>
@@ -140,15 +141,24 @@
 
 		<div class="mt-3 space-y-2 text-xs text-blue-100">
 			<div class="flex items-center gap-2">
-				<span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-bold">1</span>
+				<span
+					class="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-bold"
+					>1</span
+				>
 				<span>Tap the Share button <span class="font-mono">⬆️</span> below</span>
 			</div>
 			<div class="flex items-center gap-2">
-				<span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-bold">2</span>
+				<span
+					class="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-bold"
+					>2</span
+				>
 				<span>Scroll down and tap "Add to Home Screen"</span>
 			</div>
 			<div class="flex items-center gap-2">
-				<span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-bold">3</span>
+				<span
+					class="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-bold"
+					>3</span
+				>
 				<span>Tap "Add" to install VolleyHub</span>
 			</div>
 		</div>

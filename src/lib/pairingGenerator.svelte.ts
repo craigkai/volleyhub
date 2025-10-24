@@ -41,12 +41,8 @@ export class PairingGenerator extends Base {
 		const playersPerGender = teamSize / 2;
 
 		// Separate by gender and sort by standings (already sorted in standings array)
-		const kings = standings
-			.filter((s) => s.player.gender === 'male')
-			.map((s) => s.player);
-		const queens = standings
-			.filter((s) => s.player.gender === 'female')
-			.map((s) => s.player);
+		const kings = standings.filter((s) => s.player.gender === 'male').map((s) => s.player);
+		const queens = standings.filter((s) => s.player.gender === 'female').map((s) => s.player);
 
 		if (kings.length !== queens.length) {
 			throw new Error('King & Queen requires equal number of male and female players');
@@ -214,7 +210,7 @@ export class PairingGenerator extends Base {
 				if (teamSize <= 4) {
 					// For small teams (3v3, 4v4), show all player names
 					const playerNames = teamPlayerIds
-						.map(id => sortedPlayers.find(p => p.id === id)?.name)
+						.map((id) => sortedPlayers.find((p) => p.id === id)?.name)
 						.filter(Boolean)
 						.join(' & ');
 					teamName = playerNames || `Team ${teamNum}`;

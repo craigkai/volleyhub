@@ -8,15 +8,17 @@
 	import toast from 'svelte-5-french-toast';
 	import { Match } from '$lib/match.svelte';
 	import { Team } from '$lib/team.svelte';
+	import { PlayerStatsSupabaseDatabaseService } from '$lib/database/playerStats';
 
-	let { matchId, matches, teams } = $props();
+	let { matchId, matches, teams, playerStats } = $props();
 
 	let match = matches?.matches?.find((m: { id: number }) => m.id === matchId) as Match;
 
 	async function saveMatch() {
 		try {
 			// Automatically set match state based on whether both teams have scores
-			if (match.team1_score != null && match.team2_score != null) {
+			const isComplete = match.team1_score != null && match.team2_score != null;
+			if (isComplete) {
 				match.state = 'COMPLETE';
 			} else {
 				match.state = 'INCOMPLETE';
@@ -30,6 +32,78 @@
 			const team2 = updatedMatch
 				? teams.teams.find((t: Team) => t.id === updatedMatch.team2)
 				: null;
+
+			// Create player_stats for mix-and-match tournaments when match is completed
+			if (isComplete && updatedMatch && team1 && team2 && matches.databaseService && playerStats) {
+				const supabase = matches.databaseService.supabaseClient;
+				const playerStatsService = new PlayerStatsSupabaseDatabaseService(supabase);
+
+				// Remove existing player_stats for this match from local state (in case of re-scoring)
+				if (playerStats.stats) {
+					playerStats.stats = playerStats.stats.filter((s) => s.match_id !== updatedMatch.id);
+				}
+
+				// Delete existing player_stats for this match from database
+				await supabase.from('player_stats').delete().eq('match_id', updatedMatch.id);
+
+				// Get players for team1
+				const { data: team1Players } = await supabase
+					.from('player_teams')
+					.select('player_id')
+					.eq('team_id', team1.id);
+
+				// Get players for team2
+				const { data: team2Players } = await supabase
+					.from('player_teams')
+					.select('player_id')
+					.eq('team_id', team2.id);
+
+				// Determine winner
+				const team1Won = (updatedMatch.team1_score ?? 0) > (updatedMatch.team2_score ?? 0);
+
+				const newStats: PlayerStatsRow[] = [];
+
+				// Create stats for team1 players
+				if (team1Players && team1Players.length > 0) {
+					const team1Stats = team1Players.map((p) => ({
+						player_id: p.player_id,
+						event_id: updatedMatch.event_id,
+						match_id: updatedMatch.id,
+						win: team1Won,
+						points_scored: updatedMatch.team1_score ?? 0,
+						points_allowed: updatedMatch.team2_score ?? 0
+					}));
+
+					const created = await playerStatsService.createBatch(team1Stats);
+					if (created) {
+						newStats.push(...created);
+					}
+				}
+
+				// Create stats for team2 players
+				if (team2Players && team2Players.length > 0) {
+					const team2Stats = team2Players.map((p) => ({
+						player_id: p.player_id,
+						event_id: updatedMatch.event_id,
+						match_id: updatedMatch.id,
+						win: !team1Won,
+						points_scored: updatedMatch.team2_score ?? 0,
+						points_allowed: updatedMatch.team1_score ?? 0
+					}));
+
+					const created = await playerStatsService.createBatch(team2Stats);
+					if (created) {
+						newStats.push(...created);
+					}
+				}
+
+				// Update local playerStats state directly (no subscription needed)
+				if (newStats.length > 0 && playerStats.stats) {
+					playerStats.stats = [...playerStats.stats, ...newStats];
+				}
+
+				console.log(`Created player_stats for ${newStats.length} players`);
+			}
 
 			toast.success(`Match ${team1?.name} vs ${team2?.name} updated`);
 		} catch (err) {

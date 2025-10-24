@@ -243,11 +243,14 @@ export class Matches extends Base {
 		refs: string = 'provided'
 	): Partial<MatchRow>[] {
 		const matches: Partial<MatchRow>[] = [];
-		let courtNumber = 0;
+		let matchIndex = 0;
 
 		if (import.meta.env.DEV) {
 			console.log('createConsecutivePairings called with:', teams.length, 'teams');
-			console.log('Teams:', teams.map(t => ({ id: t.id, name: t.name, round: t.round })));
+			console.log(
+				'Teams:',
+				teams.map((t) => ({ id: t.id, name: t.name, round: t.round }))
+			);
 		}
 
 		// Pair consecutive teams: [0,1], [2,3], [4,5], etc.
@@ -257,22 +260,31 @@ export class Matches extends Base {
 				const team2 = teams[i + 1];
 
 				if (team1.id && team2.id) {
+					// Calculate round based on match index and available courts
+					// Round = (matchIndex / courts) + 1, so matches are distributed across rounds
+					const round = Math.floor(matchIndex / courts) + 1;
+					const court = matchIndex % courts;
+
 					matches.push({
 						team1: team1.id,
 						team2: team2.id,
 						event_id: this.event_id,
-						round: team1.round || 0,
-						court: courtNumber % courts,
+						round: round,
+						court: court,
 						ref: refs === 'provided' ? null : undefined
 					});
 
-					courtNumber++;
+					matchIndex++;
 				}
 			}
 		}
 
 		if (import.meta.env.DEV) {
 			console.log('Created', matches.length, 'matches');
+			console.log(
+				'Match distribution:',
+				matches.map((m) => ({ round: m.round, court: m.court, team1: m.team1, team2: m.team2 }))
+			);
 		}
 
 		return matches;

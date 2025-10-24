@@ -87,8 +87,8 @@ export class PlayerStats extends Base {
 				return undefined;
 			}
 
-			// Add new stats to the local state
-			this.stats.push(...res);
+			// Add new stats to the local state using array spread for reactivity
+			this.stats = [...this.stats, ...res];
 
 			return res;
 		} catch (err) {
@@ -110,8 +110,8 @@ export class PlayerStats extends Base {
 				return undefined;
 			}
 
-			// Add new stat to the local state
-			this.stats.push(res);
+			// Add new stat to the local state using array spread for reactivity
+			this.stats = [...this.stats, res];
 
 			return res;
 		} catch (err) {
@@ -148,23 +148,28 @@ export class PlayerStats extends Base {
 		}
 
 		if (payload.eventType === 'INSERT') {
-			self.stats.push(updated);
+			// Use array spread to trigger reactivity
+			self.stats = [...self.stats, updated];
 			return;
 		}
 
 		if (payload.eventType === 'UPDATE') {
 			const statToUpdate = self.stats.find((s: PlayerStatsRow) => s.id === old.id);
 			if (statToUpdate) {
-				Object.assign(statToUpdate, updated);
+				// Update properties individually to trigger reactivity
+				statToUpdate.player_id = updated.player_id;
+				statToUpdate.event_id = updated.event_id;
+				statToUpdate.match_id = updated.match_id;
+				statToUpdate.win = updated.win;
+				statToUpdate.points_scored = updated.points_scored;
+				statToUpdate.points_allowed = updated.points_allowed;
 			}
 			return;
 		}
 
 		if (payload.eventType === 'DELETE') {
-			const index = self.stats.findIndex((s: PlayerStatsRow) => s.id === old.id);
-			if (index > -1) {
-				self.stats.splice(index, 1);
-			}
+			// Use filter to create new array and trigger reactivity
+			self.stats = self.stats.filter((s: PlayerStatsRow) => s.id !== old.id);
 			return;
 		}
 	}

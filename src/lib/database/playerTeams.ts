@@ -3,9 +3,11 @@ import { z } from 'zod';
 import { playerTeamsRowSchema, playerTeamsInsertSchema } from '$schemas/supabase';
 
 // Schema validation for an array of player_teams
-const PlayerTeamsRowSchemaArray = z.array(playerTeamsRowSchema).refine((data) => Array.isArray(data), {
-	message: 'Expected an array of player_teams.'
-});
+const PlayerTeamsRowSchemaArray = z
+	.array(playerTeamsRowSchema)
+	.refine((data) => Array.isArray(data), {
+		message: 'Expected an array of player_teams.'
+	});
 
 export class PlayerTeamsSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
@@ -41,10 +43,7 @@ export class PlayerTeamsSupabaseDatabaseService extends SupabaseDatabaseService 
 	 */
 	async createMany(playerTeams: Partial<PlayerTeamRow>[]): Promise<PlayerTeamRow[] | null> {
 		try {
-			const res = await this.supabaseClient
-				.from('player_teams')
-				.insert(playerTeams)
-				.select();
+			const res = await this.supabaseClient.from('player_teams').insert(playerTeams).select();
 
 			// Validate the response using the Zod schema
 			this.validateAndHandleErrors(res, PlayerTeamsRowSchemaArray);
@@ -65,10 +64,7 @@ export class PlayerTeamsSupabaseDatabaseService extends SupabaseDatabaseService 
 	 */
 	async loadByTeam(team_id: number): Promise<PlayerTeamRow[] | null> {
 		try {
-			const res = await this.supabaseClient
-				.from('player_teams')
-				.select('*')
-				.eq('team_id', team_id);
+			const res = await this.supabaseClient.from('player_teams').select('*').eq('team_id', team_id);
 
 			// Validate the response using the Zod schema for an array
 			this.validateAndHandleErrors(res, PlayerTeamsRowSchemaArray);
@@ -113,10 +109,7 @@ export class PlayerTeamsSupabaseDatabaseService extends SupabaseDatabaseService 
 	 */
 	async deleteByTeam(team_id: number): Promise<void> {
 		try {
-			const res = await this.supabaseClient
-				.from('player_teams')
-				.delete()
-				.eq('team_id', team_id);
+			const res = await this.supabaseClient.from('player_teams').delete().eq('team_id', team_id);
 
 			if (res.error) {
 				throw new Error(res.error.message);

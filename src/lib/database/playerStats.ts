@@ -3,9 +3,11 @@ import { z } from 'zod';
 import { playerStatsRowSchema } from '$schemas/playerSchema';
 
 // Schema validation for an array of player stats
-const PlayerStatsRowSchemaArray = z.array(playerStatsRowSchema).refine((data) => Array.isArray(data), {
-	message: 'Expected an array of player stats.'
-});
+const PlayerStatsRowSchemaArray = z
+	.array(playerStatsRowSchema)
+	.refine((data) => Array.isArray(data), {
+		message: 'Expected an array of player stats.'
+	});
 
 export class PlayerStatsSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**

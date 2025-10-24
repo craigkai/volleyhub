@@ -46,9 +46,7 @@
 	function roundHasDefaultTeamRef(): boolean {
 		if (!defaultTeam) return false;
 		return roundMatches.some((m: any) => {
-			const referee = data.teams.teams.find(
-				(t: { id: number; name: string }) => t.id === m.ref
-			);
+			const referee = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.ref);
 			return referee?.name === defaultTeam.name;
 		});
 	}

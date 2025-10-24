@@ -32,6 +32,65 @@ export const actions: Actions = {
 		const tournament = new Event(eventSupabaseDatabaseService);
 
 		try {
+			// Check if tournament_type is changing
+			const currentTournament = await tournament.load(eventId);
+			const tournamentTypeChanged =
+				currentTournament?.tournament_type !== form.data.tournament_type;
+
+			// If tournament type changed, clean up all teams and matches
+			if (tournamentTypeChanged && currentTournament) {
+				console.log(
+					`Tournament type changing from ${currentTournament.tournament_type} to ${form.data.tournament_type} - cleaning up teams and matches`
+				);
+
+				const supabase = event.locals.supabase;
+
+				// Delete all matches for this event
+				const { error: matchesError } = await supabase
+					.from('matches')
+					.delete()
+					.eq('event_id', eventId);
+
+				if (matchesError) {
+					console.error('Error deleting matches:', matchesError);
+				}
+
+				// Get all team IDs for this event
+				const { data: teams, error: teamsLoadError } = await supabase
+					.from('teams')
+					.select('id')
+					.eq('event_id', eventId);
+
+				if (!teamsLoadError && teams && teams.length > 0) {
+					const teamIds = teams.map((t) => t.id);
+
+					// Delete player_teams records
+					const { error: playerTeamsError } = await supabase
+						.from('player_teams')
+						.delete()
+						.in('team_id', teamIds);
+
+					if (playerTeamsError) {
+						console.error('Error deleting player_teams:', playerTeamsError);
+					}
+
+					// Delete teams
+					const { error: teamsError } = await supabase
+						.from('teams')
+						.delete()
+						.eq('event_id', eventId);
+
+					if (teamsError) {
+						console.error('Error deleting teams:', teamsError);
+					} else {
+						console.log('Successfully cleaned up teams and matches');
+					}
+				}
+
+				// Reset current_round to 0
+				await supabase.from('events').update({ current_round: 0 }).eq('id', eventId);
+			}
+
 			const updatedTournament = await tournament.update(eventId, form.data);
 			const parsedData = eventsUpdateSchema.parse(updatedTournament);
 			form.data = parsedData as typeof form.data;
