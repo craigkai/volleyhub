@@ -299,5 +299,4 @@ export class PairingGenerator extends Base {
 		return teams;
 	}
 
-	
 }
