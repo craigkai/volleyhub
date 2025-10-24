@@ -303,6 +303,7 @@
 					await data.matches.create(data.tournament, allCreatedTeams);
 				} else {
 					console.warn(`Not enough teams (${allCreatedTeams.length}) to create matches`);
+					toast.error(`Not enough teams (${allCreatedTeams.length}) to create matches. Match generation failed.`);
 				}
 
 				// Reload teams to update the UI
