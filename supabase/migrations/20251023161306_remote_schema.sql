@@ -101,10 +101,6 @@ alter table "public"."matches" add constraint "public_matches_event_id_fkey" FOR
 
 alter table "public"."matches" validate constraint "public_matches_event_id_fkey";
 
-alter table "public"."matches" add constraint "public_matches_id_fkey" FOREIGN KEY (id) REFERENCES matches(id) ON UPDATE CASCADE ON DELETE CASCADE not valid;
-
-alter table "public"."matches" validate constraint "public_matches_id_fkey";
-
 alter table "public"."matches" add constraint "public_matches_ref_fkey" FOREIGN KEY (ref) REFERENCES teams(id) ON UPDATE CASCADE ON DELETE CASCADE not valid;
 
 alter table "public"."matches" validate constraint "public_matches_ref_fkey";
