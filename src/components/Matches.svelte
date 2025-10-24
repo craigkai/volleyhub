@@ -670,9 +670,9 @@
 			{#if viewMode === 'schedule'}
 				<div
 					bind:this={tableContainer}
-					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto {data.tournament.courts === 1 ? 'flex justify-center' : ''}"
+					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto"
 				>
-					<Table.Root class="{data.tournament.courts === 1 ? 'w-auto max-w-2xl' : ''}">
+					<Table.Root>
 						<Table.Header>
 							<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
 								<Table.Head
