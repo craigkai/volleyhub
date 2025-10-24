@@ -182,6 +182,7 @@
 					type="text"
 					inputmode="numeric"
 					pattern="[0-9]*"
+					aria-label="Score input for {entityType}"
 					bind:value={match[scoreProp]}
 					oninput={(e) => {
 						// Only allow numeric input
