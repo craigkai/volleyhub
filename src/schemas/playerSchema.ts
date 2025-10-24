@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import DOMPurify from 'isomorphic-dompurify';
+
+// Simple HTML tag sanitization that works in all environments (browser and serverless)
+// Strips all HTML tags and returns plain text
+function sanitizeString(str: string): string {
+	return str.replace(/<[^>]*>/g, '').trim();
+}
 
 export const playerRowSchema = z.object({
 	id: z.number(),
@@ -19,7 +24,7 @@ export const playerInsertSchema = z.object({
 		.string()
 		.min(1, 'Name is required')
 		.max(100, 'Name must be less than 100 characters')
-		.transform((val) => DOMPurify.sanitize(val, { ALLOWED_TAGS: [] })),
+		.transform((val) => sanitizeString(val)),
 	event_id: z.number().optional().nullable(),
 	email: z
 		.string()
@@ -40,7 +45,7 @@ export const playerUpdateSchema = z.object({
 		.string()
 		.min(1, 'Name is required')
 		.max(100, 'Name must be less than 100 characters')
-		.transform((val) => DOMPurify.sanitize(val, { ALLOWED_TAGS: [] }))
+		.transform((val) => sanitizeString(val))
 		.optional(),
 	event_id: z.number().optional().nullable(),
 	email: z

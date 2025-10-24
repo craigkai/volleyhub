@@ -89,7 +89,6 @@
 		"@tailwindcss/vite": "^4.1.16",
 		"bufferutil": "^4.0.9",
 		"formsnap": "^2.0.1",
-		"isomorphic-dompurify": "^2.30.1",
 		"svelte-5-french-toast": "^2.0.6",
 		"svelte-kit-bot-block": "^0.0.7",
 		"utf-8-validate": "^6.0.5",
