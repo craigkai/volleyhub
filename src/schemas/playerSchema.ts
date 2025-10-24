@@ -1,9 +1,12 @@
 import { z } from 'zod';
+import createDOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
 
-// Simple HTML tag sanitization that works in all environments (browser and serverless)
-// Strips all HTML tags and returns plain text
+// Comprehensive HTML sanitization using DOMPurify and jsdom for server-side environments
+const window = (new JSDOM('')).window;
+const DOMPurify = createDOMPurify(window);
 function sanitizeString(str: string): string {
-	return str.replace(/<[^>]*>/g, '').trim();
+    return DOMPurify.sanitize(str, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }).trim();
 }
 
 export const playerRowSchema = z.object({
