@@ -162,9 +162,7 @@
 				matchesSubscription = undefined;
 			}
 
-			const isMixAndMatch =
-				data.tournament?.tournament_type === 'mix-and-match' ||
-				data.tournament?.tournament_type === 'king-and-queen';
+			const isMixAndMatch = data.tournament?.tournament_type === 'mix-and-match';
 
 			// Declare variable to hold teams for matching
 			let teamsForMatching: Array<{ id: number; name: string }> = [];
@@ -208,6 +206,9 @@
 
 				if (tempTeamsError) {
 					console.error('Error fetching temporary teams:', tempTeamsError);
+					toast.error('Failed to clean up previous teams. Please try again.');
+					loading = false;
+					return;
 				} else if (tempTeams && tempTeams.length > 0) {
 					const tempTeamIds = tempTeams.map((t) => t.id);
 					console.log(`Found ${tempTeamIds.length} temporary teams to clean up`);
@@ -220,6 +221,9 @@
 
 					if (matchesError) {
 						console.error('Error deleting matches:', matchesError);
+						toast.error('Failed to delete old matches. Please try again.');
+						loading = false;
+						return;
 					}
 
 					// Delete player_teams records for temporary teams
@@ -230,6 +234,9 @@
 
 					if (playerTeamsError) {
 						console.error('Error deleting player_teams:', playerTeamsError);
+						toast.error('Failed to clean up player assignments. Please try again.');
+						loading = false;
+						return;
 					}
 
 					// Delete temporary teams
@@ -241,6 +248,9 @@
 
 					if (teamsError) {
 						console.error('Error deleting temporary teams:', teamsError);
+						toast.error('Failed to delete old teams. Please try again.');
+						loading = false;
+						return;
 					} else {
 						console.log('Successfully cleaned up temporary teams and matches');
 					}
@@ -250,27 +260,14 @@
 				const allCreatedTeams: Array<{ id: number; name: string; round?: number }> = [];
 
 				for (let roundNum = 1; roundNum <= numRounds; roundNum++) {
-					let generatedTeams: Array<{ team: Partial<TeamRow>; playerIds: number[] }>;
-
-					// Use king-and-queen pairing by default for king-and-queen tournaments
-					if (data.tournament?.tournament_type === 'king-and-queen') {
-						generatedTeams = await pairingGenerator.generateKingQueenPairings(
-							data.players.players,
-							data.tournament.id,
-							roundNum,
-							standings,
-							teamSize
-						);
-					} else {
-						// For mix-and-match, use snake draft by default
-						generatedTeams = await pairingGenerator.generateSnakeDraftPairings(
-							data.players.players,
-							data.tournament.id,
-							roundNum,
-							standings,
-							teamSize
-						);
-					}
+					// For mix-and-match, use snake draft pairing
+					const generatedTeams = await pairingGenerator.generateSnakeDraftPairings(
+						data.players.players,
+						data.tournament.id,
+						roundNum,
+						standings,
+						teamSize
+					);
 
 					console.log(`Round ${roundNum}: Generated ${generatedTeams.length} team templates`);
 
@@ -673,9 +670,9 @@
 			{#if viewMode === 'schedule'}
 				<div
 					bind:this={tableContainer}
-					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto"
+					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 overflow-x-auto {data.tournament.courts === 1 ? 'flex justify-center' : ''}"
 				>
-					<Table.Root class="">
+					<Table.Root class="{data.tournament.courts === 1 ? 'w-auto max-w-2xl' : ''}">
 						<Table.Header>
 							<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
 								<Table.Head
@@ -686,7 +683,7 @@
 								{#each Array(data.tournament.courts) as _, i}
 									{@const index = i + 1}
 									<Table.Head
-										class="min-w-[120px] py-3 text-center text-xs font-medium text-gray-700 sm:min-w-[140px] sm:py-3 sm:text-sm dark:text-gray-300"
+										class="py-3 text-center text-xs font-medium text-gray-700 sm:py-3 sm:text-sm dark:text-gray-300 {data.tournament.courts === 1 ? 'min-w-[300px] sm:min-w-[400px]' : 'min-w-[120px] sm:min-w-[140px]'}"
 									>
 										Court {index}
 									</Table.Head>

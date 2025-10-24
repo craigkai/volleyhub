@@ -13,6 +13,7 @@
 	import EditIcon from 'lucide-svelte/icons/edit-2';
 	import SaveIcon from 'lucide-svelte/icons/check';
 	import UsersIcon from 'lucide-svelte/icons/users';
+	import RefreshCw from 'lucide-svelte/icons/refresh-cw';
 
 	const {
 		players = $bindable(),
@@ -37,7 +38,13 @@
 
 	// Use derived state that properly tracks changes
 	let currentPlayers = $derived(players?.players ?? []);
-	let isKingQueen = $derived(tournament?.tournament_type === 'king-and-queen');
+	// Gender tracking disabled (was used for king-and-queen format)
+	let isKingQueen = false;
+
+	// Loading states for better UX
+	let isCreating = $state(false);
+	let deletingPlayerId = $state<number | null>(null);
+	let updatingPlayerId = $state<number | null>(null);
 
 	async function createPlayer() {
 		if (!newPlayerName.trim()) {
@@ -50,6 +57,7 @@
 			return;
 		}
 
+		isCreating = true;
 		try {
 			const newPlayer: Partial<PlayerRow> = {
 				name: newPlayerName,
@@ -71,12 +79,15 @@
 			if (isHttpError(err)) {
 				toast.error(err.body.message);
 			} else {
-				toast.error('Something went wrong');
+				toast.error('Failed to add player. Please try again.');
 			}
+		} finally {
+			isCreating = false;
 		}
 	}
 
 	async function deletePlayer(player: Player) {
+		deletingPlayerId = player.id ?? null;
 		try {
 			await player.delete(player);
 			players.players = players.players.filter(
@@ -85,7 +96,9 @@
 
 			toast.success(`Player ${player.name} removed`);
 		} catch (err: any) {
-			toast.error(err?.body?.message ?? `Something went wrong: ${err}`);
+			toast.error(err?.body?.message ?? 'Failed to delete player. Please try again.');
+		} finally {
+			deletingPlayerId = null;
 		}
 	}
 
@@ -95,6 +108,7 @@
 			return;
 		}
 
+		updatingPlayerId = player.id ?? null;
 		try {
 			const res = await player.update(player);
 			if (res) {
@@ -102,7 +116,9 @@
 				editingPlayerId = null;
 			}
 		} catch (err: any) {
-			toast.error((err as HttpError).toString());
+			toast.error('Failed to update player. Please try again.');
+		} finally {
+			updatingPlayerId = null;
 		}
 	}
 

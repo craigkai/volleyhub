@@ -238,7 +238,7 @@
 								>
 									<UsersIcon class="h-3 w-3 sm:h-4 sm:w-4" />
 									<span class="xs:inline hidden sm:inline">
-										{#if data.tournament?.tournament_type === 'mix-and-match' || data.tournament?.tournament_type === 'king-and-queen'}
+										{#if data.tournament?.tournament_type === 'mix-and-match'}
 											Players
 										{:else}
 											Teams
@@ -305,7 +305,7 @@
 											<Card.Title
 												class="text-lg font-semibold text-gray-900 sm:text-xl dark:text-white"
 											>
-												{#if data.tournament?.tournament_type === 'mix-and-match' || data.tournament?.tournament_type === 'king-and-queen'}
+												{#if data.tournament?.tournament_type === 'mix-and-match'}
 													Players Management
 												{:else}
 													Teams Management
@@ -313,7 +313,7 @@
 											</Card.Title>
 										</div>
 										<Card.Description class="text-sm text-gray-500 dark:text-gray-400">
-											{#if data.tournament?.tournament_type === 'mix-and-match' || data.tournament?.tournament_type === 'king-and-queen'}
+											{#if data.tournament?.tournament_type === 'mix-and-match'}
 												Manage individual players for mix-and-match tournament
 											{:else}
 												Add, edit, or remove teams participating in the tournament
@@ -321,7 +321,7 @@
 										</Card.Description>
 									</Card.Header>
 									<Card.Content class="p-3 sm:p-6">
-										{#if data.tournament?.tournament_type === 'mix-and-match' || data.tournament?.tournament_type === 'king-and-queen'}
+										{#if data.tournament?.tournament_type === 'mix-and-match'}
 											<!-- Mix-and-match / King & Queen: Show Players UI -->
 											{#if players}
 												<ErrorBoundary>

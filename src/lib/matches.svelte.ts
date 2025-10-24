@@ -201,8 +201,8 @@ export class Matches extends Base {
 
 			let matches: Partial<MatchRow>[];
 
-			// For mix-and-match and king-and-queen tournaments, use simple consecutive pairing
-			if (tournament_type === 'mix-and-match' || tournament_type === 'king-and-queen') {
+			// For mix-and-match tournaments, use simple consecutive pairing
+			if (tournament_type === 'mix-and-match') {
 				matches = this.createConsecutivePairings(teams, courts, refs ?? 'provided');
 			} else {
 				// For fixed-teams tournaments, use round-robin algorithm
@@ -235,7 +235,7 @@ export class Matches extends Base {
 
 	/**
 	 * Create matches by pairing consecutive teams (1v2, 3v4, 5v6, etc.)
-	 * Used for mix-and-match and king-and-queen tournaments where teams are temporary
+	 * Used for mix-and-match tournaments where teams are temporary
 	 */
 	private createConsecutivePairings(
 		teams: Partial<TeamRow>[],

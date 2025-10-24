@@ -300,25 +300,23 @@
 												? 'Fixed Teams'
 												: $formData?.tournament_type === 'mix-and-match'
 													? 'Mix & Match'
-													: 'King & Queen'}
+													: 'Mix & Match'}
 										</SelectTrigger>
 										<SelectContent class="bg-white dark:bg-gray-800">
 											<SelectItem value="fixed-teams" label="Fixed Teams" />
 											<SelectItem value="mix-and-match" label="Mix & Match" />
-											<SelectItem value="king-and-queen" label="King & Queen" />
-										</SelectContent>
+											</SelectContent>
 									</SelectRoot>
 									<input type="hidden" value={$formData.tournament_type} name={props.name} />
 								{/snippet}
 							</Control>
 							<Description class="text-xs text-gray-500">
-								Fixed Teams: traditional format. Mix & Match: teams change each round. King & Queen:
-								gender-balanced rotating teams.
+								Fixed Teams: traditional format with pre-defined teams. Mix & Match: teams randomly change each round.
 							</Description>
 						</Field>
 					</div>
 
-					{#if $formData.tournament_type === 'mix-and-match' || $formData.tournament_type === 'king-and-queen'}
+					{#if $formData.tournament_type === 'mix-and-match'}
 						<div class="space-y-1.5">
 							<Field {form} name="team_size">
 								<Control>

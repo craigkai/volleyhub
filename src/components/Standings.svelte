@@ -16,7 +16,7 @@
 
 	// Determine if we're in mix-and-match mode
 	let isMixAndMatch = $derived(
-		event?.tournament_type === 'mix-and-match' || event?.tournament_type === 'king-and-queen'
+		event?.tournament_type === 'mix-and-match'
 	);
 
 	// Calculate team standings (for fixed-teams tournaments)
