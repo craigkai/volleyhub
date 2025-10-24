@@ -260,12 +260,18 @@
 				const allCreatedTeams: Array<{ id: number; name: string; round?: number }> = [];
 
 				for (let roundNum = 1; roundNum <= numRounds; roundNum++) {
-					// For mix-and-match, use snake draft pairing
+					// For mix-and-match, rotate player order each round for different pairings
+					// Round 1: original order, Round 2: rotate by 1, Round 3: rotate by 2, etc.
+					const rotateBy = (roundNum - 1) % standings.length;
+					const rotatedStandings = [
+						...standings.slice(rotateBy),
+						...standings.slice(0, rotateBy)
+					];
 					const generatedTeams = await pairingGenerator.generateSnakeDraftPairings(
 						data.players.players,
 						data.tournament.id,
 						roundNum,
-						standings,
+						rotatedStandings,
 						teamSize
 					);
 

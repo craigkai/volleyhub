@@ -190,20 +190,20 @@
 			{@const isWinner = i === 0 ? team1IsWinner : team2IsWinner}
 			{@const score = i === 0 ? match.team1_score : match.team2_score}
 			<div class="flex items-center text-sm {courts === 1 ? 'justify-center' : 'justify-between'}">
-				<span class="flex items-center gap-1.5 truncate font-medium">
+				<span class="flex min-w-0 flex-1 items-center gap-1.5 font-medium">
 					<span
-						class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold sm:h-5 sm:w-5
+						class="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold sm:h-5 sm:w-5
 						{isWinner && isComplete
 							? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'
 							: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}"
 					>
 						{score ?? '-'}
 					</span>
-					{#if team?.name === defaultTeam}<span class="h-2 w-2 rounded-full bg-green-500"
+					{#if team?.name === defaultTeam}<span class="h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
 						></span>{/if}
-					<span class="text-sm sm:text-sm">{team?.name ?? 'TBD'}</span>
+					<span class="truncate text-sm sm:text-sm">{team?.name ?? 'TBD'}</span>
 					{#if isWinner && isComplete}<TrophyIcon
-							class="h-3.5 w-3.5 text-amber-500 sm:h-3 sm:w-3"
+							class="h-3.5 w-3.5 flex-shrink-0 text-amber-500 sm:h-3 sm:w-3"
 						/>{/if}
 				</span>
 			</div>

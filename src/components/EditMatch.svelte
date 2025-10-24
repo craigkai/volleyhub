@@ -179,8 +179,19 @@
 				<Input
 					class="mt-2 max-w-[100px] rounded border border-blue-500 bg-gray-700 px-3 py-2 text-center leading-tight text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-400 md:mt-0 md:ml-2"
 					id="{entityId}-score-input"
-					type="number"
+					type="text"
+					inputmode="numeric"
+					pattern="[0-9]*"
 					bind:value={match[scoreProp]}
+					oninput={(e) => {
+						// Only allow numeric input
+						const input = e.target as HTMLInputElement;
+						input.value = input.value.replace(/[^0-9]/g, '');
+						// Update the bound value
+						if (scoreProp) {
+							match[scoreProp] = input.value ? parseInt(input.value, 10) : null;
+						}
+					}}
 				/>
 			</div>
 		{/if}

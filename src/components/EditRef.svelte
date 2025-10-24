@@ -17,6 +17,13 @@
 	// derived team from selected ID
 	let refTeam = $derived(teams.teams.find((t: Team) => t.id?.toString() === selectedRefId));
 
+	// Filter out teams that are playing in this match
+	let availableRefTeams = $derived(
+		teams.teams.filter(
+			(t: Team) => t.id !== match?.team1 && t.id !== match?.team2
+		)
+	);
+
 	async function saveRef() {
 		const parsedRef = parseInt(selectedRefId, 10);
 
@@ -85,7 +92,7 @@
 						<Select.Content
 							class="border border-gray-300 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
 						>
-							{#each teams.teams as team}
+							{#each availableRefTeams as team}
 								<Select.Item
 									value={team.id.toString()}
 									label={team.name}
