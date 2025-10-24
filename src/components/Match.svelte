@@ -189,7 +189,7 @@
 		{#each [team1, team2] as team, i}
 			{@const isWinner = i === 0 ? team1IsWinner : team2IsWinner}
 			{@const score = i === 0 ? match.team1_score : match.team2_score}
-			<div class="flex items-center justify-between text-sm">
+			<div class="flex items-center text-sm {courts === 1 ? 'justify-center' : 'justify-between'}">
 				<span class="flex items-center gap-1.5 truncate font-medium">
 					<span
 						class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold sm:h-5 sm:w-5
