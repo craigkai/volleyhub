@@ -48,7 +48,6 @@
 		"framer-motion": "^12.23.24",
 		"globals": "^16.4.0",
 		"i": "^0.3.7",
-		"jsdom": "^27.0.1",
 		"less": "^4.4.2",
 		"lucide-svelte": "^0.546.0",
 		"mode-watcher": "^1.1.0",
