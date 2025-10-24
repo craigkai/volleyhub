@@ -261,7 +261,9 @@ export class Matches extends Base {
 
 				if (team1.id && team2.id) {
 					// Calculate round based on match index and available courts
-					// Round = (matchIndex / courts) + 1, so matches are distributed across rounds
+					// Matches are distributed evenly across courts: for each round, all courts are used in parallel.
+					// Each group of 'courts' matches forms one round. For example, with 3 courts:
+					// matches 0,1,2 are round 1; matches 3,4,5 are round 2; etc.
 					const round = Math.floor(matchIndex / courts) + 1;
 					const court = matchIndex % courts;
 
