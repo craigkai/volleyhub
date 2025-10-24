@@ -166,7 +166,7 @@
 	<AlertDialog.Root>
 		<AlertDialog.Trigger class="block w-full">
 			<!-- Enhanced admin match card with better mobile touch targets -->
-			<div class="match-card group p-3 sm:p-3 {cardBackgroundClass}">
+			<div class="match-card group justify-center p-3 sm:p-3 {cardBackgroundClass}">
 				{@render matchContent()}
 				<div
 					class="absolute right-2 bottom-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 sm:right-1 sm:bottom-1"
