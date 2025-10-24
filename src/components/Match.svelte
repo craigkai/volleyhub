@@ -48,9 +48,7 @@
 
 	const isComplete = $derived.by(() => {
 		const complete = match.state === 'COMPLETE';
-		if (import.meta.env.DEV) {
-			console.log(`Match ${match.id} - isComplete:`, complete, 'state:', match.state);
-		}
+		// Debug logging removed for production safety
 		return complete;
 	});
 
