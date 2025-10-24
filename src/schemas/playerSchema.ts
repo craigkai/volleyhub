@@ -1,12 +1,9 @@
 import { z } from 'zod';
-import createDOMPurify from 'dompurify';
-import { JSDOM } from 'jsdom';
 
-// Comprehensive HTML sanitization using DOMPurify and jsdom for server-side environments
-const window = (new JSDOM('')).window;
-const DOMPurify = createDOMPurify(window);
-function sanitizeString(str: string): string {
-    return DOMPurify.sanitize(str, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }).trim();
+// No sanitization needed - Svelte automatically escapes all content
+// Just basic string cleaning (trim whitespace)
+function cleanString(str: string): string {
+	return str.trim();
 }
 
 export const playerRowSchema = z.object({
@@ -27,7 +24,7 @@ export const playerInsertSchema = z.object({
 		.string()
 		.min(1, 'Name is required')
 		.max(100, 'Name must be less than 100 characters')
-		.transform((val) => sanitizeString(val)),
+		.transform((val) => cleanString(val)),
 	event_id: z.number().optional().nullable(),
 	email: z
 		.string()
@@ -48,7 +45,7 @@ export const playerUpdateSchema = z.object({
 		.string()
 		.min(1, 'Name is required')
 		.max(100, 'Name must be less than 100 characters')
-		.transform((val) => sanitizeString(val))
+		.transform((val) => cleanString(val))
 		.optional(),
 	event_id: z.number().optional().nullable(),
 	email: z
