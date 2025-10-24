@@ -15,6 +15,13 @@
 
 	async function saveMatch() {
 		try {
+			// Automatically set match state based on whether both teams have scores
+			if (match.team1_score != null && match.team2_score != null) {
+				match.state = 'COMPLETE';
+			} else {
+				match.state = 'INCOMPLETE';
+			}
+
 			const updatedMatch = await updateMatch(match);
 
 			const team1 = updatedMatch

@@ -10,8 +10,8 @@
 		ClipboardListIcon,
 		LayoutDashboard,
 		LogOut,
-		MessageCircleQuestion,
-		UserCircle,
+		CircleQuestionMark,
+		CircleUser,
 		UserCog
 	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
@@ -130,7 +130,7 @@
 									onclick={toggleMenu}
 									class="flex items-center gap-2 px-3 py-2 text-sm font-medium"
 								>
-									<UserCircle class="h-5 w-5" />
+									<CircleUser class="h-5 w-5" />
 									<span class="max-w-[150px] truncate">{user?.email}</span>
 									<ChevronDown
 										class="h-4 w-4 transition-transform duration-200 {isUserMenuOpen
@@ -154,15 +154,6 @@
 											{:else}
 												<li>
 													<a
-														href="/protected-routes/account"
-														class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-													>
-														<UserCog class="h-5 w-5" />
-														Manage Account
-													</a>
-												</li>
-												<li>
-													<a
 														href="/protected-routes/dashboard"
 														class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
 													>
@@ -172,10 +163,19 @@
 												</li>
 												<li>
 													<a
+														href="/protected-routes/account"
+														class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+													>
+														<UserCog class="h-5 w-5" />
+														Manage Account
+													</a>
+												</li>
+												<li>
+													<a
 														href="/faq"
 														class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
 													>
-														<MessageCircleQuestion class="h-5 w-5" />
+														<CircleQuestionMark class="h-5 w-5" />
 														FAQ
 													</a>
 												</li>

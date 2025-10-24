@@ -22,9 +22,17 @@
 	let { session, supabase, isMobile, user, is_admin, approved } = $derived(data);
 
 	onMount(() => {
-		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+		const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+			// When session changes, validate it by calling getUser() before invalidating
 			if (newSession?.expires_at !== session?.expires_at) {
-				invalidate('supabase:auth');
+				// Validate the session by calling getUser() to ensure JWT is authentic
+				const { data: { user }, error } = await supabase.auth.getUser();
+				if (!error && user) {
+					invalidate('supabase:auth');
+				} else if (error) {
+					// Session is invalid, invalidate to clear it
+					invalidate('supabase:auth');
+				}
 			}
 		});
 

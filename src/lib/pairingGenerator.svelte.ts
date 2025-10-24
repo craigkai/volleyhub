@@ -1,6 +1,5 @@
 import { Base } from './base';
 import type { Player } from './player.svelte';
-import type { Team } from './team.svelte';
 import type { IndividualStanding } from './individualStandings.svelte';
 
 /**
@@ -59,8 +58,7 @@ export class PairingGenerator extends Base {
 			);
 		}
 
-		const teams: Partial<TeamRow>[] = [];
-		const playerIds: number[][] = []; // Track which players are on which team
+		const teams: Array<{ team: Partial<TeamRow>; playerIds: number[] }> = [];
 		let teamNum = 1;
 
 		// Create teams with equal gender distribution
@@ -90,14 +88,16 @@ export class PairingGenerator extends Base {
 			}
 
 			teams.push({
-				name: teamName,
-				event_id: eventId,
-				is_temporary: true,
-				round: round,
-				team_size: teamSize
+				team: {
+					name: teamName,
+					event_id: eventId,
+					is_temporary: true,
+					round: round,
+					team_size: teamSize
+				},
+				playerIds: teamPlayerIds
 			});
 
-			playerIds.push(teamPlayerIds);
 			teamNum++;
 		}
 
@@ -137,36 +137,53 @@ export class PairingGenerator extends Base {
 			);
 		}
 
-		const teams: Partial<TeamRow>[] = [];
-		const playerIds: number[][] = []; // Track which players are on which team
+		const teams: Array<{ team: Partial<TeamRow>; playerIds: number[] }> = [];
 		const numTeams = totalPlayers / teamSize;
 		let teamNum = 1;
 
 		// For 2v2: Simple snake draft
 		if (teamSize === 2) {
 			for (let i = 0; i < totalPlayers; i += 4) {
+				// Check if we can create a balanced pair (1-4, 2-3 pattern)
 				if (i + 3 < totalPlayers) {
 					// Team 1: 1st and 4th (balanced)
-					const team1PlayerIds = [sortedPlayers[i].id!, sortedPlayers[i + 3].id!];
 					teams.push({
-						name: `Team ${teamNum++}`,
-						event_id: eventId,
-						is_temporary: true,
-						round: round,
-						team_size: teamSize
+						team: {
+							name: `${sortedPlayers[i].name} & ${sortedPlayers[i + 3].name}`,
+							event_id: eventId,
+							is_temporary: true,
+							round: round,
+							team_size: teamSize
+						},
+						playerIds: [sortedPlayers[i].id!, sortedPlayers[i + 3].id!]
 					});
-					playerIds.push(team1PlayerIds);
 
 					// Team 2: 2nd and 3rd (balanced)
-					const team2PlayerIds = [sortedPlayers[i + 1].id!, sortedPlayers[i + 2].id!];
 					teams.push({
-						name: `Team ${teamNum++}`,
-						event_id: eventId,
-						is_temporary: true,
-						round: round,
-						team_size: teamSize
+						team: {
+							name: `${sortedPlayers[i + 1].name} & ${sortedPlayers[i + 2].name}`,
+							event_id: eventId,
+							is_temporary: true,
+							round: round,
+							team_size: teamSize
+						},
+						playerIds: [sortedPlayers[i + 1].id!, sortedPlayers[i + 2].id!]
 					});
-					playerIds.push(team2PlayerIds);
+				} else if (i + 1 < totalPlayers) {
+					// Handle remaining players (less than 4 left) - pair consecutively
+					for (let j = i; j + 1 < totalPlayers; j += 2) {
+						teams.push({
+							team: {
+								name: `${sortedPlayers[j].name} & ${sortedPlayers[j + 1].name}`,
+								event_id: eventId,
+								is_temporary: true,
+								round: round,
+								team_size: teamSize
+							},
+							playerIds: [sortedPlayers[j].id!, sortedPlayers[j + 1].id!]
+						});
+					}
+					break; // Exit loop after handling remaining players
 				}
 			}
 		} else {
@@ -192,14 +209,31 @@ export class PairingGenerator extends Base {
 					}
 				}
 
+				// Generate team name based on team size
+				let teamName: string;
+				if (teamSize <= 4) {
+					// For small teams (3v3, 4v4), show all player names
+					const playerNames = teamPlayerIds
+						.map(id => sortedPlayers.find(p => p.id === id)?.name)
+						.filter(Boolean)
+						.join(' & ');
+					teamName = playerNames || `Team ${teamNum}`;
+				} else {
+					// For larger teams, use round-based naming
+					teamName = `Round ${round} - Team ${teamNum}`;
+				}
+
 				teams.push({
-					name: `Team ${teamNum++}`,
-					event_id: eventId,
-					is_temporary: true,
-					round: round,
-					team_size: teamSize
+					team: {
+						name: teamName,
+						event_id: eventId,
+						is_temporary: true,
+						round: round,
+						team_size: teamSize
+					},
+					playerIds: teamPlayerIds
 				});
-				playerIds.push(teamPlayerIds);
+				teamNum++;
 			}
 		}
 
@@ -220,7 +254,7 @@ export class PairingGenerator extends Base {
 		eventId: number,
 		round: number,
 		teamSize: number = 2
-	): Promise<Partial<TeamRow>[]> {
+	): Promise<Array<{ team: Partial<TeamRow>; playerIds: number[] }>> {
 		const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
 		const totalPlayers = shuffledPlayers.length;
 
@@ -230,8 +264,7 @@ export class PairingGenerator extends Base {
 			);
 		}
 
-		const teams: Partial<TeamRow>[] = [];
-		const playerIds: number[][] = [];
+		const teams: Array<{ team: Partial<TeamRow>; playerIds: number[] }> = [];
 		const numTeams = totalPlayers / teamSize;
 		let teamNum = 1;
 
@@ -255,13 +288,15 @@ export class PairingGenerator extends Base {
 			}
 
 			teams.push({
-				name: teamName,
-				event_id: eventId,
-				is_temporary: true,
-				round: round,
-				team_size: teamSize
+				team: {
+					name: teamName,
+					event_id: eventId,
+					is_temporary: true,
+					round: round,
+					team_size: teamSize
+				},
+				playerIds: teamPlayerIds
 			});
-			playerIds.push(teamPlayerIds);
 			teamNum++;
 		}
 

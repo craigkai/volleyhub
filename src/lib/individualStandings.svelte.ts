@@ -41,13 +41,6 @@ export function calculateIndividualStandings(
 		const matchesPlayed = playerStats.length;
 		const winPercentage = matchesPlayed > 0 ? wins / matchesPlayed : 0;
 
-		// Update player's computed stats
-		player.wins = wins;
-		player.losses = losses;
-		player.pointsDiff = pointsDiff;
-		player.totalPoints = totalPoints;
-		player.matchesPlayed = matchesPlayed;
-
 		standings.push({
 			player,
 			wins,

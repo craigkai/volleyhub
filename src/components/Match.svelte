@@ -10,8 +10,13 @@
 
 	let { match, teams, readOnly = false, defaultTeam, matches, courts } = $props();
 
-	const team1 = $derived(teams.teams.find((t: Team) => t.id === match.team1));
-	const team2 = $derived(teams.teams.find((t: Team) => t.id === match.team2));
+	const team1 = $derived.by(() => {
+		return teams?.teams?.find((t: Team) => t.id === match.team1);
+	});
+
+	const team2 = $derived.by(() => {
+		return teams?.teams?.find((t: Team) => t.id === match.team2);
+	});
 	const teamsForMatch = $derived([team1?.name, team2?.name]);
 
 	const hasDefaultTeam = $derived(defaultTeam ? teamsForMatch.includes(defaultTeam) : false);
@@ -27,20 +32,31 @@
 			: (match.team2_score ?? 0) > (match.team1_score ?? 0)
 	);
 
-	const team1IsWinner = $derived(
-		match?.team1_score != null &&
-			match?.team2_score != null &&
-			match.team1_score > match.team2_score
-	);
+	const team1IsWinner = $derived.by(() => {
+		const score1 = match?.team1_score;
+		const score2 = match?.team2_score;
+		const result = score1 != null && score2 != null && score1 > score2;
+		return result;
+	});
 
-	const team2IsWinner = $derived(
-		match?.team1_score != null &&
-			match?.team2_score != null &&
-			match.team2_score > match.team1_score
-	);
+	const team2IsWinner = $derived.by(() => {
+		const score1 = match?.team1_score;
+		const score2 = match?.team2_score;
+		const result = score1 != null && score2 != null && score2 > score1;
+		return result;
+	});
 
-	const isComplete = $derived(match.state === 'COMPLETE');
-	const hasScores = $derived(match?.team1_score != null && match?.team2_score != null);
+	const isComplete = $derived.by(() => {
+		const complete = match.state === 'COMPLETE';
+		if (import.meta.env.DEV) {
+			console.log(`Match ${match.id} - isComplete:`, complete, 'state:', match.state);
+		}
+		return complete;
+	});
+
+	const hasScores = $derived.by(() => {
+		return match?.team1_score != null && match?.team2_score != null;
+	});
 
 	const cardBackgroundClass = $derived.by(() => {
 		if (!defaultTeam) return '';

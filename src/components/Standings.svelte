@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { findStandings } from '$lib/standings.svelte';
+	import { calculateIndividualStandings } from '$lib/individualStandings.svelte';
 	import * as Table from '$components/ui/table/index.js';
 	import {
 		Collapsible,
@@ -11,9 +12,26 @@
 	import MedalIcon from 'lucide-svelte/icons/medal';
 	import { Badge } from '$components/ui/badge';
 
-	let { event, matches, teams, defaultTeam } = $props();
+	let { event, matches, teams, defaultTeam, players = null, playerStats = null } = $props();
 
+	// Determine if we're in mix-and-match mode
+	let isMixAndMatch = $derived(
+		event?.tournament_type === 'mix-and-match' || event?.tournament_type === 'king-and-queen'
+	);
+
+	// Calculate team standings (for fixed-teams tournaments)
 	let orderedTeamScores = $derived(findStandings(matches.matches, teams.teams));
+
+	// Extract player and stats arrays to ensure reactivity
+	let currentPlayers = $derived(players?.players ?? []);
+	let currentStats = $derived(playerStats?.stats ?? []);
+
+	// Calculate individual player standings (for mix-and-match tournaments)
+	let orderedPlayerScores = $derived(
+		isMixAndMatch && currentPlayers.length > 0
+			? calculateIndividualStandings(currentPlayers, currentStats)
+			: []
+	);
 </script>
 
 <div class="space-y-4">
@@ -29,84 +47,169 @@
 							class="w-16 py-3 pl-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
 							>Rank</Table.Head
 						>
-						<Table.Head class="py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
-							>Team</Table.Head
-						>
+						<Table.Head class="py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+							{isMixAndMatch ? 'Player' : 'Team'}
+						</Table.Head>
 						<Table.Head
-							class="py-3 pr-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
+							class="py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
 							>Wins</Table.Head
 						>
+						{#if isMixAndMatch}
+							<Table.Head
+								class="py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
+								>Pts Diff</Table.Head
+							>
+						{/if}
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
-					{#each orderedTeamScores as team, index}
-						{@const isDefaultTeam = defaultTeam && defaultTeam === team.name}
-						<Table.Row
-							class={`border-t border-gray-200 dark:border-gray-700 ${isDefaultTeam ? 'bg-amber-50 dark:bg-amber-900/20' : ''}`}
-						>
-							<Table.Cell class="py-3 pl-4 text-center">
-								{#if index === 0}
-									<div class="flex justify-center">
-										<span
-											class="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"
+					{#if isMixAndMatch}
+						<!-- Player Standings for Mix & Match -->
+						{#each orderedPlayerScores as standing, index}
+							<Table.Row class="border-t border-gray-200 dark:border-gray-700">
+								<Table.Cell class="py-3 pl-4 text-center">
+									{#if index === 0}
+										<div class="flex justify-center">
+											<span
+												class="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"
+											>
+												<MedalIcon class="h-4 w-4" />
+											</span>
+										</div>
+									{:else if index === 1}
+										<div class="flex justify-center">
+											<span
+												class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+											>
+												<MedalIcon class="h-4 w-4" />
+											</span>
+										</div>
+									{:else if index === 2}
+										<div class="flex justify-center">
+											<span
+												class="flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+											>
+												<MedalIcon class="h-4 w-4" />
+											</span>
+										</div>
+									{:else}
+										<span class="text-sm font-medium text-gray-600 dark:text-gray-400"
+											>{index + 1}</span
 										>
-											<MedalIcon class="h-4 w-4" />
-										</span>
-									</div>
-								{:else if index === 1}
-									<div class="flex justify-center">
-										<span
-											class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
-										>
-											<MedalIcon class="h-4 w-4" />
-										</span>
-									</div>
-								{:else if index === 2}
-									<div class="flex justify-center">
-										<span
-											class="flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
-										>
-											<MedalIcon class="h-4 w-4" />
-										</span>
-									</div>
-								{:else}
-									<span class="text-sm font-medium text-gray-600 dark:text-gray-400"
-										>{index + 1}</span
-									>
-								{/if}
-							</Table.Cell>
-							<Table.Cell class="py-3">
-								<div class="flex items-center gap-2">
-									<span class="font-medium text-gray-800 dark:text-gray-200">{team.name}</span>
-									{#if isDefaultTeam}
-										<Badge
-											variant="outline"
-											class="border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-										>
-											Your Team
-										</Badge>
 									{/if}
-								</div>
-							</Table.Cell>
-							<Table.Cell class="py-3 pr-4 text-center">
-								<span
-									class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-								>
-									{team.wins}
-								</span>
-							</Table.Cell>
-						</Table.Row>
-					{/each}
+								</Table.Cell>
+								<Table.Cell class="py-3">
+									<div class="flex items-center gap-2">
+										<span class="font-medium text-gray-800 dark:text-gray-200"
+											>{standing.player.name}</span
+										>
+										{#if standing.player.gender}
+											<span class="text-xs text-gray-500">
+												{standing.player.gender === 'male' ? '♂' : '♀'}
+											</span>
+										{/if}
+									</div>
+								</Table.Cell>
+								<Table.Cell class="py-3 text-center">
+									<span
+										class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+									>
+										{standing.wins}
+									</span>
+								</Table.Cell>
+								<Table.Cell class="py-3 text-center">
+									<span
+										class="text-sm font-medium {standing.pointsDiff >= 0
+											? 'text-emerald-600 dark:text-emerald-400'
+											: 'text-red-600 dark:text-red-400'}"
+									>
+										{standing.pointsDiff >= 0 ? '+' : ''}{standing.pointsDiff}
+									</span>
+								</Table.Cell>
+							</Table.Row>
+						{/each}
 
-					{#if orderedTeamScores.length === 0}
-						<Table.Row>
-							<Table.Cell
-								colspan={3}
-								class="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
+						{#if orderedPlayerScores.length === 0}
+							<Table.Row>
+								<Table.Cell
+									colspan={4}
+									class="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
+								>
+									No player data available
+								</Table.Cell>
+							</Table.Row>
+						{/if}
+					{:else}
+						<!-- Team Standings for Fixed Teams -->
+						{#each orderedTeamScores as team, index}
+							{@const isDefaultTeam = defaultTeam && defaultTeam === team.name}
+							<Table.Row
+								class={`border-t border-gray-200 dark:border-gray-700 ${isDefaultTeam ? 'bg-amber-50 dark:bg-amber-900/20' : ''}`}
 							>
-								No team data available
-							</Table.Cell>
-						</Table.Row>
+								<Table.Cell class="py-3 pl-4 text-center">
+									{#if index === 0}
+										<div class="flex justify-center">
+											<span
+												class="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"
+											>
+												<MedalIcon class="h-4 w-4" />
+											</span>
+										</div>
+									{:else if index === 1}
+										<div class="flex justify-center">
+											<span
+												class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+											>
+												<MedalIcon class="h-4 w-4" />
+											</span>
+										</div>
+									{:else if index === 2}
+										<div class="flex justify-center">
+											<span
+												class="flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+											>
+												<MedalIcon class="h-4 w-4" />
+											</span>
+										</div>
+									{:else}
+										<span class="text-sm font-medium text-gray-600 dark:text-gray-400"
+											>{index + 1}</span
+										>
+									{/if}
+								</Table.Cell>
+								<Table.Cell class="py-3">
+									<div class="flex items-center gap-2">
+										<span class="font-medium text-gray-800 dark:text-gray-200">{team.name}</span>
+										{#if isDefaultTeam}
+											<Badge
+												variant="outline"
+												class="border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+											>
+												Your Team
+											</Badge>
+										{/if}
+									</div>
+								</Table.Cell>
+								<Table.Cell class="py-3 pr-4 text-center">
+									<span
+										class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+									>
+										{team.wins}
+									</span>
+								</Table.Cell>
+							</Table.Row>
+						{/each}
+
+						{#if orderedTeamScores.length === 0}
+							<Table.Row>
+								<Table.Cell
+									colspan={3}
+									class="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
+								>
+									No team data available
+								</Table.Cell>
+							</Table.Row>
+						{/if}
 					{/if}
 				</Table.Body>
 			</Table.Root>

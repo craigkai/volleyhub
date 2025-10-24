@@ -24,6 +24,9 @@
 	import List from 'lucide-svelte/icons/list';
 	import RoundViewer from './RoundViewer.svelte';
 	import { sendRoundNotifications } from '$lib/pushNotifications';
+	import { PairingGenerator } from '$lib/pairingGenerator.svelte';
+	import { calculateIndividualStandings } from '$lib/individualStandings.svelte';
+	import { PlayerTeamsSupabaseDatabaseService } from '$lib/database/playerTeams';
 
 	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
@@ -54,6 +57,11 @@
 
 	function heartbeatCheck() {
 		try {
+			// Don't try to reconnect if we don't have an event or matches
+			if (!data.tournament?.id || !data.matches?.matches?.length) {
+				return;
+			}
+
 			const matchState = matchesSubscription?.state;
 			const eventState = eventSubscription?.state;
 			const teamsState = teamsSubscription?.state;
@@ -72,8 +80,11 @@
 	}
 
 	onMount(async () => {
-		subscribe();
-		heartbeatInterval = setInterval(heartbeatCheck, HEARTBEAT_INTERVAL_MS);
+		// Only subscribe if we have an actual event (not on create page)
+		if (data.tournament?.id) {
+			subscribe();
+			heartbeatInterval = setInterval(heartbeatCheck, HEARTBEAT_INTERVAL_MS);
+		}
 	});
 
 	onDestroy(() => {
@@ -151,27 +162,140 @@
 				matchesSubscription = undefined;
 			}
 
-			// Check teams count before generating matches
-			if (data.teams.teams.length < 2) {
-				const teamCount = data.teams.teams.length;
-				const message =
-					teamCount === 0
-						? 'No teams found. Please add teams before generating matches.'
-						: `Only ${teamCount} team found. Need at least 2 teams to generate matches.`;
-				toast.error(message);
-				return;
+			const isMixAndMatch =
+				data.tournament?.tournament_type === 'mix-and-match' ||
+				data.tournament?.tournament_type === 'king-and-queen';
+
+			// Declare variable to hold teams for matching
+			let teamsForMatching: Array<{ id: number; name: string }> = [];
+
+			// For mix-and-match, generate teams first
+			if (isMixAndMatch) {
+				// Check if we have players instead of teams
+				if (!data.players || data.players.players.length < 2) {
+					const playerCount = data.players?.players?.length ?? 0;
+					const message =
+						playerCount === 0
+							? 'No players found. Please add players before generating matches.'
+							: `Only ${playerCount} player found. Need at least 2 players to generate matches.`;
+					toast.error(message);
+					return;
+				}
+
+			// Generate teams and matches for ALL rounds based on pools setting
+			const teamSize = data.tournament?.team_size || 2;
+			const numRounds = data.tournament?.pools || 1;
+			const standings = calculateIndividualStandings(
+				data.players.players,
+				data.playerStats?.stats ?? []
+			);
+
+			const pairingGenerator = new PairingGenerator();
+			const playerTeamsService = new PlayerTeamsSupabaseDatabaseService(
+				data.tournament.databaseService.supabaseClient
+			);
+
+			// Generate teams and matches for each round
+			for (let roundNum = 1; roundNum <= numRounds; roundNum++) {
+				let generatedTeams: Array<{ team: Partial<TeamRow>; playerIds: number[] }>;
+
+				// Use king-and-queen pairing by default for king-and-queen tournaments
+				if (data.tournament?.tournament_type === 'king-and-queen') {
+					generatedTeams = await pairingGenerator.generateKingQueenPairings(
+						data.players.players,
+						data.tournament.id,
+						roundNum,
+						standings,
+						teamSize
+					);
+				} else {
+					// For mix-and-match, use snake draft by default
+					generatedTeams = await pairingGenerator.generateSnakeDraftPairings(
+						data.players.players,
+						data.tournament.id,
+						roundNum,
+						standings,
+						teamSize
+					);
+				}
+
+				console.log(`Round ${roundNum}: Generated ${generatedTeams.length} team templates`);
+
+				const createdTeamsForRound: Array<{ id: number; name: string; round?: number }> = [];
+
+				// Create teams for this round
+				for (const { team: teamData, playerIds } of generatedTeams) {
+					const createdTeam = await data.teams.create(teamData);
+
+					if (createdTeam && createdTeam.id) {
+						createdTeamsForRound.push({
+							id: createdTeam.id,
+							name: createdTeam.name,
+							round: createdTeam.round
+						});
+
+						const playerTeamRecords = playerIds.map((playerId) => ({
+							team_id: createdTeam.id,
+							player_id: playerId,
+							position: null
+						}));
+
+						await playerTeamsService.createMany(playerTeamRecords);
+					}
+				}
+
+				console.log(`Round ${roundNum}: Created ${createdTeamsForRound.length} teams in database`);
+
+				// Create matches for this round's teams
+				if (createdTeamsForRound.length >= 2) {
+					await data.matches.create(data.tournament, createdTeamsForRound);
+				} else {
+					console.warn(`Round ${roundNum}: Not enough teams (${createdTeamsForRound.length}) to create matches`);
+				}
 			}
 
-			const teamsForMatching = data.teams.teams.map((team: { id: number; name: string }) => ({
-				id: team.id,
-				name: team.name
-			}));
+			// Reload teams to update the UI
+			const loadedTeams = await data.teams.load(data.tournament.id);
+			if (loadedTeams) {
+				data.teams.teams = loadedTeams;
+			}
 
-			const res: Matches | undefined = await data.matches.create(data.tournament, teamsForMatching);
+			// Reload matches to update the UI
+			await data.matches.load(data.tournament.id);
 
-			if (!res) {
-				toast.error('Failed to create matches');
-				return;
+			toast.success(`Generated ${numRounds} rounds of matches`);
+
+			// Skip the normal match creation below since we already created matches for each round
+			teamsForMatching = [];
+			} else {
+				// For fixed-teams tournaments, use all teams
+				// Check teams count before generating matches
+				if (data.teams.teams.length < 2) {
+					const teamCount = data.teams.teams.length;
+					const message =
+						teamCount === 0
+							? 'No teams found. Please add teams before generating matches.'
+							: `Only ${teamCount} team found. Need at least 2 teams to generate matches.`;
+					toast.error(message);
+					return;
+				}
+
+				teamsForMatching = data.teams.teams.map((team: { id: number; name: string; round?: number }) => ({
+					id: team.id,
+					name: team.name,
+					round: team.round
+				}));
+			}
+
+			// Only create matches if we have teams (for fixed-teams tournaments)
+			// For mix-and-match, we already created matches in the loop above
+			if (teamsForMatching.length > 0) {
+				const res: Matches | undefined = await data.matches.create(data.tournament, teamsForMatching);
+
+				if (!res) {
+					toast.error('Failed to create matches');
+					return;
+				}
 			}
 			// Ensure all subscriptions are active for realtime updates
 			await subscribe();
@@ -597,7 +721,7 @@
 										{#each Array(data.tournament.courts) as _, court}
 											{@const match = data.matches.matches.find(
 												(m: Match) =>
-													m?.court === court && (m?.round ?? 0).toString() === round?.toString()
+													m?.court === court && (m?.round ?? 0) === (round + 1)
 											)}
 											<Table.Cell class="p-2 text-center sm:p-2">
 												{#if match}
@@ -636,7 +760,7 @@
 
 										{#if data.tournament.refs === 'teams'}
 											{@const matchesPerRound = data.matches.matches.filter(
-												(m: MatchRow) => m.round.toString() === round.toString()
+												(m: MatchRow) => m.round === (round + 1)
 											)}
 											<Table.Cell class="p-2 pr-3 text-center sm:p-2 sm:pr-4">
 												<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />

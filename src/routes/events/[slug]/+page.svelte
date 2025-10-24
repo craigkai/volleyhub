@@ -15,6 +15,7 @@
 	import { onMount, tick } from 'svelte';
 	import Settings from '$components/Settings.svelte';
 	import Teams from '$components/Teams.svelte';
+	import Players from '$components/Players.svelte';
 	import ErrorBoundary from '$components/ErrorBoundary.svelte';
 	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import UsersIcon from 'lucide-svelte/icons/users';
@@ -31,7 +32,11 @@
 	let defaultTeam = $state(defaultTeamInitial);
 	let isInitialLoad = $state(true);
 	let readOnly = $state(data?.readOnly ?? false);
-	let teams = $state(data?.teams);
+
+	// Use $derived to automatically track changes from data
+	let teams = $derived(data?.teams);
+	let players = $derived(data?.players);
+	let playerStats = $derived(data?.playerStats);
 
 	let historyReady = $state(false);
 	let mounted = $state(false);
@@ -44,9 +49,8 @@
 		isInitialLoad = false;
 	});
 
-
-	// Use derived state instead of mutating data.teams directly
-	const effectiveTeams = $derived(teams || data?.teams);
+	// Use derived state instead of mutating data directly
+	let effectiveTeams = $derived(teams || data?.teams);
 
 	const teamsSelect = $derived(
 		[...(effectiveTeams?.teams ?? [])]
@@ -56,14 +60,13 @@
 	);
 
 	const isCreate = $derived(data?.eventId ? data.eventId === 'create' : true);
-	const tabsWidth = $derived(readOnly ? 'grid-cols-2' : 'grid-cols-4');
 
 	const tabsReady = $derived(mounted && data && data.eventId);
 
 	// Find selected team data for notifications
 	const selectedTeamData = $derived(
 		defaultTeam && effectiveTeams?.teams
-			? effectiveTeams.teams.find(t => t.name === defaultTeam)
+			? effectiveTeams.teams.find((t) => t.name === defaultTeam)
 			: null
 	);
 
@@ -78,7 +81,7 @@
 	let subscribedTeamId = $state<string | null>(null);
 	const subscribedTeamData = $derived(
 		subscribedTeamId && effectiveTeams?.teams
-			? effectiveTeams.teams.find(t => t.id.toString() === subscribedTeamId)
+			? effectiveTeams.teams.find((t) => t.id.toString() === subscribedTeamId)
 			: null
 	);
 
@@ -180,7 +183,7 @@
 								label={team.name}
 								class="cursor-pointer px-4 py-2 text-gray-800 hover:bg-emerald-50 focus:bg-emerald-50 dark:text-white dark:hover:bg-emerald-900/30 dark:focus:bg-emerald-900/30"
 							>
-								<div class="flex items-center justify-between gap-2 w-full">
+								<div class="flex w-full items-center justify-between gap-2">
 									<div class="flex items-center gap-2">
 										{#if team.name === undefined}
 											<span>Clear selection</span>
@@ -189,7 +192,10 @@
 										{/if}
 									</div>
 									{#if team.id && subscribedTeamId && team.id.toString() === subscribedTeamId}
-										<BellIcon class="h-4 w-4 text-emerald-600 dark:text-emerald-400" title="Notifications enabled" />
+										<BellIcon
+											class="h-4 w-4 text-emerald-600 dark:text-emerald-400"
+											title="Notifications enabled"
+										/>
 									{/if}
 								</div>
 							</Select.Item>
@@ -231,7 +237,13 @@
 									class="flex items-center justify-center gap-1 px-2 py-1.5 text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-700 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-emerald-400"
 								>
 									<UsersIcon class="h-3 w-3 sm:h-4 sm:w-4" />
-									<span class="xs:inline hidden sm:inline">Teams</span>
+									<span class="xs:inline hidden sm:inline">
+										{#if data.tournament?.tournament_type === 'mix-and-match' || data.tournament?.tournament_type === 'king-and-queen'}
+											Players
+										{:else}
+											Teams
+										{/if}
+									</span>
 								</TabsTrigger>
 							{/if}
 							<TabsTrigger
@@ -292,18 +304,42 @@
 											<UsersIcon class="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5" />
 											<Card.Title
 												class="text-lg font-semibold text-gray-900 sm:text-xl dark:text-white"
-												>Teams Management</Card.Title
 											>
+												{#if data.tournament?.tournament_type === 'mix-and-match' || data.tournament?.tournament_type === 'king-and-queen'}
+													Players Management
+												{:else}
+													Teams Management
+												{/if}
+											</Card.Title>
 										</div>
 										<Card.Description class="text-sm text-gray-500 dark:text-gray-400">
-											Add, edit, or remove teams participating in the tournament
+											{#if data.tournament?.tournament_type === 'mix-and-match' || data.tournament?.tournament_type === 'king-and-queen'}
+												Manage individual players for mix-and-match tournament
+											{:else}
+												Add, edit, or remove teams participating in the tournament
+											{/if}
 										</Card.Description>
 									</Card.Header>
 									<Card.Content class="p-3 sm:p-6">
-										{#if effectiveTeams}
-											<ErrorBoundary>
-												<Teams bind:teams matches={data.matches} />
-											</ErrorBoundary>
+										{#if data.tournament?.tournament_type === 'mix-and-match' || data.tournament?.tournament_type === 'king-and-queen'}
+											<!-- Mix-and-match / King & Queen: Show Players UI -->
+											{#if players}
+												<ErrorBoundary>
+													<Players
+														bind:players
+														bind:playerStats
+														bind:teams
+														tournament={data.tournament}
+													/>
+												</ErrorBoundary>
+											{/if}
+										{:else}
+											<!-- Fixed Teams: Show traditional Teams UI -->
+											{#if effectiveTeams}
+												<ErrorBoundary>
+													<Teams bind:teams matches={data.matches} />
+												</ErrorBoundary>
+											{/if}
 										{/if}
 									</Card.Content>
 								</div>
@@ -375,6 +411,8 @@
 											matches={data.matches}
 											{defaultTeam}
 											teams={effectiveTeams}
+											{players}
+											{playerStats}
 										/>
 									{:else}
 										<div

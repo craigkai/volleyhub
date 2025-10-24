@@ -84,9 +84,24 @@ export class Matches extends Base {
 				self.databaseService.supabaseClient
 			);
 			const newMatchInstance = new Match(matchSupabaseDatabaseService);
-			Object.assign(newMatchInstance, updated);
 
-			self.matches.push(newMatchInstance);
+			// Assign properties individually to work with $state reactivity
+			newMatchInstance.id = updated.id;
+			newMatchInstance.event_id = updated.event_id;
+			newMatchInstance.team1 = updated.team1;
+			newMatchInstance.team2 = updated.team2;
+			newMatchInstance.team1_score = updated.team1_score;
+			newMatchInstance.team2_score = updated.team2_score;
+			newMatchInstance.state = updated.state as MatchState;
+			newMatchInstance.court = updated.court;
+			newMatchInstance.round = updated.round;
+			newMatchInstance.ref = updated.ref;
+			newMatchInstance.child_id = updated.child_id;
+			newMatchInstance.created_at = updated.created_at;
+			newMatchInstance.type = updated.type;
+
+			// Trigger reactivity by reassigning the array
+			self.matches = [...self.matches, newMatchInstance];
 
 			return;
 		}
@@ -108,8 +123,15 @@ export class Matches extends Base {
 		let updatedMatch = self.matches.find((m: Match) => m.id === old.id);
 
 		if (updatedMatch && updatedMatch.id) {
-			// Update match directly from realtime payload
-			Object.assign(updatedMatch, updated);
+			// Update match properties individually to trigger $state reactivity
+			updatedMatch.team1_score = updated.team1_score;
+			updatedMatch.team2_score = updated.team2_score;
+			updatedMatch.state = updated.state as MatchState;
+			updatedMatch.team1 = updated.team1;
+			updatedMatch.team2 = updated.team2;
+			updatedMatch.court = updated.court;
+			updatedMatch.round = updated.round;
+			updatedMatch.ref = updated.ref;
 		} else {
 			self.handleError(
 				400,
@@ -146,7 +168,7 @@ export class Matches extends Base {
 	 * @returns {Promise<Matches | undefined>} - Returns the Matches instance or undefined if creation fails.
 	 */
 	async create(
-		{ pools = 0, courts, refs = 'provided' }: Event | Partial<EventRow>,
+		{ pools = 0, courts, refs = 'provided', tournament_type }: Event | Partial<EventRow>,
 		teams: Team[]
 	): Promise<Matches | undefined> {
 		if (!this.event_id) {
@@ -177,11 +199,17 @@ export class Matches extends Base {
 
 			await this.databaseService.deleteMatchesByEvent(this.event_id);
 
-			// Total rounds should be the maximum number of rounds needed to ensure each team plays the desired number of games
-			const totalRounds = Math.floor(teams.length * (pools / (teams.length - 1)));
-			let rounds = this.calculateMatches(teams, [], 0, totalRounds, pools);
+			let matches: Partial<MatchRow>[];
 
-			let matches = this.calculateCourtsAndRounds(rounds, courts, teams, refs ?? 'provided');
+			// For mix-and-match and king-and-queen tournaments, use simple consecutive pairing
+			if (tournament_type === 'mix-and-match' || tournament_type === 'king-and-queen') {
+				matches = this.createConsecutivePairings(teams, courts, refs ?? 'provided');
+			} else {
+				// For fixed-teams tournaments, use round-robin algorithm
+				const totalRounds = Math.floor(teams.length * (pools / (teams.length - 1)));
+				let rounds = this.calculateMatches(teams, [], 0, totalRounds, pools);
+				matches = this.calculateCourtsAndRounds(rounds, courts, teams, refs ?? 'provided');
+			}
 
 			const res = await this.databaseService.insertMatches(matches);
 			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
@@ -203,6 +231,51 @@ export class Matches extends Base {
 		} catch (err) {
 			this.handleError(500, err instanceof Error ? err.message : (err as string));
 		}
+	}
+
+	/**
+	 * Create matches by pairing consecutive teams (1v2, 3v4, 5v6, etc.)
+	 * Used for mix-and-match and king-and-queen tournaments where teams are temporary
+	 */
+	private createConsecutivePairings(
+		teams: Partial<TeamRow>[],
+		courts: number,
+		refs: string = 'provided'
+	): Partial<MatchRow>[] {
+		const matches: Partial<MatchRow>[] = [];
+		let courtNumber = 0;
+
+		if (import.meta.env.DEV) {
+			console.log('createConsecutivePairings called with:', teams.length, 'teams');
+			console.log('Teams:', teams.map(t => ({ id: t.id, name: t.name, round: t.round })));
+		}
+
+		// Pair consecutive teams: [0,1], [2,3], [4,5], etc.
+		for (let i = 0; i < teams.length; i += 2) {
+			if (i + 1 < teams.length) {
+				const team1 = teams[i];
+				const team2 = teams[i + 1];
+
+				if (team1.id && team2.id) {
+					matches.push({
+						team1: team1.id,
+						team2: team2.id,
+						event_id: this.event_id,
+						round: team1.round || 0,
+						court: courtNumber % courts,
+						ref: refs === 'provided' ? null : undefined
+					});
+
+					courtNumber++;
+				}
+			}
+		}
+
+		if (import.meta.env.DEV) {
+			console.log('Created', matches.length, 'matches');
+		}
+
+		return matches;
 	}
 
 	/**

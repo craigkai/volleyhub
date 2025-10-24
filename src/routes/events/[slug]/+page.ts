@@ -26,7 +26,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		error(404, 'Event not found');
 	}
 
-	const { tournament, matches, teams, bracket } = res;
+	const { tournament, matches, teams, bracket, players, playerStats } = res;
 
 	const isOwner = data.user?.id && data.user?.id === tournament?.owner;
 	const isAdmin = is_admin === true;
@@ -41,7 +41,9 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 			pools: tournament.pools,
 			courts: tournament.courts,
 			scoring: tournament.scoring,
-			refs: tournament.refs
+			refs: tournament.refs,
+			tournament_type: tournament.tournament_type || 'fixed-teams',
+			team_size: tournament.team_size || 2
 		},
 		zod4(settingsSchema)
 	);
@@ -54,6 +56,8 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		matches,
 		teams,
 		bracket,
+		players,
+		playerStats,
 		defaultTeam: url.searchParams.get('team')
 	};
 };

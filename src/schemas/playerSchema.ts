@@ -7,7 +7,6 @@ export const playerRowSchema = z.object({
 	name: z.string(),
 	event_id: z.number().nullable(),
 	email: z.string().nullable(),
-	phone: z.string().nullable(),
 	gender: z.string().nullable(),
 	skill_level: z.number().nullable(),
 	state: z.string().nullable()
@@ -29,7 +28,6 @@ export const playerInsertSchema = z.object({
 		.nullable()
 		.or(z.literal(''))
 		.transform((val) => (val === '' ? null : val)),
-	phone: z.string().optional().nullable(),
 	gender: z.enum(['male', 'female', 'other']).optional().nullable(),
 	skill_level: z.number().min(1).max(10).optional().nullable(),
 	state: z.string().optional().nullable().default('active')
@@ -52,7 +50,6 @@ export const playerUpdateSchema = z.object({
 		.nullable()
 		.or(z.literal(''))
 		.transform((val) => (val === '' ? null : val)),
-	phone: z.string().optional().nullable(),
 	gender: z.enum(['male', 'female', 'other']).optional().nullable(),
 	skill_level: z.number().min(1).max(10).optional().nullable(),
 	state: z.string().optional().nullable()

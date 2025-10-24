@@ -2,6 +2,31 @@
 import { z } from 'zod';
 import type { Json } from './../types/supabase';
 
+// Player Teams Junction Table Schemas
+export const playerTeamsRowSchema = z.object({
+	id: z.number(),
+	created_at: z.string().nullable(),
+	player_id: z.number().nullable(),
+	team_id: z.number().nullable(),
+	position: z.string().nullable()
+});
+
+export const playerTeamsInsertSchema = z.object({
+	id: z.number().optional(),
+	created_at: z.string().optional().nullable(),
+	player_id: z.number().nullable(),
+	team_id: z.number().nullable(),
+	position: z.string().optional().nullable()
+});
+
+export const playerTeamsUpdateSchema = z.object({
+	id: z.number().optional(),
+	created_at: z.string().optional().nullable(),
+	player_id: z.number().optional().nullable(),
+	team_id: z.number().optional().nullable(),
+	position: z.string().optional().nullable()
+});
+
 export const jsonSchema: z.ZodSchema<Json> = z.lazy(() =>
 	z
 		.union([
@@ -25,7 +50,9 @@ export const eventsRowSchema = z.object({
 	pools: z.number().nullable(),
 	refs: z.string().nullable(),
 	scoring: z.string().nullable(),
-	current_round: z.number().optional().nullable()
+	current_round: z.number().optional().nullable(),
+	tournament_type: z.string().optional().nullable(),
+	team_size: z.number().optional().nullable()
 });
 
 export const eventsInsertSchema = z.object({
@@ -39,7 +66,9 @@ export const eventsInsertSchema = z.object({
 	refs: z.string().optional().nullable(),
 	scoring: z.string().optional().nullable(),
 	description: z.string().optional(),
-	current_round: z.number().optional().nullable()
+	current_round: z.number().optional().nullable(),
+	tournament_type: z.string().optional().nullable(),
+	team_size: z.number().optional().nullable()
 });
 
 export const eventsUpdateSchema = z.object({
@@ -53,7 +82,9 @@ export const eventsUpdateSchema = z.object({
 	pools: z.number().optional().nullable(),
 	refs: z.string().optional().nullable(),
 	scoring: z.string().optional().nullable(),
-	current_round: z.number().optional().nullable()
+	current_round: z.number().optional().nullable(),
+	tournament_type: z.string().optional().nullable(),
+	team_size: z.number().optional().nullable()
 });
 
 export const matchStateSchema = z.union([z.literal('COMPLETE'), z.literal('INCOMPLETE')]);
@@ -95,7 +126,10 @@ export const teamsRowSchema = z.object({
 	event_id: z.number().nullable(),
 	id: z.number(),
 	name: z.string(),
-	state: z.string().nullable()
+	state: z.string().nullable(),
+	round: z.number().nullable(),
+	is_temporary: z.boolean().nullable(),
+	team_size: z.number().nullable()
 });
 
 export const teamsInsertSchema = z.object({
@@ -103,7 +137,10 @@ export const teamsInsertSchema = z.object({
 	event_id: z.number().optional().nullable(),
 	id: z.number().optional(),
 	name: z.string(),
-	state: z.string().optional().nullable()
+	state: z.string().optional().nullable(),
+	round: z.number().optional().nullable(),
+	is_temporary: z.boolean().optional().nullable(),
+	team_size: z.number().optional().nullable()
 });
 
 export const teamsUpdateSchema = z.object({
@@ -111,7 +148,10 @@ export const teamsUpdateSchema = z.object({
 	event_id: z.number().optional().nullable(),
 	id: z.number().optional(),
 	name: z.string().optional(),
-	state: z.string().optional().nullable()
+	state: z.string().optional().nullable(),
+	round: z.number().optional().nullable(),
+	is_temporary: z.boolean().optional().nullable(),
+	team_size: z.number().optional().nullable()
 });
 
 export const stageTypeSchema = z.union([

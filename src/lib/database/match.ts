@@ -104,6 +104,10 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 		try {
 			const parsedMatch = matchesUpdateSchema.parse(match);
 
+			if (import.meta.env.DEV) {
+				console.log('Updating match:', match.id, 'with state:', match.state, 'parsed:', parsedMatch);
+			}
+
 			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
 				.from('matches')
 				.update(parsedMatch)

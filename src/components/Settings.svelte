@@ -27,6 +27,8 @@
 	import CourtIcon from 'lucide-svelte/icons/layout-grid';
 	import UserIcon from 'lucide-svelte/icons/users';
 	import ScoreIcon from 'lucide-svelte/icons/bar-chart-2';
+	import ShuffleIcon from 'lucide-svelte/icons/shuffle';
+	import UsersRoundIcon from 'lucide-svelte/icons/users-round';
 
 	const { data, eventId } = $props();
 
@@ -263,6 +265,97 @@
 							<Description class="text-xs text-gray-500">Seeding criteria for playoffs</Description>
 						</Field>
 					</div>
+				</div>
+			</div>
+
+			<div class="border-t border-gray-200 dark:border-gray-700"></div>
+
+			<div>
+				<h3 class="mb-4 text-base font-medium text-gray-800 sm:text-lg dark:text-white">
+					Team Format
+				</h3>
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+					<div class="space-y-1.5">
+						<Field {form} name="tournament_type">
+							<Control>
+								{#snippet children({ props })}
+									<div class="flex items-center gap-2">
+										<ShuffleIcon class="h-4 w-4 text-gray-500" />
+										<Label class="text-sm font-medium sm:text-base">Tournament Type</Label>
+									</div>
+									<SelectRoot
+										type="single"
+										bind:value={$formData.tournament_type}
+										onValueChange={(value) => {
+											if (value) {
+												$formData.tournament_type = value;
+											}
+										}}
+									>
+										<SelectTrigger
+											{...props}
+											class="mt-1.5 min-w-[8rem] border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
+										>
+											{$formData?.tournament_type === 'fixed-teams'
+												? 'Fixed Teams'
+												: $formData?.tournament_type === 'mix-and-match'
+													? 'Mix & Match'
+													: 'King & Queen'}
+										</SelectTrigger>
+										<SelectContent class="bg-white dark:bg-gray-800">
+											<SelectItem value="fixed-teams" label="Fixed Teams" />
+											<SelectItem value="mix-and-match" label="Mix & Match" />
+											<SelectItem value="king-and-queen" label="King & Queen" />
+										</SelectContent>
+									</SelectRoot>
+									<input type="hidden" value={$formData.tournament_type} name={props.name} />
+								{/snippet}
+							</Control>
+							<Description class="text-xs text-gray-500">
+								Fixed Teams: traditional format. Mix & Match: teams change each round. King & Queen:
+								gender-balanced rotating teams.
+							</Description>
+						</Field>
+					</div>
+
+					{#if $formData.tournament_type === 'mix-and-match' || $formData.tournament_type === 'king-and-queen'}
+						<div class="space-y-1.5">
+							<Field {form} name="team_size">
+								<Control>
+									{#snippet children({ props })}
+										<div class="flex items-center gap-2">
+											<UsersRoundIcon class="h-4 w-4 text-gray-500" />
+											<Label class="text-sm font-medium sm:text-base">Team Size</Label>
+										</div>
+										<SelectRoot
+											type="single"
+											bind:value={$formData.team_size}
+											onValueChange={(value) => {
+												if (value) {
+													$formData.team_size = value;
+												}
+											}}
+										>
+											<SelectTrigger
+												{...props}
+												class="mt-1.5 min-w-[8rem] border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
+											>
+												{$formData?.team_size}v{$formData?.team_size}
+											</SelectTrigger>
+											<SelectContent class="bg-white dark:bg-gray-800">
+												<SelectItem value={2} label="2v2 (Beach Doubles)" />
+												<SelectItem value={3} label="3v3 (Grass)" />
+												<SelectItem value={4} label="4v4" />
+												<SelectItem value={6} label="6v6 (Indoor)" />
+											</SelectContent>
+										</SelectRoot>
+										<input type="hidden" value={$formData.team_size} name={props.name} />
+									{/snippet}
+								</Control>
+								<Description class="text-xs text-gray-500">Number of players per team</Description>
+							</Field>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>
