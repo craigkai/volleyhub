@@ -21,6 +21,14 @@
 	let { session, supabase, isMobile, user, is_admin, approved } = $derived(data);
 
 	onMount(() => {
+		// Suppress benign ResizeObserver warnings from Radix UI components
+		const resizeObserverErrHandler = (e: ErrorEvent) => {
+			if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
+				e.stopImmediatePropagation();
+			}
+		};
+		window.addEventListener('error', resizeObserverErrHandler);
+
 		const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
 			// When session changes, validate it by calling getUser() before invalidating
 			if (newSession?.expires_at !== session?.expires_at) {
@@ -38,7 +46,10 @@
 			}
 		});
 
-		return () => data.subscription.unsubscribe();
+		return () => {
+			window.removeEventListener('error', resizeObserverErrHandler);
+			data.subscription.unsubscribe();
+		};
 	});
 
 	function handleError(event: ErrorEvent) {
