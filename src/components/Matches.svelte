@@ -207,7 +207,6 @@
 				);
 
 				// Clean up existing temporary teams and their matches before generating new ones
-				console.log('Cleaning up existing temporary teams and matches...');
 				const supabase = data.tournament.databaseService.supabaseClient;
 
 				// First, get all temporary team IDs for this event
@@ -224,7 +223,6 @@
 					return;
 				} else if (tempTeams && tempTeams.length > 0) {
 					const tempTeamIds = tempTeams.map((t) => t.id);
-					console.log(`Found ${tempTeamIds.length} temporary teams to clean up`);
 
 					// Delete matches where team1 or team2 is a temporary team
 					const { error: matchesError } = await supabase
@@ -264,8 +262,6 @@
 						toast.error('Failed to delete old teams. Please try again.');
 						loading = false;
 						return;
-					} else {
-						console.log('Successfully cleaned up temporary teams and matches');
 					}
 				}
 
@@ -288,8 +284,6 @@
 						teamSize
 					);
 
-					console.log(`Round ${roundNum}: Generated ${generatedTeams.length} team templates`);
-
 					// Create teams for this round
 					for (const { team: teamData, playerIds } of generatedTeams) {
 						const createdTeam = await data.teams.create(teamData);
@@ -310,15 +304,10 @@
 							await playerTeamsService.createMany(playerTeamRecords);
 						}
 					}
-
-					console.log(`Round ${roundNum}: Created ${generatedTeams.length} teams in database`);
 				}
 
 				// Now create all matches at once (this will only delete matches once)
 				if (allCreatedTeams.length >= 2) {
-					console.log(
-						`Creating matches for ${allCreatedTeams.length} total teams across ${numRounds} rounds`
-					);
 					await data.matches.create(data.tournament, allCreatedTeams);
 				} else {
 					console.warn(`Not enough teams (${allCreatedTeams.length}) to create matches`);
