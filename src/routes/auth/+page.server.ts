@@ -49,13 +49,15 @@ export const actions = {
 		return redirect(303, '/protected-routes/dashboard');
 	},
 
-	resetpassword: async ({ request, locals: { supabase } }) => {
+	resetpassword: async ({ request, locals: { supabase }, url }) => {
 		const form = await superValidate(request, zod4(magicLinkSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const { email } = form.data;
+		// Use the current origin from the request to support multiple environments
+		const origin = url.origin;
 		const { error } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo: 'https://volleyhub.vercel.app/auth/confirm?next=/protected-routes/account'
+			redirectTo: `${origin}/auth/confirm?next=/protected-routes/account`
 		});
 
 		if (error) {
@@ -67,15 +69,17 @@ export const actions = {
 		return redirect(303, '/auth/results?type=reset');
 	},
 
-	magic: async ({ request, locals: { supabase } }) => {
+	magic: async ({ request, locals: { supabase }, url }) => {
 		const form = await superValidate(request, zod4(magicLinkSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const { email } = form.data;
+		// Use the current origin from the request to support multiple environments
+		const origin = url.origin;
 		const { error } = await supabase.auth.signInWithOtp({
 			email,
 			options: {
-				emailRedirectTo: 'https://volleyhub.vercel.app/auth/confirm?next=/protected-routes/account'
+				emailRedirectTo: `${origin}/auth/confirm?next=/protected-routes/account`
 			}
 		});
 

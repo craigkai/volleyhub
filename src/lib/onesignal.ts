@@ -1,4 +1,6 @@
 // OneSignal initialization and utilities
+import { PUBLIC_ONESIGNAL_APP_ID } from '$env/static/public';
+
 declare global {
 	interface Window {
 		OneSignal: any;
@@ -26,7 +28,7 @@ export async function initializeOneSignal(): Promise<any> {
 				// OneSignal is already loaded, initialize directly
 				if (!oneSignalInitialized) {
 					window.OneSignal.init({
-						appId: '4327f5d8-8fdc-47cd-88e4-4f29cb648f21',
+						appId: PUBLIC_ONESIGNAL_APP_ID,
 						allowLocalhostAsSecureOrigin: true,
 						serviceWorkerPath: 'OneSignalSDKWorker.js'
 					})
@@ -44,7 +46,7 @@ export async function initializeOneSignal(): Promise<any> {
 					try {
 						if (!oneSignalInitialized) {
 							await OneSignal.init({
-								appId: '4327f5d8-8fdc-47cd-88e4-4f29cb648f21',
+								appId: PUBLIC_ONESIGNAL_APP_ID,
 								allowLocalhostAsSecureOrigin: true,
 								serviceWorkerPath: 'OneSignalSDKWorker.js'
 							});
