@@ -85,6 +85,7 @@
 	"type": "module",
 	"dependencies": {
 		"@onesignal/node-onesignal": "^5.3.1-beta1",
+		"@sveltejs/mcp": "^0.1.11",
 		"@tailwindcss/vite": "^4.1.16",
 		"bufferutil": "^4.0.9",
 		"formsnap": "^2.0.1",
