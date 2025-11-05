@@ -237,56 +237,18 @@
 						return;
 					}
 
-					// Delete player_teams records for temporary teams
-					const { error: playerTeamsError } = await supabase
-						.from('player_teams')
+					// Delete temporary teams (CASCADE will automatically delete player_teams)
+					const { error: teamsError } = await supabase
+						.from('teams')
 						.delete()
-						.in('team_id', tempTeamIds);
+						.in('id', tempTeamIds);
 
-					if (playerTeamsError) {
-						console.error('Error deleting player_teams:', playerTeamsError);
-						toast.error('Failed to clean up player assignments. Please try again.');
+					if (teamsError) {
+						console.error('Error deleting temporary teams:', teamsError);
+						toast.error('Failed to delete old teams. Please try again.');
 						loading = false;
 						return;
 					}
-				}
-
-				// For mix-and-match, also clean up any orphaned player_teams records
-				// Get all player IDs for this event
-				const { data: eventPlayers, error: playersError } = await supabase
-					.from('players')
-					.select('id')
-					.eq('event_id', data.tournament.id);
-
-				if (!playersError && eventPlayers && eventPlayers.length > 0) {
-					const playerIds = eventPlayers.map((p) => p.id);
-
-					// Delete ALL existing player_teams for these players to avoid duplicates
-					const { error: cleanupError } = await supabase
-						.from('player_teams')
-						.delete()
-						.in('player_id', playerIds);
-
-					if (cleanupError) {
-						console.error('Error cleaning up player_teams:', cleanupError);
-						toast.error('Failed to clean up player assignments. Please try again.');
-						loading = false;
-						return;
-					}
-				}
-
-				// Delete temporary teams
-				const { error: teamsError } = await supabase
-					.from('teams')
-					.delete()
-					.eq('event_id', data.tournament.id)
-					.eq('is_temporary', true);
-
-				if (teamsError) {
-					console.error('Error deleting temporary teams:', teamsError);
-					toast.error('Failed to delete old teams. Please try again.');
-					loading = false;
-					return;
 				}
 
 				// Generate and create all teams for all rounds first
