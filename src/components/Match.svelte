@@ -8,7 +8,8 @@
 	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import InfoIcon from 'lucide-svelte/icons/info';
 
-	let { match, teams, readOnly = false, defaultTeam, matches, courts, playerStats } = $props();
+	let { match, teams, readOnly = false, defaultTeam, matches, courts, playerStats, tournament } =
+		$props();
 
 	const team1 = $derived.by(() => {
 		return teams?.teams?.find((t: Team) => t.id === match.team1);
@@ -19,7 +20,26 @@
 	});
 	const teamsForMatch = $derived([team1?.name, team2?.name]);
 
-	const hasDefaultTeam = $derived(defaultTeam ? teamsForMatch.includes(defaultTeam) : false);
+	// For mix-and-match, check if defaultTeam (player name) is in either team name
+	// Team names are like "Alice & Bob & Charlie", so we check if player name is in the string
+	const hasDefaultTeam = $derived.by(() => {
+		if (!defaultTeam) return false;
+
+		// For mix-and-match tournaments, check if player name appears in team name
+		if (tournament?.tournament_type === 'mix-and-match') {
+			const team1Name = team1?.name || '';
+			const team2Name = team2?.name || '';
+
+			// Split by " & " and check if defaultTeam matches any player name
+			const team1Players = team1Name.split(' & ');
+			const team2Players = team2Name.split(' & ');
+
+			return team1Players.includes(defaultTeam) || team2Players.includes(defaultTeam);
+		}
+
+		// For fixed-teams, use the original logic
+		return teamsForMatch.includes(defaultTeam);
+	});
 
 	const referee = $derived(teams.teams.find((t: Team) => t.id === match.referee_id));
 	const hasDefaultTeamRef = $derived(

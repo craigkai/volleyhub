@@ -16,7 +16,8 @@
 		data,
 		deleteRound,
 		deleteFromRound,
-		setCurrentRound
+		setCurrentRound,
+		tournament
 	} = $props();
 
 	let currentViewRound = $state(data.tournament.current_round ?? 0);
@@ -35,19 +36,48 @@
 	// Check if round has default team
 	function roundHasDefaultTeam(): boolean {
 		if (!defaultTeam) return false;
+		// Handle both object {name: string} and string formats
+		const teamName = typeof defaultTeam === 'string' ? defaultTeam : defaultTeam.name;
+
 		return roundMatches.some((m: any) => {
 			const team1 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team1);
 			const team2 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team2);
-			return team1?.name === defaultTeam.name || team2?.name === defaultTeam.name;
+
+			// For mix-and-match tournaments, check if player name appears in team name
+			if (tournament?.tournament_type === 'mix-and-match') {
+				const team1Name = team1?.name || '';
+				const team2Name = team2?.name || '';
+
+				// Split by " & " and check if teamName matches any player name
+				const team1Players = team1Name.split(' & ');
+				const team2Players = team2Name.split(' & ');
+
+				return team1Players.includes(teamName) || team2Players.includes(teamName);
+			}
+
+			// For fixed-teams, use the original logic
+			return team1?.name === teamName || team2?.name === teamName;
 		});
 	}
 
 	// Check if round has default team as referee
 	function roundHasDefaultTeamRef(): boolean {
 		if (!defaultTeam) return false;
+		// Handle both object {name: string} and string formats
+		const teamName = typeof defaultTeam === 'string' ? defaultTeam : defaultTeam.name;
+
 		return roundMatches.some((m: any) => {
 			const referee = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.ref);
-			return referee?.name === defaultTeam.name;
+
+			// For mix-and-match tournaments, check if player name appears in referee team name
+			if (tournament?.tournament_type === 'mix-and-match') {
+				const refereeName = referee?.name || '';
+				const referees = refereeName.split(' & ');
+				return referees.includes(teamName);
+			}
+
+			// For fixed-teams, use the original logic
+			return referee?.name === teamName;
 		});
 	}
 
@@ -222,7 +252,7 @@
 								{/if}
 							{/if}
 						</div>
-						<ViewMatch matches={data.matches} {match} teams={data.teams} {readOnly} {defaultTeam} />
+						<ViewMatch matches={data.matches} {match} teams={data.teams} {readOnly} {defaultTeam} {tournament} />
 					</div>
 				{/each}
 			</div>

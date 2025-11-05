@@ -184,32 +184,37 @@ export class PairingGenerator extends Base {
 			}
 		} else {
 			// For larger teams: Distribute by snake draft
-			for (let teamIdx = 0; teamIdx < numTeams; teamIdx++) {
-				const teamPlayerIds: number[] = [];
+			// Create empty teams first
+			const teamPlayerIds: number[][] = Array.from({ length: numTeams }, () => []);
 
-				// Snake pattern: pick players in alternating order
-				for (let playerSlot = 0; playerSlot < teamSize; playerSlot++) {
-					const snakeRound = Math.floor(playerSlot / numTeams);
-					let pickIdx: number;
-
-					if (snakeRound % 2 === 0) {
-						// Forward: Team 0 picks first
-						pickIdx = snakeRound * numTeams + teamIdx;
-					} else {
-						// Reverse: Team N picks first
-						pickIdx = snakeRound * numTeams + (numTeams - 1 - teamIdx);
+			// Snake draft: alternate direction each round
+			for (let pickRound = 0; pickRound < teamSize; pickRound++) {
+				if (pickRound % 2 === 0) {
+					// Forward: Team 0, Team 1, Team 2, ...
+					for (let teamIdx = 0; teamIdx < numTeams; teamIdx++) {
+						const playerIdx = pickRound * numTeams + teamIdx;
+						if (playerIdx < totalPlayers && sortedPlayers[playerIdx].id) {
+							teamPlayerIds[teamIdx].push(sortedPlayers[playerIdx].id!);
+						}
 					}
-
-					if (pickIdx < totalPlayers && sortedPlayers[pickIdx].id) {
-						teamPlayerIds.push(sortedPlayers[pickIdx].id!);
+				} else {
+					// Reverse: Team N, Team N-1, ..., Team 0
+					for (let teamIdx = numTeams - 1; teamIdx >= 0; teamIdx--) {
+						const playerIdx = pickRound * numTeams + (numTeams - 1 - teamIdx);
+						if (playerIdx < totalPlayers && sortedPlayers[playerIdx].id) {
+							teamPlayerIds[teamIdx].push(sortedPlayers[playerIdx].id!);
+						}
 					}
 				}
+			}
 
+			// Create team objects
+			for (let teamIdx = 0; teamIdx < numTeams; teamIdx++) {
 				// Generate team name based on team size
 				let teamName: string;
 				if (teamSize <= 4) {
 					// For small teams (3v3, 4v4), show all player names
-					const playerNames = teamPlayerIds
+					const playerNames = teamPlayerIds[teamIdx]
 						.map((id) => sortedPlayers.find((p) => p.id === id)?.name)
 						.filter(Boolean)
 						.join(' & ');
@@ -227,7 +232,7 @@ export class PairingGenerator extends Base {
 						round: round,
 						team_size: teamSize
 					},
-					playerIds: teamPlayerIds
+					playerIds: teamPlayerIds[teamIdx]
 				});
 				teamNum++;
 			}

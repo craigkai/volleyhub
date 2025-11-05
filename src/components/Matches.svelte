@@ -238,6 +238,7 @@
 					}
 
 					// Delete temporary teams (CASCADE will automatically delete player_teams)
+					console.log('Deleting temporary teams:', tempTeamIds);
 					const { error: teamsError } = await supabase
 						.from('teams')
 						.delete()
@@ -248,6 +249,52 @@
 						toast.error('Failed to delete old teams. Please try again.');
 						loading = false;
 						return;
+					}
+					console.log('Successfully deleted temporary teams');
+				}
+
+				// CRITICAL: Check for any remaining player_teams that might cause duplicates
+				// Get all teams for this event
+				console.log('Checking for existing player_teams...');
+				const { data: allEventTeams } = await supabase
+					.from('teams')
+					.select('id')
+					.eq('event_id', data.tournament.id);
+
+				console.log('Found event teams:', allEventTeams);
+
+				if (allEventTeams && allEventTeams.length > 0) {
+					const allTeamIds = allEventTeams.map((t) => t.id);
+
+					// Check for existing player_teams
+					const { data: existingPlayerTeams } = await supabase
+						.from('player_teams')
+						.select('id, player_id, team_id')
+						.in('team_id', allTeamIds);
+
+					console.log('Found existing player_teams:', existingPlayerTeams);
+
+					if (existingPlayerTeams && existingPlayerTeams.length > 0) {
+						console.warn(
+							`Found ${existingPlayerTeams.length} existing player_teams records that need cleanup:`,
+							existingPlayerTeams
+						);
+
+						// Delete all player_teams for this event's teams
+						const { error: cleanupError } = await supabase
+							.from('player_teams')
+							.delete()
+							.in('team_id', allTeamIds);
+
+						if (cleanupError) {
+							console.error('Error cleaning up player_teams:', cleanupError);
+							toast.error('Failed to clean up player assignments.');
+							loading = false;
+							return;
+						}
+						console.log('Cleaned up existing player_teams');
+					} else {
+						console.log('No existing player_teams found, good to proceed');
 					}
 				}
 
@@ -262,6 +309,11 @@
 						...standings.slice(rotateBy),
 						...standings.slice(0, rotateBy)
 					];
+					console.log(
+						`Round ${roundNum}: Generating teams with ${data.players.players.length} players, teamSize=${teamSize}`
+					);
+					console.log('Rotated standings:', rotatedStandings);
+
 					const generatedTeams = await pairingGenerator.generateSnakeDraftPairings(
 						data.players.players,
 						data.tournament.id,
@@ -269,6 +321,8 @@
 						rotatedStandings,
 						teamSize
 					);
+
+					console.log(`Round ${roundNum}: Generated ${generatedTeams.length} teams`);
 
 					// Create teams for this round
 					for (const { team: teamData, playerIds } of generatedTeams) {
@@ -286,6 +340,47 @@
 								player_id: playerId,
 								position: null
 							}));
+
+							// CRITICAL FIX: Delete any existing player_teams for this specific team first
+							// This handles orphaned records from failed previous runs
+							console.log(`Pre-cleanup: checking team ${createdTeam.id} for existing player_teams`);
+							const { data: preCleanupData, error: preCleanupError } = await supabase
+								.from('player_teams')
+								.delete()
+								.eq('team_id', createdTeam.id)
+								.select();
+
+							if (preCleanupError) {
+								console.error(
+									`Error cleaning up player_teams for team ${createdTeam.id}:`,
+									preCleanupError
+								);
+							} else if (preCleanupData && preCleanupData.length > 0) {
+								console.log(
+									`Pre-cleanup: deleted ${preCleanupData.length} existing player_teams for team ${createdTeam.id}`
+								);
+							} else {
+								console.log(`Pre-cleanup: no existing player_teams found for team ${createdTeam.id}`);
+							}
+
+							console.log(
+								`Creating player_teams for team ${createdTeam.id} (${createdTeam.name}):`,
+								JSON.stringify(playerTeamRecords, null, 2)
+							);
+
+							// Check for duplicate player_ids in the same team
+							const playerIdSet = new Set(playerTeamRecords.map((r) => r.player_id));
+							if (playerIdSet.size !== playerTeamRecords.length) {
+								console.error(
+									`DUPLICATE PLAYER IDS DETECTED in team ${createdTeam.id}!`,
+									playerTeamRecords
+								);
+								toast.error(
+									`Bug detected: Team has duplicate players. Please report this issue.`
+								);
+								loading = false;
+								return;
+							}
 
 							await playerTeamsService.createMany(playerTeamRecords);
 						}
@@ -385,6 +480,19 @@
 			const team1 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team1);
 			const team2 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team2);
 
+			// For mix-and-match tournaments, check if player name appears in team name
+			if (data.tournament?.tournament_type === 'mix-and-match') {
+				const team1Name = team1?.name || '';
+				const team2Name = team2?.name || '';
+
+				// Split by " & " and check if defaultTeam matches any player name
+				const team1Players = team1Name.split(' & ');
+				const team2Players = team2Name.split(' & ');
+
+				return team1Players.includes(defaultTeam) || team2Players.includes(defaultTeam);
+			}
+
+			// For fixed-teams, use the original logic
 			return team1?.name === defaultTeam || team2?.name === defaultTeam;
 		});
 	}
@@ -798,6 +906,7 @@
 														{defaultTeam}
 														courts={data.tournament.courts ?? 1}
 														playerStats={data.playerStats}
+														tournament={data.tournament}
 													/>
 												{:else if !readOnly}
 													<div class="group relative">
@@ -889,6 +998,7 @@
 					{deleteRound}
 					{deleteFromRound}
 					{setCurrentRound}
+					tournament={data.tournament}
 				/>
 			{/if}
 		</div>
