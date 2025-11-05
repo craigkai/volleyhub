@@ -735,7 +735,6 @@ export class Matches extends Base {
 	 * Delete all matches for the current event.
 	 */
 	async deleteAllMatches() {
-		console.info('deleteAllMatches');
 		if (!this.event_id) {
 			this.handleError(400, 'Event ID is required to delete all matches.');
 			return;
@@ -750,7 +749,6 @@ export class Matches extends Base {
 	 * @param {number} round - The round number to delete.
 	 */
 	async deleteRound(round: number) {
-		console.info(`deleteRound: ${round}`);
 		if (!this.event_id) {
 			this.handleError(400, 'Event ID is required to delete round.');
 			return;
@@ -766,7 +764,6 @@ export class Matches extends Base {
 	 * @param {number} fromRound - The round number to start deleting from (inclusive).
 	 */
 	async deleteFromRound(fromRound: number) {
-		console.info(`deleteFromRound: ${fromRound}`);
 		if (!this.event_id) {
 			this.handleError(400, 'Event ID is required to delete rounds.');
 			return;

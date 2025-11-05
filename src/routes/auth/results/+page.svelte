@@ -18,11 +18,9 @@
 			if (error) {
 				console.error('Session exchange failed:', error.message);
 				// Optionally show an error UI or toast here
-			} else {
-				console.log('Logged in via code exchange.');
-				// Optional: auto-redirect
-				// goto(next || '/protected-routes/application');
 			}
+			// Optional: auto-redirect
+			// goto(next || '/protected-routes/application');
 		}
 	});
 

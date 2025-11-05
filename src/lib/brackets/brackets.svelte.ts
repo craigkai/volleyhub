@@ -157,7 +157,6 @@ export class Brackets extends Matches {
 				const winnerOfOtherParent = this.getWinnerOfOtherParent(otherParent);
 
 				if (child && this.childHasCorrectTeams(child, winnerOfNew, winnerOfOtherParent)) {
-					console.debug('Child match already has the correct teams');
 					return;
 				}
 
@@ -165,7 +164,6 @@ export class Brackets extends Matches {
 					await this.updateChildMatch(child, winnerOfNew, winnerOfOtherParent);
 				}
 			} else {
-				console.debug('Parent matches not complete');
 			}
 		} catch (error) {
 			this.handleError(500, `An error occurred in nextRound: ${(error as Error).message}`);

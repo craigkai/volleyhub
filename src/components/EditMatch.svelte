@@ -107,7 +107,6 @@
 					playerStats.stats = [...playerStats.stats, ...newStats];
 				}
 
-				console.log(`Created player_stats for ${newStats.length} players`);
 			}
 
 			toast.success(`Match ${team1?.name} vs ${team2?.name} updated`);

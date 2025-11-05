@@ -39,10 +39,6 @@ export const actions: Actions = {
 
 			// If tournament type changed, clean up all teams and matches
 			if (tournamentTypeChanged && currentTournament) {
-				console.log(
-					`Tournament type changing from ${currentTournament.tournament_type} to ${form.data.tournament_type} - cleaning up teams and matches`
-				);
-
 				const supabase = event.locals.supabase;
 
 				// Delete all matches for this event
@@ -82,8 +78,6 @@ export const actions: Actions = {
 
 					if (teamsError) {
 						console.error('Error deleting teams:', teamsError);
-					} else {
-						console.log('Successfully cleaned up teams and matches');
 					}
 				}
 
