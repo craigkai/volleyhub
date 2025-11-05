@@ -305,13 +305,14 @@
 										<SelectContent class="bg-white dark:bg-gray-800">
 											<SelectItem value="fixed-teams" label="Fixed Teams" />
 											<SelectItem value="mix-and-match" label="Mix & Match" />
-											</SelectContent>
+										</SelectContent>
 									</SelectRoot>
 									<input type="hidden" value={$formData.tournament_type} name={props.name} />
 								{/snippet}
 							</Control>
 							<Description class="text-xs text-gray-500">
-								Fixed Teams: traditional format with pre-defined teams. Mix & Match: teams randomly change each round.
+								Fixed Teams: traditional format with pre-defined teams. Mix & Match: teams randomly
+								change each round.
 							</Description>
 						</Field>
 					</div>

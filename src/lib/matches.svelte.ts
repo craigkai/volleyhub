@@ -6,6 +6,7 @@ import { Event } from '$lib/event.svelte';
 import { Match } from './match.svelte';
 import { MatchSupabaseDatabaseService } from './database/match';
 import { Team } from './team.svelte';
+import type { MatchPairing } from './pairingGenerator.svelte';
 
 /**
  * The Matches class represents the matches in a tournament.
@@ -162,13 +163,14 @@ export class Matches extends Base {
 
 	/**
 	 * Creates a new set of matches for the given event using the configured structure.
+	 * Uses the unified team model where everything is a team (whether 1-person or multi-person).
 	 *
 	 * @param {Event | Partial<EventRow>} eventDetails - Tournament setup configuration.
 	 * @param {Team[]} teams - Participating teams.
 	 * @returns {Promise<Matches | undefined>} - Returns the Matches instance or undefined if creation fails.
 	 */
 	async create(
-		{ pools = 0, courts, refs = 'provided', tournament_type }: Event | Partial<EventRow>,
+		{ pools = 0, courts, refs = 'provided', team_size }: Event | Partial<EventRow>,
 		teams: Team[]
 	): Promise<Matches | undefined> {
 		if (!this.event_id) {
@@ -199,33 +201,35 @@ export class Matches extends Base {
 
 			await this.databaseService.deleteMatchesByEvent(this.event_id);
 
-			let matches: Partial<MatchRow>[];
+			// Import pairing generator
+			const { PairingGenerator } = await import('./pairingGenerator.svelte');
+			const pairingGenerator = new PairingGenerator();
 
-			// For mix-and-match tournaments, use simple consecutive pairing
-			if (tournament_type === 'mix-and-match') {
-				matches = this.createConsecutivePairings(teams, courts, refs ?? 'provided');
+			// Determine format based on team_size
+			// team_size = 1 means individual format (e.g., 3 teams of size 1 = 3v3)
+			// team_size > 1 means fixed teams (e.g., 2 teams of size 3 = 3v3 fixed)
+			const isIndividualFormat = (team_size ?? 2) === 1;
+			let pairings: MatchPairing[];
+
+			if (isIndividualFormat) {
+				// Individual format: determine teams per side from pool size
+				// For individual formats, team_size is always 1
+				// The number of 1-person teams per side is defined by the user
+				// Default to 1v1 if not specified
+				const teamsPerSide = Math.floor(Math.sqrt(teams.length / 2)) || 1;
+
+				// Use snake draft for balanced skill distribution
+				pairings = pairingGenerator.generateSnakeDraftPairings(teams, teamsPerSide);
 			} else {
-				// For fixed-teams tournaments, use round-robin algorithm
-				const totalRounds = Math.floor(teams.length * (pools / (teams.length - 1)));
-				let rounds = this.calculateMatches(teams, [], 0, totalRounds, pools);
-				matches = this.calculateCourtsAndRounds(rounds, courts, teams, refs ?? 'provided');
+				// Fixed teams: use round-robin
+				pairings = pairingGenerator.generateRoundRobinPairings(teams, pools);
 			}
 
-			const res = await this.databaseService.insertMatches(matches);
-			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
-				this.databaseService.supabaseClient
-			);
+			// Create matches with match_teams entries
+			await this.createMatchesWithTeams(pairings, courts, refs ?? 'provided');
 
-			const matchInstances: Match[] = [];
-			if (res) {
-				for (let i = 0; i < res.length; i++) {
-					let match = new Match(matchSupabaseDatabaseService);
-
-					const matchRow = res[i];
-					matchInstances.push(Object.assign(match, matchRow));
-				}
-				this.matches = matchInstances;
-			}
+			// Reload matches
+			await this.load(this.event_id);
 
 			return this;
 		} catch (err) {
@@ -234,7 +238,84 @@ export class Matches extends Base {
 	}
 
 	/**
+	 * Creates matches with match_teams entries using the unified team model.
+	 * This replaces the old team1/team2 approach with flexible team arrays.
+	 *
+	 * @param {MatchPairing[]} pairings - Array of match pairings from pairing generator
+	 * @param {number} courts - Number of courts available
+	 * @param {string} refs - Referee configuration ('provided' or 'teams')
+	 * @returns {Promise<MatchRow[]>} - Created matches
+	 */
+	private async createMatchesWithTeams(
+		pairings: Array<{ homeTeams: number[]; awayTeams: number[] }>,
+		courts: number,
+		refs: string
+	): Promise<MatchRow[]> {
+		const { MatchTeamsSupabaseDatabaseService } = await import('./database/matchTeams');
+		const matchTeamsService = new MatchTeamsSupabaseDatabaseService(
+			this.databaseService.supabaseClient
+		);
+
+		const matches: Partial<MatchRow>[] = [];
+		const matchTeamsToCreate: Partial<MatchTeamRow>[] = [];
+
+		// Create match rows
+		pairings.forEach((pairing, index) => {
+			const round = Math.floor(index / courts) + 1;
+			const court = index % courts;
+
+			matches.push({
+				event_id: this.event_id,
+				round,
+				court,
+				ref: refs === 'provided' ? null : undefined,
+				// Keep team1/team2 null - deprecated but kept for backward compatibility
+				team1: pairing.homeTeams[0] || null,
+				team2: pairing.awayTeams[0] || null
+			});
+		});
+
+		// Insert matches first
+		const createdMatches = await this.databaseService.insertMatches(matches);
+
+		if (!createdMatches) {
+			throw new Error('Failed to create matches');
+		}
+
+		// Create match_teams entries
+		createdMatches.forEach((match, index) => {
+			const pairing = pairings[index];
+
+			// Add home teams
+			pairing.homeTeams.forEach((teamId) => {
+				matchTeamsToCreate.push({
+					match_id: match.id,
+					team_id: teamId,
+					side: 'home'
+				});
+			});
+
+			// Add away teams
+			pairing.awayTeams.forEach((teamId) => {
+				matchTeamsToCreate.push({
+					match_id: match.id,
+					team_id: teamId,
+					side: 'away'
+				});
+			});
+		});
+
+		// Bulk insert match_teams
+		if (matchTeamsToCreate.length > 0) {
+			await matchTeamsService.createMany(matchTeamsToCreate);
+		}
+
+		return createdMatches;
+	}
+
+	/**
 	 * Create matches by pairing consecutive teams (1v2, 3v4, 5v6, etc.)
+	 * @deprecated Use createMatchesWithTeams instead
 	 * Used for mix-and-match tournaments where teams are temporary
 	 */
 	private createConsecutivePairings(

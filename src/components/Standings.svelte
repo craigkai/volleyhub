@@ -15,9 +15,7 @@
 	let { event, matches, teams, defaultTeam, players = null, playerStats = null } = $props();
 
 	// Determine if we're in mix-and-match mode
-	let isMixAndMatch = $derived(
-		event?.tournament_type === 'mix-and-match'
-	);
+	let isMixAndMatch = $derived(event?.tournament_type === 'mix-and-match');
 
 	// Calculate team standings (for fixed-teams tournaments)
 	let orderedTeamScores = $derived(findStandings(matches.matches, teams.teams));

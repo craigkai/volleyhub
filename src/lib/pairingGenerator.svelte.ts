@@ -1,307 +1,334 @@
 import { Base } from './base';
-import type { Player } from './player.svelte';
-import type { IndividualStanding } from './individualStandings.svelte';
+import type { Team } from './team.svelte';
 
 /**
- * The PairingGenerator class handles various algorithms for generating team pairings
- * in mix-and-match and King & Queen tournaments.
+ * Represents a match pairing with home and away teams
+ */
+export interface MatchPairing {
+	homeTeams: number[]; // Array of team IDs for home side
+	awayTeams: number[]; // Array of team IDs for away side
+}
+
+/**
+ * The PairingGenerator class handles various algorithms for generating match pairings.
+ * Works with the unified team model where everything is a team (whether 1-person or multi-person).
  */
 export class PairingGenerator extends Base {
 	/**
-	 * Generate King & Queen pairings (equal number of males and females per team).
-	 *
-	 * Algorithm:
-	 * 1. Separate players by gender and sort by standings
-	 * 2. Distribute top players across teams evenly
-	 * 3. Create teams with equal gender distribution
-	 *
-	 * Supports flexible team sizes:
-	 * - 2v2: 1 king + 1 queen per team
-	 * - 4v4: 2 kings + 2 queens per team
-	 * - 6v6: 3 kings + 3 queens per team
-	 *
-	 * @param {Player[]} players - All players in the tournament
-	 * @param {number} eventId - Event ID
-	 * @param {number} round - Current round number
-	 * @param {IndividualStanding[]} standings - Current player standings
-	 * @param {number} teamSize - Total players per team (must be even)
-	 * @returns {Promise<Partial<TeamRow>[]>} - Array of team data ready to be inserted
-	 */
-	async generateKingQueenPairings(
-		players: Player[],
-		eventId: number,
-		round: number,
-		standings: IndividualStanding[],
-		teamSize: number = 2
-	): Promise<Partial<TeamRow>[]> {
-		if (teamSize % 2 !== 0) {
-			throw new Error('Team size must be even for King & Queen format');
-		}
-
-		const playersPerGender = teamSize / 2;
-
-		// Separate by gender and sort by standings (already sorted in standings array)
-		const kings = standings.filter((s) => s.player.gender === 'male').map((s) => s.player);
-		const queens = standings.filter((s) => s.player.gender === 'female').map((s) => s.player);
-
-		if (kings.length !== queens.length) {
-			throw new Error('King & Queen requires equal number of male and female players');
-		}
-
-		if (kings.length % playersPerGender !== 0) {
-			throw new Error(
-				`Need ${playersPerGender} males and ${playersPerGender} females per team. Current: ${kings.length} males, ${queens.length} females`
-			);
-		}
-
-		const teams: Array<{ team: Partial<TeamRow>; playerIds: number[] }> = [];
-		let teamNum = 1;
-
-		// Create teams with equal gender distribution
-		for (let i = 0; i < kings.length; i += playersPerGender) {
-			const teamPlayerIds: number[] = [];
-
-			// Add kings to this team
-			for (let j = 0; j < playersPerGender; j++) {
-				if (i + j < kings.length && kings[i + j].id) {
-					teamPlayerIds.push(kings[i + j].id!);
-				}
-			}
-
-			// Add queens to this team
-			for (let j = 0; j < playersPerGender; j++) {
-				if (i + j < queens.length && queens[i + j].id) {
-					teamPlayerIds.push(queens[i + j].id!);
-				}
-			}
-
-			// Generate team name
-			let teamName: string;
-			if (teamSize === 2) {
-				teamName = `${kings[i].name} & ${queens[i].name}`;
-			} else {
-				teamName = `Round ${round} - Team ${teamNum}`;
-			}
-
-			teams.push({
-				team: {
-					name: teamName,
-					event_id: eventId,
-					is_temporary: true,
-					round: round,
-					team_size: teamSize
-				},
-				playerIds: teamPlayerIds
-			});
-
-			teamNum++;
-		}
-
-		return teams;
-	}
-
-	/**
 	 * Generate snake draft pairings for balanced matches.
-	 * Works for any team size.
+	 * Works for both individual format (1-person teams) and fixed teams.
 	 *
-	 * Algorithm for 2v2:
+	 * Algorithm for individual 2v2 (4 teams of size 1):
 	 * - Pair 1-4, 2-3, 5-8, 6-7 (balanced skill distribution)
+	 * - Returns: [{homeTeams: [1,4], awayTeams: [2,3]}, {homeTeams: [5,8], awayTeams: [6,7]}]
 	 *
-	 * For larger teams:
-	 * - Uses snake draft pattern to distribute top players evenly
+	 * For individual 3v3 (6 teams of size 1):
+	 * - Uses snake draft to distribute top teams evenly
+	 * - Returns: [{homeTeams: [1,4,5], awayTeams: [2,3,6]}]
 	 *
-	 * @param {Player[]} players - All players in the tournament
-	 * @param {number} eventId - Event ID
-	 * @param {number} round - Current round number
-	 * @param {IndividualStanding[]} standings - Current player standings
-	 * @param {number} teamSize - Total players per team
-	 * @returns {Promise<Partial<TeamRow>[]>} - Array of team data ready to be inserted
+	 * @param {Team[]} teams - All teams (sorted by standings, best first)
+	 * @param {number} teamsPerSide - Number of teams per side (e.g., 3 for 3v3 individual)
+	 * @returns {MatchPairing[]} - Array of match pairings
 	 */
-	async generateSnakeDraftPairings(
-		players: Player[],
-		eventId: number,
-		round: number,
-		standings: IndividualStanding[],
-		teamSize: number = 2
-	): Promise<Partial<TeamRow>[]> {
-		const sortedPlayers = standings.map((s) => s.player);
-		const totalPlayers = sortedPlayers.length;
+	generateSnakeDraftPairings(teams: Team[], teamsPerSide: number): MatchPairing[] {
+		const totalTeams = teams.length;
+		const teamsPerMatch = teamsPerSide * 2;
 
-		if (totalPlayers % teamSize !== 0) {
+		if (totalTeams % teamsPerMatch !== 0) {
 			throw new Error(
-				`Player count (${totalPlayers}) must be divisible by team size (${teamSize})`
+				`Team count (${totalTeams}) must be divisible by teams per match (${teamsPerMatch})`
 			);
 		}
 
-		const teams: Array<{ team: Partial<TeamRow>; playerIds: number[] }> = [];
-		const numTeams = totalPlayers / teamSize;
-		let teamNum = 1;
+		const pairings: MatchPairing[] = [];
 
-		// For 2v2: Simple snake draft
-		if (teamSize === 2) {
-			for (let i = 0; i < totalPlayers; i += 4) {
-				// Check if we can create a balanced pair (1-4, 2-3 pattern)
-				if (i + 3 < totalPlayers) {
-					// Team 1: 1st and 4th (balanced)
-					teams.push({
-						team: {
-							name: `${sortedPlayers[i].name} & ${sortedPlayers[i + 3].name}`,
-							event_id: eventId,
-							is_temporary: true,
-							round: round,
-							team_size: teamSize
-						},
-						playerIds: [sortedPlayers[i].id!, sortedPlayers[i + 3].id!]
+		// For 2v2: Simple balanced pairing (1-4, 2-3 pattern)
+		if (teamsPerSide === 1) {
+			// Fixed teams 1v1
+			for (let i = 0; i < totalTeams; i += 2) {
+				if (i + 1 < totalTeams) {
+					pairings.push({
+						homeTeams: [teams[i].id!],
+						awayTeams: [teams[i + 1].id!]
 					});
-
-					// Team 2: 2nd and 3rd (balanced)
-					teams.push({
-						team: {
-							name: `${sortedPlayers[i + 1].name} & ${sortedPlayers[i + 2].name}`,
-							event_id: eventId,
-							is_temporary: true,
-							round: round,
-							team_size: teamSize
-						},
-						playerIds: [sortedPlayers[i + 1].id!, sortedPlayers[i + 2].id!]
+				}
+			}
+		} else if (teamsPerSide === 2) {
+			// Individual 2v2 or fixed teams with 2 per side
+			for (let i = 0; i < totalTeams; i += 4) {
+				if (i + 3 < totalTeams) {
+					// Match 1: 1st and 4th vs 2nd and 3rd (balanced)
+					pairings.push({
+						homeTeams: [teams[i].id!, teams[i + 3].id!],
+						awayTeams: [teams[i + 1].id!, teams[i + 2].id!]
 					});
-				} else if (i + 1 < totalPlayers) {
-					// Handle remaining players (less than 4 left) - pair consecutively
-					for (let j = i; j + 1 < totalPlayers; j += 2) {
-						teams.push({
-							team: {
-								name: `${sortedPlayers[j].name} & ${sortedPlayers[j + 1].name}`,
-								event_id: eventId,
-								is_temporary: true,
-								round: round,
-								team_size: teamSize
-							},
-							playerIds: [sortedPlayers[j].id!, sortedPlayers[j + 1].id!]
-						});
-					}
-					break; // Exit loop after handling remaining players
+				} else if (i + 1 < totalTeams) {
+					// Handle remaining teams - pair consecutively
+					pairings.push({
+						homeTeams: [teams[i].id!],
+						awayTeams: [teams[i + 1].id!]
+					});
 				}
 			}
 		} else {
-			// For larger teams: Distribute by snake draft
-			// Create empty teams first
-			const teamPlayerIds: number[][] = Array.from({ length: numTeams }, () => []);
+			// For larger formats (3v3, 4v4, etc.): Use snake draft
+			// Distribute teams evenly across matches using snake pattern
+			const numMatches = totalTeams / teamsPerMatch;
 
-			// Snake draft: alternate direction each round
-			for (let pickRound = 0; pickRound < teamSize; pickRound++) {
-				if (pickRound % 2 === 0) {
-					// Forward: Team 0, Team 1, Team 2, ...
-					for (let teamIdx = 0; teamIdx < numTeams; teamIdx++) {
-						const playerIdx = pickRound * numTeams + teamIdx;
-						if (playerIdx < totalPlayers && sortedPlayers[playerIdx].id) {
-							teamPlayerIds[teamIdx].push(sortedPlayers[playerIdx].id!);
-						}
+			for (let matchIdx = 0; matchIdx < numMatches; matchIdx++) {
+				const homeTeams: number[] = [];
+				const awayTeams: number[] = [];
+
+				// Snake draft pattern to balance skill levels
+				for (let sidePos = 0; sidePos < teamsPerSide; sidePos++) {
+					// Calculate indices using snake draft pattern
+					const roundIdx = Math.floor((matchIdx * teamsPerSide + sidePos) / numMatches);
+					const posInRound = (matchIdx * teamsPerSide + sidePos) % numMatches;
+
+					let teamIdx: number;
+					if (roundIdx % 2 === 0) {
+						// Forward direction
+						teamIdx = roundIdx * numMatches + posInRound;
+					} else {
+						// Reverse direction
+						teamIdx = roundIdx * numMatches + (numMatches - 1 - posInRound);
 					}
-				} else {
-					// Reverse: Team N, Team N-1, ..., Team 0
-					for (let teamIdx = numTeams - 1; teamIdx >= 0; teamIdx--) {
-						const playerIdx = pickRound * numTeams + (numTeams - 1 - teamIdx);
-						if (playerIdx < totalPlayers && sortedPlayers[playerIdx].id) {
-							teamPlayerIds[teamIdx].push(sortedPlayers[playerIdx].id!);
+
+					if (teamIdx < totalTeams && teams[teamIdx].id) {
+						if (sidePos < teamsPerSide / 2 || teamsPerSide === 1) {
+							homeTeams.push(teams[teamIdx].id!);
+						} else {
+							awayTeams.push(teams[teamIdx].id!);
 						}
 					}
 				}
-			}
 
-			// Create team objects
-			for (let teamIdx = 0; teamIdx < numTeams; teamIdx++) {
-				// Generate team name based on team size
-				let teamName: string;
-				if (teamSize <= 4) {
-					// For small teams (3v3, 4v4), show all player names
-					const playerNames = teamPlayerIds[teamIdx]
-						.map((id) => sortedPlayers.find((p) => p.id === id)?.name)
-						.filter(Boolean)
-						.join(' & ');
-					teamName = playerNames || `Team ${teamNum}`;
-				} else {
-					// For larger teams, use round-based naming
-					teamName = `Round ${round} - Team ${teamNum}`;
-				}
+				// Distribute evenly
+				const midpoint = Math.ceil(teamsPerSide);
+				const actualHome = homeTeams.slice(0, midpoint);
+				const actualAway = [...homeTeams.slice(midpoint), ...awayTeams];
 
-				teams.push({
-					team: {
-						name: teamName,
-						event_id: eventId,
-						is_temporary: true,
-						round: round,
-						team_size: teamSize
-					},
-					playerIds: teamPlayerIds[teamIdx]
+				pairings.push({
+					homeTeams: actualHome.slice(0, teamsPerSide),
+					awayTeams: actualAway.slice(0, teamsPerSide)
 				});
-				teamNum++;
 			}
 		}
 
-		return teams;
+		return pairings;
+	}
+
+	/**
+	 * Generate simple consecutive pairings (1v2, 3v4, 5v6, etc.)
+	 * Used for quick pairing without skill balancing.
+	 *
+	 * @param {Team[]} teams - All teams
+	 * @param {number} teamsPerSide - Number of teams per side
+	 * @returns {MatchPairing[]} - Array of match pairings
+	 */
+	generateConsecutivePairings(teams: Team[], teamsPerSide: number): MatchPairing[] {
+		const totalTeams = teams.length;
+		const teamsPerMatch = teamsPerSide * 2;
+
+		if (totalTeams % teamsPerMatch !== 0) {
+			throw new Error(
+				`Team count (${totalTeams}) must be divisible by teams per match (${teamsPerMatch})`
+			);
+		}
+
+		const pairings: MatchPairing[] = [];
+
+		for (let i = 0; i < totalTeams; i += teamsPerMatch) {
+			const homeTeams: number[] = [];
+			const awayTeams: number[] = [];
+
+			// First half goes to home
+			for (let j = 0; j < teamsPerSide; j++) {
+				if (i + j < totalTeams && teams[i + j].id) {
+					homeTeams.push(teams[i + j].id!);
+				}
+			}
+
+			// Second half goes to away
+			for (let j = teamsPerSide; j < teamsPerMatch; j++) {
+				if (i + j < totalTeams && teams[i + j].id) {
+					awayTeams.push(teams[i + j].id!);
+				}
+			}
+
+			if (homeTeams.length === teamsPerSide && awayTeams.length === teamsPerSide) {
+				pairings.push({
+					homeTeams,
+					awayTeams
+				});
+			}
+		}
+
+		return pairings;
 	}
 
 	/**
 	 * Generate random pairings.
 	 *
-	 * @param {Player[]} players - All players in the tournament
-	 * @param {number} eventId - Event ID
-	 * @param {number} round - Current round number
-	 * @param {number} teamSize - Total players per team
-	 * @returns {Promise<Partial<TeamRow>[]>} - Array of team data ready to be inserted
+	 * @param {Team[]} teams - All teams
+	 * @param {number} teamsPerSide - Number of teams per side
+	 * @returns {MatchPairing[]} - Array of match pairings
 	 */
-	async generateRandomPairings(
-		players: Player[],
-		eventId: number,
-		round: number,
-		teamSize: number = 2
-	): Promise<Array<{ team: Partial<TeamRow>; playerIds: number[] }>> {
-		const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
-		const totalPlayers = shuffledPlayers.length;
-
-		if (totalPlayers % teamSize !== 0) {
-			throw new Error(
-				`Player count (${totalPlayers}) must be divisible by team size (${teamSize})`
-			);
-		}
-
-		const teams: Array<{ team: Partial<TeamRow>; playerIds: number[] }> = [];
-		const numTeams = totalPlayers / teamSize;
-		let teamNum = 1;
-
-		for (let i = 0; i < numTeams; i++) {
-			const teamPlayerIds: number[] = [];
-
-			for (let j = 0; j < teamSize; j++) {
-				const playerIndex = i * teamSize + j;
-				if (playerIndex < shuffledPlayers.length && shuffledPlayers[playerIndex].id) {
-					teamPlayerIds.push(shuffledPlayers[playerIndex].id!);
-				}
-			}
-
-			let teamName: string;
-			if (teamSize === 2 && teamPlayerIds.length === 2) {
-				const p1 = shuffledPlayers[i * teamSize];
-				const p2 = shuffledPlayers[i * teamSize + 1];
-				teamName = `${p1.name} & ${p2.name}`;
-			} else {
-				teamName = `Team ${teamNum}`;
-			}
-
-			teams.push({
-				team: {
-					name: teamName,
-					event_id: eventId,
-					is_temporary: true,
-					round: round,
-					team_size: teamSize
-				},
-				playerIds: teamPlayerIds
-			});
-			teamNum++;
-		}
-
-		return teams;
+	generateRandomPairings(teams: Team[], teamsPerSide: number): MatchPairing[] {
+		const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+		return this.generateConsecutivePairings(shuffledTeams, teamsPerSide);
 	}
 
+	/**
+	 * Generate round-robin pairings (every team plays every other team).
+	 * Used for fixed teams tournaments.
+	 *
+	 * @param {Team[]} teams - All teams
+	 * @param {number} maxGames - Maximum games each team should play
+	 * @returns {MatchPairing[]} - Array of match pairings
+	 */
+	generateRoundRobinPairings(teams: Team[], maxGames: number): MatchPairing[] {
+		const pairings: MatchPairing[] = [];
+		const teamGames = new Map<number, number>();
+		const playedMatches = new Set<string>();
+
+		// Initialize game counts
+		teams.forEach((team) => {
+			if (team.id) {
+				teamGames.set(team.id, 0);
+			}
+		});
+
+		// Generate all possible matchups
+		const allMatchups: MatchPairing[] = [];
+		for (let i = 0; i < teams.length; i++) {
+			for (let j = i + 1; j < teams.length; j++) {
+				if (teams[i].id && teams[j].id) {
+					allMatchups.push({
+						homeTeams: [teams[i].id],
+						awayTeams: [teams[j].id]
+					});
+				}
+			}
+		}
+
+		// Schedule matches using balanced approach
+		while (this.hasTeamsNeedingGames(teamGames, maxGames)) {
+			const roundPairings = this.scheduleBalancedRound(
+				allMatchups,
+				teamGames,
+				playedMatches,
+				maxGames
+			);
+
+			if (roundPairings.length === 0) {
+				break; // No more valid matches can be scheduled
+			}
+
+			pairings.push(...roundPairings);
+		}
+
+		return pairings;
+	}
+
+	/**
+	 * Check if any teams still need more games
+	 */
+	private hasTeamsNeedingGames(teamGames: Map<number, number>, maxGames: number): boolean {
+		return Array.from(teamGames.values()).some((count) => count < maxGames);
+	}
+
+	/**
+	 * Schedule a balanced round of matches
+	 */
+	private scheduleBalancedRound(
+		allMatchups: MatchPairing[],
+		teamGames: Map<number, number>,
+		playedMatches: Set<string>,
+		maxGames: number
+	): MatchPairing[] {
+		const roundPairings: MatchPairing[] = [];
+		const usedTeams = new Set<number>();
+
+		// Sort matchups by priority (teams with fewer games first)
+		const prioritizedMatchups = allMatchups
+			.filter((pairing) => {
+				const team1 = pairing.homeTeams[0];
+				const team2 = pairing.awayTeams[0];
+				const matchKey = `${Math.min(team1, team2)}-${Math.max(team1, team2)}`;
+				return (
+					!playedMatches.has(matchKey) &&
+					teamGames.get(team1)! < maxGames &&
+					teamGames.get(team2)! < maxGames
+				);
+			})
+			.sort((a, b) => {
+				const team1A = a.homeTeams[0];
+				const team2A = a.awayTeams[0];
+				const team1B = b.homeTeams[0];
+				const team2B = b.awayTeams[0];
+				const priorityA = teamGames.get(team1A)! + teamGames.get(team2A)!;
+				const priorityB = teamGames.get(team1B)! + teamGames.get(team2B)!;
+				return priorityA - priorityB;
+			});
+
+		// Schedule matches for this round
+		for (const pairing of prioritizedMatchups) {
+			const team1 = pairing.homeTeams[0];
+			const team2 = pairing.awayTeams[0];
+
+			if (!usedTeams.has(team1) && !usedTeams.has(team2)) {
+				roundPairings.push(pairing);
+				usedTeams.add(team1);
+				usedTeams.add(team2);
+
+				// Update game counts and played matches
+				teamGames.set(team1, teamGames.get(team1)! + 1);
+				teamGames.set(team2, teamGames.get(team2)! + 1);
+
+				const matchKey = `${Math.min(team1, team2)}-${Math.max(team1, team2)}`;
+				playedMatches.add(matchKey);
+			}
+		}
+
+		// Allow rematches if needed
+		if (roundPairings.length === 0 && this.hasTeamsNeedingGames(teamGames, maxGames)) {
+			const rematchCandidates = allMatchups
+				.filter((pairing) => {
+					const team1 = pairing.homeTeams[0];
+					const team2 = pairing.awayTeams[0];
+					return (
+						!usedTeams.has(team1) &&
+						!usedTeams.has(team2) &&
+						teamGames.get(team1)! < maxGames &&
+						teamGames.get(team2)! < maxGames
+					);
+				})
+				.sort((a, b) => {
+					const team1A = a.homeTeams[0];
+					const team2A = a.awayTeams[0];
+					const team1B = b.homeTeams[0];
+					const team2B = b.awayTeams[0];
+					const priorityA = teamGames.get(team1A)! + teamGames.get(team2A)!;
+					const priorityB = teamGames.get(team1B)! + teamGames.get(team2B)!;
+					return priorityA - priorityB;
+				});
+
+			for (const pairing of rematchCandidates) {
+				const team1 = pairing.homeTeams[0];
+				const team2 = pairing.awayTeams[0];
+
+				if (!usedTeams.has(team1) && !usedTeams.has(team2)) {
+					roundPairings.push(pairing);
+					usedTeams.add(team1);
+					usedTeams.add(team2);
+
+					teamGames.set(team1, teamGames.get(team1)! + 1);
+					teamGames.set(team2, teamGames.get(team2)! + 1);
+				}
+			}
+		}
+
+		return roundPairings;
+	}
 }

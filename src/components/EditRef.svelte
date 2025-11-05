@@ -19,9 +19,7 @@
 
 	// Filter out teams that are playing in this match
 	let availableRefTeams = $derived(
-		teams.teams.filter(
-			(t: Team) => t.id !== match?.team1 && t.id !== match?.team2
-		)
+		teams.teams.filter((t: Team) => t.id !== match?.team1 && t.id !== match?.team2)
 	);
 
 	async function saveRef() {

@@ -252,7 +252,14 @@
 								{/if}
 							{/if}
 						</div>
-						<ViewMatch matches={data.matches} {match} teams={data.teams} {readOnly} {defaultTeam} {tournament} />
+						<ViewMatch
+							matches={data.matches}
+							{match}
+							teams={data.teams}
+							{readOnly}
+							{defaultTeam}
+							{tournament}
+						/>
 					</div>
 				{/each}
 			</div>

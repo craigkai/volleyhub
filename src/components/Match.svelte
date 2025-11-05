@@ -8,8 +8,16 @@
 	import TrophyIcon from 'lucide-svelte/icons/trophy';
 	import InfoIcon from 'lucide-svelte/icons/info';
 
-	let { match, teams, readOnly = false, defaultTeam, matches, courts, playerStats, tournament } =
-		$props();
+	let {
+		match,
+		teams,
+		readOnly = false,
+		defaultTeam,
+		matches,
+		courts,
+		playerStats,
+		tournament
+	} = $props();
 
 	const team1 = $derived.by(() => {
 		return teams?.teams?.find((t: Team) => t.id === match.team1);
@@ -217,7 +225,8 @@
 					>
 						{score ?? '-'}
 					</span>
-					{#if team?.name === defaultTeam}<span class="h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
+					{#if team?.name === defaultTeam}<span
+							class="h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
 						></span>{/if}
 					<span class="truncate text-sm sm:text-sm">{team?.name ?? 'TBD'}</span>
 					{#if isWinner && isComplete}<TrophyIcon

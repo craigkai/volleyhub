@@ -3,10 +3,12 @@
 ## Commits
 
 ### Commit 1: "Big changes" (6c4e53c)
+
 **Date:** October 23, 2025, 9:37 PM
 **Author:** Craig Kaiser
 
 ### Commit 2: "Formatter" (d700167)
+
 **Date:** October 23, 2025, 11:22 PM
 **Author:** Craig Kaiser
 
@@ -23,6 +25,7 @@ These commits implement comprehensive support for **Mix-and-Match and King & Que
 ### 1. Mix-and-Match Tournament Support
 
 #### Team Generation
+
 - **Multi-round team generation**: Generates teams for all rounds at once based on the `pools` setting
 - **Snake draft pairing algorithm**: Balances skill by pairing players (e.g., 1&4, 2&3, 5&8, 6&7)
 - **King & Queen pairing**: Equal gender distribution per team
@@ -31,6 +34,7 @@ These commits implement comprehensive support for **Mix-and-Match and King & Que
 - **Temporary teams**: Teams marked as `is_temporary: true` with associated round numbers
 
 #### Match Distribution
+
 - **Intelligent court allocation**: Matches distributed across rounds based on available courts
   - Formula: `round = floor(matchIndex / courts) + 1`
   - Example: 8 matches + 1 court = 8 rounds (1 match per round)
@@ -38,6 +42,7 @@ These commits implement comprehensive support for **Mix-and-Match and King & Que
 - **Consecutive pairing**: Teams paired consecutively (team1 vs team2, team3 vs team4, etc.)
 
 #### Player Statistics
+
 - **Automatic stat tracking**: When match scores are entered, `player_stats` records created for all players
 - **Per-player metrics**: Tracks wins, losses, points scored, points allowed for each player
 - **Individual standings**: Standings page shows player rankings for mix-and-match tournaments
@@ -46,11 +51,13 @@ These commits implement comprehensive support for **Mix-and-Match and King & Que
 ### 2. Data Cleanup & Management
 
 #### Temporary Team Cleanup
+
 - **Auto-cleanup on regeneration**: Deletes old temporary teams and their matches before generating new ones
 - **Cascade deletion**: Properly removes matches, player_teams, and teams in correct order
 - **Database integrity**: Prevents accumulation of orphaned data
 
 #### Tournament Type Changes
+
 - **Format change cleanup**: When switching tournament types (e.g., Fixed Teams → Mix & Match):
   - Deletes all matches for the event
   - Deletes all player_teams junction records
@@ -61,20 +68,24 @@ These commits implement comprehensive support for **Mix-and-Match and King & Que
 ### 3. UI/UX Improvements
 
 #### Navigation
+
 - **Menu reordering**: Dashboard now appears before Manage Account in header dropdown
 
 #### Standings Page
+
 - **Dual mode support**:
   - **Fixed Teams**: Shows team standings with wins
   - **Mix & Match**: Shows individual player standings with wins and point differential
 - **Reactive updates**: Automatically updates when match scores are entered
 
 #### Matches Page
+
 - **Proper round distribution**: Matches now appear in correct rounds (1, 2, 3...) instead of all in one round
 - **Team name display**: Shows player names (e.g., "Alice & Bob") instead of generic "Team 1"
 - **Winner highlighting**: Trophy emoji and green styling for winning teams (when match is COMPLETE)
 
 #### Match Editing
+
 - **Automatic status**: Match state set to COMPLETE when both teams have scores
 - **No manual status**: Removed confusing status dropdown - status is now automatic
 - **Real-time updates**: Changes reflected immediately without page refresh
@@ -84,24 +95,29 @@ These commits implement comprehensive support for **Mix-and-Match and King & Que
 ## Database Changes
 
 ### New Database Migration
+
 **File:** `supabase/migrations/20251023180941_add_mix_and_match_support.sql`
 
 #### Schema Updates
 
 ##### Teams Table
+
 - Added `round` column (nullable integer) - indicates which round temporary teams belong to
 - Added `is_temporary` column (boolean, default false) - marks teams as temporary for mix-and-match
 - Added `team_size` column (nullable integer) - stores the number of players per team
 
 ##### Events Table
+
 - Added `tournament_type` column (text) - values: 'fixed-teams', 'mix-and-match', 'king-and-queen'
 - Added `team_size` column (nullable integer) - default team size for the tournament
 
 ##### Player Stats Table
+
 - Existing table now properly utilized for mix-and-match tournaments
 - Tracks individual player performance across matches
 
 ### Zod Schema Updates
+
 **File:** `src/schemas/supabase.ts`
 
 - Updated `teamsRowSchema`, `teamsInsertSchema`, `teamsUpdateSchema` to include:
@@ -119,26 +135,32 @@ These commits implement comprehensive support for **Mix-and-Match and King & Que
 ### New Files
 
 #### `src/lib/pairingGenerator.svelte.ts`
+
 Class with methods for generating team pairings:
+
 - `generateKingQueenPairings()` - Equal gender distribution
 - `generateSnakeDraftPairings()` - Balanced skill distribution
 - `generateRandomPairings()` - Random team assignment
 
 #### `src/lib/database/playerTeams.ts`
+
 Database service for player_teams junction table operations.
 
 #### `scripts/cleanupEvent.sql`
+
 SQL script for manually cleaning up event data during development.
 
 ### Modified Files
 
 #### `src/components/EditMatch.svelte`
+
 - Added player_stats creation when match is completed
 - Removed manual status dropdown
 - Added automatic status logic based on scores
 - Direct `playerStats` state updates (no subscription)
 
 #### `src/components/Matches.svelte`
+
 - **Generate Matches logic completely rewritten**:
   - Pre-generation cleanup of temporary teams
   - Multi-round team generation loop
@@ -148,15 +170,18 @@ SQL script for manually cleaning up event data during development.
 - Pass `playerStats` prop down to child components
 
 #### `src/components/Match.svelte`
+
 - Pass `playerStats` prop to `EditMatch`
 - Updated winner highlighting reactivity
 
 #### `src/components/Standings.svelte`
+
 - **Removed real-time subscription** to player_stats
 - Relies on direct state updates from EditMatch
 - Dual-mode display logic for team vs player standings
 
 #### `src/lib/matches.svelte.ts`
+
 - **New method**: `createConsecutivePairings()` for mix-and-match tournaments
   - Pairs consecutive teams
   - Distributes matches across rounds based on courts
@@ -165,6 +190,7 @@ SQL script for manually cleaning up event data during development.
 - Fixed INSERT handler reactivity with individual property assignment + array spread
 
 #### `src/lib/playerStats.svelte.ts`
+
 - Fixed reactivity in `handleUpdate()`:
   - INSERT: Use array spread `[...self.stats, updated]`
   - UPDATE: Individual property assignments
@@ -172,14 +198,17 @@ SQL script for manually cleaning up event data during development.
 - Fixed `createBatch()` and `create()` to use array spread
 
 #### `src/routes/events/[slug]/+page.server.ts`
+
 - **Tournament type change cleanup**: Added logic to detect when `tournament_type` changes
 - Deletes all teams, matches, and player_teams when format changes
 - Resets current_round to 0
 
 #### `src/components/Header.svelte`
+
 - Reordered navigation menu items
 
 #### `src/components/Settings.svelte`
+
 - Added tournament_type dropdown (Fixed Teams, Mix & Match, King & Queen)
 - Added team_size input for mix-and-match tournaments
 - Conditional display of team_size based on tournament type
@@ -272,10 +301,12 @@ SQL script for manually cleaning up event data during development.
 ## Breaking Changes
 
 ### Database
+
 - **Migration required**: Run `supabase/migrations/20251023180941_add_mix_and_match_support.sql`
 - **Schema changes**: Teams and events tables have new columns
 
 ### Code
+
 - **Props changed**: `EditMatch`, `Match` components now require `playerStats` prop
 - **Standings logic**: Completely different for mix-and-match vs fixed teams
 
@@ -284,12 +315,14 @@ SQL script for manually cleaning up event data during development.
 ## Files Changed Summary
 
 ### Commit 1 ("Big changes") - 35 files
+
 - **Added**: 4 new files (migration, cleanup script, database service, pairing generator enhancements)
 - **Modified**: 18 files
 - **Deleted**: 13 files (old migrations, plan docs)
 - **Total**: +2800 insertions, -1909 deletions
 
 ### Commit 2 ("Formatter") - 26 files
+
 - **Added**: 0 new files
 - **Modified**: 26 files (formatting changes, cleanup, polish)
 - **Deleted**: 2 files (plan docs)
@@ -300,6 +333,7 @@ SQL script for manually cleaning up event data during development.
 ## Future Enhancements
 
 ### Potential Improvements:
+
 1. **Partner history tracking**: Avoid repeating partnerships across rounds
 2. **Opponent history**: Track who has played against whom
 3. **Skill-based seeding**: Use current standings for next round pairings
@@ -312,6 +346,7 @@ SQL script for manually cleaning up event data during development.
 ## Related Files
 
 ### Key Files to Review:
+
 - `src/lib/pairingGenerator.svelte.ts` - Team generation algorithms
 - `src/lib/matches.svelte.ts` - Match creation and distribution
 - `src/components/EditMatch.svelte` - Player stats creation
@@ -319,6 +354,7 @@ SQL script for manually cleaning up event data during development.
 - `supabase/migrations/20251023180941_add_mix_and_match_support.sql` - Database schema
 
 ### Configuration:
+
 - `src/schemas/supabase.ts` - Zod validation schemas
 - `src/schemas/settingsSchema.ts` - Tournament settings form
 
