@@ -346,7 +346,7 @@
 								{/snippet}
 							</Control>
 							<Description class="text-xs text-gray-500">
-								Number of players per side in each match
+								Match size: number of players per side (e.g., 2 for 2v2, 3 for 3v3)
 							</Description>
 						</Field>
 					</div>
