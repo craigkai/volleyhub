@@ -40,47 +40,47 @@ export const actions: Actions = {
 
 				// If format changed, clean up all teams and matches
 				if (formatChanged && currentTournament) {
-				const supabase = event.locals.supabase;
+					const supabase = event.locals.supabase;
 
-				// Delete all matches for this event
-				const { error: matchesError } = await supabase
-					.from('matches')
-					.delete()
-					.eq('event_id', eventId);
-
-				if (matchesError) {
-					console.error('Error deleting matches:', matchesError);
-				}
-
-				// Get all team IDs for this event
-				const { data: teams, error: teamsLoadError } = await supabase
-					.from('teams')
-					.select('id')
-					.eq('event_id', eventId);
-
-				if (!teamsLoadError && teams && teams.length > 0) {
-					const teamIds = teams.map((t) => t.id);
-
-					// Delete player_teams records
-					const { error: playerTeamsError } = await supabase
-						.from('player_teams')
-						.delete()
-						.in('team_id', teamIds);
-
-					if (playerTeamsError) {
-						console.error('Error deleting player_teams:', playerTeamsError);
-					}
-
-					// Delete teams
-					const { error: teamsError } = await supabase
-						.from('teams')
+					// Delete all matches for this event
+					const { error: matchesError } = await supabase
+						.from('matches')
 						.delete()
 						.eq('event_id', eventId);
 
-					if (teamsError) {
-						console.error('Error deleting teams:', teamsError);
+					if (matchesError) {
+						console.error('Error deleting matches:', matchesError);
 					}
-				}
+
+					// Get all team IDs for this event
+					const { data: teams, error: teamsLoadError } = await supabase
+						.from('teams')
+						.select('id')
+						.eq('event_id', eventId);
+
+					if (!teamsLoadError && teams && teams.length > 0) {
+						const teamIds = teams.map((t) => t.id);
+
+						// Delete player_teams records
+						const { error: playerTeamsError } = await supabase
+							.from('player_teams')
+							.delete()
+							.in('team_id', teamIds);
+
+						if (playerTeamsError) {
+							console.error('Error deleting player_teams:', playerTeamsError);
+						}
+
+						// Delete teams
+						const { error: teamsError } = await supabase
+							.from('teams')
+							.delete()
+							.eq('event_id', eventId);
+
+						if (teamsError) {
+							console.error('Error deleting teams:', teamsError);
+						}
+					}
 
 					// Reset current_round to 0
 					await supabase.from('events').update({ current_round: 0 }).eq('id', eventId);

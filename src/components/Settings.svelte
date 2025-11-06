@@ -296,7 +296,9 @@
 											{...props}
 											class="mt-1.5 min-w-[8rem] border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
 										>
-											{$formData?.format === 'individual' ? 'Individual (Mix & Match)' : 'Fixed Teams'}
+											{$formData?.format === 'individual'
+												? 'Individual (Mix & Match)'
+												: 'Fixed Teams'}
 										</SelectTrigger>
 										<SelectContent class="bg-white dark:bg-gray-800">
 											<SelectItem value="individual" label="Individual (Mix & Match)" />
@@ -307,7 +309,8 @@
 								{/snippet}
 							</Control>
 							<Description class="text-xs text-gray-500">
-								Individual: Players compete with different partners each round. Fixed Teams: Pre-defined teams throughout the tournament.
+								Individual: Players compete with different partners each round. Fixed Teams:
+								Pre-defined teams throughout the tournament.
 							</Description>
 						</Field>
 					</div>

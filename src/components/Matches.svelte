@@ -193,8 +193,7 @@
 					teams: data.teams?.teams
 				});
 				const teamCount = data.teams?.teams?.length ?? 0;
-				const message =
-					`Failed to create matches. Please check that you have enough teams (currently ${teamCount}) and try again.`;
+				const message = `Failed to create matches. Please check that you have enough teams (currently ${teamCount}) and try again.`;
 				toast.error(message);
 				loading = false;
 				return;

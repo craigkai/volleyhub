@@ -206,7 +206,7 @@ export class Matches extends Base {
 			const pairingGenerator = new PairingGenerator();
 
 			// Determine format based on the format field
-			// format = 'individual' means players are paired randomly each round (e.g., 6 players -> 3v3)
+			// format = 'individual' means players compete with different partners each round (e.g., 6 players -> 3v3)
 			// format = 'fixed-teams' means pre-defined teams (e.g., 2 teams of 3 players = 3v3)
 			const isIndividualFormat = format === 'individual';
 			let pairings: MatchPairing[];
