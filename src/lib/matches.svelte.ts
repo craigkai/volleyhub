@@ -170,7 +170,7 @@ export class Matches extends Base {
 	 * @returns {Promise<Matches | undefined>} - Returns the Matches instance or undefined if creation fails.
 	 */
 	async create(
-		{ pools = 0, courts, refs = 'provided', team_size }: Event | Partial<EventRow>,
+		{ pools = 0, courts, refs = 'provided', team_size, format }: Event | Partial<EventRow>,
 		teams: Team[]
 	): Promise<Matches | undefined> {
 		if (!this.event_id) {
@@ -205,18 +205,17 @@ export class Matches extends Base {
 			const { PairingGenerator } = await import('./pairingGenerator.svelte');
 			const pairingGenerator = new PairingGenerator();
 
-			// Determine format based on team_size
-			// team_size = 1 means individual format (e.g., 3 teams of size 1 = 3v3)
-			// team_size > 1 means fixed teams (e.g., 2 teams of size 3 = 3v3 fixed)
-			const isIndividualFormat = (team_size ?? 2) === 1;
+			// Determine format based on the format field
+			// format = 'individual' means players are paired randomly each round (e.g., 6 players -> 3v3)
+			// format = 'fixed-teams' means pre-defined teams (e.g., 2 teams of 3 players = 3v3)
+			const isIndividualFormat = format === 'individual';
 			let pairings: MatchPairing[];
 
 			if (isIndividualFormat) {
-				// Individual format: determine teams per side from pool size
-				// For individual formats, team_size is always 1
-				// The number of 1-person teams per side is defined by the user
-				// Default to 1v1 if not specified
-				const teamsPerSide = Math.floor(Math.sqrt(teams.length / 2)) || 1;
+				// Individual format: team_size determines how many players per side
+				// Each "team" in the database is a single player (team.size = 1)
+				// team_size field specifies the match format (2 = 2v2, 3 = 3v3, etc.)
+				const teamsPerSide = team_size ?? 2;
 
 				// Use snake draft for balanced skill distribution
 				pairings = pairingGenerator.generateSnakeDraftPairings(teams, teamsPerSide);
