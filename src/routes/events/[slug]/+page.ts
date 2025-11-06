@@ -38,24 +38,20 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		? {
 			name: '',
 			description: '',
-			courts: 2,
-			pools: 5,
 			refs: 'teams',
 			scoring: 'points',
-			date: '',
-			format: 'fixed-teams' as const,
-			team_size: 2
+			date: ''
 		}
 		: {
 			name: tournament.name,
 			description: tournament.description || '',
 			date: tournament.date || '',
-			pools: tournament.pools || 5,
-			courts: tournament.courts || 2,
+			pools: tournament.pools,
+			courts: tournament.courts,
 			scoring: tournament.scoring || 'points',
 			refs: tournament.refs || 'teams',
-			format: (tournament.format || 'fixed-teams') as 'individual' | 'fixed-teams',
-			team_size: tournament.team_size || 2
+			format: tournament.format as 'individual' | 'fixed-teams' | undefined,
+			team_size: tournament.team_size
 		};
 
 	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
