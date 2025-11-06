@@ -17,8 +17,8 @@ const dateSchema = z
 export const formSchema = z.object({
 	name: z.string().min(1, 'Tournament name is required').max(100, 'Tournament name too long'),
 	description: z.string().max(1000, 'Description too long'),
-	courts: z.coerce.number().int().min(1).max(20),
-	pools: z.coerce.number().int().min(1).max(50),
+	courts: z.coerce.number().int().min(1).max(20).default(2),
+	pools: z.coerce.number().int().min(1).max(50).default(5),
 	refs: z.enum(['teams', 'provided']),
 	scoring: z.enum(['points', 'wins']),
 	date: z.string().optional(),

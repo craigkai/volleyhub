@@ -20,9 +20,14 @@
 	// Filter out teams that are playing in this match using match_teams table
 	let availableRefTeams = $derived(
 		teams.teams.filter((t: Team) => {
-			// Get team IDs from match_teams table
-			if (!match?.match_teams || !Array.isArray(match.match_teams)) {
-				return true; // If no match_teams data, allow all teams
+			// Use match_teams if available, otherwise fallback to team1/team2
+			if (match?.match_teams && Array.isArray(match.match_teams)) {
+				const matchTeamIds = new Set(
+					match.match_teams.map((mt: { team_id: number }) => mt.team_id)
+				);
+				return !matchTeamIds.has(t.id);
+			} else {
+				return t.id !== match?.team1 && t.id !== match?.team2;
 			}
 			const matchTeamIds = new Set(match.match_teams.map((mt: { team_id: number }) => mt.team_id));
 			return !matchTeamIds.has(t.id);
