@@ -28,13 +28,13 @@
 	});
 	const teamsForMatch = $derived([team1?.name, team2?.name]);
 
-	// For mix-and-match, check if defaultTeam (player name) is in either team name
+	// For individual format, check if defaultTeam (player name) is in either team name
 	// Team names are like "Alice & Bob & Charlie", so we check if player name is in the string
 	const hasDefaultTeam = $derived.by(() => {
 		if (!defaultTeam) return false;
 
-		// For mix-and-match tournaments, check if player name appears in team name
-		if (tournament?.tournament_type === 'mix-and-match') {
+		// For individual format, check if player name appears in team name
+		if (tournament?.format === 'individual') {
 			const team1Name = team1?.name || '';
 			const team2Name = team2?.name || '';
 
@@ -45,7 +45,7 @@
 			return team1Players.includes(defaultTeam) || team2Players.includes(defaultTeam);
 		}
 
-		// For fixed-teams, use the original logic
+		// For fixed teams, use the original logic
 		return teamsForMatch.includes(defaultTeam);
 	});
 

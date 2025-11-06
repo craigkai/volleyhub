@@ -44,6 +44,7 @@ export const eventsRowSchema = z.object({
 	courts: z.number().nullable(),
 	created_at: z.string(),
 	date: z.string().nullable(),
+	format: z.enum(['individual', 'fixed-teams']).nullable(),
 	id: z.number(),
 	name: z.string(),
 	owner: z.string(),
@@ -55,6 +56,7 @@ export const eventsRowSchema = z.object({
 });
 
 export const eventsInsertSchema = z.object({
+	format: z.enum(['individual', 'fixed-teams']).optional().nullable(),
 	courts: z.number().optional().nullable(),
 	created_at: z.string().optional(),
 	date: z.string().optional().nullable(),
@@ -73,6 +75,7 @@ export const eventsUpdateSchema = z.object({
 	courts: z.number().optional().nullable(),
 	created_at: z.string().optional(),
 	date: z.string().optional().nullable(),
+	format: z.enum(['individual', 'fixed-teams']).optional().nullable(),
 	id: z.number().optional(),
 	name: z.string().optional(),
 	owner: z.string().optional(),

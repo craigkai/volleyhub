@@ -32,13 +32,14 @@ export const actions: Actions = {
 		const tournament = new Event(eventSupabaseDatabaseService);
 
 		try {
-			// Check if tournament_type is changing
-			const currentTournament = await tournament.load(eventId);
-			const tournamentTypeChanged =
-				currentTournament && currentTournament.tournament_type !== form.data.tournament_type;
+			// Only check for format changes if this is an existing event (not NaN from "create")
+			let formatChanged = false;
+			if (!isNaN(eventId)) {
+				const currentTournament = await tournament.load(eventId);
+				formatChanged = currentTournament && currentTournament.format !== form.data.format;
 
-			// If tournament type changed, clean up all teams and matches
-			if (tournamentTypeChanged && currentTournament) {
+				// If format changed, clean up all teams and matches
+				if (formatChanged && currentTournament) {
 				const supabase = event.locals.supabase;
 
 				// Delete all matches for this event
@@ -81,8 +82,9 @@ export const actions: Actions = {
 					}
 				}
 
-				// Reset current_round to 0
-				await supabase.from('events').update({ current_round: 0 }).eq('id', eventId);
+					// Reset current_round to 0
+					await supabase.from('events').update({ current_round: 0 }).eq('id', eventId);
+				}
 			}
 
 			const updatedTournament = await tournament.update(eventId, form.data);

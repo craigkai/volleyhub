@@ -20,12 +20,16 @@
 		tournament
 	} = $props();
 
-	let currentViewRound = $state(data.tournament.current_round ?? 0);
+	// Default to round 1 if current_round is 0 or null (since rounds start at 1, not 0)
+	let currentViewRound = $state(
+		data.tournament.current_round && data.tournament.current_round > 0
+			? data.tournament.current_round
+			: 1
+	);
 
 	// Calculate total rounds from matches
 	let totalRounds = $derived(
-		Math.max.apply(Math, data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0]) +
-			1 || 1
+		Math.max(...(data.matches?.matches?.map((m: { round: number }) => m.round) ?? [1]))
 	);
 
 	// Get matches for current viewing round
@@ -43,8 +47,8 @@
 			const team1 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team1);
 			const team2 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team2);
 
-			// For mix-and-match tournaments, check if player name appears in team name
-			if (tournament?.tournament_type === 'mix-and-match') {
+			// For individual format tournaments, check if player name appears in team name
+			if (tournament?.format === 'individual') {
 				const team1Name = team1?.name || '';
 				const team2Name = team2?.name || '';
 
@@ -69,8 +73,8 @@
 		return roundMatches.some((m: any) => {
 			const referee = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.ref);
 
-			// For mix-and-match tournaments, check if player name appears in referee team name
-			if (tournament?.tournament_type === 'mix-and-match') {
+			// For individual format tournaments, check if player name appears in referee team name
+			if (tournament?.format === 'individual') {
 				const refereeName = referee?.name || '';
 				const referees = refereeName.split(' & ');
 				return referees.includes(teamName);
@@ -89,17 +93,19 @@
 	});
 
 	function jumpToCurrentRound() {
-		currentViewRound = data.tournament.current_round ?? 0;
+		currentViewRound = data.tournament.current_round && data.tournament.current_round > 0
+			? data.tournament.current_round
+			: 1;
 	}
 
 	function nextRound() {
-		if (currentViewRound < totalRounds - 1) {
+		if (currentViewRound < totalRounds) {
 			currentViewRound++;
 		}
 	}
 
 	function prevRound() {
-		if (currentViewRound > 0) {
+		if (currentViewRound > 1) {
 			currentViewRound--;
 		}
 	}
@@ -107,7 +113,7 @@
 	async function handleDeleteRound() {
 		await deleteRound(currentViewRound);
 		// Adjust view if we deleted the last round
-		if (currentViewRound >= totalRounds - 1 && currentViewRound > 0) {
+		if (currentViewRound >= totalRounds && currentViewRound > 1) {
 			currentViewRound--;
 		}
 	}
@@ -115,7 +121,7 @@
 	async function handleDeleteFromRound() {
 		await deleteFromRound(currentViewRound);
 		// Adjust view if we deleted the current round
-		if (currentViewRound >= totalRounds - 1 && currentViewRound > 0) {
+		if (currentViewRound >= totalRounds && currentViewRound > 1) {
 			currentViewRound--;
 		}
 	}
@@ -131,7 +137,7 @@
 				variant="outline"
 				size="sm"
 				onclick={prevRound}
-				disabled={currentViewRound <= 0}
+				disabled={currentViewRound <= 1}
 				class="h-8 w-8 p-0"
 			>
 				<ChevronLeft class="h-4 w-4" />
@@ -139,10 +145,10 @@
 
 			<div class="text-center">
 				<h2 class="text-lg font-bold text-gray-900 dark:text-white">
-					Round {currentViewRound + 1}
+					Round {currentViewRound}
 				</h2>
 				<p class="text-xs text-gray-500 dark:text-gray-400">
-					{currentViewRound + 1} of {totalRounds}
+					{currentViewRound} of {totalRounds}
 				</p>
 			</div>
 
@@ -150,7 +156,7 @@
 				variant="outline"
 				size="sm"
 				onclick={nextRound}
-				disabled={currentViewRound >= totalRounds - 1}
+				disabled={currentViewRound >= totalRounds}
 				class="h-8 w-8 p-0"
 			>
 				<ChevronRight class="h-4 w-4" />

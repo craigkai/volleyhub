@@ -33,18 +33,33 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 
 	const readOnly = eventId !== 'create' && !isOwner && !isAdmin;
 
-	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
-		{
-			...tournament,
+	// For create, use empty form. For existing events, populate with tournament data
+	const formData = eventId === 'create'
+		? {
+			name: '',
+			description: '',
+			courts: 2,
+			pools: 5,
+			refs: 'teams',
+			scoring: 'points',
+			date: '',
+			format: 'fixed-teams' as const,
+			team_size: 2
+		}
+		: {
 			name: tournament.name,
-			date: tournament.date,
-			pools: tournament.pools,
-			courts: tournament.courts,
-			scoring: tournament.scoring,
-			refs: tournament.refs,
-			tournament_type: tournament.tournament_type || 'fixed-teams',
+			description: tournament.description || '',
+			date: tournament.date || '',
+			pools: tournament.pools || 5,
+			courts: tournament.courts || 2,
+			scoring: tournament.scoring || 'points',
+			refs: tournament.refs || 'teams',
+			format: (tournament.format || 'fixed-teams') as 'individual' | 'fixed-teams',
 			team_size: tournament.team_size || 2
-		},
+		};
+
+	const form: SuperValidated<Infer<FormSchema>> = await superValidate(
+		formData,
 		zod4(settingsSchema)
 	);
 
