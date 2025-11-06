@@ -5,7 +5,7 @@ import { matchesRowSchema, matchesInsertSchema } from '$schemas/supabase';
 
 const MatchesRowSchemaArray = z.array(matchesRowSchema);
 
-const MATCHES_SELECT_QUERY = '*';
+const MATCHES_SELECT_QUERY = '*, match_teams(id, team_id, side)';
 
 type Filter = {
 	column: string;

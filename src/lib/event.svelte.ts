@@ -24,6 +24,8 @@ export class Event extends Base {
 	refs?: string = $state();
 	description?: string;
 	current_round?: number = $state();
+	format?: 'individual' | 'fixed-teams' = $state();
+	team_size?: number = $state();
 	subscriptionStatus = $state();
 
 	/**
@@ -83,6 +85,12 @@ export class Event extends Base {
 		}
 		if (updated.date !== undefined) {
 			self.date = updated.date;
+		}
+		if (updated.format !== undefined) {
+			self.format = updated.format;
+		}
+		if (typeof updated.team_size === 'number') {
+			self.team_size = updated.team_size;
 		}
 	}
 

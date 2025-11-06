@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import toast from 'svelte-5-french-toast';
 	import { Input } from '$components/ui/input';
 	import { Field, Label, Control, Description, Button } from '$components/ui/form';
@@ -276,19 +277,19 @@
 				</h3>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
 					<div class="space-y-1.5">
-						<Field {form} name="tournament_type">
+						<Field {form} name="format">
 							<Control>
 								{#snippet children({ props })}
 									<div class="flex items-center gap-2">
 										<ShuffleIcon class="h-4 w-4 text-gray-500" />
-										<Label class="text-sm font-medium sm:text-base">Tournament Type</Label>
+										<Label class="text-sm font-medium sm:text-base">Tournament Format</Label>
 									</div>
 									<SelectRoot
 										type="single"
-										bind:value={$formData.tournament_type}
+										bind:value={$formData.format}
 										onValueChange={(value) => {
 											if (value) {
-												$formData.tournament_type = value;
+												$formData.format = value as 'individual' | 'fixed-teams';
 											}
 										}}
 									>
@@ -296,64 +297,63 @@
 											{...props}
 											class="mt-1.5 min-w-[8rem] border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
 										>
-											{$formData?.tournament_type === 'fixed-teams'
-												? 'Fixed Teams'
-												: $formData?.tournament_type === 'mix-and-match'
-													? 'Mix & Match'
-													: 'Mix & Match'}
+											{$formData?.format === 'individual'
+												? 'Individual (Mix & Match)'
+												: 'Fixed Teams'}
 										</SelectTrigger>
 										<SelectContent class="bg-white dark:bg-gray-800">
+											<SelectItem value="individual" label="Individual (Mix & Match)" />
 											<SelectItem value="fixed-teams" label="Fixed Teams" />
-											<SelectItem value="mix-and-match" label="Mix & Match" />
-											</SelectContent>
+										</SelectContent>
 									</SelectRoot>
-									<input type="hidden" value={$formData.tournament_type} name={props.name} />
+									<input type="hidden" value={$formData.format} name={props.name} />
 								{/snippet}
 							</Control>
 							<Description class="text-xs text-gray-500">
-								Fixed Teams: traditional format with pre-defined teams. Mix & Match: teams randomly change each round.
+								Individual: Players compete with different partners each round. Fixed Teams:
+								Pre-defined teams throughout the tournament.
 							</Description>
 						</Field>
 					</div>
 
-					{#if $formData.tournament_type === 'mix-and-match'}
-						<div class="space-y-1.5">
-							<Field {form} name="team_size">
-								<Control>
-									{#snippet children({ props })}
-										<div class="flex items-center gap-2">
-											<UsersRoundIcon class="h-4 w-4 text-gray-500" />
-											<Label class="text-sm font-medium sm:text-base">Team Size</Label>
-										</div>
-										<SelectRoot
-											type="single"
-											bind:value={$formData.team_size}
-											onValueChange={(value) => {
-												if (value) {
-													$formData.team_size = value;
-												}
-											}}
+					<div class="space-y-1.5">
+						<Field {form} name="team_size">
+							<Control>
+								{#snippet children({ props })}
+									<div class="flex items-center gap-2">
+										<UsersRoundIcon class="h-4 w-4 text-gray-500" />
+										<Label class="text-sm font-medium sm:text-base">Match Size</Label>
+									</div>
+									<SelectRoot
+										type="single"
+										bind:value={$formData.team_size}
+										onValueChange={(value) => {
+											if (value) {
+												$formData.team_size = value;
+											}
+										}}
+									>
+										<SelectTrigger
+											{...props}
+											class="mt-1.5 min-w-[8rem] border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
 										>
-											<SelectTrigger
-												{...props}
-												class="mt-1.5 min-w-[8rem] border-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-base dark:border-gray-600"
-											>
-												{$formData?.team_size}v{$formData?.team_size}
-											</SelectTrigger>
-											<SelectContent class="bg-white dark:bg-gray-800">
-												<SelectItem value={2} label="2v2 (Beach Doubles)" />
-												<SelectItem value={3} label="3v3 (Grass)" />
-												<SelectItem value={4} label="4v4" />
-												<SelectItem value={6} label="6v6 (Indoor)" />
-											</SelectContent>
-										</SelectRoot>
-										<input type="hidden" value={$formData.team_size} name={props.name} />
-									{/snippet}
-								</Control>
-								<Description class="text-xs text-gray-500">Number of players per team</Description>
-							</Field>
-						</div>
-					{/if}
+											{$formData?.team_size}v{$formData?.team_size}
+										</SelectTrigger>
+										<SelectContent class="bg-white dark:bg-gray-800">
+											<SelectItem value={2} label="2v2" />
+											<SelectItem value={3} label="3v3" />
+											<SelectItem value={4} label="4v4" />
+											<SelectItem value={6} label="6v6" />
+										</SelectContent>
+									</SelectRoot>
+									<input type="hidden" value={$formData.team_size} name={props.name} />
+								{/snippet}
+							</Control>
+							<Description class="text-xs text-gray-500">
+								Match size: number of players per side (e.g., 2 for 2v2, 3 for 3v3)
+							</Description>
+						</Field>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -376,6 +376,7 @@
 		<form
 			method="POST"
 			action="?/createEvent"
+			use:enhance
 			class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
 		>
 			{@render fields()}

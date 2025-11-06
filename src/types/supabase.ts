@@ -32,8 +32,10 @@ export type Database = {
 				Row: {
 					courts: number | null;
 					created_at: string;
+					current_round: number | null;
 					date: string | null;
 					description: string | null;
+					format: Database['public']['Enums']['event_format'] | null;
 					id: number;
 					name: string;
 					owner: string;
@@ -41,13 +43,14 @@ export type Database = {
 					refs: string | null;
 					scoring: string | null;
 					team_size: number | null;
-					tournament_type: string | null;
 				};
 				Insert: {
 					courts?: number | null;
 					created_at?: string;
+					current_round?: number | null;
 					date?: string | null;
 					description?: string | null;
+					format?: Database['public']['Enums']['event_format'] | null;
 					id?: number;
 					name: string;
 					owner: string;
@@ -55,13 +58,14 @@ export type Database = {
 					refs?: string | null;
 					scoring?: string | null;
 					team_size?: number | null;
-					tournament_type?: string | null;
 				};
 				Update: {
 					courts?: number | null;
 					created_at?: string;
+					current_round?: number | null;
 					date?: string | null;
 					description?: string | null;
+					format?: Database['public']['Enums']['event_format'] | null;
 					id?: number;
 					name?: string;
 					owner?: string;
@@ -69,9 +73,47 @@ export type Database = {
 					refs?: string | null;
 					scoring?: string | null;
 					team_size?: number | null;
-					tournament_type?: string | null;
 				};
 				Relationships: [];
+			};
+			match_teams: {
+				Row: {
+					created_at: string;
+					id: number;
+					match_id: number;
+					side: string;
+					team_id: number;
+				};
+				Insert: {
+					created_at?: string;
+					id?: number;
+					match_id: number;
+					side: string;
+					team_id: number;
+				};
+				Update: {
+					created_at?: string;
+					id?: number;
+					match_id?: number;
+					side?: string;
+					team_id?: number;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'match_teams_match_id_fkey';
+						columns: ['match_id'];
+						isOneToOne: false;
+						referencedRelation: 'matches';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'match_teams_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 			matches: {
 				Row: {
@@ -135,13 +177,6 @@ export type Database = {
 						referencedColumns: ['id'];
 					},
 					{
-						foreignKeyName: 'public_matches_id_fkey';
-						columns: ['id'];
-						isOneToOne: true;
-						referencedRelation: 'matches';
-						referencedColumns: ['id'];
-					},
-					{
 						foreignKeyName: 'public_matches_ref_fkey';
 						columns: ['ref'];
 						isOneToOne: false;
@@ -164,152 +199,12 @@ export type Database = {
 					}
 				];
 			};
-			player_stats: {
-				Row: {
-					created_at: string | null;
-					event_id: number | null;
-					id: number;
-					match_id: number | null;
-					player_id: number | null;
-					points_allowed: number | null;
-					points_scored: number | null;
-					win: boolean | null;
-				};
-				Insert: {
-					created_at?: string | null;
-					event_id?: number | null;
-					id?: number;
-					match_id?: number | null;
-					player_id?: number | null;
-					points_allowed?: number | null;
-					points_scored?: number | null;
-					win?: boolean | null;
-				};
-				Update: {
-					created_at?: string | null;
-					event_id?: number | null;
-					id?: number;
-					match_id?: number | null;
-					player_id?: number | null;
-					points_allowed?: number | null;
-					points_scored?: number | null;
-					win?: boolean | null;
-				};
-				Relationships: [
-					{
-						foreignKeyName: 'player_stats_event_id_fkey';
-						columns: ['event_id'];
-						isOneToOne: false;
-						referencedRelation: 'events';
-						referencedColumns: ['id'];
-					},
-					{
-						foreignKeyName: 'player_stats_match_id_fkey';
-						columns: ['match_id'];
-						isOneToOne: false;
-						referencedRelation: 'matches';
-						referencedColumns: ['id'];
-					},
-					{
-						foreignKeyName: 'player_stats_player_id_fkey';
-						columns: ['player_id'];
-						isOneToOne: false;
-						referencedRelation: 'players';
-						referencedColumns: ['id'];
-					}
-				];
-			};
-			player_teams: {
-				Row: {
-					created_at: string | null;
-					id: number;
-					player_id: number | null;
-					position: string | null;
-					team_id: number | null;
-				};
-				Insert: {
-					created_at?: string | null;
-					id?: number;
-					player_id?: number | null;
-					position?: string | null;
-					team_id?: number | null;
-				};
-				Update: {
-					created_at?: string | null;
-					id?: number;
-					player_id?: number | null;
-					position?: string | null;
-					team_id?: number | null;
-				};
-				Relationships: [
-					{
-						foreignKeyName: 'player_teams_player_id_fkey';
-						columns: ['player_id'];
-						isOneToOne: false;
-						referencedRelation: 'players';
-						referencedColumns: ['id'];
-					},
-					{
-						foreignKeyName: 'player_teams_team_id_fkey';
-						columns: ['team_id'];
-						isOneToOne: false;
-						referencedRelation: 'teams';
-						referencedColumns: ['id'];
-					}
-				];
-			};
-			players: {
-				Row: {
-					created_at: string | null;
-					email: string | null;
-					event_id: number | null;
-					gender: string | null;
-					id: number;
-					name: string;
-					phone: string | null;
-					skill_level: number | null;
-					state: string | null;
-				};
-				Insert: {
-					created_at?: string | null;
-					email?: string | null;
-					event_id?: number | null;
-					gender?: string | null;
-					id?: number;
-					name: string;
-					phone?: string | null;
-					skill_level?: number | null;
-					state?: string | null;
-				};
-				Update: {
-					created_at?: string | null;
-					email?: string | null;
-					event_id?: number | null;
-					gender?: string | null;
-					id?: number;
-					name?: string;
-					phone?: string | null;
-					skill_level?: number | null;
-					state?: string | null;
-				};
-				Relationships: [
-					{
-						foreignKeyName: 'players_event_id_fkey';
-						columns: ['event_id'];
-						isOneToOne: false;
-						referencedRelation: 'events';
-						referencedColumns: ['id'];
-					}
-				];
-			};
 			teams: {
 				Row: {
 					created_at: string | null;
 					event_id: number | null;
 					id: number;
-					is_temporary: boolean | null;
 					name: string;
-					round: number | null;
 					state: string | null;
 					team_size: number | null;
 				};
@@ -317,9 +212,7 @@ export type Database = {
 					created_at?: string | null;
 					event_id?: number | null;
 					id?: number;
-					is_temporary?: boolean | null;
 					name: string;
-					round?: number | null;
 					state?: string | null;
 					team_size?: number | null;
 				};
@@ -327,9 +220,7 @@ export type Database = {
 					created_at?: string | null;
 					event_id?: number | null;
 					id?: number;
-					is_temporary?: boolean | null;
 					name?: string;
-					round?: number | null;
 					state?: string | null;
 					team_size?: number | null;
 				};
@@ -351,6 +242,7 @@ export type Database = {
 					id: string;
 					is_admin: boolean;
 					name: string | null;
+					rejected: boolean;
 				};
 				Insert: {
 					approved?: boolean;
@@ -359,6 +251,7 @@ export type Database = {
 					id: string;
 					is_admin?: boolean;
 					name?: string | null;
+					rejected?: boolean;
 				};
 				Update: {
 					approved?: boolean;
@@ -367,6 +260,7 @@ export type Database = {
 					id?: string;
 					is_admin?: boolean;
 					name?: string | null;
+					rejected?: boolean;
 				};
 				Relationships: [];
 			};
@@ -375,9 +269,18 @@ export type Database = {
 			[_ in never]: never;
 		};
 		Functions: {
-			[_ in never]: never;
+			current_user_is_admin: { Args: never; Returns: boolean };
+			current_user_is_approved: { Args: never; Returns: boolean };
+			send_round_notifications: {
+				Args: { p_event_id: string; p_round: number };
+				Returns: {
+					notification_sent: boolean;
+					team_name: string;
+				}[];
+			};
 		};
 		Enums: {
+			event_format: 'individual' | 'fixed-teams';
 			matchstate: 'INCOMPLETE' | 'COMPLETE';
 			StageType: 'ROUND_ROBIN' | 'SINGLE_ELIMINATION' | 'DOUBLE_ELIMINATION';
 		};
@@ -398,6 +301,7 @@ export type Database = {
 					owner: string | null;
 					owner_id: string | null;
 					public: boolean | null;
+					type: Database['storage']['Enums']['buckettype'];
 					updated_at: string | null;
 				};
 				Insert: {
@@ -410,6 +314,7 @@ export type Database = {
 					owner?: string | null;
 					owner_id?: string | null;
 					public?: boolean | null;
+					type?: Database['storage']['Enums']['buckettype'];
 					updated_at?: string | null;
 				};
 				Update: {
@@ -422,9 +327,111 @@ export type Database = {
 					owner?: string | null;
 					owner_id?: string | null;
 					public?: boolean | null;
+					type?: Database['storage']['Enums']['buckettype'];
 					updated_at?: string | null;
 				};
 				Relationships: [];
+			};
+			buckets_analytics: {
+				Row: {
+					created_at: string;
+					format: string;
+					id: string;
+					type: Database['storage']['Enums']['buckettype'];
+					updated_at: string;
+				};
+				Insert: {
+					created_at?: string;
+					format?: string;
+					id: string;
+					type?: Database['storage']['Enums']['buckettype'];
+					updated_at?: string;
+				};
+				Update: {
+					created_at?: string;
+					format?: string;
+					id?: string;
+					type?: Database['storage']['Enums']['buckettype'];
+					updated_at?: string;
+				};
+				Relationships: [];
+			};
+			iceberg_namespaces: {
+				Row: {
+					bucket_id: string;
+					created_at: string;
+					id: string;
+					name: string;
+					updated_at: string;
+				};
+				Insert: {
+					bucket_id: string;
+					created_at?: string;
+					id?: string;
+					name: string;
+					updated_at?: string;
+				};
+				Update: {
+					bucket_id?: string;
+					created_at?: string;
+					id?: string;
+					name?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'iceberg_namespaces_bucket_id_fkey';
+						columns: ['bucket_id'];
+						isOneToOne: false;
+						referencedRelation: 'buckets_analytics';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+			iceberg_tables: {
+				Row: {
+					bucket_id: string;
+					created_at: string;
+					id: string;
+					location: string;
+					name: string;
+					namespace_id: string;
+					updated_at: string;
+				};
+				Insert: {
+					bucket_id: string;
+					created_at?: string;
+					id?: string;
+					location: string;
+					name: string;
+					namespace_id: string;
+					updated_at?: string;
+				};
+				Update: {
+					bucket_id?: string;
+					created_at?: string;
+					id?: string;
+					location?: string;
+					name?: string;
+					namespace_id?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'iceberg_tables_bucket_id_fkey';
+						columns: ['bucket_id'];
+						isOneToOne: false;
+						referencedRelation: 'buckets_analytics';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'iceberg_tables_namespace_id_fkey';
+						columns: ['namespace_id'];
+						isOneToOne: false;
+						referencedRelation: 'iceberg_namespaces';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 			migrations: {
 				Row: {
@@ -453,6 +460,7 @@ export type Database = {
 					created_at: string | null;
 					id: string;
 					last_accessed_at: string | null;
+					level: number | null;
 					metadata: Json | null;
 					name: string | null;
 					owner: string | null;
@@ -467,6 +475,7 @@ export type Database = {
 					created_at?: string | null;
 					id?: string;
 					last_accessed_at?: string | null;
+					level?: number | null;
 					metadata?: Json | null;
 					name?: string | null;
 					owner?: string | null;
@@ -481,6 +490,7 @@ export type Database = {
 					created_at?: string | null;
 					id?: string;
 					last_accessed_at?: string | null;
+					level?: number | null;
 					metadata?: Json | null;
 					name?: string | null;
 					owner?: string | null;
@@ -493,6 +503,38 @@ export type Database = {
 				Relationships: [
 					{
 						foreignKeyName: 'objects_bucketId_fkey';
+						columns: ['bucket_id'];
+						isOneToOne: false;
+						referencedRelation: 'buckets';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+			prefixes: {
+				Row: {
+					bucket_id: string;
+					created_at: string | null;
+					level: number;
+					name: string;
+					updated_at: string | null;
+				};
+				Insert: {
+					bucket_id: string;
+					created_at?: string | null;
+					level?: number;
+					name: string;
+					updated_at?: string | null;
+				};
+				Update: {
+					bucket_id?: string;
+					created_at?: string | null;
+					level?: number;
+					name?: string;
+					updated_at?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'prefixes_bucketId_fkey';
 						columns: ['bucket_id'];
 						isOneToOne: false;
 						referencedRelation: 'buckets';
@@ -603,13 +645,28 @@ export type Database = {
 			[_ in never]: never;
 		};
 		Functions: {
+			add_prefixes: {
+				Args: { _bucket_id: string; _name: string };
+				Returns: undefined;
+			};
 			can_insert_object: {
 				Args: { bucketid: string; metadata: Json; name: string; owner: string };
 				Returns: undefined;
 			};
+			delete_leaf_prefixes: {
+				Args: { bucket_ids: string[]; names: string[] };
+				Returns: undefined;
+			};
+			delete_prefix: {
+				Args: { _bucket_id: string; _name: string };
+				Returns: boolean;
+			};
 			extension: { Args: { name: string }; Returns: string };
 			filename: { Args: { name: string }; Returns: string };
 			foldername: { Args: { name: string }; Returns: string[] };
+			get_level: { Args: { name: string }; Returns: number };
+			get_prefix: { Args: { name: string }; Returns: string };
+			get_prefixes: { Args: { name: string }; Returns: string[] };
 			get_size_by_bucket: {
 				Args: never;
 				Returns: {
@@ -648,6 +705,10 @@ export type Database = {
 					updated_at: string;
 				}[];
 			};
+			lock_top_prefixes: {
+				Args: { bucket_ids: string[]; names: string[] };
+				Returns: undefined;
+			};
 			operation: { Args: never; Returns: string };
 			search: {
 				Args: {
@@ -669,9 +730,70 @@ export type Database = {
 					updated_at: string;
 				}[];
 			};
+			search_legacy_v1: {
+				Args: {
+					bucketname: string;
+					levels?: number;
+					limits?: number;
+					offsets?: number;
+					prefix: string;
+					search?: string;
+					sortcolumn?: string;
+					sortorder?: string;
+				};
+				Returns: {
+					created_at: string;
+					id: string;
+					last_accessed_at: string;
+					metadata: Json;
+					name: string;
+					updated_at: string;
+				}[];
+			};
+			search_v1_optimised: {
+				Args: {
+					bucketname: string;
+					levels?: number;
+					limits?: number;
+					offsets?: number;
+					prefix: string;
+					search?: string;
+					sortcolumn?: string;
+					sortorder?: string;
+				};
+				Returns: {
+					created_at: string;
+					id: string;
+					last_accessed_at: string;
+					metadata: Json;
+					name: string;
+					updated_at: string;
+				}[];
+			};
+			search_v2: {
+				Args: {
+					bucket_name: string;
+					levels?: number;
+					limits?: number;
+					prefix: string;
+					sort_column?: string;
+					sort_column_after?: string;
+					sort_order?: string;
+					start_after?: string;
+				};
+				Returns: {
+					created_at: string;
+					id: string;
+					key: string;
+					last_accessed_at: string;
+					metadata: Json;
+					name: string;
+					updated_at: string;
+				}[];
+			};
 		};
 		Enums: {
-			[_ in never]: never;
+			buckettype: 'STANDARD' | 'ANALYTICS';
 		};
 		CompositeTypes: {
 			[_ in never]: never;
@@ -800,11 +922,14 @@ export const Constants = {
 	},
 	public: {
 		Enums: {
+			event_format: ['individual', 'fixed-teams'],
 			matchstate: ['INCOMPLETE', 'COMPLETE'],
 			StageType: ['ROUND_ROBIN', 'SINGLE_ELIMINATION', 'DOUBLE_ELIMINATION']
 		}
 	},
 	storage: {
-		Enums: {}
+		Enums: {
+			buckettype: ['STANDARD', 'ANALYTICS']
+		}
 	}
 } as const;

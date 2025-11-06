@@ -36,11 +36,16 @@ values
             '',
             '');
 
--- Seed admin user if they exist in auth.users and aren't already in public.users
+-- Seed admin user - update or insert if they exist in auth.users
+-- The handle_new_user() trigger creates the user with is_admin=false, approved=false
+-- So we need to UPDATE it to set the correct values
 INSERT INTO public.users (id, name, is_admin, approved, approved_at)
-SELECT id, 'Root', true, true, now()
+SELECT id, 'root@ceal.dev', true, true, now()
 FROM auth.users
 WHERE email = 'root@ceal.dev'
-  AND NOT EXISTS (
-    SELECT 1 FROM public.users WHERE id = auth.users.id
-  );
+ON CONFLICT (id) DO UPDATE
+SET
+  name = 'root@ceal.dev',
+  is_admin = true,
+  approved = true,
+  approved_at = now();

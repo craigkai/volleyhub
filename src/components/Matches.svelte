@@ -24,9 +24,6 @@
 	import List from 'lucide-svelte/icons/list';
 	import RoundViewer from './RoundViewer.svelte';
 	import { sendRoundNotifications } from '$lib/pushNotifications';
-	import { PairingGenerator } from '$lib/pairingGenerator.svelte';
-	import { calculateIndividualStandings } from '$lib/individualStandings.svelte';
-	import { PlayerTeamsSupabaseDatabaseService } from '$lib/database/playerTeams';
 
 	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
@@ -175,274 +172,35 @@
 				matchesSubscription = undefined;
 			}
 
-			const isMixAndMatch = data.tournament?.tournament_type === 'mix-and-match';
-
-			// Declare variable to hold teams for matching
-			let teamsForMatching: Array<{ id: number; name: string }> = [];
-
-			// For mix-and-match, generate teams first
-			if (isMixAndMatch) {
-				// Check if we have players instead of teams
-				if (!data.players || data.players.players.length < 2) {
-					const playerCount = data.players?.players?.length ?? 0;
-					const message =
-						playerCount === 0
-							? 'No players found. Please add players before generating matches.'
-							: `Only ${playerCount} player found. Need at least 2 players to generate matches.`;
-					toast.error(message);
-					return;
-				}
-
-				// Generate teams and matches for ALL rounds based on pools setting
-				const teamSize = data.tournament?.team_size || 2;
-				const numRounds = data.tournament?.pools || 1;
-				const standings = calculateIndividualStandings(
-					data.players.players,
-					data.playerStats?.stats ?? []
-				);
-
-				const pairingGenerator = new PairingGenerator();
-				const playerTeamsService = new PlayerTeamsSupabaseDatabaseService(
-					data.tournament.databaseService.supabaseClient
-				);
-
-				// Clean up existing temporary teams and their matches before generating new ones
-				const supabase = data.tournament.databaseService.supabaseClient;
-
-				// First, get all temporary team IDs for this event
-				const { data: tempTeams, error: tempTeamsError } = await supabase
-					.from('teams')
-					.select('id')
-					.eq('event_id', data.tournament.id)
-					.eq('is_temporary', true);
-
-				if (tempTeamsError) {
-					console.error('Error fetching temporary teams:', tempTeamsError);
-					toast.error('Failed to clean up previous teams. Please try again.');
-					loading = false;
-					return;
-				} else if (tempTeams && tempTeams.length > 0) {
-					const tempTeamIds = tempTeams.map((t) => t.id);
-
-					// Delete matches where team1 or team2 is a temporary team
-					const { error: matchesError } = await supabase
-						.from('matches')
-						.delete()
-						.or(`team1.in.(${tempTeamIds.join(',')}),team2.in.(${tempTeamIds.join(',')})`);
-
-					if (matchesError) {
-						console.error('Error deleting matches:', matchesError);
-						toast.error('Failed to delete old matches. Please try again.');
-						loading = false;
-						return;
-					}
-
-					// Delete temporary teams (CASCADE will automatically delete player_teams)
-					console.log('Deleting temporary teams:', tempTeamIds);
-					const { error: teamsError } = await supabase
-						.from('teams')
-						.delete()
-						.in('id', tempTeamIds);
-
-					if (teamsError) {
-						console.error('Error deleting temporary teams:', teamsError);
-						toast.error('Failed to delete old teams. Please try again.');
-						loading = false;
-						return;
-					}
-					console.log('Successfully deleted temporary teams');
-				}
-
-				// CRITICAL: Check for any remaining player_teams that might cause duplicates
-				// Get all teams for this event
-				console.log('Checking for existing player_teams...');
-				const { data: allEventTeams } = await supabase
-					.from('teams')
-					.select('id')
-					.eq('event_id', data.tournament.id);
-
-				console.log('Found event teams:', allEventTeams);
-
-				if (allEventTeams && allEventTeams.length > 0) {
-					const allTeamIds = allEventTeams.map((t) => t.id);
-
-					// Check for existing player_teams
-					const { data: existingPlayerTeams } = await supabase
-						.from('player_teams')
-						.select('id, player_id, team_id')
-						.in('team_id', allTeamIds);
-
-					console.log('Found existing player_teams:', existingPlayerTeams);
-
-					if (existingPlayerTeams && existingPlayerTeams.length > 0) {
-						console.warn(
-							`Found ${existingPlayerTeams.length} existing player_teams records that need cleanup:`,
-							existingPlayerTeams
-						);
-
-						// Delete all player_teams for this event's teams
-						const { error: cleanupError } = await supabase
-							.from('player_teams')
-							.delete()
-							.in('team_id', allTeamIds);
-
-						if (cleanupError) {
-							console.error('Error cleaning up player_teams:', cleanupError);
-							toast.error('Failed to clean up player assignments.');
-							loading = false;
-							return;
-						}
-						console.log('Cleaned up existing player_teams');
-					} else {
-						console.log('No existing player_teams found, good to proceed');
-					}
-				}
-
-				// Generate and create all teams for all rounds first
-				const allCreatedTeams: Array<{ id: number; name: string; round?: number }> = [];
-
-				for (let roundNum = 1; roundNum <= numRounds; roundNum++) {
-					// For mix-and-match, rotate player order each round for different pairings
-					// Round 1: original order, Round 2: rotate by 1, Round 3: rotate by 2, etc.
-					const rotateBy = (roundNum - 1) % standings.length;
-					const rotatedStandings = [
-						...standings.slice(rotateBy),
-						...standings.slice(0, rotateBy)
-					];
-					console.log(
-						`Round ${roundNum}: Generating teams with ${data.players.players.length} players, teamSize=${teamSize}`
-					);
-					console.log('Rotated standings:', rotatedStandings);
-
-					const generatedTeams = await pairingGenerator.generateSnakeDraftPairings(
-						data.players.players,
-						data.tournament.id,
-						roundNum,
-						rotatedStandings,
-						teamSize
-					);
-
-					console.log(`Round ${roundNum}: Generated ${generatedTeams.length} teams`);
-
-					// Create teams for this round
-					for (const { team: teamData, playerIds } of generatedTeams) {
-						const createdTeam = await data.teams.create(teamData);
-
-						if (createdTeam && createdTeam.id) {
-							allCreatedTeams.push({
-								id: createdTeam.id,
-								name: createdTeam.name,
-								round: createdTeam.round
-							});
-
-							const playerTeamRecords = playerIds.map((playerId) => ({
-								team_id: createdTeam.id,
-								player_id: playerId,
-								position: null
-							}));
-
-							// CRITICAL FIX: Delete any existing player_teams for this specific team first
-							// This handles orphaned records from failed previous runs
-							console.log(`Pre-cleanup: checking team ${createdTeam.id} for existing player_teams`);
-							const { data: preCleanupData, error: preCleanupError } = await supabase
-								.from('player_teams')
-								.delete()
-								.eq('team_id', createdTeam.id)
-								.select();
-
-							if (preCleanupError) {
-								console.error(
-									`Error cleaning up player_teams for team ${createdTeam.id}:`,
-									preCleanupError
-								);
-							} else if (preCleanupData && preCleanupData.length > 0) {
-								console.log(
-									`Pre-cleanup: deleted ${preCleanupData.length} existing player_teams for team ${createdTeam.id}`
-								);
-							} else {
-								console.log(`Pre-cleanup: no existing player_teams found for team ${createdTeam.id}`);
-							}
-
-							console.log(
-								`Creating player_teams for team ${createdTeam.id} (${createdTeam.name}):`,
-								JSON.stringify(playerTeamRecords, null, 2)
-							);
-
-							// Check for duplicate player_ids in the same team
-							const playerIdSet = new Set(playerTeamRecords.map((r) => r.player_id));
-							if (playerIdSet.size !== playerTeamRecords.length) {
-								console.error(
-									`DUPLICATE PLAYER IDS DETECTED in team ${createdTeam.id}!`,
-									playerTeamRecords
-								);
-								toast.error(
-									`Bug detected: Team has duplicate players. Please report this issue.`
-								);
-								loading = false;
-								return;
-							}
-
-							await playerTeamsService.createMany(playerTeamRecords);
-						}
-					}
-				}
-
-				// Now create all matches at once (this will only delete matches once)
-				if (allCreatedTeams.length >= 2) {
-					await data.matches.create(data.tournament, allCreatedTeams);
-				} else {
-					console.warn(`Not enough teams (${allCreatedTeams.length}) to create matches`);
-					toast.error(`Failed to create matches: need at least 2 teams, got ${allCreatedTeams.length}`);
-				}
-
-				// Reload teams to update the UI
-				const loadedTeams = await data.teams.load(data.tournament.id);
-				if (loadedTeams) {
-					data.teams.teams = loadedTeams;
-				}
-
-				// Reload matches to update the UI
-				await data.matches.load(data.tournament.id);
-
-				toast.success(`Generated ${numRounds} rounds of matches`);
-
-				// Skip the normal match creation below since we already created matches for each round
-				teamsForMatching = [];
-			} else {
-				// For fixed-teams tournaments, use all teams
-				// Check teams count before generating matches
-				if (data.teams.teams.length < 2) {
-					const teamCount = data.teams.teams.length;
-					const message =
-						teamCount === 0
-							? 'No teams found. Please add teams before generating matches.'
-							: `Only ${teamCount} team found. Need at least 2 teams to generate matches.`;
-					toast.error(message);
-					return;
-				}
-
-				teamsForMatching = data.teams.teams.map(
-					(team: { id: number; name: string; round?: number }) => ({
-						id: team.id,
-						name: team.name,
-						round: team.round
-					})
-				);
+			// Check if we have teams (whether 1-person or multi-person)
+			if (!data.teams || data.teams.teams.length < 2) {
+				const teamCount = data.teams?.teams?.length ?? 0;
+				const message =
+					teamCount === 0
+						? 'No teams found. Please add teams or players before generating matches.'
+						: `Only ${teamCount} team found. Need at least 2 teams to generate matches.`;
+				toast.error(message);
+				loading = false;
+				return;
 			}
 
-			// Only create matches if we have teams (for fixed-teams tournaments)
-			// For mix-and-match, we already created matches in the loop above
-			if (teamsForMatching.length > 0) {
-				const res: Matches | undefined = await data.matches.create(
-					data.tournament,
-					teamsForMatching
-				);
+			// Create matches using the unified team model
+			const res: Matches | undefined = await data.matches.create(data.tournament, data.teams.teams);
 
-				if (!res) {
-					toast.error('Failed to create matches');
-					return;
-				}
+			if (!res) {
+				console.warn('Failed to create matches', {
+					tournament: data.tournament,
+					teams: data.teams?.teams
+				});
+				const teamCount = data.teams?.teams?.length ?? 0;
+				const message = `Failed to create matches. Please check that you have enough teams (currently ${teamCount}) and try again.`;
+				toast.error(message);
+				loading = false;
+				return;
 			}
+
+			toast.success('Matches generated successfully');
+
 			// Ensure all subscriptions are active for realtime updates
 			await subscribe();
 
@@ -480,20 +238,20 @@
 			const team1 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team1);
 			const team2 = data.teams.teams.find((t: { id: number; name: string }) => t.id === m.team2);
 
-			// For mix-and-match tournaments, check if player name appears in team name
-			if (data.tournament?.tournament_type === 'mix-and-match') {
-				const team1Name = team1?.name || '';
-				const team2Name = team2?.name || '';
+			const team1Name = team1?.name || '';
+			const team2Name = team2?.name || '';
 
-				// Split by " & " and check if defaultTeam matches any player name
-				const team1Players = team1Name.split(' & ');
-				const team2Players = team2Name.split(' & ');
+			// Check if defaultTeam matches team name exactly OR appears within team name (for multi-player teams)
+			// Split by " & " to handle individual format where names are joined
+			const team1Players = team1Name.split(' & ');
+			const team2Players = team2Name.split(' & ');
 
-				return team1Players.includes(defaultTeam) || team2Players.includes(defaultTeam);
-			}
-
-			// For fixed-teams, use the original logic
-			return team1?.name === defaultTeam || team2?.name === defaultTeam;
+			return (
+				team1Players.includes(defaultTeam) ||
+				team2Players.includes(defaultTeam) ||
+				team1Name === defaultTeam ||
+				team2Name === defaultTeam
+			);
 		});
 	}
 
@@ -771,25 +529,41 @@
 			<div class="relative"></div>
 
 			{#if viewMode === 'schedule'}
-			{#if showScrollIndicator}
-				<div class="mb-2 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 sm:hidden">
-					<svg class="h-4 w-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-					</svg>
-					<span>Scroll right to see more courts</span>
-					<svg class="h-4 w-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-					</svg>
-				</div>
-			{/if}
+				{#if showScrollIndicator}
+					<div
+						class="mb-2 flex items-center justify-center gap-2 text-xs text-gray-500 sm:hidden dark:text-gray-400"
+					>
+						<svg
+							class="h-4 w-4 animate-pulse"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"
+							></path>
+						</svg>
+						<span>Scroll right to see more courts</span>
+						<svg
+							class="h-4 w-4 animate-pulse"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"
+							></path>
+						</svg>
+					</div>
+				{/if}
 				<div
 					bind:this={tableContainer}
-				class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 relative overflow-x-auto"
-			>
-				<!-- Scroll gradient indicator -->
-				{#if showScrollIndicator}
-					<div class="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-white to-transparent dark:from-gray-800 sm:hidden"></div>
-				{/if}
+					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-600 relative overflow-x-auto"
+				>
+					<!-- Scroll gradient indicator -->
+					{#if showScrollIndicator}
+						<div
+							class="pointer-events-none absolute top-0 right-0 z-10 h-full w-12 bg-gradient-to-l from-white to-transparent sm:hidden dark:from-gray-800"
+						></div>
+					{/if}
 					<Table.Root>
 						<Table.Header>
 							<Table.Row class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
@@ -801,7 +575,10 @@
 								{#each Array(data.tournament.courts) as _, i}
 									{@const index = i + 1}
 									<Table.Head
-										class="py-3 text-center text-xs font-medium text-gray-700 sm:py-3 sm:text-sm dark:text-gray-300 {data.tournament.courts === 1 ? 'min-w-[300px] sm:min-w-[400px]' : 'min-w-[120px] sm:min-w-[140px]'}"
+										class="py-3 text-center text-xs font-medium text-gray-700 sm:py-3 sm:text-sm dark:text-gray-300 {data
+											.tournament.courts === 1
+											? 'min-w-[300px] sm:min-w-[400px]'
+											: 'min-w-[120px] sm:min-w-[140px]'}"
 									>
 										Court {index}
 									</Table.Head>

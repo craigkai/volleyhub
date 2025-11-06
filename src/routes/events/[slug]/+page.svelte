@@ -35,8 +35,6 @@
 
 	// Use $derived to automatically track changes from data
 	let teams = $derived(data?.teams);
-	let players = $derived(data?.players);
-	let playerStats = $derived(data?.playerStats);
 
 	let historyReady = $state(false);
 	let mounted = $state(false);
@@ -238,7 +236,7 @@
 								>
 									<UsersIcon class="h-3 w-3 sm:h-4 sm:w-4" />
 									<span class="xs:inline hidden sm:inline">
-										{#if data.tournament?.tournament_type === 'mix-and-match'}
+										{#if data.tournament?.format === 'individual'}
 											Players
 										{:else}
 											Teams
@@ -305,7 +303,7 @@
 											<Card.Title
 												class="text-lg font-semibold text-gray-900 sm:text-xl dark:text-white"
 											>
-												{#if data.tournament?.tournament_type === 'mix-and-match'}
+												{#if data.tournament?.format === 'individual'}
 													Players Management
 												{:else}
 													Teams Management
@@ -313,7 +311,7 @@
 											</Card.Title>
 										</div>
 										<Card.Description class="text-sm text-gray-500 dark:text-gray-400">
-											{#if data.tournament?.tournament_type === 'mix-and-match'}
+											{#if data.tournament?.format === 'individual'}
 												Manage individual players for mix-and-match tournament
 											{:else}
 												Add, edit, or remove teams participating in the tournament
@@ -321,16 +319,11 @@
 										</Card.Description>
 									</Card.Header>
 									<Card.Content class="p-3 sm:p-6">
-										{#if data.tournament?.tournament_type === 'mix-and-match'}
-											<!-- Mix-and-match / King & Queen: Show Players UI -->
-											{#if players}
+										{#if data.tournament?.format === 'individual'}
+											<!-- Individual format: Show Players UI -->
+											{#if effectiveTeams}
 												<ErrorBoundary>
-													<Players
-														bind:players
-														bind:playerStats
-														bind:teams
-														tournament={data.tournament}
-													/>
+													<Players bind:teams tournament={data.tournament} />
 												</ErrorBoundary>
 											{/if}
 										{:else}
@@ -411,8 +404,6 @@
 											matches={data.matches}
 											{defaultTeam}
 											teams={effectiveTeams}
-											{players}
-											{playerStats}
 										/>
 									{:else}
 										<div
