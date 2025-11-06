@@ -188,7 +188,14 @@
 			const res: Matches | undefined = await data.matches.create(data.tournament, data.teams.teams);
 
 			if (!res) {
-				toast.error('Failed to create matches');
+				console.warn('Failed to create matches', {
+					tournament: data.tournament,
+					teams: data.teams?.teams
+				});
+				const teamCount = data.teams?.teams?.length ?? 0;
+				const message =
+					`Failed to create matches. Please check that you have enough teams (currently ${teamCount}) and try again.`;
+				toast.error(message);
 				loading = false;
 				return;
 			}
