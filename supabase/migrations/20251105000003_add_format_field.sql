@@ -20,5 +20,5 @@ SET
   "team_size" = 2
 WHERE "team_size" = 1;
 
-COMMENT ON COLUMN "public"."events"."format" IS 'Tournament format: individual (players paired randomly each round) or fixed-teams (pre-defined teams)';
+COMMENT ON COLUMN "public"."events"."format" IS 'Tournament format: individual (players compete with different partners each round) or fixed-teams (pre-defined teams)';
 COMMENT ON COLUMN "public"."events"."team_size" IS 'Number of players per side in matches (2 for 2v2, 3 for 3v3, etc.)';
