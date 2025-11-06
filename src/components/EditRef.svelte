@@ -17,9 +17,7 @@
 	// derived team from selected ID
 	let refTeam = $derived(teams.teams.find((t: Team) => t.id?.toString() === selectedRefId));
 
-	// Filter out teams that are playing in this match
-	// TODO: Update to use match_teams table instead of deprecated team1/team2 columns
-	// For now, team1/team2 are still populated for backward compatibility
+	// Filter out teams that are playing in this match using match_teams table
 	let availableRefTeams = $derived(
 		teams.teams.filter((t: Team) => {
 			// Use match_teams if available, otherwise fallback to team1/team2
@@ -31,6 +29,8 @@
 			} else {
 				return t.id !== match?.team1 && t.id !== match?.team2;
 			}
+			const matchTeamIds = new Set(match.match_teams.map((mt: { team_id: number }) => mt.team_id));
+			return !matchTeamIds.has(t.id);
 		})
 	);
 
@@ -51,10 +51,21 @@
 					match.ref = updatedMatch.ref;
 					match = updatedMatch;
 
-					const team1 = teams.teams.find((t: Team) => t.id === updatedMatch.team1);
-					const team2 = teams.teams.find((t: Team) => t.id === updatedMatch.team2);
+					// Get team names from match_teams for the success message
+					let teamNames: string[] = [];
+					if (updatedMatch.match_teams && Array.isArray(updatedMatch.match_teams)) {
+						teamNames = updatedMatch.match_teams
+							.map((mt: { team_id: number }) => {
+								const team = teams.teams.find((t: Team) => t.id === mt.team_id);
+								return team?.name || 'Unknown';
+							})
+							.filter((name: string) => name !== 'Unknown');
+					}
 
-					toast.success(`Referee updated for match ${team1?.name} vs ${team2?.name}`);
+					const matchDescription =
+						teamNames.length > 0 ? teamNames.join(' vs ') : `Match ${updatedMatch.id}`;
+
+					toast.success(`Referee updated for match ${matchDescription}`);
 				}
 			} catch (err) {
 				console.error('Failed to save referee:', err);
