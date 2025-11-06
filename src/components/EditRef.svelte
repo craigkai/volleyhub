@@ -56,10 +56,9 @@
 							})
 							.filter((name: string) => name !== 'Unknown');
 					}
-					
-					const matchDescription = teamNames.length > 0 
-						? teamNames.join(' vs ')
-						: `Match ${updatedMatch.id}`;
+
+					const matchDescription =
+						teamNames.length > 0 ? teamNames.join(' vs ') : `Match ${updatedMatch.id}`;
 
 					toast.success(`Referee updated for match ${matchDescription}`);
 				}
