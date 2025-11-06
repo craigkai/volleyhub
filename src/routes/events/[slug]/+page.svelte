@@ -323,10 +323,7 @@
 											<!-- Individual format: Show Players UI -->
 											{#if effectiveTeams}
 												<ErrorBoundary>
-													<Players
-														bind:teams
-														tournament={data.tournament}
-													/>
+													<Players bind:teams tournament={data.tournament} />
 												</ErrorBoundary>
 											{/if}
 										{:else}

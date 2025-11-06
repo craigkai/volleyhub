@@ -93,9 +93,10 @@
 	});
 
 	function jumpToCurrentRound() {
-		currentViewRound = data.tournament.current_round && data.tournament.current_round > 0
-			? data.tournament.current_round
-			: 1;
+		currentViewRound =
+			data.tournament.current_round && data.tournament.current_round > 0
+				? data.tournament.current_round
+				: 1;
 	}
 
 	function nextRound() {
