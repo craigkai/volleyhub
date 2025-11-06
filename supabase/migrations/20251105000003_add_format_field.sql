@@ -10,17 +10,15 @@ END $$;
 ALTER TABLE "public"."events"
 ADD COLUMN IF NOT EXISTS "format" event_format DEFAULT 'fixed-teams';
 
--- Update existing events based on team_size
--- If team_size = 1, it was likely meant to be individual format
+-- Migrate existing events:
+-- Previously, team_size = 1 was used to indicate "individual/mix-and-match" format
+-- Now we have a separate 'format' field and team_size means match size (players per side)
+-- So if team_size was 1, set format='individual' and team_size=2 (assuming 2v2 matches)
 UPDATE "public"."events"
-SET "format" = 'individual'
+SET
+  "format" = 'individual',
+  "team_size" = 2
 WHERE "team_size" = 1;
-
--- Set team_size to 2 for any individual events that had team_size = 1
--- (Individual format with 1v1 matches doesn't make sense)
-UPDATE "public"."events"
-SET "team_size" = 2
-WHERE "format" = 'individual' AND "team_size" = 1;
 
 COMMENT ON COLUMN "public"."events"."format" IS 'Tournament format: individual (players paired randomly each round) or fixed-teams (pre-defined teams)';
 COMMENT ON COLUMN "public"."events"."team_size" IS 'Number of players per side in matches (2 for 2v2, 3 for 3v3, etc.)';

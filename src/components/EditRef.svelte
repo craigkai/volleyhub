@@ -18,6 +18,8 @@
 	let refTeam = $derived(teams.teams.find((t: Team) => t.id?.toString() === selectedRefId));
 
 	// Filter out teams that are playing in this match
+	// TODO: Update to use match_teams table instead of deprecated team1/team2 columns
+	// For now, team1/team2 are still populated for backward compatibility
 	let availableRefTeams = $derived(
 		teams.teams.filter((t: Team) => t.id !== match?.team1 && t.id !== match?.team2)
 	);
