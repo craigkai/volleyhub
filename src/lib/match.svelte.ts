@@ -20,6 +20,7 @@ export class Match extends Base {
 	team2? = $state<number>();
 	team2_score? = $state<number>();
 	type?: string;
+	match_teams? = $state<MatchTeamRow[]>();
 
 	constructor(databaseService: MatchSupabaseDatabaseService) {
 		super();

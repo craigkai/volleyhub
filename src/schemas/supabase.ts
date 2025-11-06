@@ -167,5 +167,6 @@ export const matchesRowSchema = z.object({
 	team1_score: z.number().nullable(),
 	team2: z.number().nullable(),
 	team2_score: z.number().nullable(),
-	type: z.string()
+	type: z.string(),
+	match_teams: z.array(matchTeamsRowSchema).optional()
 });

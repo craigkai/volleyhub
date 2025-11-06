@@ -100,6 +100,7 @@ export class Matches extends Base {
 			newMatchInstance.child_id = updated.child_id;
 			newMatchInstance.created_at = updated.created_at;
 			newMatchInstance.type = updated.type;
+			newMatchInstance.match_teams = updated.match_teams;
 
 			// Trigger reactivity by reassigning the array
 			self.matches = [...self.matches, newMatchInstance];
@@ -133,6 +134,7 @@ export class Matches extends Base {
 			updatedMatch.court = updated.court;
 			updatedMatch.round = updated.round;
 			updatedMatch.ref = updated.ref;
+			updatedMatch.match_teams = updated.match_teams;
 		} else {
 			self.handleError(
 				400,
