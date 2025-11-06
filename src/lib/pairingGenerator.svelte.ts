@@ -34,12 +34,7 @@ export class PairingGenerator extends Base {
 		const totalTeams = teams.length;
 		const teamsPerMatch = teamsPerSide * 2;
 
-		if (totalTeams % teamsPerMatch !== 0) {
-			throw new Error(
-				`Team count (${totalTeams}) must be divisible by teams per match (${teamsPerMatch})`
-			);
-		}
-
+		// Allow uneven numbers - teams that don't fit into complete matches will sit out
 		const pairings: MatchPairing[] = [];
 
 		// For 2v2: Simple balanced pairing (1-4, 2-3 pattern)
@@ -72,43 +67,52 @@ export class PairingGenerator extends Base {
 			}
 		} else {
 			// For larger formats (3v3, 4v4, etc.): Use snake draft
-			// Distribute teams evenly across matches using snake pattern
-			const numMatches = totalTeams / teamsPerMatch;
+			// Snake draft ensures balanced skill distribution
+			// For 3v3 with 6 players: 1,4,5 vs 2,3,6
+			// Pattern: H, A, A, H, H, A, A, H, H, A, ...
+			// Only create complete matches - remaining teams sit out
+			const numMatches = Math.floor(totalTeams / teamsPerMatch);
 
 			for (let matchIdx = 0; matchIdx < numMatches; matchIdx++) {
 				const homeTeams: number[] = [];
 				const awayTeams: number[] = [];
 
-				// Snake draft pattern to balance skill levels
-				for (let sidePos = 0; sidePos < teamsPerSide; sidePos++) {
-					// Calculate indices using snake draft pattern
-					const roundIdx = Math.floor((matchIdx * teamsPerSide + sidePos) / numMatches);
-					const posInRound = (matchIdx * teamsPerSide + sidePos) % numMatches;
+				const baseIdx = matchIdx * teamsPerMatch;
 
-					let teamIdx: number;
-					if (roundIdx % 2 === 0) {
-						// Forward direction
-						teamIdx = roundIdx * numMatches + posInRound;
-					} else {
-						// Reverse direction
-						teamIdx = roundIdx * numMatches + (numMatches - 1 - posInRound);
-					}
+				// Snake draft pattern
+				for (let i = 0; i < teamsPerMatch && baseIdx + i < totalTeams; i++) {
+					if (teams[baseIdx + i].id) {
+						// Determine which side based on snake pattern
+						// Group into pairs: (0,1), (2,3), (4,5), ...
+						// Within each pair, first goes to home, second to away
+						// But pairs alternate: pair 0 is H-A, pair 1 is A-H (snake), pair 2 is H-A
+						const pairIndex = Math.floor(i / 2);
+						const positionInPair = i % 2;
 
-					if (teamIdx < totalTeams && teams[teamIdx].id) {
-						if (sidePos < teamsPerSide / 2 || teamsPerSide === 1) {
-							homeTeams.push(teams[teamIdx].id!);
+						let assignToHome: boolean;
+						if (pairIndex % 2 === 0) {
+							// Even pairs: first pick home, second pick away (H-A pattern)
+							assignToHome = positionInPair === 0;
 						} else {
-							awayTeams.push(teams[teamIdx].id!);
+							// Odd pairs: first pick away, second pick home (A-H pattern for snake)
+							assignToHome = positionInPair === 1;
+						}
+
+						if (assignToHome) {
+							homeTeams.push(teams[baseIdx + i].id!);
+						} else {
+							awayTeams.push(teams[baseIdx + i].id!);
 						}
 					}
 				}
 
-				// Distribute evenly
-				// Directly assign teams to home and away sides
-				pairings.push({
-					homeTeams: homeTeams.slice(0, teamsPerSide),
-					awayTeams: awayTeams.slice(0, teamsPerSide)
-				});
+				// Only create match if we have enough teams for both sides
+				if (homeTeams.length === teamsPerSide && awayTeams.length === teamsPerSide) {
+					pairings.push({
+						homeTeams,
+						awayTeams
+					});
+				}
 			}
 		}
 
@@ -127,12 +131,7 @@ export class PairingGenerator extends Base {
 		const totalTeams = teams.length;
 		const teamsPerMatch = teamsPerSide * 2;
 
-		if (totalTeams % teamsPerMatch !== 0) {
-			throw new Error(
-				`Team count (${totalTeams}) must be divisible by teams per match (${teamsPerMatch})`
-			);
-		}
-
+		// Allow uneven numbers - teams that don't fit into complete matches will sit out
 		const pairings: MatchPairing[] = [];
 
 		for (let i = 0; i < totalTeams; i += teamsPerMatch) {
