@@ -73,6 +73,7 @@ export const load: PageLoad = async ({ params, parent, url, data }) => {
 		bracket,
 		players,
 		playerStats,
-		defaultTeam: url.searchParams.get('team')
+		defaultTeam: url.searchParams.get('team'),
+		supabase
 	};
 };

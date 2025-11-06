@@ -709,7 +709,7 @@
 												(m: MatchRow) => m.round === round + 1
 											)}
 											<Table.Cell class="p-2 pr-3 text-center sm:p-2 sm:pr-4">
-												<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
+												<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} supabase={data.supabase} />
 											</Table.Cell>
 										{/if}
 									</Table.Row>

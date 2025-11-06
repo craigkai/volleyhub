@@ -6,8 +6,9 @@
 	import type { Team } from '$lib/team.svelte';
 	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
 	import Button from '$components/ui/button/button.svelte';
+	import { MatchTeamsSupabaseDatabaseService } from '$lib/database/matchTeams';
 
-	let { matchesPerRound, teams, defaultTeam, readOnly } = $props();
+	let { matchesPerRound, teams, defaultTeam, readOnly, supabase } = $props();
 
 	let match = $derived(matchesPerRound ? matchesPerRound[0] : null);
 
@@ -17,9 +18,38 @@
 	// derived team from selected ID
 	let refTeam = $derived(teams.teams.find((t: Team) => t.id?.toString() === selectedRefId));
 
+	// State to hold team IDs playing in this match
+	let playingTeamIds = $state<number[]>([]);
+
+	// Load teams playing in the match using match_teams table
+	$effect(() => {
+		async function loadMatchTeams() {
+			if (!match?.id || !supabase) {
+				playingTeamIds = [];
+				return;
+			}
+
+			try {
+				const matchTeamsService = new MatchTeamsSupabaseDatabaseService(supabase);
+				const matchTeams = await matchTeamsService.loadByMatch(match.id);
+				
+				if (matchTeams) {
+					playingTeamIds = matchTeams.map((mt) => mt.team_id);
+				} else {
+					playingTeamIds = [];
+				}
+			} catch (error) {
+				console.error('Failed to load match teams:', error);
+				playingTeamIds = [];
+			}
+		}
+
+		loadMatchTeams();
+	});
+
 	// Filter out teams that are playing in this match
 	let availableRefTeams = $derived(
-		teams.teams.filter((t: Team) => t.id !== match?.team1 && t.id !== match?.team2)
+		teams.teams.filter((t: Team) => !playingTeamIds.includes(t.id))
 	);
 
 	async function saveRef() {
@@ -39,10 +69,19 @@
 					match.ref = updatedMatch.ref;
 					match = updatedMatch;
 
-					const team1 = teams.teams.find((t: Team) => t.id === updatedMatch.team1);
-					const team2 = teams.teams.find((t: Team) => t.id === updatedMatch.team2);
-
-					toast.success(`Referee updated for match ${team1?.name} vs ${team2?.name}`);
+					// Get team names from match_teams instead of deprecated team1/team2
+					const matchTeamsService = new MatchTeamsSupabaseDatabaseService(supabase);
+					const matchTeams = await matchTeamsService.loadByMatch(updatedMatch.id);
+					
+					if (matchTeams && matchTeams.length >= 2) {
+						const teamNames = matchTeams
+							.map((mt) => teams.teams.find((t: Team) => t.id === mt.team_id)?.name)
+							.filter(Boolean)
+							.join(' vs ');
+						toast.success(`Referee updated for match ${teamNames}`);
+					} else {
+						toast.success('Referee updated');
+					}
 				}
 			} catch (err) {
 				console.error('Failed to save referee:', err);
