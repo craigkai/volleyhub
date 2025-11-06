@@ -104,13 +104,10 @@ export class PairingGenerator extends Base {
 				}
 
 				// Distribute evenly
-				const midpoint = Math.ceil(teamsPerSide);
-				const actualHome = homeTeams.slice(0, midpoint);
-				const actualAway = [...homeTeams.slice(midpoint), ...awayTeams];
-
+				// Directly assign teams to home and away sides
 				pairings.push({
-					homeTeams: actualHome.slice(0, teamsPerSide),
-					awayTeams: actualAway.slice(0, teamsPerSide)
+					homeTeams: homeTeams.slice(0, teamsPerSide),
+					awayTeams: awayTeams.slice(0, teamsPerSide)
 				});
 			}
 		}
