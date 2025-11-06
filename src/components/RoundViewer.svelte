@@ -93,9 +93,10 @@
 	});
 
 	function jumpToCurrentRound() {
-		currentViewRound = data.tournament.current_round && data.tournament.current_round > 0
-			? data.tournament.current_round
-			: 1;
+		currentViewRound =
+			data.tournament.current_round && data.tournament.current_round > 0
+				? data.tournament.current_round
+				: 1;
 	}
 
 	function nextRound() {
@@ -165,7 +166,7 @@
 
 		<div class="flex items-center gap-2">
 			<!-- Current Round Badge/Button -->
-			{#if currentViewRound === (data.tournament.current_round ?? 0)}
+			{#if currentViewRound === (data.tournament.current_round ?? 1)}
 				<span
 					class="inline-block rounded bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
 				>
@@ -193,7 +194,7 @@
 					</Popover.Trigger>
 					<Popover.Content class="w-48 p-1" align="end">
 						<div class="space-y-1">
-							{#if currentViewRound !== (data.tournament.current_round ?? 0)}
+							{#if currentViewRound !== (data.tournament.current_round ?? 1)}
 								<Button
 									variant="ghost"
 									size="sm"
@@ -213,7 +214,7 @@
 								<Trash2 class="mr-2 h-3 w-3" />
 								Delete This Round
 							</Button>
-							{#if currentViewRound < totalRounds - 1}
+							{#if currentViewRound < totalRounds}
 								<Button
 									variant="ghost"
 									size="sm"
@@ -275,21 +276,22 @@
 	<!-- Round Progress Indicator -->
 	<div class="flex items-center justify-center">
 		<div class="flex gap-1">
-			{#each Array(totalRounds) as _, index}
+			{#each Array(totalRounds) as _, idx}
+				{@const round = idx + 1}
 				<button
-					onclick={() => (currentViewRound = index)}
-					aria-label="Jump to round {index + 1}"
+					onclick={() => (currentViewRound = round)}
+					aria-label="Jump to round {round}"
 					class="h-2 w-8 rounded-full transition-colors duration-200"
-					class:bg-indigo-500={index === currentViewRound}
-					class:bg-indigo-200={index === (data.tournament.current_round ?? 0) &&
-						index !== currentViewRound}
-					class:bg-gray-200={index !== currentViewRound &&
-						index !== (data.tournament.current_round ?? 0)}
-					class:dark:bg-indigo-400={index === currentViewRound}
-					class:dark:bg-indigo-700={index === (data.tournament.current_round ?? 0) &&
-						index !== currentViewRound}
-					class:dark:bg-gray-600={index !== currentViewRound &&
-						index !== (data.tournament.current_round ?? 0)}
+					class:bg-indigo-500={round === currentViewRound}
+					class:bg-indigo-200={round === (data.tournament.current_round ?? 1) &&
+						round !== currentViewRound}
+					class:bg-gray-200={round !== currentViewRound &&
+						round !== (data.tournament.current_round ?? 1)}
+					class:dark:bg-indigo-400={round === currentViewRound}
+					class:dark:bg-indigo-700={round === (data.tournament.current_round ?? 1) &&
+						round !== currentViewRound}
+					class:dark:bg-gray-600={round !== currentViewRound &&
+						round !== (data.tournament.current_round ?? 1)}
 				></button>
 			{/each}
 		</div>

@@ -217,9 +217,9 @@
 		}
 	}
 
+	// Calculate total rounds - rounds are now 1-indexed in the database
 	let rounds = $derived(
-		Math.max.apply(Math, data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0]) +
-			1 || 1
+		Math.max(...(data.matches?.matches?.map((m: { round: number }) => m.round) ?? [1]))
 	);
 
 	function roundHasDefaultTeam(roundIndex: number): boolean {
@@ -269,7 +269,7 @@
 		if (addingRound) return;
 
 		addingRound = true;
-		const newRound = rounds;
+		const newRound = rounds + 1; // Next round is current max + 1
 		const numCourts = data.tournament.courts ?? 1;
 
 		try {
@@ -285,7 +285,7 @@
 			rounds++;
 			await data.matches.load(data.matches.event_id);
 			toast.success(
-				`Added round ${newRound + 1} with ${numCourts} ${numCourts === 1 ? 'court' : 'courts'}`
+				`Added round ${newRound} with ${numCourts} ${numCourts === 1 ? 'court' : 'courts'}`
 			);
 		} catch (err: unknown) {
 			toast.error('Failed to add round: ' + (err instanceof Error ? err.message : 'Unknown error'));
@@ -295,7 +295,7 @@
 	}
 
 	async function setCurrentRound(round: number) {
-		if (round < 0 || round >= rounds) {
+		if (round < 1 || round > rounds) {
 			toast.error('Invalid round number');
 			return;
 		}
@@ -303,7 +303,7 @@
 		try {
 			await data.tournament.setCurrentRound(round);
 			data.tournament.current_round = round;
-			toast.success(`Set current round to ${round + 1}`);
+			toast.success(`Set current round to ${round}`);
 
 			// Send push notifications for this round
 			try {
@@ -323,9 +323,7 @@
 	}
 
 	async function deleteRound(round: number) {
-		if (
-			!confirm(`Are you sure you want to delete Round ${round + 1}? This action cannot be undone.`)
-		) {
+		if (!confirm(`Are you sure you want to delete Round ${round}? This action cannot be undone.`)) {
 			return;
 		}
 
@@ -335,14 +333,14 @@
 			// Reload matches data to ensure UI updates
 			data.matches = await data.matches.load(data.matches.event_id);
 
-			toast.success(`Round ${round + 1} deleted successfully`);
+			toast.success(`Round ${round} deleted successfully`);
 
 			// Update current_round if necessary
-			const currentRound = data.tournament.current_round ?? 0;
+			const currentRound = data.tournament.current_round ?? 1;
 			if (currentRound > round) {
 				await data.tournament.setCurrentRound(currentRound - 1);
 				data.tournament.current_round = currentRound - 1;
-			} else if (currentRound === round && currentRound > 0) {
+			} else if (currentRound === round && currentRound > 1) {
 				await data.tournament.setCurrentRound(currentRound - 1);
 				data.tournament.current_round = currentRound - 1;
 			}
@@ -356,7 +354,7 @@
 	async function deleteFromRound(fromRound: number) {
 		if (
 			!confirm(
-				`Are you sure you want to delete Round ${fromRound + 1} and all following rounds? This action cannot be undone.`
+				`Are you sure you want to delete Round ${fromRound} and all following rounds? This action cannot be undone.`
 			)
 		) {
 			return;
@@ -368,12 +366,12 @@
 			// Reload matches data to ensure UI updates
 			data.matches = await data.matches.load(data.matches.event_id);
 
-			toast.success(`Rounds ${fromRound + 1} and onwards deleted successfully`);
+			toast.success(`Rounds ${fromRound} and onwards deleted successfully`);
 
 			// Update current_round if necessary
-			const currentRound = data.tournament.current_round ?? 0;
+			const currentRound = data.tournament.current_round ?? 1;
 			if (currentRound >= fromRound) {
-				const newCurrentRound = Math.max(0, fromRound - 1);
+				const newCurrentRound = Math.max(1, fromRound - 1);
 				await data.tournament.setCurrentRound(newCurrentRound);
 				data.tournament.current_round = newCurrentRound;
 			}
@@ -589,12 +587,13 @@
 
 						<Table.Body>
 							{#if rounds > 0}
-								{#each Array(rounds) as _, round}
+								{#each Array(rounds) as _, idx}
+									{@const round = idx + 1}
 									{@const hasDefaultTeam = roundHasDefaultTeam(round)}
 
 									<Table.Row
 										class="border-t border-gray-200 dark:border-gray-700 {`
-										${round % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
+										${round % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
 										${hasDefaultTeam ? 'default-team-row' : ''}
 									`}"
 									>
@@ -606,16 +605,16 @@
 											<div
 												class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2"
 											>
-												<span class="font-semibold">Round {round + 1}</span>
+												<span class="font-semibold">Round {round}</span>
 
 												<div class="flex items-center gap-1">
-													{#if round === (data.tournament.current_round ?? 0)}
+													{#if round === (data.tournament.current_round ?? 1)}
 														<span
 															class="inline-block rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700 sm:px-2 sm:text-xs dark:bg-indigo-900 dark:text-indigo-300"
 														>
 															Current
 														</span>
-													{:else if !readOnly && round !== (data.tournament.current_round ?? 0)}
+													{:else if !readOnly && round !== (data.tournament.current_round ?? 1)}
 														<Button
 															variant="ghost"
 															size="sm"
@@ -644,7 +643,7 @@
 																		<Trash2 class="mr-2 h-3 w-3" />
 																		Delete This Round
 																	</Button>
-																	{#if round < rounds - 1}
+																	{#if round < rounds}
 																		<Button
 																			variant="ghost"
 																			size="sm"
@@ -665,7 +664,7 @@
 
 										{#each Array(data.tournament.courts) as _, court}
 											{@const match = data.matches.matches.find(
-												(m: Match) => m?.court === court && (m?.round ?? 0) === round + 1
+												(m: Match) => m?.court === court && (m?.round ?? 1) === round
 											)}
 											<Table.Cell class="p-2 text-center sm:p-2">
 												{#if match}
@@ -706,7 +705,7 @@
 
 										{#if data.tournament.refs === 'teams'}
 											{@const matchesPerRound = data.matches.matches.filter(
-												(m: MatchRow) => m.round === round + 1
+												(m: MatchRow) => m.round === round
 											)}
 											<Table.Cell class="p-2 pr-3 text-center sm:p-2 sm:pr-4">
 												<EditRef {readOnly} {matchesPerRound} teams={data.teams} {defaultTeam} />
