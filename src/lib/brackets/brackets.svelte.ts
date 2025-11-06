@@ -79,7 +79,7 @@ export class Brackets extends Matches {
 						team1,
 						team2,
 						event_id: this.event_id,
-						round: 0,
+						round: 1,  // Brackets start at round 1 (consistent with pool matches)
 						type: 'bracket'
 					};
 					const res = await this.databaseService.insertMatches([matchup as Partial<MatchRow>]);
@@ -95,7 +95,7 @@ export class Brackets extends Matches {
 					team1: teamWithBye,
 					team2: null,
 					event_id: this.event_id,
-					round: 0,
+					round: 1,  // Brackets start at round 1 (consistent with pool matches)
 					type: 'bracket'
 				};
 				const res = await this.databaseService.insertMatches([byeMatchup as Partial<MatchRow>]);
