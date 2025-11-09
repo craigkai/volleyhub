@@ -54,7 +54,9 @@ export class Matches extends Base {
 				this.matches = matches;
 			}
 		} catch (err) {
-			this.handleError(500, `Failed to load matches: ${(err as Error).message}`);
+			const errorMessage = err instanceof Error ? err.message : String(err);
+			console.error('Error loading matches:', err);
+			this.handleError(500, `Failed to load matches: ${errorMessage}`);
 		}
 		return this;
 	}
@@ -176,6 +178,7 @@ export class Matches extends Base {
 		teams: Team[]
 	): Promise<Matches | undefined> {
 		const { pools = 0, courts, refs = 'provided', team_size, format } = eventDetails || {};
+
 		if (!this.event_id) {
 			this.handleError(400, 'Event ID is required to create matches.');
 			return;
@@ -220,8 +223,9 @@ export class Matches extends Base {
 				// team_size field specifies the match format (2 = 2v2, 3 = 3v3, etc.)
 				const teamsPerSide = team_size ?? 2;
 
-				// Use snake draft for balanced skill distribution
-				pairings = pairingGenerator.generateSnakeDraftPairings(teams, teamsPerSide);
+				// Generate multiple rounds of randomized pairings to ensure variety
+				// Each player should play approximately 'pools' number of games
+				pairings = pairingGenerator.generateMultiRoundIndividualPairings(teams, teamsPerSide, pools);
 			} else {
 				// Fixed teams: use round-robin
 				pairings = pairingGenerator.generateRoundRobinPairings(teams, pools);
@@ -247,9 +251,9 @@ export class Matches extends Base {
 	 * @param {MatchPairing[]} pairings - Array of match pairings from pairing generator
 	 * @param {number} courts - Number of courts available
 	 * @param {string} refs - Referee configuration ('provided' or 'teams')
-	 * @param {Team[]} allTeams - All teams in the tournament (for ref assignment)
-	 * @param {boolean} isIndividual - Whether this is an individual format tournament
-	 * @param {number} teamsPerSide - Number of teams per side (for validation)
+	 * @param {Team[]} allTeams - All teams/players (for ref assignment)
+	 * @param {boolean} isIndividual - Whether this is individual format
+	 * @param {number} teamsPerSide - Number of teams/players per side (e.g., 3 for 3v3)
 	 * @returns {Promise<MatchRow[]>} - Created matches
 	 */
 	private async createMatchesWithTeams(
@@ -919,10 +923,28 @@ if (import.meta.vitest) {
 		let mockDatabaseService: any;
 
 		beforeEach(() => {
+			// Mock supabaseClient with from() method for match_teams
+			const mockSupabaseClient = {
+				from: vi.fn((table: string) => ({
+					insert: vi.fn(() => ({
+						select: vi.fn(() =>
+							Promise.resolve({
+								data: [],
+								error: null
+							})
+						)
+					})),
+					delete: vi.fn(() => ({
+						eq: vi.fn(() => Promise.resolve({ data: null, error: null }))
+					}))
+				}))
+			};
+
 			mockDatabaseService = {
 				deleteMatchesByEvent: vi.fn(),
 				insertMatches: vi.fn((matches: Partial<MatchRow>[]) => matches),
-				load: vi.fn(() => [])
+				load: vi.fn(() => []),
+				supabaseClient: mockSupabaseClient
 			};
 
 			matches = new Matches(mockDatabaseService);

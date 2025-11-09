@@ -261,4 +261,79 @@ describe('PairingGenerator', () => {
 			});
 		});
 	});
+
+	describe('generateMultiRoundIndividualPairings', () => {
+		it('should generate enough matches for each player to play target number of games (3v3)', () => {
+			// 12 players, 3v3 format, each player should play 5 games
+			const teams = Array.from({ length: 12 }, (_, i) => createMockTeam(i + 1, `Player ${i + 1}`));
+			const teamsPerSide = 3;
+			const targetGames = 5;
+
+			const pairings = generator.generateMultiRoundIndividualPairings(teams, teamsPerSide, targetGames);
+
+			// Count games per player
+			const playerGameCounts = new Map<number, number>();
+			teams.forEach((team) => playerGameCounts.set(team.id!, 0));
+
+			pairings.forEach((pairing) => {
+				[...pairing.homeTeams, ...pairing.awayTeams].forEach((playerId) => {
+					playerGameCounts.set(playerId, (playerGameCounts.get(playerId) ?? 0) + 1);
+				});
+			});
+
+			// Each player should have played approximately the target number of games
+			playerGameCounts.forEach((count, playerId) => {
+				expect(count).toBeGreaterThanOrEqual(targetGames - 1);
+				expect(count).toBeLessThanOrEqual(targetGames + 1);
+			});
+
+			// Each match should have correct number of players
+			pairings.forEach((pairing) => {
+				expect(pairing.homeTeams).toHaveLength(teamsPerSide);
+				expect(pairing.awayTeams).toHaveLength(teamsPerSide);
+			});
+		});
+
+		it('should generate multiple rounds for 2v2', () => {
+			// 8 players, 2v2 format, each player should play 3 games
+			const teams = Array.from({ length: 8 }, (_, i) => createMockTeam(i + 1, `Player ${i + 1}`));
+			const teamsPerSide = 2;
+			const targetGames = 3;
+
+			const pairings = generator.generateMultiRoundIndividualPairings(teams, teamsPerSide, targetGames);
+
+			// Count games per player
+			const playerGameCounts = new Map<number, number>();
+			teams.forEach((team) => playerGameCounts.set(team.id!, 0));
+
+			pairings.forEach((pairing) => {
+				[...pairing.homeTeams, ...pairing.awayTeams].forEach((playerId) => {
+					playerGameCounts.set(playerId, (playerGameCounts.get(playerId) ?? 0) + 1);
+				});
+			});
+
+			// Each player should have played the target number of games
+			playerGameCounts.forEach((count) => {
+				expect(count).toBe(targetGames);
+			});
+		});
+
+		it('should handle uneven player counts (some players sit out)', () => {
+			// 10 players, 3v3 format - not divisible by 6
+			const teams = Array.from({ length: 10 }, (_, i) => createMockTeam(i + 1, `Player ${i + 1}`));
+			const teamsPerSide = 3;
+			const targetGames = 4;
+
+			const pairings = generator.generateMultiRoundIndividualPairings(teams, teamsPerSide, targetGames);
+
+			// Should generate matches even with uneven numbers
+			expect(pairings.length).toBeGreaterThan(0);
+
+			// Each match should still have correct structure
+			pairings.forEach((pairing) => {
+				expect(pairing.homeTeams).toHaveLength(teamsPerSide);
+				expect(pairing.awayTeams).toHaveLength(teamsPerSide);
+			});
+		});
+	});
 });
