@@ -172,9 +172,10 @@ export class Matches extends Base {
 	 * @returns {Promise<Matches | undefined>} - Returns the Matches instance or undefined if creation fails.
 	 */
 	async create(
-		{ pools = 0, courts, refs = 'provided', team_size, format }: Event | Partial<EventRow>,
+		eventDetails: Event | Partial<EventRow>,
 		teams: Team[]
 	): Promise<Matches | undefined> {
+		const { pools = 0, courts, refs = 'provided', team_size, format } = eventDetails || {};
 		if (!this.event_id) {
 			this.handleError(400, 'Event ID is required to create matches.');
 			return;
