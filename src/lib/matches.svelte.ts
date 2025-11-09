@@ -227,7 +227,8 @@ export class Matches extends Base {
 			}
 
 			// Create matches with match_teams entries
-			await this.createMatchesWithTeams(pairings, courts, refs ?? 'provided');
+			const teamsPerSide = team_size ?? 2;
+			await this.createMatchesWithTeams(pairings, courts, refs ?? 'provided', teams, isIndividualFormat, teamsPerSide);
 
 			// Reload matches
 			await this.load(this.event_id);
@@ -245,13 +246,32 @@ export class Matches extends Base {
 	 * @param {MatchPairing[]} pairings - Array of match pairings from pairing generator
 	 * @param {number} courts - Number of courts available
 	 * @param {string} refs - Referee configuration ('provided' or 'teams')
+	 * @param {Team[]} allTeams - All teams in the tournament (for ref assignment)
+	 * @param {boolean} isIndividual - Whether this is an individual format tournament
+	 * @param {number} teamsPerSide - Number of teams per side (for validation)
 	 * @returns {Promise<MatchRow[]>} - Created matches
 	 */
 	private async createMatchesWithTeams(
 		pairings: Array<{ homeTeams: number[]; awayTeams: number[] }>,
 		courts: number,
-		refs: string
+		refs: string,
+		allTeams: Team[] = [],
+		isIndividual: boolean = false,
+		teamsPerSide: number = 2
 	): Promise<MatchRow[]> {
+		// Validate player count for individual format with team refs
+		if (isIndividual && refs === 'teams') {
+			const playersPerMatch = teamsPerSide * 2;
+			const playersNeededPerRound = courts * playersPerMatch;
+			const refsNeededPerRound = courts;
+			const minPlayersNeeded = playersNeededPerRound + refsNeededPerRound;
+
+			if (allTeams.length < minPlayersNeeded) {
+				const message = `Not enough players for automatic ref assignment. You have ${allTeams.length} players, but need at least ${minPlayersNeeded} (${playersNeededPerRound} playing + ${refsNeededPerRound} refereeing per round with ${courts} courts and ${teamsPerSide}v${teamsPerSide} format). Either add more players or change refs to "Provided".`;
+				this.handleError(400, message);
+				return [];
+			}
+		}
 		const { MatchTeamsSupabaseDatabaseService } = await import('./database/matchTeams');
 		const matchTeamsService = new MatchTeamsSupabaseDatabaseService(
 			this.databaseService.supabaseClient
@@ -260,19 +280,51 @@ export class Matches extends Base {
 		const matches: Partial<MatchRow>[] = [];
 		const matchTeamsToCreate: Partial<MatchTeamRow>[] = [];
 
-		// Create match rows
+		// For automatic ref assignment in individual format
+		// Group matches by round for ref assignment
+		const matchesByRound = new Map<number, Array<{ pairing: typeof pairings[0]; index: number }>>();
+
 		pairings.forEach((pairing, index) => {
 			const round = Math.floor(index / courts) + 1;
-			const court = index % courts;
+			if (!matchesByRound.has(round)) {
+				matchesByRound.set(round, []);
+			}
+			matchesByRound.get(round)!.push({ pairing, index });
+		});
 
-			matches.push({
-				event_id: this.event_id,
-				round,
-				court,
-				ref: refs === 'provided' ? null : undefined,
-				// Keep team1/team2 null - deprecated but kept for backward compatibility
-				team1: pairing.homeTeams[0] || null,
-				team2: pairing.awayTeams[0] || null
+		// Create match rows
+		matchesByRound.forEach((roundMatches, round) => {
+			// For individual format with team refs, find available refs for this round
+			let availableRefs: number[] = [];
+			if (isIndividual && refs === 'teams') {
+				const playersInRound = new Set<number>();
+				roundMatches.forEach(({ pairing }) => {
+					pairing.homeTeams.forEach(id => playersInRound.add(id));
+					pairing.awayTeams.forEach(id => playersInRound.add(id));
+				});
+				availableRefs = allTeams
+					.filter(team => team.id && !playersInRound.has(team.id))
+					.map(team => team.id!);
+			}
+
+			roundMatches.forEach(({ pairing, index }, matchIndexInRound) => {
+				const court = index % courts;
+
+				// Assign ref if using automatic assignment
+				let assignedRef: number | null | undefined = refs === 'provided' ? null : undefined;
+				if (isIndividual && refs === 'teams' && availableRefs.length > matchIndexInRound) {
+					assignedRef = availableRefs[matchIndexInRound];
+				}
+
+				matches.push({
+					event_id: this.event_id,
+					round,
+					court,
+					ref: assignedRef,
+					// Keep team1/team2 null - deprecated but kept for backward compatibility
+					team1: pairing.homeTeams[0] || null,
+					team2: pairing.awayTeams[0] || null
+				});
 			});
 		});
 
