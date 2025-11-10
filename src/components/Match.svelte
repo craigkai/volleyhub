@@ -19,11 +19,38 @@
 		tournament
 	} = $props();
 
+	// Get teams for this match - supports both old (team1/team2) and new (match_teams) formats
 	const team1 = $derived.by(() => {
+		// For individual format with match_teams, build composite team name
+		if (tournament?.format === 'individual' && match?.match_teams && Array.isArray(match.match_teams)) {
+			const homeTeams = match.match_teams
+				.filter((mt: any) => mt.side === 'home')
+				.map((mt: any) => teams?.teams?.find((t: Team) => t.id === mt.team_id))
+				.filter(Boolean)
+				.map((t: any) => t.name)
+				.join(' & ');
+
+			return homeTeams ? { name: homeTeams, id: match.team1 } : null;
+		}
+
+		// Fallback to old format
 		return teams?.teams?.find((t: Team) => t.id === match.team1);
 	});
 
 	const team2 = $derived.by(() => {
+		// For individual format with match_teams, build composite team name
+		if (tournament?.format === 'individual' && match?.match_teams && Array.isArray(match.match_teams)) {
+			const awayTeams = match.match_teams
+				.filter((mt: any) => mt.side === 'away')
+				.map((mt: any) => teams?.teams?.find((t: Team) => t.id === mt.team_id))
+				.filter(Boolean)
+				.map((t: any) => t.name)
+				.join(' & ');
+
+			return awayTeams ? { name: awayTeams, id: match.team2 } : null;
+		}
+
+		// Fallback to old format
 		return teams?.teams?.find((t: Team) => t.id === match.team2);
 	});
 	const teamsForMatch = $derived([team1?.name, team2?.name]);
@@ -49,16 +76,45 @@
 		return teamsForMatch.includes(defaultTeam);
 	});
 
-	const referee = $derived(teams.teams.find((t: Team) => t.id === match.referee_id));
-	const hasDefaultTeamRef = $derived(
-		defaultTeam && referee ? referee.name === defaultTeam.name : false
-	);
+	const referee = $derived(teams.teams.find((t: Team) => t.id === match.ref));
+	const hasDefaultTeamRef = $derived.by(() => {
+		if (!defaultTeam || !referee) return false;
 
-	const defaultTeamWin = $derived(
-		team1?.name === defaultTeam
+		// For individual format, check if defaultTeam matches referee name
+		if (tournament?.format === 'individual') {
+			return referee.name === defaultTeam;
+		}
+
+		// For fixed teams
+		return referee.name === defaultTeam;
+	});
+
+	const defaultTeamWin = $derived.by(() => {
+		if (!defaultTeam) return false;
+
+		// For individual format, check if player is in team1 or team2 by splitting the composite name
+		if (tournament?.format === 'individual') {
+			const team1Name = team1?.name || '';
+			const team2Name = team2?.name || '';
+			const team1Players = team1Name.split(' & ');
+			const team2Players = team2Name.split(' & ');
+
+			const isOnTeam1 = team1Players.includes(defaultTeam);
+			const isOnTeam2 = team2Players.includes(defaultTeam);
+
+			if (isOnTeam1) {
+				return (match.team1_score ?? 0) > (match.team2_score ?? 0);
+			} else if (isOnTeam2) {
+				return (match.team2_score ?? 0) > (match.team1_score ?? 0);
+			}
+			return false;
+		}
+
+		// For fixed teams
+		return team1?.name === defaultTeam
 			? (match.team1_score ?? 0) > (match.team2_score ?? 0)
-			: (match.team2_score ?? 0) > (match.team1_score ?? 0)
-	);
+			: (match.team2_score ?? 0) > (match.team1_score ?? 0);
+	});
 
 	const team1IsWinner = $derived.by(() => {
 		const score1 = match?.team1_score;
@@ -134,26 +190,85 @@
 			<!-- Enhanced mobile popover content layout -->
 			<div class="p-4 sm:p-4">
 				{#if hasScores}
-					<div class="match-score-card">
-						<div class="team-row {team1IsWinner ? 'winner' : ''}">
-							<div class="flex items-center gap-2">
-								{#if team1IsWinner}<TrophyIcon class="h-4 w-4 text-amber-500" />{/if}
-								<span class="team-name {team1?.name === defaultTeam ? 'default-team' : ''}"
-									>{team1?.name || 'TBD'}</span
-								>
+					{#if tournament?.format === 'individual'}
+						<!-- Individual format: Show player chips -->
+						{@const team1Players = team1?.name?.split(' & ') || []}
+						{@const team2Players = team2?.name?.split(' & ') || []}
+
+						<div class="space-y-4">
+							<!-- Home Side -->
+							<div>
+								<div class="mb-2 flex items-center justify-between">
+									<div class="flex items-center gap-2">
+										<span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+											>Home Side</span
+										>
+										{#if team1IsWinner}<TrophyIcon class="h-4 w-4 text-amber-500" />{/if}
+									</div>
+									<span class="text-2xl font-bold text-gray-900 dark:text-white"
+										>{match.team1_score}</span
+									>
+								</div>
+								<div class="flex flex-wrap gap-2">
+									{#each team1Players as player}
+										<span
+											class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+											{player === defaultTeam ? 'ring-2 ring-green-500' : ''}"
+										>
+											{player}
+										</span>
+									{/each}
+								</div>
 							</div>
-							<span class="score text-xl font-bold">{match.team1_score}</span>
-						</div>
-						<div class="team-row {team2IsWinner ? 'winner' : ''}">
-							<div class="flex items-center gap-2">
-								{#if team2IsWinner}<TrophyIcon class="h-4 w-4 text-amber-500" />{/if}
-								<span class="team-name {team2?.name === defaultTeam ? 'default-team' : ''}"
-									>{team2?.name || 'TBD'}</span
-								>
+
+							<!-- Away Side -->
+							<div>
+								<div class="mb-2 flex items-center justify-between">
+									<div class="flex items-center gap-2">
+										<span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+											>Away Side</span
+										>
+										{#if team2IsWinner}<TrophyIcon class="h-4 w-4 text-amber-500" />{/if}
+									</div>
+									<span class="text-2xl font-bold text-gray-900 dark:text-white"
+										>{match.team2_score}</span
+									>
+								</div>
+								<div class="flex flex-wrap gap-2">
+									{#each team2Players as player}
+										<span
+											class="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400
+											{player === defaultTeam ? 'ring-2 ring-green-500' : ''}"
+										>
+											{player}
+										</span>
+									{/each}
+								</div>
 							</div>
-							<span class="score text-xl font-bold">{match.team2_score}</span>
 						</div>
-					</div>
+					{:else}
+						<!-- Fixed teams: Traditional display -->
+						<div class="match-score-card">
+							<div class="team-row {team1IsWinner ? 'winner' : ''}">
+								<div class="flex items-center gap-2">
+									{#if team1IsWinner}<TrophyIcon class="h-4 w-4 text-amber-500" />{/if}
+									<span class="team-name {team1?.name === defaultTeam ? 'default-team' : ''}"
+										>{team1?.name || 'TBD'}</span
+									>
+								</div>
+								<span class="score text-xl font-bold">{match.team1_score}</span>
+							</div>
+							<div class="team-row {team2IsWinner ? 'winner' : ''}">
+								<div class="flex items-center gap-2">
+									{#if team2IsWinner}<TrophyIcon class="h-4 w-4 text-amber-500" />{/if}
+									<span class="team-name {team2?.name === defaultTeam ? 'default-team' : ''}"
+										>{team2?.name || 'TBD'}</span
+									>
+								</div>
+								<span class="score text-xl font-bold">{match.team2_score}</span>
+							</div>
+						</div>
+					{/if}
 					<!-- Added match metadata for mobile users -->
 					<div class="mt-3 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
 						<div class="flex items-center gap-1">
@@ -176,6 +291,23 @@
 							</div>
 						{/if}
 					</div>
+
+					<!-- Referee information -->
+					{#if referee}
+						<div class="mt-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
+							<div class="flex items-center gap-2 text-sm">
+								<span class="text-lg">🎽</span>
+								<span class="font-medium text-gray-700 dark:text-gray-300">Referee:</span>
+								<span
+									class="font-semibold {hasDefaultTeamRef
+										? 'text-blue-600 dark:text-blue-400'
+										: 'text-gray-900 dark:text-white'}"
+								>
+									{referee.name}
+								</span>
+							</div>
+						</div>
+					{/if}
 				{:else}
 					<div class="py-4 text-center">
 						<div class="mb-2 text-4xl">⏱️</div>
@@ -204,7 +336,7 @@
 			</div>
 		</AlertDialog.Trigger>
 		<AlertDialog.Content interactOutsideBehavior="close">
-			<EditMatch matchId={match.id as number} {matches} {teams} {playerStats} />
+			<EditMatch matchId={match.id as number} {matches} {teams} {playerStats} {tournament} />
 		</AlertDialog.Content>
 	</AlertDialog.Root>
 {/if}
@@ -215,8 +347,17 @@
 		{#each [team1, team2] as team, i}
 			{@const isWinner = i === 0 ? team1IsWinner : team2IsWinner}
 			{@const score = i === 0 ? match.team1_score : match.team2_score}
+			{@const isHome = i === 0}
+			{@const sideLabel = isHome ? 'Home' : 'Away'}
+			{@const teamPlayers = team?.name?.split(' & ') || []}
+			{@const isDefaultTeamOnSide =
+				tournament?.format === 'individual' && defaultTeam
+					? teamPlayers.includes(defaultTeam)
+					: team?.name === defaultTeam}
+
 			<div class="flex items-center text-sm {courts === 1 ? 'justify-center' : 'justify-between'}">
 				<span class="flex min-w-0 flex-1 items-center gap-1.5 font-medium">
+					<!-- Score badge -->
 					<span
 						class="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold sm:h-5 sm:w-5
 						{isWinner && isComplete
@@ -225,23 +366,29 @@
 					>
 						{score ?? '-'}
 					</span>
-					{#if team?.name === defaultTeam}<span
-							class="h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
-						></span>{/if}
+
+					<!-- Team/Player names -->
 					<span class="truncate text-sm sm:text-sm">{team?.name ?? 'TBD'}</span>
-					{#if isWinner && isComplete}<TrophyIcon
-							class="h-3.5 w-3.5 flex-shrink-0 text-amber-500 sm:h-3 sm:w-3"
-						/>{/if}
+
+					<!-- Winner trophy -->
+					{#if isWinner && isComplete}
+						<TrophyIcon class="h-3.5 w-3.5 flex-shrink-0 text-amber-500 sm:h-3 sm:w-3" />
+					{/if}
 				</span>
 			</div>
 		{/each}
-		{#if hasDefaultTeamRef}
-			<div class="mt-2 flex items-center justify-center">
+
+		<!-- Referee display (always show if referee is assigned) -->
+		{#if referee}
+			<div class="mt-1 flex items-center justify-center">
 				<span
-					class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+					class="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium
+					{hasDefaultTeamRef
+						? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+						: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'}"
 				>
-					<span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-					Refereeing
+					<span class="text-sm">🎽</span>
+					<span>{referee.name}</span>
 				</span>
 			</div>
 		{/if}

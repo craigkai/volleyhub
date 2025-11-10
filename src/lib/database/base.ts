@@ -23,6 +23,8 @@ export class Base {
 
 		const result = schema.safeParse(response.data);
 		if (!result.success) {
+			console.error('Schema validation failed:', result.error);
+			console.error('Actual data received:', JSON.stringify(response.data, null, 2));
 			const errorResponse = { status: 500, error: result.error } as unknown as PostgrestResponse<T>;
 			this.handleDatabaseError(errorResponse as PostgrestResponse<T[]> | PostgrestResponse<T[][]>);
 		}

@@ -184,6 +184,11 @@
 				return;
 			}
 
+			// Ensure event_id is set before creating matches
+			if (!data.matches.event_id && data.tournament.id) {
+				data.matches.event_id = data.tournament.id;
+			}
+
 			// Create matches using the unified team model
 			const res: Matches | undefined = await data.matches.create(data.tournament, data.teams.teams);
 
@@ -583,7 +588,7 @@
 										Court {index}
 									</Table.Head>
 								{/each}
-								{#if data.tournament.refs === 'teams'}
+								{#if data.tournament.refs === 'teams' && data.tournament.format !== 'individual'}
 									<Table.Head
 										class="min-w-[100px] py-3 pr-3 text-center text-xs font-medium text-gray-700 sm:pr-4 sm:text-sm dark:text-gray-300"
 									>
@@ -710,7 +715,7 @@
 											</Table.Cell>
 										{/each}
 
-										{#if data.tournament.refs === 'teams'}
+										{#if data.tournament.refs === 'teams' && data.tournament.format !== 'individual'}
 											{@const matchesPerRound = data.matches.matches.filter(
 												(m: MatchRow) => m.round === round + 1
 											)}
@@ -726,7 +731,7 @@
 									class="border-t-2 border-dashed border-gray-200 bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900/50"
 								>
 									<Table.Cell
-										colspan={data.tournament.courts + (data.tournament.refs === 'teams' ? 2 : 1)}
+										colspan={data.tournament.courts + (data.tournament.refs === 'teams' && data.tournament.format !== 'individual' ? 2 : 1)}
 										class="p-4 sm:p-6"
 									>
 										<div class="flex flex-col items-center gap-3">

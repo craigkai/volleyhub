@@ -10,6 +10,10 @@ const MatchTeamsRowSchemaArray = z
 	});
 
 export class MatchTeamsSupabaseDatabaseService extends SupabaseDatabaseService {
+	constructor(supabaseClient: supabaseClient) {
+		super(supabaseClient);
+	}
+
 	/**
 	 * Create a new match_team record in the database.
 	 * @param {Partial<MatchTeamRow>} matchTeam - The data for the match_team record.

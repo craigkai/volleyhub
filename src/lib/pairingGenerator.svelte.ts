@@ -120,6 +120,66 @@ export class PairingGenerator extends Base {
 	}
 
 	/**
+	 * Generate multiple rounds of individual pairings for mix-and-match tournaments.
+	 * Each round shuffles players to create variety and ensure players compete with different partners.
+	 *
+	 * @param {Team[]} teams - All teams (players)
+	 * @param {number} teamsPerSide - Number of players per side (e.g., 3 for 3v3)
+	 * @param {number} targetGamesPerPlayer - Target number of games each player should play
+	 * @returns {MatchPairing[]} - Array of match pairings across all rounds
+	 */
+	generateMultiRoundIndividualPairings(
+		teams: Team[],
+		teamsPerSide: number,
+		targetGamesPerPlayer: number
+	): MatchPairing[] {
+		const allPairings: MatchPairing[] = [];
+		const teamsPerMatch = teamsPerSide * 2;
+		const playerGames = new Map<number, number>();
+
+		// Initialize game counts
+		teams.forEach((team) => {
+			if (team.id) {
+				playerGames.set(team.id, 0);
+			}
+		});
+
+		// Keep generating rounds until all players have played enough games
+		let roundCount = 0;
+		const maxRounds = targetGamesPerPlayer * 2; // Safety limit to prevent infinite loops
+
+		while (this.hasTeamsNeedingGames(playerGames, targetGamesPerPlayer) && roundCount < maxRounds) {
+			// Shuffle teams for variety in each round
+			const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+
+			// Generate pairings for this round using snake draft on shuffled teams
+			const roundPairings = this.generateSnakeDraftPairings(shuffledTeams, teamsPerSide);
+
+			// Add pairings and update game counts
+			for (const pairing of roundPairings) {
+				// Check if all players in this match need more games
+				const allNeedGames =
+					[...pairing.homeTeams, ...pairing.awayTeams].every(
+						(playerId) => (playerGames.get(playerId) ?? 0) < targetGamesPerPlayer
+					);
+
+				if (allNeedGames) {
+					allPairings.push(pairing);
+
+					// Update game counts
+					[...pairing.homeTeams, ...pairing.awayTeams].forEach((playerId) => {
+						playerGames.set(playerId, (playerGames.get(playerId) ?? 0) + 1);
+					});
+				}
+			}
+
+			roundCount++;
+		}
+
+		return allPairings;
+	}
+
+	/**
 	 * Generate simple consecutive pairings (1v2, 3v4, 5v6, etc.)
 	 * Used for quick pairing without skill balancing.
 	 *
