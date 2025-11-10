@@ -59,10 +59,14 @@ export class Brackets extends Matches {
 				);
 			}
 
-			const teamScoresArray = findStandings(matches, teams);
-			const orderedTeamNames = teamScoresArray
-				.sort((a, b) => b.wins - a.wins || b.pointsDiff - a.pointsDiff)
-				.map((score) => score.name);
+			const scoringType = (event.scoring as 'wins' | 'points') || 'wins';
+			const isIndividualFormat = event.format === 'individual';
+			// For bracket seeding, always use team-based standings (not individual player standings)
+			// because brackets are played by teams, even in individual format
+			// TODO: In future, implement player-based seeding for individual format brackets
+			const teamScoresArray = findStandings(matches, teams, scoringType, false);
+			// findStandings already sorts by the correct criteria, so we can just extract names
+			const orderedTeamNames = teamScoresArray.map((score) => score.name);
 
 			const matchups: Partial<MatchRow>[] = [];
 			const leftOverTeams: number[] = [];

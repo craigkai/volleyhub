@@ -16,9 +16,23 @@
 	// Determine if we're in individual format
 	let isIndividualFormat = $derived(event?.format === 'individual');
 
+	// Determine the scoring type (points or wins)
+	let scoringType = $derived(event?.scoring || 'wins');
+
 	// Calculate team standings (works for both fixed teams and individual format)
-	// In individual format, teams are 1-person teams representing players
-	let orderedTeamScores = $derived(findStandings(matches.matches, teams.teams));
+	// In individual format, break down teams into individual players and aggregate their stats
+	let orderedTeamScores = $derived(
+		findStandings(matches.matches, teams.teams, scoringType, isIndividualFormat)
+	);
+
+	// Helper function to check if a team/player name matches the default selection
+	function isDefaultTeamOrPlayer(name: string): boolean {
+		if (!defaultTeam) return false;
+
+		// In individual format, names are already individual players
+		// In fixed teams, perform exact team name match
+		return name === defaultTeam;
+	}
 </script>
 
 <div class="space-y-4">
@@ -39,14 +53,14 @@
 						</Table.Head>
 						<Table.Head
 							class="py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
-							>Wins</Table.Head
+							>{scoringType === 'points' ? 'Points' : 'Wins'}</Table.Head
 						>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
 					<!-- Unified Team Standings (works for both formats) -->
 					{#each orderedTeamScores as team, index}
-						{@const isDefaultTeam = defaultTeam && defaultTeam === team.name}
+						{@const isDefaultTeam = isDefaultTeamOrPlayer(team.name)}
 						<Table.Row
 							class={`border-t border-gray-200 dark:border-gray-700 ${isDefaultTeam ? 'bg-amber-50 dark:bg-amber-900/20' : ''}`}
 						>
@@ -98,7 +112,7 @@
 								<span
 									class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
 								>
-									{team.wins}
+									{scoringType === 'points' ? team.totalPoints : team.wins}
 								</span>
 							</Table.Cell>
 						</Table.Row>
@@ -136,69 +150,105 @@
 					class="mt-4 rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800/50"
 				>
 					<div class="prose prose-sm dark:prose-invert max-w-none">
-						<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
-							1. Wins as the Primary Criterion
-						</h3>
-						<p class="mb-4 text-gray-700 dark:text-gray-300">
-							The primary criterion for ranking teams is the number of wins. Teams are first sorted
-							by the total number of matches they have won. A higher number of wins will always
-							place a team higher in the standings.
-						</p>
+						{#if scoringType === 'points'}
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								1. Total Points as the Primary Criterion
+							</h3>
+							<p class="mb-4 text-gray-700 dark:text-gray-300">
+								The primary criterion for ranking teams is the total points scored across all matches.
+								Teams are first sorted by their cumulative points. A higher total will always place a
+								team higher in the standings.
+							</p>
 
-						<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
-							2. Handling Ties: Head-to-Head Results
-						</h3>
-						<p class="mb-4 text-gray-700 dark:text-gray-300">
-							When two or more teams have the same number of wins, the head-to-head results between
-							those teams are used as the first tiebreaker. This means if two teams are tied in
-							wins, the team that won the match when they played against each other will be ranked
-							higher.
-						</p>
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								2. Handling Ties: Head-to-Head Results
+							</h3>
+							<p class="mb-4 text-gray-700 dark:text-gray-300">
+								When two or more teams have the same total points, the head-to-head results between
+								those teams are used as the first tiebreaker. The team that won when they played
+								directly against each other will be ranked higher.
+							</p>
 
-						<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
-							3. Further Tiebreaker: Points Differential
-						</h3>
-						<p class="mb-4 text-gray-700 dark:text-gray-300">
-							If teams are still tied after considering head-to-head results, the points
-							differential is used as the next tiebreaker. The points differential is calculated as
-							the difference between points scored and points conceded across all matches. A higher
-							positive differential indicates a better performance.
-						</p>
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								3. Further Tiebreaker: Points Differential
+							</h3>
+							<p class="mb-4 text-gray-700 dark:text-gray-300">
+								If teams are still tied after considering head-to-head results, the points differential
+								is used. This is calculated as the difference between points scored and points conceded.
+								A higher positive differential indicates better performance.
+							</p>
 
-						<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
-							4. Final Tiebreaker: Total Points Scored
-						</h3>
-						<p class="mb-4 text-gray-700 dark:text-gray-300">
-							In rare cases where teams remain tied after considering wins, head-to-head results,
-							and points differential, the total points scored by each team across all matches are
-							used as the final tiebreaker. The team with the higher total points scored will be
-							ranked higher.
-						</p>
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								4. Final Tiebreaker: Number of Wins
+							</h3>
+							<p class="mb-4 text-gray-700 dark:text-gray-300">
+								If teams remain tied after all previous criteria, the total number of wins is used as
+								the final tiebreaker.
+							</p>
+						{:else}
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								1. Wins as the Primary Criterion
+							</h3>
+							<p class="mb-4 text-gray-700 dark:text-gray-300">
+								The primary criterion for ranking teams is the number of wins. Teams are first sorted
+								by the total number of matches they have won. A higher number of wins will always place
+								a team higher in the standings.
+							</p>
 
-						<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
-							5. Example Scenario
-						</h3>
-						<p class="mb-2 text-gray-700 dark:text-gray-300">
-							Consider three teams: Team A, Team B, and Team C, all tied with the same number of
-							wins.
-						</p>
-						<ul class="mb-4 list-disc space-y-1 pl-5 text-gray-700 dark:text-gray-300">
-							<li>In head-to-head results: Team B beats Team A, and Team A beats Team C.</li>
-							<li>Team A has a better points differential than Team B.</li>
-							<li>
-								However, because Team B won against Team A in their direct match, Team B is ranked
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								2. Handling Ties: Head-to-Head Results
+							</h3>
+							<p class="mb-4 text-gray-700 dark:text-gray-300">
+								When two or more teams have the same number of wins, the head-to-head results between
+								those teams are used as the first tiebreaker. This means if two teams are tied in wins,
+								the team that won the match when they played against each other will be ranked higher.
+							</p>
+
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								3. Further Tiebreaker: Points Differential
+							</h3>
+							<p class="mb-4 text-gray-700 dark:text-gray-300">
+								If teams are still tied after considering head-to-head results, the points differential
+								is used as the next tiebreaker. The points differential is calculated as the difference
+								between points scored and points conceded across all matches. A higher positive
+								differential indicates better performance.
+							</p>
+
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								4. Final Tiebreaker: Total Points Scored
+							</h3>
+							<p class="mb-4 text-gray-700 dark:text-gray-300">
+								In rare cases where teams remain tied after considering wins, head-to-head results, and
+								points differential, the total points scored by each team across all matches are used as
+								the final tiebreaker. The team with the higher total points scored will be ranked
 								higher.
-							</li>
-							<li>
-								If Team A and Team C did not play each other, then the next criterion would be
-								applied.
-							</li>
-						</ul>
+							</p>
 
-						<p class="text-gray-700 dark:text-gray-300">
-							This structured approach ensures that the standings reflect not just the number of
-							wins but also how teams performed in critical matches and overall.
-						</p>
+							<h3 class="mb-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+								5. Example Scenario
+							</h3>
+							<p class="mb-2 text-gray-700 dark:text-gray-300">
+								Consider three teams: Team A, Team B, and Team C, all tied with the same number of
+								wins.
+							</p>
+							<ul class="mb-4 list-disc space-y-1 pl-5 text-gray-700 dark:text-gray-300">
+								<li>In head-to-head results: Team B beats Team A, and Team A beats Team C.</li>
+								<li>Team A has a better points differential than Team B.</li>
+								<li>
+									However, because Team B won against Team A in their direct match, Team B is ranked
+									higher.
+								</li>
+								<li>
+									If Team A and Team C did not play each other, then the next criterion would be
+									applied.
+								</li>
+							</ul>
+
+							<p class="text-gray-700 dark:text-gray-300">
+								This structured approach ensures that the standings reflect not just the number of wins
+								but also how teams performed in critical matches and overall.
+							</p>
+						{/if}
 					</div>
 				</CollapsibleContent>
 			</Collapsible>
