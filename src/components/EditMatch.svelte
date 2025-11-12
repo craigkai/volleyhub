@@ -3,30 +3,45 @@
 	import { Input } from '$components/ui/input/index.js';
 	import { Button } from '$components/ui/button';
 	import * as Select from '$components/ui/select/index.js';
+	import * as AlertDialog from '$components/ui/alert-dialog/index.js';
 	import { updateMatch } from '$lib/helper.svelte';
 	import { error } from '@sveltejs/kit';
 	import toast from 'svelte-5-french-toast';
 	import { Match } from '$lib/match.svelte';
 	import { Team } from '$lib/team.svelte';
+	import XIcon from 'lucide-svelte/icons/x';
 
 	let { matchId, matches, teams, tournament } = $props();
 
 	let match = $state(matches?.matches?.find((m: { id: number }) => m.id === matchId) as Match);
 
-	// Track match_teams for individual format
-	let homePlayerIds = $state<number[]>([]);
-	let awayPlayerIds = $state<number[]>([]);
-
-	// Initialize player lists from match_teams
-	$effect(() => {
+	// Derive initial player lists from match_teams
+	const initialHomePlayerIds = $derived.by(() => {
 		if (match?.match_teams && Array.isArray(match.match_teams)) {
-			homePlayerIds = match.match_teams
+			return match.match_teams
 				.filter((mt: any) => mt.side === 'home')
 				.map((mt: any) => mt.team_id);
-			awayPlayerIds = match.match_teams
+		}
+		return [];
+	});
+
+	const initialAwayPlayerIds = $derived.by(() => {
+		if (match?.match_teams && Array.isArray(match.match_teams)) {
+			return match.match_teams
 				.filter((mt: any) => mt.side === 'away')
 				.map((mt: any) => mt.team_id);
 		}
+		return [];
+	});
+
+	// Track match_teams for individual format - mutable for user edits
+	let homePlayerIds = $state<number[]>([]);
+	let awayPlayerIds = $state<number[]>([]);
+
+	// Sync with initial values when match changes
+	$effect(() => {
+		homePlayerIds = [...initialHomePlayerIds];
+		awayPlayerIds = [...initialAwayPlayerIds];
 	});
 
 	async function saveMatch() {
@@ -148,7 +163,7 @@
 	<div class="mb-6">
 		<Label class="mb-3 block font-medium text-white">{label}:</Label>
 		<div class="space-y-3">
-			{#each playerIds as playerId, index}
+			{#each playerIds as playerId, index (playerId)}
 				{@const availablePlayers = getAvailablePlayers(side, index)}
 				{@const currentPlayer = teams.teams.find((t: Team) => t.id === playerId)}
 				<div class="flex items-center space-x-3">
@@ -168,7 +183,7 @@
 							{currentPlayer?.name || 'Select player'}
 						</Select.Trigger>
 						<Select.Content class="border border-gray-700 bg-gray-800 text-white">
-							{#each availablePlayers as player}
+							{#each availablePlayers as player (player.id)}
 								{#if player.id}
 									<Select.Item
 										value={player.id.toString()}
@@ -207,7 +222,7 @@
 				>{entity?.name}</Select.Trigger
 			>
 			<Select.Content class="border border-gray-700 bg-gray-800 text-white">
-				{#each teams.teams as team}
+				{#each teams.teams as team (team.id)}
 					{#if team.id}
 						<Select.Item value={team.id.toString()} label={team.name} class="hover:bg-gray-700"
 							>{team.name}</Select.Item
@@ -247,7 +262,15 @@
 
 {#if match}
 	<div class="rounded-lg border border-gray-700 bg-gray-800 p-6 shadow-lg">
-		<h2 class="mb-6 text-center text-xl font-bold text-white">Edit Match</h2>
+		<div class="relative mb-6">
+			<h2 class="text-center text-xl font-bold text-white">Edit Match</h2>
+			<AlertDialog.Cancel
+				class="absolute right-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border-none bg-transparent p-0 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-blue-500"
+			>
+				<XIcon class="h-5 w-5" />
+				<span class="sr-only">Close</span>
+			</AlertDialog.Cancel>
+		</div>
 
 		{#if tournament?.format === 'individual' && homePlayerIds.length > 0 && awayPlayerIds.length > 0}
 			<!-- Individual format: Edit individual players -->
@@ -319,7 +342,7 @@
 								<Select.Item value="" label="No referee" class="hover:bg-gray-700">
 									No referee
 								</Select.Item>
-								{#each availableRefs as ref}
+								{#each availableRefs as ref (ref.id)}
 									{#if ref.id}
 										<Select.Item
 											value={ref.id.toString()}

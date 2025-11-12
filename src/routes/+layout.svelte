@@ -29,20 +29,26 @@
 		};
 		window.addEventListener('error', resizeObserverErrHandler);
 
-		const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-			// When session changes, validate it by calling getUser() before invalidating
-			if (newSession?.expires_at !== session?.expires_at) {
-				// Validate the session by calling getUser() to ensure JWT is authentic
-				const {
-					data: { user },
-					error
-				} = await supabase.auth.getUser();
-				if (!error && user) {
-					invalidate('supabase:auth');
-				} else if (error) {
-					// Session is invalid, invalidate to clear it
-					invalidate('supabase:auth');
-				}
+		const { data } = supabase.auth.onAuthStateChange(async (event, _session) => {
+			// Don't use the session parameter directly as it's not validated
+			// Instead, validate by calling getUser() which contacts the auth server
+			if (event === 'INITIAL_SESSION') {
+				// Skip initial session as it's already loaded
+				return;
+			}
+
+			// Validate the session by calling getUser() to ensure JWT is authentic
+			const {
+				data: { user },
+				error
+			} = await supabase.auth.getUser();
+
+			// Always invalidate to refresh the session data, whether valid or not
+			if (!error && user) {
+				invalidate('supabase:auth');
+			} else if (error) {
+				// Session is invalid, invalidate to clear it
+				invalidate('supabase:auth');
 			}
 		});
 

@@ -57,9 +57,8 @@ export const supabase: Handle = async ({ event, resolve }) => {
 	};
 
 	if (1 && import.meta.env.DEV) {
-		const {
-			data: { session }
-		} = await event.locals.supabase.auth.getSession();
+		// Use safeGetSession to validate the session properly
+		const { session } = await event.locals.safeGetSession();
 
 		if (!session) {
 			const email = PUBLIC_ADMIN_USER;

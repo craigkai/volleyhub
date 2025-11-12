@@ -16,18 +16,17 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
 				}
 			});
 
-	const sessionRes = await supabase.auth.getSession();
-	const session = sessionRes.data.session;
-	const is_admin = data.is_admin || false;
-	const approved = data.approved || false;
-
+	// Use getUser() to validate the session server-side
 	const {
 		data: { user }
 	} = await supabase.auth.getUser();
 
+	const is_admin = data.is_admin || false;
+	const approved = data.approved || false;
+
 	return {
 		user,
-		session,
+		session: data.session,
 		supabase,
 		is_admin,
 		approved,
