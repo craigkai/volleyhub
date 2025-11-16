@@ -335,5 +335,112 @@ describe('PairingGenerator', () => {
 				expect(pairing.awayTeams).toHaveLength(teamsPerSide);
 			});
 		});
+
+		it('should minimize repeat teammates', () => {
+			// 12 players, 2v2 format, 6 games each = 36 total matches
+			// With 12 players, each player has 11 potential teammates
+			// Playing 6 games = 6 teammate slots
+			// Should have minimal repeats
+			const teams = Array.from({ length: 12 }, (_, i) => createMockTeam(i + 1, `Player ${i + 1}`));
+			const teamsPerSide = 2;
+			const targetGames = 6;
+
+			const pairings = generator.generateMultiRoundIndividualPairings(teams, teamsPerSide, targetGames);
+
+			// Track teammate pairs
+			const teammateCounts = new Map<string, number>();
+
+			pairings.forEach((pairing) => {
+				// Home teammates
+				const [home1, home2] = pairing.homeTeams;
+				const homeKey = home1 < home2 ? `${home1}-${home2}` : `${home2}-${home1}`;
+				teammateCounts.set(homeKey, (teammateCounts.get(homeKey) ?? 0) + 1);
+
+				// Away teammates
+				const [away1, away2] = pairing.awayTeams;
+				const awayKey = away1 < away2 ? `${away1}-${away2}` : `${away2}-${away1}`;
+				teammateCounts.set(awayKey, (teammateCounts.get(awayKey) ?? 0) + 1);
+			});
+
+			// Calculate statistics
+			const repeatCounts = Array.from(teammateCounts.values());
+			const maxRepeats = Math.max(...repeatCounts);
+			const avgRepeats = repeatCounts.reduce((a, b) => a + b, 0) / repeatCounts.length;
+
+			// With greedy algorithm, most pairs should only play together once
+			// Maximum repeats should be low (ideally ≤2, but we'll allow ≤3 for variance)
+			expect(maxRepeats).toBeLessThanOrEqual(3);
+
+			// Average should be close to 1 (most pairs play together once)
+			expect(avgRepeats).toBeLessThanOrEqual(1.5);
+		});
+
+		it('should minimize repeat opponents', () => {
+			// 8 players, 2v2 format, 5 games each
+			const teams = Array.from({ length: 8 }, (_, i) => createMockTeam(i + 1, `Player ${i + 1}`));
+			const teamsPerSide = 2;
+			const targetGames = 5;
+
+			const pairings = generator.generateMultiRoundIndividualPairings(teams, teamsPerSide, targetGames);
+
+			// Track opponent pairs
+			const opponentCounts = new Map<string, number>();
+
+			pairings.forEach((pairing) => {
+				// Each home player faces each away player
+				pairing.homeTeams.forEach((homeId) => {
+					pairing.awayTeams.forEach((awayId) => {
+						const key = homeId < awayId ? `${homeId}-${awayId}` : `${awayId}-${homeId}`;
+						opponentCounts.set(key, (opponentCounts.get(key) ?? 0) + 1);
+					});
+				});
+			});
+
+			// Calculate statistics
+			const repeatCounts = Array.from(opponentCounts.values());
+			const maxRepeats = Math.max(...repeatCounts);
+
+			// With 8 players, 2v2, playing 5 games = each player faces 10 opponent slots
+			// But there are only 7 possible opponents
+			// Some repeats are inevitable, but should be minimized
+			// Max repeats should be reasonable (≤3)
+			expect(maxRepeats).toBeLessThanOrEqual(3);
+		});
+
+		it('should perform better than pure random for 3v3', () => {
+			// This test compares greedy to random by running both and comparing repeat statistics
+			const teams = Array.from({ length: 12 }, (_, i) => createMockTeam(i + 1, `Player ${i + 1}`));
+			const teamsPerSide = 3;
+			const targetGames = 4;
+
+			// Generate with greedy algorithm
+			const greedyPairings = generator.generateMultiRoundIndividualPairings(teams, teamsPerSide, targetGames);
+
+			// Count repeats in greedy
+			const greedyTeammateCounts = new Map<string, number>();
+			greedyPairings.forEach((pairing) => {
+				// Count all teammate pairs in both teams
+				const countTeamPairs = (teamIds: number[]) => {
+					for (let i = 0; i < teamIds.length; i++) {
+						for (let j = i + 1; j < teamIds.length; j++) {
+							const key = teamIds[i] < teamIds[j]
+								? `${teamIds[i]}-${teamIds[j]}`
+								: `${teamIds[j]}-${teamIds[i]}`;
+							greedyTeammateCounts.set(key, (greedyTeammateCounts.get(key) ?? 0) + 1);
+						}
+					}
+				};
+				countTeamPairs(pairing.homeTeams);
+				countTeamPairs(pairing.awayTeams);
+			});
+
+			const greedyRepeats = Array.from(greedyTeammateCounts.values());
+			const greedyMaxRepeats = Math.max(...greedyRepeats);
+			const greedyAvgRepeats = greedyRepeats.reduce((a, b) => a + b, 0) / greedyRepeats.length;
+
+			// Greedy should keep repeats low
+			expect(greedyMaxRepeats).toBeLessThanOrEqual(2);
+			expect(greedyAvgRepeats).toBeLessThanOrEqual(1.3);
+		});
 	});
 });

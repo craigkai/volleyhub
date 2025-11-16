@@ -121,7 +121,7 @@ export class PairingGenerator extends Base {
 
 	/**
 	 * Generate multiple rounds of individual pairings for mix-and-match tournaments.
-	 * Each round shuffles players to create variety and ensure players compete with different partners.
+	 * Uses a greedy algorithm to minimize repeat teammates and opponents.
 	 *
 	 * @param {Team[]} teams - All teams (players)
 	 * @param {number} teamsPerSide - Number of players per side (e.g., 3 for 3v3)
@@ -137,6 +137,10 @@ export class PairingGenerator extends Base {
 		const teamsPerMatch = teamsPerSide * 2;
 		const playerGames = new Map<number, number>();
 
+		// Track teammate and opponent history
+		const teammateHistory = new Map<string, number>(); // "playerId1-playerId2" -> count
+		const opponentHistory = new Map<string, number>(); // "playerId1-playerId2" -> count
+
 		// Initialize game counts
 		teams.forEach((team) => {
 			if (team.id) {
@@ -149,27 +153,61 @@ export class PairingGenerator extends Base {
 		const maxRounds = targetGamesPerPlayer * 2; // Safety limit to prevent infinite loops
 
 		while (this.hasTeamsNeedingGames(playerGames, targetGamesPerPlayer) && roundCount < maxRounds) {
-			// Shuffle teams for variety in each round
-			const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+			// Get players who still need games
+			const availablePlayers = teams.filter(
+				(team) => team.id && (playerGames.get(team.id) ?? 0) < targetGamesPerPlayer
+			);
 
-			// Generate pairings for this round using snake draft on shuffled teams
-			const roundPairings = this.generateSnakeDraftPairings(shuffledTeams, teamsPerSide);
+			if (availablePlayers.length < teamsPerMatch) {
+				break; // Not enough players for a full match
+			}
 
-			// Add pairings and update game counts
-			for (const pairing of roundPairings) {
-				// Check if all players in this match need more games
-				const allNeedGames =
+			// Generate multiple candidate pairings and pick the best one
+			const numCandidates = Math.min(500, Math.max(50, availablePlayers.length * 10));
+			let bestPairing: MatchPairing[] | null = null;
+			let bestScore = Infinity;
+
+			for (let i = 0; i < numCandidates; i++) {
+				// Shuffle available players
+				const shuffled = [...availablePlayers].sort(() => Math.random() - 0.5);
+
+				// Generate pairings for this candidate
+				const candidatePairings = this.generateSnakeDraftPairings(shuffled, teamsPerSide);
+
+				// Only consider candidates where all players need games
+				const validPairings = candidatePairings.filter((pairing) =>
 					[...pairing.homeTeams, ...pairing.awayTeams].every(
 						(playerId) => (playerGames.get(playerId) ?? 0) < targetGamesPerPlayer
-					);
+					)
+				);
 
-				if (allNeedGames) {
+				if (validPairings.length === 0) continue;
+
+				// Score this candidate
+				const score = this.scorePairings(validPairings, teammateHistory, opponentHistory);
+
+				if (score < bestScore) {
+					bestScore = score;
+					bestPairing = validPairings;
+				}
+			}
+
+			// Add best pairings and update histories
+			if (bestPairing) {
+				for (const pairing of bestPairing) {
 					allPairings.push(pairing);
 
 					// Update game counts
 					[...pairing.homeTeams, ...pairing.awayTeams].forEach((playerId) => {
 						playerGames.set(playerId, (playerGames.get(playerId) ?? 0) + 1);
 					});
+
+					// Update teammate history
+					this.updateTeammateHistory(pairing.homeTeams, teammateHistory);
+					this.updateTeammateHistory(pairing.awayTeams, teammateHistory);
+
+					// Update opponent history
+					this.updateOpponentHistory(pairing.homeTeams, pairing.awayTeams, opponentHistory);
 				}
 			}
 
@@ -177,6 +215,100 @@ export class PairingGenerator extends Base {
 		}
 
 		return allPairings;
+	}
+
+	/**
+	 * Score a set of pairings based on repeat penalties.
+	 * Lower scores are better (fewer repeats).
+	 */
+	private scorePairings(
+		pairings: MatchPairing[],
+		teammateHistory: Map<string, number>,
+		opponentHistory: Map<string, number>
+	): number {
+		let score = 0;
+
+		for (const pairing of pairings) {
+			// Penalize teammate repeats (squared to heavily penalize multiple repeats)
+			score += this.scoreTeammates(pairing.homeTeams, teammateHistory);
+			score += this.scoreTeammates(pairing.awayTeams, teammateHistory);
+
+			// Penalize opponent repeats (squared to heavily penalize multiple repeats)
+			score += this.scoreOpponents(pairing.homeTeams, pairing.awayTeams, opponentHistory);
+		}
+
+		return score;
+	}
+
+	/**
+	 * Score teammate pairs within a team.
+	 */
+	private scoreTeammates(teamIds: number[], history: Map<string, number>): number {
+		let score = 0;
+		for (let i = 0; i < teamIds.length; i++) {
+			for (let j = i + 1; j < teamIds.length; j++) {
+				const key = this.getPairKey(teamIds[i], teamIds[j]);
+				const count = history.get(key) ?? 0;
+				// Square the count to heavily penalize multiple repeats
+				score += count * count;
+			}
+		}
+		return score;
+	}
+
+	/**
+	 * Score opponent pairs between two teams.
+	 */
+	private scoreOpponents(
+		homeTeamIds: number[],
+		awayTeamIds: number[],
+		history: Map<string, number>
+	): number {
+		let score = 0;
+		for (const homeId of homeTeamIds) {
+			for (const awayId of awayTeamIds) {
+				const key = this.getPairKey(homeId, awayId);
+				const count = history.get(key) ?? 0;
+				// Square the count to heavily penalize multiple repeats
+				score += count * count;
+			}
+		}
+		return score;
+	}
+
+	/**
+	 * Update teammate history for a team.
+	 */
+	private updateTeammateHistory(teamIds: number[], history: Map<string, number>): void {
+		for (let i = 0; i < teamIds.length; i++) {
+			for (let j = i + 1; j < teamIds.length; j++) {
+				const key = this.getPairKey(teamIds[i], teamIds[j]);
+				history.set(key, (history.get(key) ?? 0) + 1);
+			}
+		}
+	}
+
+	/**
+	 * Update opponent history between two teams.
+	 */
+	private updateOpponentHistory(
+		homeTeamIds: number[],
+		awayTeamIds: number[],
+		history: Map<string, number>
+	): void {
+		for (const homeId of homeTeamIds) {
+			for (const awayId of awayTeamIds) {
+				const key = this.getPairKey(homeId, awayId);
+				history.set(key, (history.get(key) ?? 0) + 1);
+			}
+		}
+	}
+
+	/**
+	 * Get a consistent pair key for two player IDs.
+	 */
+	private getPairKey(id1: number, id2: number): string {
+		return id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`;
 	}
 
 	/**

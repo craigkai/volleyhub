@@ -363,6 +363,50 @@
 			<div class="space-y-6">
 				{@render editEntity('Home Team', 'team1', 'team1_score')}
 				{@render editEntity('Away Team', 'team2', 'team2_score')}
+
+				<!-- Referee section for fixed teams format -->
+				{#if tournament?.refs !== 'provided'}
+					{@const teamsInMatch = [match.team1, match.team2]}
+					{@const availableRefs = teams.teams.filter((t: Team) => t.id && !teamsInMatch.includes(t.id))}
+					{@const currentRef = teams.teams.find((t: Team) => t.id === match.ref)}
+					<div class="mb-6">
+						<Label class="mb-3 block font-medium text-white" for="referee-select-fixed">Referee:</Label>
+						<Select.Root
+							type="single"
+							value={match.ref?.toString() || ''}
+							onValueChange={(value) => {
+								if (value) {
+									match.ref = parseInt(value, 10);
+								} else {
+									match.ref = null;
+								}
+							}}
+						>
+							<Select.Trigger
+								id="referee-select-fixed"
+								class="w-full border-gray-600 bg-gray-700 text-white hover:bg-gray-600 focus:ring-2 focus:ring-blue-500"
+							>
+								{currentRef?.name || 'No referee assigned'}
+							</Select.Trigger>
+							<Select.Content class="border border-gray-700 bg-gray-800 text-white">
+								<Select.Item value="" label="No referee" class="hover:bg-gray-700">
+									No referee
+								</Select.Item>
+								{#each availableRefs as ref (ref.id)}
+									{#if ref.id}
+										<Select.Item
+											value={ref.id.toString()}
+											label={ref.name}
+											class="hover:bg-gray-700"
+										>
+											{ref.name}
+										</Select.Item>
+									{/if}
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+				{/if}
 			</div>
 		{/if}
 
