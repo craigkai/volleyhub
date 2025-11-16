@@ -136,7 +136,11 @@ export class Matches extends Base {
 			updatedMatch.court = updated.court;
 			updatedMatch.round = updated.round;
 			updatedMatch.ref = updated.ref;
-			updatedMatch.match_teams = updated.match_teams;
+			// Only update match_teams if it's defined in the payload
+			// Supabase realtime doesn't include relation data, so preserve existing match_teams
+			if (updated.match_teams !== undefined) {
+				updatedMatch.match_teams = updated.match_teams;
+			}
 		} else {
 			self.handleError(
 				400,
@@ -1117,6 +1121,149 @@ if (import.meta.vitest) {
 			matches.matches.forEach((match) => {
 				expect(match.ref).toBeDefined();
 			});
+		});
+	});
+
+	describe('Matches.handleUpdate', () => {
+		let matches: Matches;
+		let mockDatabaseService: any;
+
+		beforeEach(() => {
+			const mockSupabaseClient = {
+				from: vi.fn((table: string) => ({
+					insert: vi.fn(() => ({
+						select: vi.fn(() =>
+							Promise.resolve({
+								data: [],
+								error: null
+							})
+						)
+					})),
+					delete: vi.fn(() => ({
+						eq: vi.fn(() => Promise.resolve({ data: null, error: null }))
+					}))
+				}))
+			};
+
+			mockDatabaseService = {
+				deleteMatchesByEvent: vi.fn(),
+				insertMatches: vi.fn((matches: Partial<MatchRow>[]) => matches),
+				load: vi.fn(() => []),
+				supabaseClient: mockSupabaseClient
+			};
+
+			matches = new Matches(mockDatabaseService);
+			matches.event_id = 1;
+		});
+
+		it('should preserve match_teams when update payload does not include it', async () => {
+			// Setup: Create a match with match_teams data (simulating individual format)
+			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
+				mockDatabaseService.supabaseClient
+			);
+			const existingMatch = new Match(matchSupabaseDatabaseService);
+			existingMatch.id = 1;
+			existingMatch.team1 = 1;
+			existingMatch.team2 = 2;
+			existingMatch.team1_score = null;
+			existingMatch.team2_score = null;
+			existingMatch.match_teams = [
+				{ id: 1, match_id: 1, team_id: 1, side: 'home', created_at: '' },
+				{ id: 2, match_id: 1, team_id: 3, side: 'home', created_at: '' },
+				{ id: 3, match_id: 1, team_id: 2, side: 'away', created_at: '' },
+				{ id: 4, match_id: 1, team_id: 4, side: 'away', created_at: '' }
+			];
+
+			matches.matches = [existingMatch];
+
+			// Simulate a realtime update that only includes score changes
+			// (Supabase realtime doesn't include relation data like match_teams)
+			const payload = {
+				eventType: 'UPDATE',
+				old: { id: 1 },
+				new: {
+					id: 1,
+					event_id: 1,
+					team1: 1,
+					team2: 2,
+					team1_score: 21,
+					team2_score: 19,
+					state: 'COMPLETE',
+					court: 0,
+					round: 0,
+					ref: null,
+					type: 'pool',
+					child_id: null,
+					created_at: ''
+					// Note: match_teams is NOT included in realtime payload
+				}
+			} as any;
+
+			// Act: Handle the update
+			await matches.handleUpdate(matches, payload);
+
+			// Assert: match_teams should still be present after the update
+			const updatedMatch = matches.matches.find((m) => m.id === 1);
+			expect(updatedMatch).toBeDefined();
+			expect(updatedMatch?.match_teams).toBeDefined();
+			expect(updatedMatch?.match_teams).toHaveLength(4);
+			expect(updatedMatch?.team1_score).toBe(21);
+			expect(updatedMatch?.team2_score).toBe(19);
+			expect(updatedMatch?.state).toBe('COMPLETE');
+		});
+
+		it('should update match_teams when explicitly provided in payload', async () => {
+			// Setup: Create a match with match_teams data
+			const matchSupabaseDatabaseService = new MatchSupabaseDatabaseService(
+				mockDatabaseService.supabaseClient
+			);
+			const existingMatch = new Match(matchSupabaseDatabaseService);
+			existingMatch.id = 1;
+			existingMatch.team1 = 1;
+			existingMatch.team2 = 2;
+			existingMatch.match_teams = [
+				{ id: 1, match_id: 1, team_id: 1, side: 'home', created_at: '' },
+				{ id: 2, match_id: 1, team_id: 2, side: 'away', created_at: '' }
+			];
+
+			matches.matches = [existingMatch];
+
+			// Simulate an update that explicitly includes new match_teams data
+			const newMatchTeams = [
+				{ id: 1, match_id: 1, team_id: 3, side: 'home', created_at: '' },
+				{ id: 2, match_id: 1, team_id: 4, side: 'away', created_at: '' }
+			];
+
+			const payload = {
+				eventType: 'UPDATE',
+				old: { id: 1 },
+				new: {
+					id: 1,
+					event_id: 1,
+					team1: 3,
+					team2: 4,
+					team1_score: null,
+					team2_score: null,
+					state: 'PENDING',
+					court: 0,
+					round: 0,
+					ref: null,
+					type: 'pool',
+					child_id: null,
+					created_at: '',
+					match_teams: newMatchTeams
+				}
+			} as any;
+
+			// Act: Handle the update
+			await matches.handleUpdate(matches, payload);
+
+			// Assert: match_teams should be updated to the new value
+			const updatedMatch = matches.matches.find((m) => m.id === 1);
+			expect(updatedMatch).toBeDefined();
+			expect(updatedMatch?.match_teams).toEqual(newMatchTeams);
+			expect(updatedMatch?.team1).toBe(3);
+			expect(updatedMatch?.team2).toBe(4);
 		});
 	});
 }
