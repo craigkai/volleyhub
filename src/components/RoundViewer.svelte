@@ -20,16 +20,16 @@
 		tournament
 	} = $props();
 
-	// Default to round 1 if current_round is 0 or null (since rounds start at 1, not 0)
+	// Default to round 0 (rounds are 0-indexed in the database, 1-indexed in the UI)
 	let currentViewRound = $state(
-		data.tournament.current_round && data.tournament.current_round > 0
+		data.tournament.current_round != null && data.tournament.current_round >= 0
 			? data.tournament.current_round
-			: 1
+			: 0
 	);
 
-	// Calculate total rounds from matches
+	// Calculate total rounds from matches (add 1 since rounds are 0-indexed)
 	let totalRounds = $derived(
-		Math.max(...(data.matches?.matches?.map((m: { round: number }) => m.round) ?? [1]))
+		Math.max(...(data.matches?.matches?.map((m: { round: number }) => m.round) ?? [0])) + 1
 	);
 
 	// Get matches for current viewing round
@@ -94,9 +94,9 @@
 
 	function jumpToCurrentRound() {
 		currentViewRound =
-			data.tournament.current_round && data.tournament.current_round > 0
+			data.tournament.current_round != null && data.tournament.current_round >= 0
 				? data.tournament.current_round
-				: 1;
+				: 0;
 	}
 
 	function nextRound() {
@@ -106,7 +106,7 @@
 	}
 
 	function prevRound() {
-		if (currentViewRound > 1) {
+		if (currentViewRound > 0) {
 			currentViewRound--;
 		}
 	}
@@ -114,7 +114,7 @@
 	async function handleDeleteRound() {
 		await deleteRound(currentViewRound);
 		// Adjust view if we deleted the last round
-		if (currentViewRound >= totalRounds && currentViewRound > 1) {
+		if (currentViewRound >= totalRounds && currentViewRound > 0) {
 			currentViewRound--;
 		}
 	}
@@ -122,7 +122,7 @@
 	async function handleDeleteFromRound() {
 		await deleteFromRound(currentViewRound);
 		// Adjust view if we deleted the current round
-		if (currentViewRound >= totalRounds && currentViewRound > 1) {
+		if (currentViewRound >= totalRounds && currentViewRound > 0) {
 			currentViewRound--;
 		}
 	}
@@ -138,7 +138,7 @@
 				variant="outline"
 				size="sm"
 				onclick={prevRound}
-				disabled={currentViewRound <= 1}
+				disabled={currentViewRound <= 0}
 				class="h-8 w-8 p-0"
 			>
 				<ChevronLeft class="h-4 w-4" />
@@ -146,10 +146,10 @@
 
 			<div class="text-center">
 				<h2 class="text-lg font-bold text-gray-900 dark:text-white">
-					Round {currentViewRound}
+					Round {currentViewRound + 1}
 				</h2>
 				<p class="text-xs text-gray-500 dark:text-gray-400">
-					{currentViewRound} of {totalRounds}
+					{currentViewRound + 1} of {totalRounds}
 				</p>
 			</div>
 
@@ -157,7 +157,7 @@
 				variant="outline"
 				size="sm"
 				onclick={nextRound}
-				disabled={currentViewRound >= totalRounds}
+				disabled={currentViewRound >= totalRounds - 1}
 				class="h-8 w-8 p-0"
 			>
 				<ChevronRight class="h-4 w-4" />
@@ -166,7 +166,7 @@
 
 		<div class="flex items-center gap-2">
 			<!-- Current Round Badge/Button -->
-			{#if currentViewRound === (data.tournament.current_round ?? 0)}
+			{#if currentViewRound === (data.tournament.current_round ?? 0) || (data.tournament.current_round == null && currentViewRound === 0)}
 				<span
 					class="inline-block rounded bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
 				>
@@ -194,7 +194,7 @@
 					</Popover.Trigger>
 					<Popover.Content class="w-48 p-1" align="end">
 						<div class="space-y-1">
-							{#if currentViewRound !== (data.tournament.current_round ?? 0)}
+							{#if currentViewRound !== (data.tournament.current_round ?? 0) && !(data.tournament.current_round == null && currentViewRound === 0)}
 								<Button
 									variant="ghost"
 									size="sm"
