@@ -27,7 +27,11 @@ export async function updateMatch(match: Match): Promise<Match | undefined> {
 		const updatedMatch = await match.update(match);
 		if (!updatedMatch) {
 			toast.error('Failed to save match. Please try again.');
-			console.error('Match update returned null');
+			console.error('Match update returned null', {
+				matchId: match.id,
+				team1_score: match.team1_score,
+				team2_score: match.team2_score
+			});
 			return undefined;
 		}
 		return updatedMatch;
@@ -35,7 +39,12 @@ export async function updateMatch(match: Match): Promise<Match | undefined> {
 		const errorMsg = (err as HttpError)?.message || (err as Error)?.message || String(err);
 
 		// Provide more specific error messages
-		if (errorMsg.toLowerCase().includes('network') || errorMsg.toLowerCase().includes('fetch')) {
+		if (errorMsg.toLowerCase().includes('session expired')) {
+			toast.error('Your session expired. Please refresh the page.');
+		} else if (
+			errorMsg.toLowerCase().includes('network') ||
+			errorMsg.toLowerCase().includes('fetch')
+		) {
 			toast.error('Network error. Check your connection and try again.');
 		} else if (errorMsg.toLowerCase().includes('timeout')) {
 			toast.error('Request timed out. Please try again.');
@@ -43,7 +52,11 @@ export async function updateMatch(match: Match): Promise<Match | undefined> {
 			toast.error(`Failed to save: ${errorMsg}`);
 		}
 
-		console.error('Match update error:', err);
+		console.error('Match update error:', {
+			matchId: match.id,
+			error: errorMsg,
+			fullError: err
+		});
 		return undefined;
 	}
 }

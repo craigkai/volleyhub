@@ -115,12 +115,28 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 				);
 			}
 
+			// Log network status before attempting save
+			console.debug('Match update attempt:', {
+				matchId: match.id,
+				online: typeof navigator !== 'undefined' ? navigator.onLine : 'unknown',
+				hasClient: !!this.supabaseClient,
+				timestamp: new Date().toISOString()
+			});
+
 			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
 				.from('matches')
 				.update(parsedMatch)
 				.eq('id', match.id)
 				.select('*')
 				.maybeSingle();
+
+			console.debug('Match update response:', {
+				matchId: match.id,
+				hasData: !!res.data,
+				hasError: !!res.error,
+				status: res.status,
+				statusText: res.statusText
+			});
 
 			this.validateAndHandleErrors(res, matchesRowSchema);
 
@@ -139,9 +155,16 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 				throw new Error('Network error: Unable to save match. Check your connection.');
 			} else if (errorMsg.includes('timeout')) {
 				throw new Error('Request timeout: The server took too long to respond.');
+			} else if (
+				errorMsg.includes('JWT') ||
+				errorMsg.includes('token') ||
+				errorMsg.includes('auth') ||
+				errorMsg.includes('session')
+			) {
+				throw new Error('Session expired: Please refresh the page to continue.');
 			}
 
-			throw error;  // Re-throw original error
+			throw error; // Re-throw original error
 		}
 	}
 }

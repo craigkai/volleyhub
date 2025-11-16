@@ -174,10 +174,25 @@
 		const loadingToast = toast.loading('Reconnecting and syncing data...');
 
 		try {
-			// First, resubscribe to channels
+			// First, refresh the Supabase auth session to ensure we have valid credentials
+			const supabaseClient = data.tournament?.databaseService?.supabaseClient;
+			if (supabaseClient) {
+				try {
+					const { error: refreshError } = await supabaseClient.auth.refreshSession();
+					if (refreshError) {
+						console.warn('Failed to refresh session:', refreshError);
+					} else {
+						console.info('Session refreshed successfully');
+					}
+				} catch (e) {
+					console.warn('Error refreshing session:', e);
+				}
+			}
+
+			// Then, resubscribe to channels
 			await subscribe();
 
-			// Then reload all data to catch any updates that happened while offline
+			// Finally, reload all data to catch any updates that happened while offline
 			await Promise.all([
 				data.matches?.event_id ? data.matches.load(data.matches.event_id) : Promise.resolve(),
 				data.tournament?.id ? data.tournament.load(data.tournament.id) : Promise.resolve(),
