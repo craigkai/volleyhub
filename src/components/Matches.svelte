@@ -24,6 +24,7 @@
 	import List from 'lucide-svelte/icons/list';
 	import RoundViewer from './RoundViewer.svelte';
 	import { sendRoundNotifications } from '$lib/pushNotifications';
+	import { serverLog } from '$lib/serverLogger';
 
 	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
@@ -174,23 +175,30 @@
 		const loadingToast = toast.loading('Reconnecting and syncing data...');
 
 		try {
+			serverLog.info('Network reconnected, starting sync');
+
 			// First, refresh the Supabase auth session to ensure we have valid credentials
 			const supabaseClient = data.tournament?.databaseService?.supabaseClient;
 			if (supabaseClient) {
 				try {
 					const { error: refreshError } = await supabaseClient.auth.refreshSession();
 					if (refreshError) {
-						console.warn('Failed to refresh session:', refreshError);
+						serverLog.warn('Failed to refresh session', {
+							error: refreshError.message
+						});
 					} else {
-						console.info('Session refreshed successfully');
+						serverLog.info('Session refreshed successfully');
 					}
 				} catch (e) {
-					console.warn('Error refreshing session:', e);
+					serverLog.warn('Error refreshing session', {
+						error: e instanceof Error ? e.message : String(e)
+					});
 				}
 			}
 
 			// Then, resubscribe to channels
 			await subscribe();
+			serverLog.debug('Resubscribed to channels');
 
 			// Finally, reload all data to catch any updates that happened while offline
 			await Promise.all([
@@ -199,9 +207,12 @@
 				data.teams?.eventId ? data.teams.load(data.teams.eventId) : Promise.resolve()
 			]);
 
+			serverLog.info('Reconnection sync complete');
 			toast.success('Reconnected. Data synced.', { id: loadingToast });
 		} catch (err) {
-			console.error('Reload after reconnect failed:', err);
+			serverLog.error('Reload after reconnect failed', {
+				error: err instanceof Error ? err.message : String(err)
+			});
 			toast.error('Reconnected, but failed to sync data. Please refresh the page.', {
 				id: loadingToast
 			});

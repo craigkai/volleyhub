@@ -8,6 +8,7 @@ import { Event as EventInstance } from '$lib/event.svelte';
 import { Pool } from '$lib/pool/pool.svelte';
 import { Teams as TeamsInstance } from '$lib/teams.svelte';
 import type { Match } from '$lib/match.svelte';
+import { serverLog } from '$lib/serverLogger';
 
 export async function updateMatch(match: Match): Promise<Match | undefined> {
 	if (!match) {
@@ -27,7 +28,7 @@ export async function updateMatch(match: Match): Promise<Match | undefined> {
 		const updatedMatch = await match.update(match);
 		if (!updatedMatch) {
 			toast.error('Failed to save match. Please try again.');
-			console.error('Match update returned null', {
+			serverLog.error('Match update returned null', {
 				matchId: match.id,
 				team1_score: match.team1_score,
 				team2_score: match.team2_score
@@ -52,10 +53,10 @@ export async function updateMatch(match: Match): Promise<Match | undefined> {
 			toast.error(`Failed to save: ${errorMsg}`);
 		}
 
-		console.error('Match update error:', {
+		serverLog.error('Match update error', {
 			matchId: match.id,
 			error: errorMsg,
-			fullError: err
+			fullError: err instanceof Error ? err.message : String(err)
 		});
 		return undefined;
 	}

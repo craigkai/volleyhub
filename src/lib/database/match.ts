@@ -2,6 +2,7 @@ import { SupabaseDatabaseService } from './supabaseDatabaseService';
 import { matchesInsertSchema, matchesRowSchema, matchesUpdateSchema } from '$schemas/supabase';
 import type { Match } from '$lib/match.svelte';
 import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+import { serverLog } from '$lib/serverLogger';
 
 export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 	/**
@@ -115,8 +116,8 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 				);
 			}
 
-			// Log network status before attempting save
-			console.debug('Match update attempt:', {
+			// Log network status before attempting save (to both console and server)
+			serverLog.debug('Match update attempt', {
 				matchId: match.id,
 				online: typeof navigator !== 'undefined' ? navigator.onLine : 'unknown',
 				hasClient: !!this.supabaseClient,
@@ -130,12 +131,13 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 				.select('*')
 				.maybeSingle();
 
-			console.debug('Match update response:', {
+			serverLog.debug('Match update response', {
 				matchId: match.id,
 				hasData: !!res.data,
 				hasError: !!res.error,
 				status: res.status,
-				statusText: res.statusText
+				statusText: res.statusText,
+				errorMessage: res.error?.message
 			});
 
 			this.validateAndHandleErrors(res, matchesRowSchema);
@@ -144,7 +146,7 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 		} catch (error) {
 			// Enhance error message for better debugging
 			const errorMsg = error instanceof Error ? error.message : String(error);
-			console.error('Error updating the match:', {
+			serverLog.error('Error updating the match', {
 				matchId: match.id,
 				error: errorMsg,
 				stack: error instanceof Error ? error.stack : undefined
