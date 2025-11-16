@@ -15,9 +15,17 @@ export async function updateMatch(match: Match): Promise<Match | undefined> {
 		return undefined;
 	}
 
+	// Log that updateMatch was called to detect if function is even running
+	serverLog.info('updateMatch called', {
+		matchId: match.id,
+		team1_score: match.team1_score,
+		team2_score: match.team2_score
+	});
+
 	// Check if we're online before attempting save
 	if (typeof navigator !== 'undefined' && !navigator.onLine) {
 		toast.error('Cannot save while offline. Please check your connection.');
+		serverLog.warn('updateMatch aborted - browser reports offline');
 		return undefined;
 	}
 

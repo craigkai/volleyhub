@@ -25,6 +25,7 @@
 	import RoundViewer from './RoundViewer.svelte';
 	import { sendRoundNotifications } from '$lib/pushNotifications';
 	import { serverLog } from '$lib/serverLogger';
+	import { PageVisibilityTracker } from '$lib/pageVisibility.svelte';
 
 	let { readOnly = false, defaultTeam, data, onVisibilityChange, onOnline, onOffline } = $props();
 
@@ -40,6 +41,8 @@
 	let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 	const HEARTBEAT_INTERVAL_MS = 10000;
 	let viewMode = $state<'schedule' | 'rounds'>('schedule');
+	let pageVisibilityTracker: PageVisibilityTracker | undefined = $state();
+	let showStalePage = $state(false);
 
 	let subscriptionStatus: 'SUBSCRIBED' | 'CLOSED' = $derived.by(() => {
 		const matchStatus = data.matches?.subscriptionStatus;
@@ -95,6 +98,11 @@
 		if (data.tournament?.id) {
 			subscribe();
 			heartbeatInterval = setInterval(heartbeatCheck, HEARTBEAT_INTERVAL_MS);
+
+			// Start page visibility tracking to detect mobile freeze/wake
+			pageVisibilityTracker = new PageVisibilityTracker();
+			pageVisibilityTracker.onWakeup = handlePageWakeup;
+			pageVisibilityTracker.start();
 		}
 	});
 
@@ -103,6 +111,7 @@
 		if (eventSubscription) eventSubscription.unsubscribe();
 		if (teamsSubscription) teamsSubscription.unsubscribe();
 		if (heartbeatInterval) clearInterval(heartbeatInterval);
+		if (pageVisibilityTracker) pageVisibilityTracker.stop();
 	});
 
 	async function subscribe(): Promise<void> {
@@ -157,6 +166,52 @@
 	function handleVisibilityChange() {
 		onVisibilityChange?.();
 		subscribe();
+	}
+
+	async function handlePageWakeup() {
+		serverLog.warn('Page woke up from suspension - forcing refresh');
+		showStalePage = true;
+
+		// Show warning and force reconnection
+		toast(
+			'Page was suspended. Click here to refresh and restore functionality.',
+			{
+				duration: 10000,
+				icon: '⚠️',
+				onClick: () => {
+					window.location.reload();
+				}
+			}
+		);
+
+		// Try to refresh session and resubscribe
+		try {
+			const supabaseClient = data.tournament?.databaseService?.supabaseClient;
+			if (supabaseClient) {
+				const { error: refreshError } = await supabaseClient.auth.refreshSession();
+				if (refreshError) {
+					serverLog.error('Failed to refresh session after wakeup', {
+						error: refreshError.message
+					});
+				} else {
+					serverLog.info('Session refreshed after wakeup');
+				}
+			}
+
+			await subscribe();
+			await Promise.all([
+				data.matches?.event_id ? data.matches.load(data.matches.event_id) : Promise.resolve(),
+				data.tournament?.id ? data.tournament.load(data.tournament.id) : Promise.resolve(),
+				data.teams?.eventId ? data.teams.load(data.teams.eventId) : Promise.resolve()
+			]);
+
+			serverLog.info('Page wakeup refresh complete');
+			showStalePage = false;
+		} catch (err) {
+			serverLog.error('Failed to refresh after page wakeup', {
+				error: err instanceof Error ? err.message : String(err)
+			});
+		}
 	}
 
 	function checkGenerateMatches() {
@@ -475,12 +530,15 @@
 			</h2>
 			<div
 				class="flex h-5 w-fit items-center gap-1 rounded-full px-2 text-xs font-medium sm:h-6"
-				class:bg-emerald-100={subscriptionStatus === 'SUBSCRIBED'}
-				class:text-emerald-700={subscriptionStatus === 'SUBSCRIBED'}
-				class:bg-red-100={subscriptionStatus !== 'SUBSCRIBED'}
-				class:text-red-700={subscriptionStatus !== 'SUBSCRIBED'}
+				class:bg-emerald-100={subscriptionStatus === 'SUBSCRIBED' && !showStalePage}
+				class:text-emerald-700={subscriptionStatus === 'SUBSCRIBED' && !showStalePage}
+				class:bg-red-100={subscriptionStatus !== 'SUBSCRIBED' || showStalePage}
+				class:text-red-700={subscriptionStatus !== 'SUBSCRIBED' || showStalePage}
 			>
-				{#if subscriptionStatus === 'SUBSCRIBED'}
+				{#if showStalePage}
+					<AlertCircle class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+					<span>Stale</span>
+				{:else if subscriptionStatus === 'SUBSCRIBED'}
 					<Zap class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 					<span>Live</span>
 				{:else}
@@ -488,6 +546,18 @@
 					<span>Offline</span>
 				{/if}
 			</div>
+
+			{#if showStalePage}
+				<Button
+					variant="destructive"
+					size="sm"
+					onclick={() => window.location.reload()}
+					class="h-6 animate-pulse px-2 text-xs"
+				>
+					<RefreshCw class="mr-1 h-3 w-3" />
+					Refresh Page
+				</Button>
+			{/if}
 
 			<!-- View Mode Toggle -->
 			<div
