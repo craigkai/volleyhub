@@ -49,7 +49,8 @@
 		serverLog.info('Save Match button clicked in EditMatch', {
 			matchId: match.id,
 			team1_score: match.team1_score,
-			team2_score: match.team2_score
+			team2_score: match.team2_score,
+			format: tournament?.format
 		});
 
 		try {
@@ -60,12 +61,25 @@
 				match.state = 'INCOMPLETE';
 			}
 
+			serverLog.debug('Match state set', {
+				matchId: match.id,
+				state: match.state,
+				isIndividual: tournament?.format === 'individual'
+			});
+
 			// For individual format, update match_teams
 			if (tournament?.format === 'individual') {
+				serverLog.debug('About to update match teams');
 				await updateMatchTeams();
+				serverLog.debug('Match teams updated successfully');
 			}
 
+			serverLog.debug('About to call updateMatch', { matchId: match.id });
 			const updatedMatch = await updateMatch(match);
+			serverLog.debug('updateMatch returned', {
+				success: !!updatedMatch,
+				matchId: updatedMatch?.id
+			});
 
 			const team1 = updatedMatch
 				? teams.teams.find((t: Team) => t.id === updatedMatch.team1)
@@ -75,43 +89,69 @@
 				: null;
 			toast.success(`Match updated successfully`);
 		} catch (err) {
+			serverLog.error('Error in saveMatch', {
+				matchId: match.id,
+				error: err instanceof Error ? err.message : String(err),
+				stack: err instanceof Error ? err.stack : undefined
+			});
 			console.error('Failed to save match:', err);
 			toast.error('Failed to save match');
 		}
 	}
 
 	async function updateMatchTeams() {
-		// Import the service
-		const { MatchTeamsSupabaseDatabaseService } = await import('$lib/database/matchTeams');
-		const matchTeamsService = new MatchTeamsSupabaseDatabaseService(
-			match.databaseService.supabaseClient
-		);
+		serverLog.debug('updateMatchTeams: Starting', {
+			matchId: match.id,
+			homePlayerIds,
+			awayPlayerIds
+		});
 
-		// Delete existing match_teams
-		await matchTeamsService.deleteByMatch(match.id!);
+		try {
+			// Import the service
+			serverLog.debug('updateMatchTeams: Importing service');
+			const { MatchTeamsSupabaseDatabaseService } = await import('$lib/database/matchTeams');
+			const matchTeamsService = new MatchTeamsSupabaseDatabaseService(
+				match.databaseService.supabaseClient
+			);
 
-		// Create new match_teams entries
-		const newMatchTeams = [
-			...homePlayerIds.map((teamId) => ({
-				match_id: match.id!,
-				team_id: teamId,
-				side: 'home'
-			})),
-			...awayPlayerIds.map((teamId) => ({
-				match_id: match.id!,
-				team_id: teamId,
-				side: 'away'
-			}))
-		];
+			// Delete existing match_teams
+			serverLog.debug('updateMatchTeams: Deleting existing match_teams');
+			await matchTeamsService.deleteByMatch(match.id!);
 
-		await matchTeamsService.createMany(newMatchTeams);
+			// Create new match_teams entries
+			const newMatchTeams = [
+				...homePlayerIds.map((teamId) => ({
+					match_id: match.id!,
+					team_id: teamId,
+					side: 'home'
+				})),
+				...awayPlayerIds.map((teamId) => ({
+					match_id: match.id!,
+					team_id: teamId,
+					side: 'away'
+				}))
+			];
 
-		// Update the match object to reflect the changes
-		match.match_teams = newMatchTeams.map((mt, index) => ({
-			...mt,
-			id: index,
-			created_at: new Date().toISOString()
-		}));
+			serverLog.debug('updateMatchTeams: Creating new match_teams', {
+				count: newMatchTeams.length
+			});
+			await matchTeamsService.createMany(newMatchTeams);
+
+			// Update the match object to reflect the changes
+			match.match_teams = newMatchTeams.map((mt, index) => ({
+				...mt,
+				id: index,
+				created_at: new Date().toISOString()
+			}));
+
+			serverLog.debug('updateMatchTeams: Completed successfully');
+		} catch (err) {
+			serverLog.error('updateMatchTeams: Failed', {
+				matchId: match.id,
+				error: err instanceof Error ? err.message : String(err)
+			});
+			throw err;
+		}
 	}
 
 	// Function to delete an existing match with confirmation
