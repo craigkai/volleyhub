@@ -676,7 +676,7 @@
 
 										{#each Array(data.tournament.courts) as _, court}
 											{@const match = data.matches.matches.find(
-												(m: Match) => m?.court === court && (m?.round ?? 0) === round + 1
+												(m: Match) => m?.court === court && (m?.round ?? 0) === round
 											)}
 											<Table.Cell class="p-2 text-center sm:p-2">
 												{#if match}
