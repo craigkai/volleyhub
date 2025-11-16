@@ -23,27 +23,27 @@ const EVENT_ID = 47;
 
 // Map schedule team numbers to actual team names in your event
 const TEAM_MAPPING: Record<number, string> = {
-	1: 'Eric S',
-	2: 'Tripp S',
-	3: 'Ariel P',
-	4: 'Nick M',
-	5: 'Christopher C',
-	6: 'Becca S',
-	7: 'Luke L',
-	8: 'Reed T',
-	9: 'Amy A',
-	10: 'Craig K',
-	11: 'Ian Y',
-	12: 'William M'
+	1: 'William M',
+	2: 'Becca S',
+	3: 'Tripp S',
+	4: 'Maddy',
+	5: 'Craig K',
+	6: 'Eric S',
+	7: 'Christopher C',
+	8: 'Ariel P',
+	9: 'Reed T',
+	10: 'Luke L',
+	11: 'Amy A',
+	12: 'Nick M'
 };
 
 // The schedule to inject (12 players, 3v3, 10 rounds)
 // Each round has one match since the UI only supports one court
 const SCHEDULE = [
 	// Round 0
-	{ round: 0, court: 0, home: [1, 5, 12], away: [2, 6, 9] },
+	{ round: 1, court: 0, home: [1, 5, 12], away: [2, 6, 9] },
 	// Round 1
-	{ round: 1, court: 0, home: [3, 7, 10], away: [4, 8, 11] },
+	{ round: 0, court: 0, home: [3, 7, 10], away: [4, 8, 11] },
 	// Round 2
 	{ round: 2, court: 0, home: [4, 7, 9], away: [1, 8, 10] },
 	// Round 3

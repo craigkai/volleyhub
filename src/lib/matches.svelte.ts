@@ -294,7 +294,7 @@ export class Matches extends Base {
 		const matchesByRound = new Map<number, Array<{ pairing: typeof pairings[0]; index: number }>>();
 
 		pairings.forEach((pairing, index) => {
-			const round = Math.floor(index / courts) + 1;
+			const round = Math.floor(index / courts);  // 0-indexed rounds to match UI expectations
 			if (!matchesByRound.has(round)) {
 				matchesByRound.set(round, []);
 			}
@@ -406,9 +406,9 @@ export class Matches extends Base {
 					// Calculate round based on match index and available courts
 					// Matches are distributed evenly across courts: for each round, all courts are used in parallel.
 					// Each group of 'courts' matches forms one round. For example, with 3 courts:
-					// matches 0,1,2 are round 1; matches 3,4,5 are round 2; etc.
+					// matches 0,1,2 are round 0; matches 3,4,5 are round 1; etc.
 					// Court assignment cycles: match 0 → court 0, match 1 → court 1, ..., match N → court N%courts
-					const round = Math.floor(matchIndex / courts) + 1;
+					const round = Math.floor(matchIndex / courts);
 					const court = matchIndex % courts;
 
 					matches.push({
