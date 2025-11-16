@@ -126,8 +126,22 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 
 			return res.data;
 		} catch (error) {
-			console.error('Error updating the match:', error);
-			throw new Error('Failed to update match.');
+			// Enhance error message for better debugging
+			const errorMsg = error instanceof Error ? error.message : String(error);
+			console.error('Error updating the match:', {
+				matchId: match.id,
+				error: errorMsg,
+				stack: error instanceof Error ? error.stack : undefined
+			});
+
+			// Preserve the original error type for better error handling upstream
+			if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError')) {
+				throw new Error('Network error: Unable to save match. Check your connection.');
+			} else if (errorMsg.includes('timeout')) {
+				throw new Error('Request timeout: The server took too long to respond.');
+			}
+
+			throw error;  // Re-throw original error
 		}
 	}
 }

@@ -81,13 +81,14 @@ export class Match extends Base {
 	/**
 	 * Update a specific match in the database.
 	 * @param {MatchRow} match - The match details to be updated.
-	 * @returns {Promise<MatchRow | null>} - Returns a promise that resolves to the updated match.
+	 * @returns {Promise<MatchRow | null>} - Returns a promise that resolves to the updated match, or null if failed.
 	 */
 	async update(match: Match): Promise<Match | null> {
 		const updatedMatch = await this.databaseService.put(match);
 
 		if (!updatedMatch) {
 			this.handleError(500, 'Failed to update match.');
+			return null;  // Return null instead of this to indicate failure
 		}
 
 		Object.assign(this, updatedMatch);

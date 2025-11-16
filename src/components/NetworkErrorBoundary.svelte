@@ -8,15 +8,23 @@
 	import AlertTriangle from 'lucide-svelte/icons/alert-triangle';
 	import { onMount } from 'svelte';
 
-	let { children, showOfflineIndicator = true } = $props();
+	let { children, showOfflineIndicator = true, onOnline, onOffline } = $props();
 
 	let isOnline = $state(typeof navigator !== 'undefined' ? navigator.onLine : true);
 	let retryAttempts = $state(0);
 	const MAX_RETRY_ATTEMPTS = 3;
 
 	onMount(() => {
-		const handleOnline = () => (isOnline = true);
-		const handleOffline = () => (isOnline = false);
+		const handleOnline = () => {
+			isOnline = true;
+			// Call the parent's onOnline callback to trigger data refresh
+			onOnline?.();
+		};
+		const handleOffline = () => {
+			isOnline = false;
+			// Call the parent's onOffline callback
+			onOffline?.();
+		};
 
 		window.addEventListener('online', handleOnline);
 		window.addEventListener('offline', handleOffline);

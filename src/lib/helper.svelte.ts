@@ -10,19 +10,41 @@ import { Teams as TeamsInstance } from '$lib/teams.svelte';
 import type { Match } from '$lib/match.svelte';
 
 export async function updateMatch(match: Match): Promise<Match | undefined> {
-	if (match) {
-		try {
-			match.team1_score = Number(match.team1_score);
-			match.team2_score = Number(match.team2_score);
+	if (!match) {
+		return undefined;
+	}
 
-			const updatedMatch = await match.update(match);
-			if (!updatedMatch) {
-				error(500, 'failed to update match');
-			}
-			return updatedMatch;
-		} catch (err) {
-			toast.error((err as HttpError).toString());
+	// Check if we're online before attempting save
+	if (typeof navigator !== 'undefined' && !navigator.onLine) {
+		toast.error('Cannot save while offline. Please check your connection.');
+		return undefined;
+	}
+
+	try {
+		match.team1_score = Number(match.team1_score);
+		match.team2_score = Number(match.team2_score);
+
+		const updatedMatch = await match.update(match);
+		if (!updatedMatch) {
+			toast.error('Failed to save match. Please try again.');
+			console.error('Match update returned null');
+			return undefined;
 		}
+		return updatedMatch;
+	} catch (err) {
+		const errorMsg = (err as HttpError)?.message || (err as Error)?.message || String(err);
+
+		// Provide more specific error messages
+		if (errorMsg.toLowerCase().includes('network') || errorMsg.toLowerCase().includes('fetch')) {
+			toast.error('Network error. Check your connection and try again.');
+		} else if (errorMsg.toLowerCase().includes('timeout')) {
+			toast.error('Request timed out. Please try again.');
+		} else {
+			toast.error(`Failed to save: ${errorMsg}`);
+		}
+
+		console.error('Match update error:', err);
+		return undefined;
 	}
 }
 

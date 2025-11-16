@@ -108,26 +108,48 @@
 		try {
 			// Ensure matches exist before subscribing
 			if (data.matches?.event_id && data.matches?.matches?.length > 0) {
+				// Unsubscribe from old channels before creating new ones
+				if (matchesSubscription && data.matches?.subscriptionStatus !== 'SUBSCRIBED') {
+					try {
+						await matchesSubscription.unsubscribe();
+					} catch (e) {
+						console.warn('Failed to unsubscribe from matches:', e);
+					}
+				}
+
 				if (data.matches?.subscriptionStatus !== 'SUBSCRIBED') {
-					matchesSubscription?.unsubscribe();
 					matchesSubscription = await data.matches.subscribeToMatches();
 				}
 
 				// Events (current round)
+				if (eventSubscription && data.tournament?.subscriptionStatus !== 'SUBSCRIBED') {
+					try {
+						await eventSubscription.unsubscribe();
+					} catch (e) {
+						console.warn('Failed to unsubscribe from events:', e);
+					}
+				}
+
 				if (data.tournament?.id && data.tournament?.subscriptionStatus !== 'SUBSCRIBED') {
-					eventSubscription?.unsubscribe();
 					eventSubscription = await data.tournament.subscribeToCurrentRound();
 				}
 
 				// Teams
+				if (teamsSubscription && data.teams?.subscriptionStatus !== 'SUBSCRIBED') {
+					try {
+						await teamsSubscription.unsubscribe();
+					} catch (e) {
+						console.warn('Failed to unsubscribe from teams:', e);
+					}
+				}
+
 				if (data.teams?.eventId && data.teams?.subscriptionStatus !== 'SUBSCRIBED') {
-					teamsSubscription?.unsubscribe();
 					teamsSubscription = await data.teams.subscribeToTeams();
 				}
 			}
 		} catch (error) {
 			console.error('Subscription failed:', error);
-			toast.error('Failed to subscribe to tournament data');
+			toast.error('Failed to subscribe to live updates. Data may not sync automatically.');
 		}
 	}
 
@@ -149,19 +171,26 @@
 	async function handleOnline() {
 		onOnline?.();
 
-		await subscribe();
+		const loadingToast = toast.loading('Reconnecting and syncing data...');
 
 		try {
+			// First, resubscribe to channels
+			await subscribe();
+
+			// Then reload all data to catch any updates that happened while offline
 			await Promise.all([
-				data.matches.load(data.matches.event_id),
-				data.tournament.load(data.tournament.id),
-				data.teams?.load?.(data.teams.eventId)
+				data.matches?.event_id ? data.matches.load(data.matches.event_id) : Promise.resolve(),
+				data.tournament?.id ? data.tournament.load(data.tournament.id) : Promise.resolve(),
+				data.teams?.eventId ? data.teams.load(data.teams.eventId) : Promise.resolve()
 			]);
+
+			toast.success('Reconnected. Data synced.', { id: loadingToast });
 		} catch (err) {
 			console.error('Reload after reconnect failed:', err);
+			toast.error('Reconnected, but failed to sync data. Please refresh the page.', {
+				id: loadingToast
+			});
 		}
-
-		toast.success('Reconnected. Data synced.');
 	}
 
 	function handleOffline() {
