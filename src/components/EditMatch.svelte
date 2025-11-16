@@ -315,7 +315,7 @@
 				</div>
 
 				<!-- Referee section for individual format -->
-				{#if true}
+				{#if tournament?.refs !== 'provided'}
 					{@const playersInMatch = [...homePlayerIds, ...awayPlayerIds]}
 					{@const availableRefs = teams.teams.filter((t: Team) => t.id && !playersInMatch.includes(t.id))}
 					{@const currentRef = teams.teams.find((t: Team) => t.id === match.ref)}
