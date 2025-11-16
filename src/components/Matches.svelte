@@ -148,7 +148,20 @@
 
 	async function handleOnline() {
 		onOnline?.();
+
 		await subscribe();
+
+		try {
+			await Promise.all([
+				data.matches.load(data.matches.event_id),
+				data.tournament.load(data.tournament.id),
+				data.teams?.load?.(data.teams.eventId)
+			]);
+		} catch (err) {
+			console.error('Reload after reconnect failed:', err);
+		}
+
+		toast.success('Reconnected. Data synced.');
 	}
 
 	function handleOffline() {
@@ -731,7 +744,10 @@
 									class="border-t-2 border-dashed border-gray-200 bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900/50"
 								>
 									<Table.Cell
-										colspan={data.tournament.courts + (data.tournament.refs === 'teams' && data.tournament.format !== 'individual' ? 2 : 1)}
+										colspan={data.tournament.courts +
+											(data.tournament.refs === 'teams' && data.tournament.format !== 'individual'
+												? 2
+												: 1)}
 										class="p-4 sm:p-6"
 									>
 										<div class="flex flex-col items-center gap-3">
