@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import * as Alert from '$components/ui/alert/index.js';
 	import toast from 'svelte-5-french-toast';
+	import { serverLog } from '$lib/serverLogger';
 
 	let {
 		matches = $bindable(),
@@ -19,6 +20,16 @@
 	let rounds: Record<number, Round> = $state({});
 	let numRounds = $state(0);
 	let showGenerateBracketAlert = $state(false);
+
+	// Wrapper to log input changes before calling updateMatch
+	async function handleScoreChange(match: any) {
+		serverLog.info('Score input changed in Bracket', {
+			matchId: match.id,
+			team1_score: match.team1_score,
+			team2_score: match.team2_score
+		});
+		await updateMatch(match);
+	}
 
 	function determineRounds() {
 		const newRounds: Record<number, Round> = {};
@@ -128,7 +139,7 @@
 															disabled={!team1?.name}
 															class="max-w-8 border-2 border-solid text-center"
 															bind:value={match.team1_score}
-															onchange={() => updateMatch(match)}
+															onchange={() => handleScoreChange(match)}
 														/>
 													{/if}
 												</td>
@@ -152,7 +163,7 @@
 															disabled={!team2?.name}
 															class="max-w-8 border-2 border-solid text-center"
 															bind:value={match.team2_score}
-															onchange={() => updateMatch(match)}
+															onchange={() => handleScoreChange(match)}
 														/>
 													{/if}
 												</td>

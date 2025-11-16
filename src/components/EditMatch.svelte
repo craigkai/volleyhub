@@ -10,6 +10,7 @@
 	import { Match } from '$lib/match.svelte';
 	import { Team } from '$lib/team.svelte';
 	import XIcon from 'lucide-svelte/icons/x';
+	import { serverLog } from '$lib/serverLogger';
 
 	let { matchId, matches, teams, tournament } = $props();
 
@@ -45,6 +46,12 @@
 	});
 
 	async function saveMatch() {
+		serverLog.info('Save Match button clicked in EditMatch', {
+			matchId: match.id,
+			team1_score: match.team1_score,
+			team2_score: match.team2_score
+		});
+
 		try {
 			const isComplete = match.team1_score != null && match.team2_score != null;
 			if (isComplete) {
