@@ -169,13 +169,46 @@
 	}
 
 	async function handlePageWakeup() {
-		serverLog.warn('Page woke up from suspension - reloading to avoid iOS WebKit fetch bug');
+		serverLog.warn('Page woke up from suspension - refreshing session silently');
 
-		// iOS has a known bug where fetch() hangs after app suspension and can't be aborted
-		// Even AbortSignal.timeout() doesn't work because iOS breaks timer functionality too
-		// The only reliable fix is to reload the page to get a fresh connection pool
-		// This is what production PWAs like Twitter, Instagram, etc. do
-		window.location.reload();
+		// Try to refresh session immediately without showing stale page warning
+		try {
+			const supabaseClient = data.tournament?.databaseService?.supabaseClient;
+			if (supabaseClient) {
+				serverLog.debug('Refreshing Supabase session after wakeup');
+				const { error: refreshError } = await supabaseClient.auth.refreshSession();
+				if (refreshError) {
+					serverLog.error('Failed to refresh session after wakeup', {
+						error: refreshError.message
+					});
+					// Only show stale page warning if session refresh fails
+					showStalePage = true;
+					toast('Session expired. Click here to refresh.', {
+						duration: 10000,
+						icon: '⚠️',
+						onClick: () => {
+							window.location.reload();
+						}
+					});
+				} else {
+					serverLog.info('Session refreshed successfully after wakeup');
+				}
+			}
+
+			await subscribe();
+			await Promise.all([
+				data.matches?.event_id ? data.matches.load(data.matches.event_id) : Promise.resolve(),
+				data.tournament?.id ? data.tournament.load(data.tournament.id) : Promise.resolve(),
+				data.teams?.eventId ? data.teams.load(data.teams.eventId) : Promise.resolve()
+			]);
+
+			serverLog.info('Page wakeup refresh complete');
+		} catch (err) {
+			serverLog.error('Failed to refresh after page wakeup', {
+				error: err instanceof Error ? err.message : String(err)
+			});
+			showStalePage = true;
+		}
 	}
 
 	function checkGenerateMatches() {

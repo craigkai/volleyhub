@@ -29,7 +29,7 @@
 		};
 		window.addEventListener('error', resizeObserverErrHandler);
 
-		const { data } = supabase.auth.onAuthStateChange(async (event, _session) => {
+		const { data } = supabase.auth.onAuthStateChange((event, _session) => {
 			// Don't use the session parameter directly as it's not validated
 			// Instead, validate by calling getUser() which contacts the auth server
 			if (event === 'INITIAL_SESSION') {
@@ -37,19 +37,24 @@
 				return;
 			}
 
-			// Validate the session by calling getUser() to ensure JWT is authentic
-			const {
-				data: { user },
-				error
-			} = await supabase.auth.getUser();
+			// IMPORTANT: Supabase docs warn against using await in onAuthStateChange callbacks
+			// as it can cause deadlocks. Use setTimeout to defer async operations.
+			// See: https://supabase.com/docs/reference/javascript/auth-onauthstatechange
+			setTimeout(async () => {
+				// Validate the session by calling getUser() to ensure JWT is authentic
+				const {
+					data: { user },
+					error
+				} = await supabase.auth.getUser();
 
-			// Always invalidate to refresh the session data, whether valid or not
-			if (!error && user) {
-				invalidate('supabase:auth');
-			} else if (error) {
-				// Session is invalid, invalidate to clear it
-				invalidate('supabase:auth');
-			}
+				// Always invalidate to refresh the session data, whether valid or not
+				if (!error && user) {
+					invalidate('supabase:auth');
+				} else if (error) {
+					// Session is invalid, invalidate to clear it
+					invalidate('supabase:auth');
+				}
+			}, 0);
 		});
 
 		return () => {
