@@ -125,13 +125,21 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 			});
 
 			// Use Supabase's built-in AbortSignal.timeout to prevent hanging on iOS after wakeup
-			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
+			serverLog.debug('About to call supabaseClient.from()');
+
+			const updatePromise = this.supabaseClient
 				.from('matches')
 				.update(parsedMatch)
 				.eq('id', match.id)
 				.select('*')
 				.abortSignal(AbortSignal.timeout(10000))
 				.maybeSingle();
+
+			serverLog.debug('Created update promise, now awaiting');
+
+			const res: PostgrestSingleResponse<MatchRow | null> = await updatePromise;
+
+			serverLog.debug('Promise resolved');
 
 			serverLog.debug('Match update response', {
 				matchId: match.id,
