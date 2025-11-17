@@ -76,27 +76,15 @@ export class PageVisibilityTracker {
 		};
 
 		this.focusHandler = () => {
-			serverLog.debug('Window gained focus');
 			this.lastActiveTime = Date.now();
 		};
 
 		this.blurHandler = () => {
-			serverLog.debug('Window lost focus');
 			this.lastActiveTime = Date.now();
 		};
 
 		this.clickHandler = () => {
-			const now = Date.now();
-			// Only log every 5 seconds to avoid spam
-			if (now - this.lastClickTime > 5000) {
-				const inactiveTime = this.getInactiveTime();
-				serverLog.debug('Click detected on page', {
-					inactiveTimeSeconds: Math.round(inactiveTime / 1000),
-					wasHiddenRecently: inactiveTime > 5000
-				});
-				this.lastClickTime = now;
-			}
-			this.lastActiveTime = now;
+			this.lastActiveTime = Date.now();
 		};
 
 		document.addEventListener('visibilitychange', this.visibilityHandler);
