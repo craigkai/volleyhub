@@ -124,11 +124,13 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 				timestamp: new Date().toISOString()
 			});
 
+			// Use Supabase's built-in AbortSignal.timeout to prevent hanging on iOS after wakeup
 			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
 				.from('matches')
 				.update(parsedMatch)
 				.eq('id', match.id)
 				.select('*')
+				.abortSignal(AbortSignal.timeout(10000))
 				.maybeSingle();
 
 			serverLog.debug('Match update response', {
