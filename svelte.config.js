@@ -24,11 +24,22 @@ const config = {
 		// If your environment is not supported or you settled on a specific environment, switch out the adapter.
 		// See https://kit.svelte.dev/docs/adapters for more information about adapters.
 		adapter: adapter(),
+
 		alias: {
 			$lib: path.resolve('src/lib'),
 			$components: path.resolve('src/components'),
 			$supabaseTypes: path.resolve('src/types/supabase'),
 			$schemas: path.resolve('src/schemas')
+		},
+
+		experimental: {
+			tracing: {
+				server: true
+			},
+
+			instrumentation: {
+				server: true
+			}
 		}
 	}
 };

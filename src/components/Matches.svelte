@@ -169,32 +169,29 @@
 	}
 
 	async function handlePageWakeup() {
-		serverLog.warn('Page woke up from suspension - forcing refresh');
-		showStalePage = true;
+		serverLog.warn('Page woke up from suspension - refreshing session silently');
 
-		// Show warning and force reconnection
-		toast(
-			'Page was suspended. Click here to refresh and restore functionality.',
-			{
-				duration: 10000,
-				icon: '⚠️',
-				onClick: () => {
-					window.location.reload();
-				}
-			}
-		);
-
-		// Try to refresh session and resubscribe
+		// Try to refresh session immediately without showing stale page warning
 		try {
 			const supabaseClient = data.tournament?.databaseService?.supabaseClient;
 			if (supabaseClient) {
+				serverLog.debug('Refreshing Supabase session after wakeup');
 				const { error: refreshError } = await supabaseClient.auth.refreshSession();
 				if (refreshError) {
 					serverLog.error('Failed to refresh session after wakeup', {
 						error: refreshError.message
 					});
+					// Only show stale page warning if session refresh fails
+					showStalePage = true;
+					toast('Session expired. Click here to refresh.', {
+						duration: 10000,
+						icon: '⚠️',
+						onClick: () => {
+							window.location.reload();
+						}
+					});
 				} else {
-					serverLog.info('Session refreshed after wakeup');
+					serverLog.info('Session refreshed successfully after wakeup');
 				}
 			}
 
@@ -206,11 +203,11 @@
 			]);
 
 			serverLog.info('Page wakeup refresh complete');
-			showStalePage = false;
 		} catch (err) {
 			serverLog.error('Failed to refresh after page wakeup', {
 				error: err instanceof Error ? err.message : String(err)
 			});
+			showStalePage = true;
 		}
 	}
 

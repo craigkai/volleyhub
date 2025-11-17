@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/sveltekit';
 import { createServerClient } from '@supabase/ssr';
 import { createHandler } from 'svelte-kit-bot-block';
 import { type Handle, redirect } from '@sveltejs/kit';
@@ -135,4 +136,8 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-export const handle: Handle = sequence(supabase, authGuard, createHandler());
+export const handle: Handle = sequence(
+	Sentry.sentryHandle(),
+	sequence(supabase, authGuard, createHandler())
+);
+export const handleError = Sentry.handleErrorWithSentry();

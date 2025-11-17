@@ -4,6 +4,7 @@
  */
 
 import { serverLog } from './serverLogger';
+import * as Sentry from '@sentry/sveltekit';
 
 export class PageVisibilityTracker {
 	private lastActiveTime: number = Date.now();
@@ -39,18 +40,36 @@ export class PageVisibilityTracker {
 					timeHiddenSeconds: Math.round(timeHidden / 1000)
 				});
 
-				// If page was hidden for more than 5 seconds, consider it a "wakeup"
-				if (timeHidden > 5000) {
-					serverLog.warn('Page was frozen/suspended, triggering wakeup', {
-						timeHiddenSeconds: Math.round(timeHidden / 1000)
-					});
-					this.onWakeup?.();
-				}
+				// Add Sentry breadcrumb for page wakeup
+				Sentry.addBreadcrumb({
+					category: 'pwa.lifecycle',
+					message: 'Page became visible (woke from sleep)',
+					level: 'info',
+					data: {
+						timeHiddenMs: timeHidden,
+						timeHiddenSeconds: Math.round(timeHidden / 1000),
+					},
+				});
+
+				// Always trigger wakeup when page becomes visible
+				// This is critical for PWAs on iOS which freeze when backgrounded
+				serverLog.info('PWA woke from sleep, triggering session refresh', {
+					timeHiddenSeconds: Math.round(timeHidden / 1000)
+				});
+				this.onWakeup?.();
 
 				this.lastActiveTime = Date.now();
 			} else if (!this.isCurrentlyVisible) {
 				// Page just became hidden
 				serverLog.debug('Page became hidden');
+
+				// Add Sentry breadcrumb for page sleep
+				Sentry.addBreadcrumb({
+					category: 'pwa.lifecycle',
+					message: 'Page became hidden (going to sleep)',
+					level: 'info',
+				});
+
 				this.lastActiveTime = Date.now();
 				this.onSleep?.();
 			}

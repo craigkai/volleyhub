@@ -11,6 +11,7 @@
 	import { Team } from '$lib/team.svelte';
 	import XIcon from 'lucide-svelte/icons/x';
 	import { serverLog } from '$lib/serverLogger';
+	import * as Sentry from '@sentry/sveltekit';
 
 	let { matchId, matches, teams, tournament } = $props();
 
@@ -19,18 +20,14 @@
 	// Derive initial player lists from match_teams
 	const initialHomePlayerIds = $derived.by(() => {
 		if (match?.match_teams && Array.isArray(match.match_teams)) {
-			return match.match_teams
-				.filter((mt: any) => mt.side === 'home')
-				.map((mt: any) => mt.team_id);
+			return match.match_teams.filter((mt: any) => mt.side === 'home').map((mt: any) => mt.team_id);
 		}
 		return [];
 	});
 
 	const initialAwayPlayerIds = $derived.by(() => {
 		if (match?.match_teams && Array.isArray(match.match_teams)) {
-			return match.match_teams
-				.filter((mt: any) => mt.side === 'away')
-				.map((mt: any) => mt.team_id);
+			return match.match_teams.filter((mt: any) => mt.side === 'away').map((mt: any) => mt.team_id);
 		}
 		return [];
 	});
@@ -38,6 +35,7 @@
 	// Track match_teams for individual format - mutable for user edits
 	let homePlayerIds = $state<number[]>([]);
 	let awayPlayerIds = $state<number[]>([]);
+	let isSaving = $state(false);
 
 	// Sync with initial values when match changes
 	$effect(() => {
@@ -46,11 +44,48 @@
 	});
 
 	async function saveMatch() {
+		// Prevent duplicate saves
+		if (isSaving) {
+			serverLog.warn('Save already in progress, ignoring duplicate call');
+			Sentry.addBreadcrumb({
+				category: 'match.save',
+				message: 'Duplicate save attempt blocked',
+				level: 'warning',
+			});
+			return;
+		}
+
+		isSaving = true;
+
+		// Start a Sentry transaction to track the entire save flow
+		const transaction = Sentry.startInactiveSpan({
+			name: 'match.save',
+			op: 'match.update',
+			data: {
+				matchId: match.id,
+				team1_score: match.team1_score,
+				team2_score: match.team2_score,
+				format: tournament?.format,
+				online: navigator.onLine,
+				pageVisible: !document.hidden,
+			},
+		});
+
 		serverLog.info('Save Match button clicked in EditMatch', {
 			matchId: match.id,
 			team1_score: match.team1_score,
 			team2_score: match.team2_score,
 			format: tournament?.format
+		});
+
+		Sentry.addBreadcrumb({
+			category: 'match.save',
+			message: 'Save Match button clicked',
+			level: 'info',
+			data: {
+				matchId: match.id,
+				online: navigator.onLine,
+			},
 		});
 
 		try {
@@ -70,15 +105,36 @@
 			// For individual format, update match_teams
 			if (tournament?.format === 'individual') {
 				serverLog.debug('About to update match teams');
+				Sentry.addBreadcrumb({
+					category: 'match.save',
+					message: 'Updating match teams',
+					level: 'info',
+				});
 				await updateMatchTeams();
 				serverLog.debug('Match teams updated successfully');
 			}
 
 			serverLog.debug('About to call updateMatch', { matchId: match.id });
+			Sentry.addBreadcrumb({
+				category: 'match.save',
+				message: 'Calling updateMatch',
+				level: 'info',
+			});
+
 			const updatedMatch = await updateMatch(match);
+
 			serverLog.debug('updateMatch returned', {
 				success: !!updatedMatch,
 				matchId: updatedMatch?.id
+			});
+
+			Sentry.addBreadcrumb({
+				category: 'match.save',
+				message: 'updateMatch completed successfully',
+				level: 'info',
+				data: {
+					success: !!updatedMatch,
+				},
 			});
 
 			const team1 = updatedMatch
@@ -95,7 +151,31 @@
 				stack: err instanceof Error ? err.stack : undefined
 			});
 			console.error('Failed to save match:', err);
+
+			// Capture error in Sentry with full context
+			Sentry.captureException(err, {
+				tags: {
+					operation: 'match.save',
+					matchId: match.id,
+				},
+				contexts: {
+					match: {
+						id: match.id,
+						team1_score: match.team1_score,
+						team2_score: match.team2_score,
+						state: match.state,
+					},
+					network: {
+						online: navigator.onLine,
+						pageVisible: !document.hidden,
+					},
+				},
+			});
+
 			toast.error('Failed to save match');
+		} finally {
+			isSaving = false;
+			transaction?.end();
 		}
 	}
 
@@ -312,7 +392,7 @@
 		<div class="relative mb-6">
 			<h2 class="text-center text-xl font-bold text-white">Edit Match</h2>
 			<AlertDialog.Cancel
-				class="absolute right-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border-none bg-transparent p-0 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-blue-500"
+				class="absolute top-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-none bg-transparent p-0 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-blue-500"
 			>
 				<XIcon class="h-5 w-5" />
 				<span class="sr-only">Close</span>
@@ -364,7 +444,9 @@
 				<!-- Referee section for individual format -->
 				{#if tournament?.refs !== 'provided'}
 					{@const playersInMatch = [...homePlayerIds, ...awayPlayerIds]}
-					{@const availableRefs = teams.teams.filter((t: Team) => t.id && !playersInMatch.includes(t.id))}
+					{@const availableRefs = teams.teams.filter(
+						(t: Team) => t.id && !playersInMatch.includes(t.id)
+					)}
 					{@const currentRef = teams.teams.find((t: Team) => t.id === match.ref)}
 					<div class="mb-6">
 						<Label class="mb-3 block font-medium text-white" for="referee-select">Referee:</Label>
@@ -414,10 +496,14 @@
 				<!-- Referee section for fixed teams format -->
 				{#if tournament?.refs !== 'provided'}
 					{@const teamsInMatch = [match.team1, match.team2]}
-					{@const availableRefs = teams.teams.filter((t: Team) => t.id && !teamsInMatch.includes(t.id))}
+					{@const availableRefs = teams.teams.filter(
+						(t: Team) => t.id && !teamsInMatch.includes(t.id)
+					)}
 					{@const currentRef = teams.teams.find((t: Team) => t.id === match.ref)}
 					<div class="mb-6">
-						<Label class="mb-3 block font-medium text-white" for="referee-select-fixed">Referee:</Label>
+						<Label class="mb-3 block font-medium text-white" for="referee-select-fixed"
+							>Referee:</Label
+						>
 						<Select.Root
 							type="single"
 							value={match.ref?.toString() || ''}
@@ -459,10 +545,11 @@
 
 		<div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
 			<Button
-				class="w-full rounded-md bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-none sm:w-auto"
+				class="w-full rounded-md bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
 				onclick={saveMatch}
+				disabled={isSaving}
 			>
-				Save Changes
+				{isSaving ? 'Saving...' : 'Save Changes'}
 			</Button>
 
 			<Button
