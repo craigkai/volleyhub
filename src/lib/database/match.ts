@@ -120,26 +120,15 @@ export class MatchSupabaseDatabaseService extends SupabaseDatabaseService {
 			serverLog.debug('Match update attempt', {
 				matchId: match.id,
 				online: typeof navigator !== 'undefined' ? navigator.onLine : 'unknown',
-				hasClient: !!this.supabaseClient,
-				timestamp: new Date().toISOString()
+				hasClient: !!this.supabaseClient
 			});
 
-			// Use Supabase's built-in AbortSignal.timeout to prevent hanging on iOS after wakeup
-			serverLog.debug('About to call supabaseClient.from()');
-
-			const updatePromise = this.supabaseClient
+			const res: PostgrestSingleResponse<MatchRow | null> = await this.supabaseClient
 				.from('matches')
 				.update(parsedMatch)
 				.eq('id', match.id)
 				.select('*')
-				.abortSignal(AbortSignal.timeout(10000))
 				.maybeSingle();
-
-			serverLog.debug('Created update promise, now awaiting');
-
-			const res: PostgrestSingleResponse<MatchRow | null> = await updatePromise;
-
-			serverLog.debug('Promise resolved');
 
 			serverLog.debug('Match update response', {
 				matchId: match.id,
